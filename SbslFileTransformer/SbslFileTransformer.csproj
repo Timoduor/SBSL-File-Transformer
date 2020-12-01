@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>aspnet-SbslFileTransformer-92C8AB10-D7B6-4168-928B-5FC7E66E002C</UserSecretsId>
+    <Company>Strategic Business Solutions Ltd</Company>
+    <Authors>Bryson Yida</Authors>
+    <Product>Sbsl File Transformer</Product>
+    <Description>SBSL File Extraction Transformation and Loading Services Tool</Description>
+    <Copyright>SBSL</Copyright>
+    <PackageProjectUrl>https://www.sbsl.co.ke</PackageProjectUrl>
+    <PackageIcon>sbsl.jpg</PackageIcon>
+    <RepositoryUrl></RepositoryUrl>
+    <ApplicationIcon>sbsl.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="LicenseVerify.cer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="LicenseVerify.cer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="3.1.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="3.1.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="3.1.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.7" />
+    <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
+    <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Images\sbsl.jpg">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Licensing\Licensing.csproj" />
+  </ItemGroup>
+
+</Project>

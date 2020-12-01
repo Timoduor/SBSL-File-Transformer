@@ -1,0 +1,39 @@
+﻿
+@{
+    ViewBag.Title = "Renew License";
+}
+
+<div class="col-md-offset-2">
+<h2>Renew License</h2>
+
+<p>Problem with the license key</p>
+    <p>Status: <b>@ViewBag.Status</b></p>
+    <p>Description: <b>@ViewBag.LicenseMessage</b></p>
+<p>Please send this ID to us to generate your license key</p>
+<hr />
+<h4><textarea readonly style="width: 50%; height: 35px; padding: 5px 10px;"  >@ViewBag.Uid</textarea></h4>
+
+</div>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <h4></h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-8 col-md-offset-2">
+                <label>Please enter the License text that was sent to you here:</label>
+                <textarea placeholder="" name="licKey" rows="20" required style="width: 100%"></textarea>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Apply License" class="btn btn-primary" style="width: 200px; height: 50px; font-size: 25px" />
+            </div>
+        </div>
+    </div>
+}
+

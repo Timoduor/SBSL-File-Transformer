@@ -1,0 +1,31 @@
+﻿@using SbslFileTransformer.Infrastructure.Licensing
+
+@{
+    ViewBag.Title = "License Information";
+    ETLLicense lic = ViewBag.License;
+}
+
+
+
+<div class="col-md-offset-2">
+    <h2>License Information</h2>
+
+    <p>Status: <b>@ViewBag.Status</b></p>
+    <label>Description</label>
+    <p>Expiry Date: <label>@lic.ExpiryDate</label></p>
+    <p>Enable All: <label>@lic.EnableAll</label></p>
+    <p>Enable Login: <label>@lic.EnableLogin</label></p>
+    <p>Enable Config: <label>@lic.EnableConfig</label></p>
+    <p>Enable Update: <label>@lic.EnableUpdate</label></p>
+    <p>App Name: <label>@lic.AppName</label></p>
+    <p>UID: <label>@lic.UID</label></p>
+    <hr/>
+
+
+    <p>
+        @Html.ActionLink("Go Home", "Index", new {Controller = "Home"}, new {@class = "btn btn-info"})
+        @Html.ActionLink("Apply New License Key", "RenewLicense", new {Controller = "License"}, new {@class = "btn btn-primary"})
+
+    </p>
+
+</div>
