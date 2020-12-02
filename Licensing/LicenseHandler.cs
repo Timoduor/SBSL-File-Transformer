@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Text;
+using System.IO;
 using System.Security;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
+using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
-using System.IO;
 
 namespace Licensing
 {

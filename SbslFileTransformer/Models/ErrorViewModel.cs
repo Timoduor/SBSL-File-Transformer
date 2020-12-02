@@ -1,5 +1,3 @@
-using System;
-
 namespace SbslFileTransformer.Models
 {
     public class ErrorViewModel

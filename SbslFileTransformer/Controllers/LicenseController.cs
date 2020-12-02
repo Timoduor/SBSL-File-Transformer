@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Licensing;
+﻿using Licensing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.FileProviders;
 using SbslFileTransformer.Infrastructure.Licensing;
 using SbslFileTransformer.Infrastructure.Licensing.Attributes;
+using System.Linq;
 
 namespace SbslFileTransformer.Controllers
 {

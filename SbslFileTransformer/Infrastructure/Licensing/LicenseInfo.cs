@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using System.Web;
 
 namespace SbslFileTransformer.Infrastructure.Licensing
 {
