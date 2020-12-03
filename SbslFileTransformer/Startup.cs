@@ -7,6 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Jobs;
+using SbslFileTransformer.Infrastructure.Plugins;
 using Serilog;
 using System.IO;
 
@@ -25,7 +27,7 @@ namespace SbslFileTransformer
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(
+                options.UseSqlite(
                     Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
@@ -41,6 +43,9 @@ namespace SbslFileTransformer
 #if DEBUG
             services.AddRazorPages().AddRazorRuntimeCompilation();
 #endif
+            services.AddHostedService<JobManager>();
+
+            services.AddScoped<PluginManager>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

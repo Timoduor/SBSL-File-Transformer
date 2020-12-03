@@ -1,26 +1,83 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using PluginBase;
+using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Plugins;
+using SbslFileTransformer.Models;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Controllers
 {
     public class PluginController : Controller
     {
         private ILogger<PluginManager> _pluginLogger;
+        private ApplicationDbContext _dbContext;
+        private PluginManager _pluginManager;
 
-        public PluginController(ILogger<PluginManager> pluginLogger)
+        public PluginController(ILogger<PluginManager> pluginLogger, ApplicationDbContext dbContext, PluginManager pluginManager)
         {
             _pluginLogger = pluginLogger;
+            _dbContext = dbContext;
+            _pluginManager = pluginManager;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var pluginManager = new PluginManager(_pluginLogger);
+            var plugins = _pluginManager.GetPlugins();
 
-            var plugins = pluginManager.GetPlugins(Path.Combine(Directory.GetCurrentDirectory(), "Plugins"));
+            var savedPlugins = _dbContext.Plugins;
 
-            return View(plugins);
+            var unsaved = plugins.Where(p => !savedPlugins.Select(s => s.Id).Contains(p.Id));
+
+            await SaveNewPlugins(unsaved);
+
+            return View(savedPlugins);
+        }
+
+        public async Task<IActionResult> Edit(Guid id)
+        {
+            //only allow editing of input/output folders check interval, check time
+            var plugin = await _dbContext.Plugins.FindAsync(id);
+
+            return View(plugin);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(Plugin plugin)
+        {
+            var pluginToEdit = await _dbContext.Plugins.FindAsync(plugin.Id);
+
+            pluginToEdit.CheckInterval = plugin.CheckInterval;
+            pluginToEdit.CheckTime = plugin.CheckTime;
+            pluginToEdit.InputFolder = plugin.InputFolder;
+            pluginToEdit.OutputFolder = plugin.OutputFolder;
+
+            _dbContext.Entry(pluginToEdit).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+
+            await _dbContext.SaveChangesAsync();
+
+            return RedirectToAction("Index");
+        }
+
+        private async Task SaveNewPlugins(IEnumerable<IRunnable> newPlugins)
+        {
+            foreach(var plugin in newPlugins)
+            {
+                var p = new Plugin
+                {
+                    Id = plugin.Id,
+                    Name = plugin.Name,
+                    Description = plugin.Description,
+                    OutputFolder = plugin.OutputFolder
+                };
+
+                _dbContext.Plugins.Add(p);
+                await _dbContext.SaveChangesAsync();
+            }
         }
     }
 }

@@ -17,8 +17,13 @@ namespace SbslFileTransformer.Infrastructure.Plugins
             _logger = logger;
         }
 
-        public IEnumerable<IRunnable> GetPlugins(string pluginsFolder)
+        public IEnumerable<IRunnable> GetPlugins(string pluginsFolder = "")
         {
+            if (string.IsNullOrEmpty(pluginsFolder))
+            {
+                pluginsFolder = Path.Combine(Directory.GetCurrentDirectory(), "Plugins"); //MIGHT NEED TO HAVE THIS IN A CONFIGURATION INSTEAD
+            }
+
             var options = new EnumerationOptions()
             {
                 RecurseSubdirectories = true,

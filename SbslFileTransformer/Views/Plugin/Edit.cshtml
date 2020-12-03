@@ -1,0 +1,68 @@
+﻿@model SbslFileTransformer.Models.Plugin
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <h1>Edit Plug-in Details</h1>
+    </div>
+    <div class="col-md-6">
+        <a class="btn btn-secondary float-right" asp-action="Index">Back to List</a>
+    </div>
+</div>
+
+
+<hr />
+<div class="row">
+    <div class="col-md-12">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="row">
+                <div class="col-md-6">
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="form-group">
+                        <label asp-for="Name" class="control-label"></label>
+                        <input asp-for="Name" class="form-control font-weight-bold" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="InputFolder" class="control-label"></label>
+                        <input asp-for="InputFolder" class="form-control" />
+                        <span class="text-danger">Make sure this directory exists for the job to run</span>
+                        <span asp-validation-for="InputFolder" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="OutputFolder" class="control-label"></label>
+                        <input asp-for="OutputFolder" class="form-control" />
+                        <span class="text-danger">Make sure this directory exists for the job to run</span>
+                        <span asp-validation-for="OutputFolder" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="CheckInterval" class="control-label"></label>
+                        <input asp-for="CheckInterval" class="form-control" />
+                        <span asp-validation-for="CheckInterval" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="CheckTime" class="control-label"></label>
+                        <input asp-for="CheckTime" class="form-control" />
+                        <span asp-validation-for="CheckTime" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="Description" class="control-label"></label>
+                        <textarea asp-for="Description" class="form-control" readonly rows="10"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary float-right" />
+            </div>
+        </form>
+    </div>
+</div>
+
+
+

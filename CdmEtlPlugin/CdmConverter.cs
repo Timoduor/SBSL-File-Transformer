@@ -1,24 +1,47 @@
-﻿using PluginBase;
+﻿using Microsoft.Extensions.Logging;
+using PluginBase;
 using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace CdmEtlPlugin
 {
-    public class CdmConverter : IRunnable
+    public sealed class CdmConverter : IRunnable
     {
         public Guid Id => new Guid("abbae997-0ae8-4ce7-9a14-a7b2d84b21db");
 
-        public string Name => "Cdm Converter Plugin";
+        public string Name => "Cdm Converter";
 
         public string Description => "This plugin loads cdm excel files and converts them to a csv format that blackline can process";
 
-        public string OriginPath { get; set; }
-        public string DestinationPath { get; set; }
+        public string InputFolder { get ; set ; }
+        public string OutputFolder { get; set; }
+        public ILogger<IRunnable> Logger { get; set; }
 
-        public bool Execute()
+        public void Dispose()
         {
-            Console.WriteLine("It works");
+            //dispose any resources here
+        }
 
-            return true;
+        public async Task<bool> Execute(string filePath)
+        {
+            //await whatever logic in a task so that it runs in a separate thread
+            try
+            {
+                //check if file is valid
+                //process it
+                Console.WriteLine($"Job with file {filePath} started successfully!");
+                Logger.LogDebug("Plugin is HIT!!!!!");
+
+                return true; //for success false otherwise
+            }
+            catch(Exception ex)
+            {
+                Logger.LogError(ex.Message + typeof(CdmConverter).FullName);
+
+                return false;
+            }
+
         }
     }
 }

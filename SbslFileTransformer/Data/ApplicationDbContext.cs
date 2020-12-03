@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using SbslFileTransformer.Models;
 
 namespace SbslFileTransformer.Data
 {
@@ -9,5 +10,7 @@ namespace SbslFileTransformer.Data
             : base(options)
         {
         }
+
+        public DbSet<Plugin> Plugins { get; set; }
     }
 }

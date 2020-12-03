@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
 
 namespace PluginBase
 {
@@ -8,13 +10,13 @@ namespace PluginBase
     /// https://docs.microsoft.com/en-us/dotnet/core/tutorials/creating-app-with-plugin-support
     /// Also remember to do the bit in the .csproj file of the plugin you create
     /// </summary>
-    public interface IRunnable
+    public interface IRunnable : IDisposable
     {
+        ILogger<IRunnable> Logger { get; set; }
         Guid Id { get; }
         string Name { get; }
         string Description { get; }
-        string OriginPath { get; set; }
-        string DestinationPath { get; set; }
-        bool Execute();
+        string OutputFolder { get; set; }
+        Task<bool> Execute(string filePath);
     }
 }

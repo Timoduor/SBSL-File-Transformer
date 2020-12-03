@@ -1,56 +1,60 @@
-﻿@model IEnumerable<PluginBase.IRunnable>
+﻿@model IEnumerable<Plugin>
 
 @{
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1>Available Plug-ins</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
+<table class="table table-bordered table-striped">
     <thead>
         <tr>
             <th>
+                Name
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Name)
+                Description
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Description)
+                Input Folder
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.OriginPath)
+                Output Folder
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.DestinationPath)
+                Check Interval
+            </th>
+            <th>
+                Check Time
             </th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.HiddenFor(modelItem => item.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.OriginPath)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DestinationPath)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ })
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.InputFolder)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.OutputFolder)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CheckInterval)
+                <td>
+                    @Html.DisplayFor(modelItem => item.CheckTime)
+                </td>
+                <td>
+                    @Html.ActionLink("Edit", "Edit", "Plugin", new { id = item.Id }, new { @class = "btn btn-primary" })
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
