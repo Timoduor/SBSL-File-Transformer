@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using PluginBase;
 using SbslFileTransformer.Data;
@@ -12,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Controllers
 {
+    [AllowAnonymous]
     public class PluginController : Controller
     {
         private ILogger<PluginManager> _pluginLogger;
@@ -51,8 +53,7 @@ namespace SbslFileTransformer.Controllers
         {
             var pluginToEdit = await _dbContext.Plugins.FindAsync(plugin.Id);
 
-            pluginToEdit.CheckInterval = plugin.CheckInterval;
-            pluginToEdit.CheckTime = plugin.CheckTime;
+            pluginToEdit.StartDelay = plugin.StartDelay;
             pluginToEdit.InputFolder = plugin.InputFolder;
             pluginToEdit.OutputFolder = plugin.OutputFolder;
 

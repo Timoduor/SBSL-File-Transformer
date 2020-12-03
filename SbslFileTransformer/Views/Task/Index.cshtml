@@ -1,0 +1,57 @@
+﻿@model SbslFileTransformer.Models.TaskViewModel
+
+@{
+    ViewData["Title"] = "Manual Conversion";
+}
+
+<h1>Run Manual Conversion Task</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-12">
+        <form asp-action="Index" id="taskForm">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Select Plugin</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var plugin in Model.Plugins)
+                            {
+                                <tr>
+                                    <td>
+                                        <input type="radio" id="@plugin.Id" name="plugin" value="@plugin.Id" onselect="onPluginSelected()">
+                                        <label for="huey">@plugin.Name</label>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    @foreach(var file in Model.Files)
+                    {
+
+                    }
+                </div>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Run" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        function onPluginSelected() {
+            var selectedPluginId = $('input[name="plugin"]:checked', '#taskForm').val();
+            window.location.href = '/task/index?pluginId=' + selectedPluginId;
+        }
+    </script>
+}

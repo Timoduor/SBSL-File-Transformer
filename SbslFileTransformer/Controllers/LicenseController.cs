@@ -1,4 +1,5 @@
 ﻿using Licensing;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.FileProviders;
 using SbslFileTransformer.Infrastructure.Licensing;
@@ -8,6 +9,7 @@ using System.Linq;
 namespace SbslFileTransformer.Controllers
 {
     [LicenseCheckExempt]
+    [AllowAnonymous]
     public class LicenseController : Controller
     {
         private IFileProvider _fileProvider;

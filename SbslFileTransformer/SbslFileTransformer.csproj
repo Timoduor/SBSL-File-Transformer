@@ -44,7 +44,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Licensing\Licensing.csproj" />
-    <ProjectReference Include="..\PluginBase\PluginBase.csproj" />
+    <ProjectReference Include="..\Plugins\PluginBase\PluginBase.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -12,7 +12,6 @@ namespace SbslFileTransformer.Models
         public string Description { get; set; }
         public string InputFolder { get; set; }
         public string OutputFolder { get; set; }
-        public int CheckInterval { get; set; }
-        public DateTime CheckTime { get; set; }
+        public int StartDelay { get; set; }
     }
 }

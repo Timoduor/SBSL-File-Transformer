@@ -9,8 +9,8 @@ using SbslFileTransformer.Data;
 namespace SbslFileTransformer.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20201202115338_Creation")]
-    partial class Creation
+    [Migration("20201203111836_Init2")]
+    partial class Init2
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -157,12 +157,10 @@ namespace SbslFileTransformer.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(128);
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("ProviderKey")
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(128);
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("TEXT");
@@ -199,12 +197,10 @@ namespace SbslFileTransformer.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(128);
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(128);
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Value")
                         .HasColumnType("TEXT");
@@ -220,12 +216,6 @@ namespace SbslFileTransformer.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("CheckInterval")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CheckTime")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Description")
                         .HasColumnType("TEXT");
 
@@ -237,6 +227,9 @@ namespace SbslFileTransformer.Migrations
 
                     b.Property<string>("OutputFolder")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("StartDelay")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 

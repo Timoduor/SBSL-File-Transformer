@@ -1,0 +1,122 @@
+﻿@model RegisterBindingModel
+
+@{
+    Layout = "_LayoutPublic";
+}
+
+<div class="login-box">
+    <div class="login-logo">
+        <a href=""><img src="~/img/logo.png" /></a>
+    </div>
+    <!-- /.login-logo -->
+    <div class="card">
+        <div class="card-body login-card-body">
+            <p class="login-box-msg">Sign Up</p>
+            <p>all fields are required</p>
+            @using (Html.BeginForm("SignUp", "Auth", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <div class="input-group mb-3">
+                    @Html.TextBoxFor(m => m.Organization, new { @class = "form-control", placeholder = "Organization", tabindex = "1", autofocus = "true" })
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-envelope"></span>
+                        </div>
+                    </div>
+                </div>
+                @Html.ValidationMessageFor(m => m.Organization, "", new { @class = "text-danger" })
+                <div class="input-group mb-3">
+                    @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "Email" })
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-envelope"></span>
+                        </div>
+                    </div>
+                </div>
+                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                <div class="input-group mb-3">
+                    @Html.TextBoxFor(m => m.FirstName, new { @class = "form-control", placeholder = "First Name" })
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-envelope"></span>
+                        </div>
+                    </div>
+                </div>
+                @Html.ValidationMessageFor(m => m.FirstName, "", new { @class = "text-danger" })
+                <div class="input-group mb-3">
+                    @Html.TextBoxFor(m => m.LastName, new { @class = "form-control", placeholder = "Last Name"})
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-envelope"></span>
+                        </div>
+                    </div>
+                </div>
+                @Html.ValidationMessageFor(m => m.LastName, "", new { @class = "text-danger" })
+                <div class="input-group mb-3">
+                    @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", placeholder = "Phone Number" })
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-envelope"></span>
+                        </div>
+                    </div>
+                </div>
+                @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger" })
+                <div class="input-group mb-3">
+                    @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "Password" })
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-lock"></span>
+                        </div>
+                    </div>
+                </div>
+                @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+                <div class="input-group mb-3">
+                    @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", placeholder = "Confirm Password" })
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-lock"></span>
+                        </div>
+                    </div>
+                </div>
+                @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger" })
+                <div class="row">
+                    <div class="col-7">
+                        @*<div class="icheck-primary">
+                        <input type="checkbox" id="remember">
+                        <label for="remember">
+                            Remember Me
+                        </label>
+                    </div>*@
+                    </div>
+                    <!-- /.col -->
+                    <div class="col-5">
+                        <button type="submit" class="btn btn-primary btn-block">Sign Up </button>
+                    </div>
+                    <!-- /.col -->
+                </div>
+            }
+
+            @*<div class="social-auth-links text-center mb-3">
+                <p>- OR -</p>
+                <a href="#" class="btn btn-block btn-primary">
+                    <i class="fab fa-facebook mr-2"></i> Sign Up using Facebook
+                </a>
+                <a href="#" class="btn btn-block btn-danger">
+                    <i class="fab fa-google-plus mr-2"></i> Sign Up using Google+
+                </a>
+            </div>*@
+            <!-- /.social-auth-links -->
+
+            @*<p class="mb-1">
+                <a href="forgot-password.html">I forgot my password</a>
+            </p>*@
+            <p class="mb-0">
+                <a href="/auth/login" class="text-center">Already registered? Log In</a>
+            </p>
+        </div>
+        <!-- /.login-card-body -->
+    </div>
+</div>
+
+@section Scripts
+{}

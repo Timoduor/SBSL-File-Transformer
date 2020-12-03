@@ -11,6 +11,7 @@ using System.Linq;
 namespace SbslFileTransformer.Controllers
 {
     [HandleLicense("All")]
+    [AllowAnonymous]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -29,7 +30,6 @@ namespace SbslFileTransformer.Controllers
             return View();
         }
 
-        [Authorize]
         public IActionResult Config()
         {
             return View();

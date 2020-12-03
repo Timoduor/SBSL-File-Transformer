@@ -22,12 +22,9 @@
                 Output Folder
             </th>
             <th>
-                Check Interval
+                Start Delay
             </th>
-            <th>
-                Check Time
-            </th>
-            <th></th>
+            <th>Action</th>
         </tr>
     </thead>
     <tbody>
@@ -47,9 +44,7 @@
                     @Html.DisplayFor(modelItem => item.OutputFolder)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.CheckInterval)
-                <td>
-                    @Html.DisplayFor(modelItem => item.CheckTime)
+                    @Html.DisplayFor(modelItem => item.StartDelay)
                 </td>
                 <td>
                     @Html.ActionLink("Edit", "Edit", "Plugin", new { id = item.Id }, new { @class = "btn btn-primary" })

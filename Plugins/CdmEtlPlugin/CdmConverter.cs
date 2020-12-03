@@ -17,6 +17,8 @@ namespace CdmEtlPlugin
         public string InputFolder { get ; set ; }
         public string OutputFolder { get; set; }
         public ILogger<IRunnable> Logger { get; set; }
+        public int StartDelay { get; set; }
+        public bool IsManualRun { get; set; }
 
         public void Dispose()
         {

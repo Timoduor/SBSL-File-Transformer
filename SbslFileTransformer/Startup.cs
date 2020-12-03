@@ -9,7 +9,9 @@ using Microsoft.Extensions.Hosting;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Infrastructure.Plugins;
+using SbslFileTransformer.Models;
 using Serilog;
+using System;
 using System.IO;
 
 namespace SbslFileTransformer
@@ -30,8 +32,28 @@ namespace SbslFileTransformer
                 options.UseSqlite(
                     Configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+            //services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
+            //{
+            //    options.SignIn.RequireConfirmedAccount = false;//TODO: SHOULD BE CHANGED IN PRODUCTION
+            //    options.User.RequireUniqueEmail = true;
+            //    options.Password.RequiredLength = 6;
+            //    options.Password.RequireNonAlphanumeric = false;
+            //    options.Password.RequireUppercase = false;
+            //    options.Password.RequireLowercase = false;
+            //    options.Password.RequireDigit = true;
+            //})
+            //    .AddEntityFrameworkStores<ApplicationDbContext>()
+            //    .AddDefaultTokenProviders();
+
+            //services.ConfigureApplicationCookie(config =>
+            //{
+            //    config.LoginPath = "/Auth/Login";
+            //    config.LogoutPath = "/Auth/Logout";
+            //    config.SlidingExpiration = true;
+            //    config.AccessDeniedPath = "/Auth/Login";
+            //    config.Cookie.Name = "SBSLETL.2021";
+            //    config.Cookie.MaxAge = TimeSpan.FromDays(30);
+            //});
 
             IFileProvider physicalProvider = new PhysicalFileProvider(Directory.GetCurrentDirectory());
 
