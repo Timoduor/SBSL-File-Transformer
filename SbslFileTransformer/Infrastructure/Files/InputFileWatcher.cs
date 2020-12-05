@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.IO;
 using System.Security.Permissions;
 using System.Threading.Tasks;
@@ -10,10 +11,13 @@ namespace SbslFileTransformer.Infrastructure.Files
     {
         private FileSystemWatcher _fileWatcher;
 
-        public Func<string, Task<bool>> ProcessFile;
+        public Func<string, Task> ProcessFile;
 
-        public InputFileWatcher(string inputFolder)
+        private ILogger<InputFileWatcher> _logger;
+        public InputFileWatcher(string inputFolder, ILogger<InputFileWatcher> logger)
         {
+            _logger = logger;
+
             _fileWatcher = new FileSystemWatcher
             {
                 Path = inputFolder,
@@ -27,14 +31,23 @@ namespace SbslFileTransformer.Infrastructure.Files
 
             _fileWatcher.Created += OnCreated;
 
-            //_fileWatcher.Changed += OnChanged; //MIGHT NEED THESE LATER ON
-            //_fileWatcher.Deleted += OnDeleted;
+            _fileWatcher.Changed += OnChanged;
+            //_fileWatcher.Deleted += OnDeleted;//MIGHT NEED THESE LATER ON
             //_fileWatcher.Renamed += OnRenamed;
+        }
+
+        private async void OnChanged(object sender, FileSystemEventArgs e)
+        {
+            await ProcessFile(e.FullPath);
+
+            _logger.LogInformation($"File {e.FullPath} changed!");
         }
 
         private async void OnCreated(object sender, FileSystemEventArgs e)
         {
             await ProcessFile(e.FullPath);
+
+            _logger.LogInformation($"File {e.FullPath} created!");
         }
 
         public void Dispose()

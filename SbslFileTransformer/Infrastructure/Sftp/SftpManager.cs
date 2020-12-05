@@ -35,6 +35,7 @@ namespace SbslFileTransformer.Infrastructure.Sftp
         public IEnumerable<SftpFile> ListAllFiles(string remoteDirectory = ".")
         {
             using var client = new SftpClient(_config.Host, _config.Port == 0 ? 22 : _config.Port, _config.UserName, _config.Password);
+
             try
             {
                 client.Connect();

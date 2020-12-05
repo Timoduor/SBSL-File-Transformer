@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using PluginBase;
 using System;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace CdmEtlPlugin

@@ -23,6 +23,7 @@ namespace SbslFileTransformer
 #endif
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
+                .WriteTo.SQLite("logs.db")
                 .WriteTo.RollingFile(formatter, Path.Combine(Directory.GetCurrentDirectory(), "logs/{Date}-SBSLETL.log"),
                     fileSizeLimitBytes: 10485760)
                 .CreateLogger();

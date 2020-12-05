@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PluginBase;
@@ -23,9 +24,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
         private ILogger<JobManager> _logger;
         private ILogger<IRunnable> _jobLogger;
+        private ILogger<InputFileWatcher> _fileLogger;
 
-        public JobManager(ILogger<JobManager> logger, ILogger<PluginManager> pluginLogger, ILogger<IRunnable> jobLogger, IServiceScopeFactory serviceScopeFactory)
+        public JobManager(ILogger<JobManager> logger, ILogger<IRunnable> jobLogger, IServiceScopeFactory serviceScopeFactory, ILogger<InputFileWatcher> fileLogger)
         {
+            _fileLogger = fileLogger;
             _logger = logger;
             _jobLogger = jobLogger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -49,7 +52,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    validJobs = dbContext.Plugins.ToList().Where(v => Directory.Exists(v.InputFolder));
+                    validJobs = (await dbContext.Plugins.ToListAsync()).Where(v => Directory.Exists(v.InputFolder));
                 }
 
                 foreach (var job in validJobs)
@@ -58,14 +61,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                     var runnable = _jobs.FirstOrDefault(j => j.Id == job.Id);
 
-                    runnable.OutputFolder = job.OutputFolder;
-                    runnable.Logger = _jobLogger;
+                    //ensure plugin projects or solution are rebuilt regular so they are picked up by reflection
+                    if (runnable != null)
+                    {
+                        runnable.OutputFolder = job.OutputFolder;
+                        runnable.Logger = _jobLogger;
 
-                    var fileWatcher = new InputFileWatcher(job.InputFolder);
+                        var fileWatcher = new InputFileWatcher(job.InputFolder, _fileLogger);
 
-                    fileWatcher.ProcessFile = async fileToProcess => await runnable.Execute(fileToProcess);
+                        fileWatcher.ProcessFile = async fileToProcess => await runnable.Execute(fileToProcess);
 
-                    _inputFileWatcher.Add(fileWatcher);
+                        _inputFileWatcher.Add(fileWatcher);
+                    }
                 }
 
 
