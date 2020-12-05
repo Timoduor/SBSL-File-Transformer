@@ -1,17 +1,16 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Infrastructure.Plugins;
-using SbslFileTransformer.Models;
+using SbslFileTransformer.Infrastructure.Sftp;
 using Serilog;
-using System;
 using System.IO;
 
 namespace SbslFileTransformer
@@ -68,6 +67,10 @@ namespace SbslFileTransformer
             services.AddHostedService<JobManager>();
 
             services.AddScoped<PluginManager>();
+
+            services.AddScoped<SftpManager>();
+
+            services.AddScoped<EncryptionManager>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

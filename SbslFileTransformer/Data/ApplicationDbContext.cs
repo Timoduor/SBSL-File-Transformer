@@ -12,5 +12,6 @@ namespace SbslFileTransformer.Data
         }
 
         public DbSet<Plugin> Plugins { get; set; }
+        public DbSet<Configuration> Configurations { get; set; }
     }
 }
