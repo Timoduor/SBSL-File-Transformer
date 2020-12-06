@@ -1,0 +1,76 @@
+﻿@model SbslFileTransformer.Models.SftpConfigModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>SFTP Configuration</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-12">
+        <form asp-action="Index">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="Host" class="control-label"></label>
+                        <input asp-for="Host" class="form-control" />
+                        <span asp-validation-for="Host" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Port" class="control-label"></label>
+                        <input asp-for="Port" class="form-control" />
+                        <span asp-validation-for="Port" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="UserName" class="control-label"></label>
+                        <input asp-for="UserName" class="form-control" />
+                        <span asp-validation-for="UserName" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Password" class="control-label"></label>
+                        <input asp-for="Password" class="form-control" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                </div><div class="col-md-6">
+                    <div class="form-group form-check">
+                        <label class="form-check-label">
+                            <input class="form-check-input" asp-for="RecurseFolders" /> @Html.DisplayNameFor(model => model.RecurseFolders)
+                        </label>
+                    </div>
+                    <div class="form-group form-check">
+                        <label class="form-check-label">
+                            <input class="form-check-input" asp-for="IncludeSandbox" /> @Html.DisplayNameFor(model => model.IncludeSandbox)
+                        </label>
+                    </div>
+                    <div class="form-group form-check">
+                        <label class="form-check-label">
+                            <input class="form-check-input" asp-for="IncludeProduction" /> @Html.DisplayNameFor(model => model.IncludeProduction)
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="SandboxFolder" class="control-label"></label>
+                        <input asp-for="SandboxFolder" class="form-control" />
+                        <span asp-validation-for="SandboxFolder" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="ProductionFolder" class="control-label"></label>
+                        <input asp-for="ProductionFolder" class="form-control" />
+                        <span asp-validation-for="ProductionFolder" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+

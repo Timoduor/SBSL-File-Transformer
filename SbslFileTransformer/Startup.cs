@@ -66,7 +66,7 @@ namespace SbslFileTransformer
 #endif
             services.AddHostedService<JobManager>();
 
-            services.AddHostedService<SftpIndependentJob>();
+            //services.AddHostedService<SftpIndependentJob>();
 
             services.AddScoped<PluginManager>();
 

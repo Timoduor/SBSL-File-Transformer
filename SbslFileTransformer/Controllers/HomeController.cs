@@ -1,12 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
+using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Licensing.Attributes;
 using SbslFileTransformer.Models;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Controllers
 {
@@ -28,47 +31,6 @@ namespace SbslFileTransformer.Controllers
         public IActionResult Index()
         {
             return View();
-        }
-
-        public IActionResult Config()
-        {
-            return View();
-        }
-
-        public IActionResult Logs()
-        {
-            try
-            {
-                var files = _fileProvider.GetDirectoryContents("logs");
-
-                var latestFiles =
-                          files
-                          .OrderByDescending(f => f.LastModified);
-
-                return View(latestFiles);
-            }
-            catch(Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                return RedirectToAction("Index");
-            }
-        }
-
-        public IActionResult DownloadLogFile(string name)
-        {
-            try
-            {
-                var files = _fileProvider.GetDirectoryContents("logs");
-
-                var file = files.FirstOrDefault(f => f.Name == name);
-
-                return File(file.CreateReadStream(), "text/plain");
-            }
-            catch(Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                return RedirectToAction("Logs");
-            }
         }
 
         public IActionResult Eula()

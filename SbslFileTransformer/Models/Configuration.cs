@@ -9,6 +9,6 @@ namespace SbslFileTransformer.Models
         public ConfigurationType ConfigType { get; set; }
         public string Key { get; set; }
         public string Value { get; set; }
-        public DateTime Updated { get; set; }
+        public DateTime Updated { get; set; } = DateTime.Now;
     }
 }
