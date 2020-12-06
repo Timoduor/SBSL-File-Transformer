@@ -32,44 +32,51 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            //sync all folders every hours
-            _timer = new Timer(async(state) => await RunFileCheckAndUpload(state), null, TimeSpan.Zero,
-            TimeSpan.FromMinutes(60));
-
-            SftpConfigModel config;
-
-            using (var scope = _serviceScopeFactory.CreateScope())
+            try
             {
-                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                //sync all folders every hours
+                _timer = new Timer(async (state) => await RunFileCheckAndUpload(state), null, TimeSpan.Zero,
+                TimeSpan.FromMinutes(60));
 
-                var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
+                SftpConfigModel config;
 
-                config = new SftpConfigModel
+                using (var scope = _serviceScopeFactory.CreateScope())
                 {
-                    Host = configurations.First(c => c.Key == "Host").Value,
-                    Port = Convert.ToInt32(configurations.First(c => c.Key == "Port").Value),
-                    UserName = configurations.First(c => c.Key == "UserName").Value,
-                    Password = configurations.First(c => c.Key == "Password").Value,
-                    RecurseFolders = Convert.ToBoolean(configurations.First(c => c.Key == "RecurseFolders").Value),
-                    IncludeSandbox = Convert.ToBoolean(configurations.First(c => c.Key == "IncludeSandbox").Value),
-                    IncludeProduction = Convert.ToBoolean(configurations.First(c => c.Key == "IncludeProduction").Value),
-                    ProductionFolder = configurations.First(c => c.Key == "ProductionFolder").Value,
-                    SandboxFolder = configurations.First(c => c.Key == "SandboxFolder").Value,
-                };
+                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
+
+                    config = new SftpConfigModel
+                    {
+                        Host = configurations.First(c => c.Key == "Host").Value,
+                        Port = Convert.ToInt32(configurations.First(c => c.Key == "Port").Value),
+                        UserName = configurations.First(c => c.Key == "UserName").Value,
+                        Password = configurations.First(c => c.Key == "Password").Value,
+                        RecurseFolders = Convert.ToBoolean(configurations.First(c => c.Key == "RecurseFolders").Value),
+                        IncludeSandbox = Convert.ToBoolean(configurations.First(c => c.Key == "IncludeSandbox").Value),
+                        IncludeProduction = Convert.ToBoolean(configurations.First(c => c.Key == "IncludeProduction").Value),
+                        ProductionFolder = configurations.First(c => c.Key == "ProductionFolder").Value,
+                        SandboxFolder = configurations.First(c => c.Key == "SandboxFolder").Value,
+                    };
+                }
+
+                if (config.IncludeProduction)
+                {
+                    var fileWatcher = new InputFileWatcher(config.ProductionFolder, _fileLogger);
+
+                    fileWatcher.ProcessFile = async fileToProcess => await RunFileCheckAndUpload(fileToProcess);
+                }
+
+                if (config.IncludeSandbox)
+                {
+                    var fileWatcher = new InputFileWatcher(config.SandboxFolder, _fileLogger);
+
+                    fileWatcher.ProcessFile = async fileToProcess => await RunFileCheckAndUpload(fileToProcess);
+                }
             }
-
-            if (config.IncludeProduction)
+            catch(Exception ex)
             {
-                var fileWatcher = new InputFileWatcher(config.ProductionFolder, _fileLogger);
-
-                fileWatcher.ProcessFile = async fileToProcess => await RunFileCheckAndUpload(fileToProcess);
-            }
-
-            if (config.IncludeSandbox)
-            {
-                var fileWatcher = new InputFileWatcher(config.SandboxFolder, _fileLogger);
-
-                fileWatcher.ProcessFile = async fileToProcess => await RunFileCheckAndUpload(fileToProcess);
+                _logger.LogError(ex, ex.Message);
             }
         }
 

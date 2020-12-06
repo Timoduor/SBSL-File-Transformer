@@ -38,7 +38,7 @@ namespace CdmEtlPlugin
             }
             catch(Exception ex)
             {
-                Logger.LogError(ex.Message + typeof(CdmConverter).FullName);
+                Logger.LogError(ex, ex.Message + typeof(CdmConverter).FullName);
 
                 return false;
             }
