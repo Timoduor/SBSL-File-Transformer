@@ -78,7 +78,7 @@ namespace SbslFileTransformer.Controllers
 
                 var command = connection.CreateCommand();
 
-                command.CommandText = "SELECT \"TimeStamp\", \"Level\", RenderedMessage, Properties, \"Exception\", id FROM Logs ORDER BY \"Timestamp\" DESC LIMIT 500";
+                command.CommandText = "SELECT \"TimeStamp\", \"Level\", RenderedMessage, Properties, \"Exception\", id FROM Logs ORDER BY \"Timestamp\" DESC LIMIT 200";
 
                 using (var reader = command.ExecuteReader())
                 {

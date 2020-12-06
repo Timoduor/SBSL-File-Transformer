@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.FileProviders;
 using SbslFileTransformer.Infrastructure.Licensing;
 using SbslFileTransformer.Infrastructure.Licensing.Attributes;
+using System.IO;
 using System.Linq;
 
 namespace SbslFileTransformer.Controllers
@@ -26,11 +27,6 @@ namespace SbslFileTransformer.Controllers
             var licenseInfo = new LicenseInfo();
 
             var licensePath = _fileProvider.GetDirectoryContents("/").FirstOrDefault(f => f.Name == "license.lic")?.PhysicalPath;
-
-            if(licensePath == null)
-            {
-                System.IO.File.Create(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "license.lic"));
-            }
 
             var status = licenseInfo.GetLicenseStatus(out string licenseMessage);
 
@@ -78,6 +74,11 @@ namespace SbslFileTransformer.Controllers
             if (licActivator.ValidateLicense(licKey, out string msg, out LicenseStatus status))
             {
                 var licensePath = _fileProvider.GetDirectoryContents("/").FirstOrDefault(f => f.Name == "license.lic")?.PhysicalPath;
+
+                if(licensePath == null)
+                {
+                    licensePath = Path.Combine(Directory.GetCurrentDirectory(), "license.lic");
+                }
 
                 System.IO.File.WriteAllText(licensePath, licKey);
                 return RedirectToAction("Index");

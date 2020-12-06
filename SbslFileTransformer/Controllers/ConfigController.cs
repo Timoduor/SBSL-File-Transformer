@@ -30,6 +30,12 @@ namespace SbslFileTransformer.Controllers
             return View();
         }
 
+        [HttpPost]
+        public IActionResult Create(Configuration config)
+        {
+            return RedirectToAction("Index");
+        }
+
         public async Task<IActionResult> Sftp()
         {
             var configurations = await _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToListAsync();

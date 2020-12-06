@@ -19,7 +19,7 @@ namespace SbslFileTransformer
 #if DEBUG
                 .MinimumLevel.Debug()
 #else
-                .MinimumLevel.Warning()
+                .MinimumLevel.Information()
 #endif
                 .Enrich.FromLogContext()
                 .WriteTo.SQLite("sbsletl_logs.db")

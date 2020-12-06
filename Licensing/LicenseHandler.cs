@@ -59,7 +59,7 @@ namespace Licensing
 
             if (string.IsNullOrWhiteSpace(licenseString))
             {
-                licStatus = LicenseStatus.CRACKED;
+                licStatus = LicenseStatus.INVALID;
                 return null;
             }
 
