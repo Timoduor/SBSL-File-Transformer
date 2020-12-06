@@ -9,7 +9,7 @@
 <hr />
 <div class="row">
     <div class="col-md-12">
-        <form asp-action="RunPlugin" id="taskForm">
+        <form asp-action="RunPlugin" id="taskForm" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="row">
                 <div class="col-md-6">
@@ -44,7 +44,7 @@
                             {
                                 <tr>
                                     <td>
-                                        <input type="checkbox" id="@file.Name" name="plugin" value="@file.FullName" onselect="onPluginSelected()" >
+                                        <input type="radio" id="@file.Name" name="file" value="@file.FullName">
                                         <label for="huey">@file.Name</label>
                                     </td>
                                 </tr>
