@@ -198,7 +198,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            _logger.LogInformation("Sftp Independent Job stopped");
         }
     }
 }

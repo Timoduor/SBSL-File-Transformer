@@ -94,6 +94,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 job.Dispose();
             }
+
+            _logger.LogInformation("Job Manager stopped");
         }
     }
 }
