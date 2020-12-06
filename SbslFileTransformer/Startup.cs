@@ -66,13 +66,13 @@ namespace SbslFileTransformer
 #endif
             services.AddHostedService<JobManager>();
 
-            //services.AddHostedService<SftpIndependentJob>();
+            services.AddHostedService<SftpIndependentJob>();
 
             services.AddScoped<PluginManager>();
 
             services.AddTransient<SftpManager>();
 
-            services.AddScoped<EncryptionManager>();
+            services.AddTransient<EncryptionManager>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

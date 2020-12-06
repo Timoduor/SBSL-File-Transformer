@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PluginBase", "Plugins\Plugi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CdmEtlPlugin", "Plugins\CdmEtlPlugin\CdmEtlPlugin.csproj", "{D37BA0C1-9A1A-4BE4-B44A-67D9B952ACAC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MtNostroEtlPlugin", "Plugins\MtNostroEtlPlugin\MtNostroEtlPlugin.csproj", "{593A4343-F9A3-4E89-8720-AD364F0D4F6D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MtNostroEtlPlugin", "Plugins\MtNostroEtlPlugin\MtNostroEtlPlugin.csproj", "{593A4343-F9A3-4E89-8720-AD364F0D4F6D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

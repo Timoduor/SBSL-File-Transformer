@@ -25,10 +25,10 @@ namespace SbslFileTransformer.Infrastructure.Sftp
             var configurations = _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
 
             _config = new SftpConfig {
-                Host = configurations.First(c => c.Key == "Host").Value,
-                Port = Convert.ToInt32(configurations.First(c => c.Key == "Port").Value),
-                UserName = configurations.First(c => c.Key == "UserName").Value,
-                Password = encryptionManager.Decrypt(configurations.First(c => c.Key == "Password").Value)
+                Host = configurations.FirstOrDefault(c => c.Key == "Host")?.Value,
+                Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port")?.Value),
+                UserName = configurations.FirstOrDefault(c => c.Key == "UserName")?.Value,
+                Password = encryptionManager.Decrypt(configurations.FirstOrDefault(c => c.Key == "Password")?.Value)
             };
         }
 
@@ -52,24 +52,52 @@ namespace SbslFileTransformer.Infrastructure.Sftp
             }
         }
 
-        public void UploadFile(string localFilePath, string remoteFilePath)
+        public bool UploadFile(string localFilePath, string remoteFilePath)
         {
             using var client = new SftpClient(_config.Host, _config.Port == 0 ? 22 : _config.Port, _config.UserName, _config.Password);
             try
             {
                 client.Connect();
+
+                var directoryPath = Path.GetDirectoryName(remoteFilePath);
+
+                CreateAllDirectories(client, directoryPath);
+
                 using var s = File.OpenRead(localFilePath);
                 client.UploadFile(s, remoteFilePath);
                 _logger.LogInformation($"Finished uploading file [{localFilePath}] to [{remoteFilePath}]");
+                return true;
             }
             catch (Exception exception)
             {
                 _logger.LogError(exception, $"Failed in uploading file [{localFilePath}] to [{remoteFilePath}]");
+                return false;
             }
             finally
             {
                 client.Disconnect();
             }
+
+        }
+
+        public void CreateAllDirectories(SftpClient client, string path)
+        {
+            // Consistent forward slashes
+            path = path.Replace(@"\", "/");
+            foreach (string dir in path.Split('/'))
+            {
+                // Ignoring leading/ending/multiple slashes
+                if (!string.IsNullOrWhiteSpace(dir))
+                {
+                    if (!client.Exists(dir))
+                    {
+                        client.CreateDirectory(dir);
+                    }
+                    client.ChangeDirectory(dir);
+                }
+            }
+            // Going back to default directory
+            client.ChangeDirectory("/");
         }
 
         public void DownloadFile(string remoteFilePath, string localFilePath)

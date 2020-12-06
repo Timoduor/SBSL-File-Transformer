@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 
 namespace SbslFileTransformer.Models
 {
@@ -7,6 +8,6 @@ namespace SbslFileTransformer.Models
 
         //plugin id plus file paths
         public List<Plugin> Plugins{ get; set; } = new List<Plugin>();
-        public List<string> Files { get; set; } = new List<string>();
+        public List<FileInfo> Files { get; set; } = new List<FileInfo>();
     }
 }

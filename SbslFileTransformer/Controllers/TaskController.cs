@@ -43,7 +43,7 @@ namespace SbslFileTransformer.Controllers
             var files = Directory.GetFiles(selectedPlugin.InputFolder).ToList();
 
             var taskVM = new TaskViewModel();
-            taskVM.Files.AddRange(files);
+            taskVM.Files.AddRange(files.Select(f => new FileInfo(f)));
 
             foreach (var plugin in plugins)
             {
