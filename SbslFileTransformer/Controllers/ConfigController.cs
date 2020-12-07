@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
+using SbslFileTransformer.Infrastructure.Licensing.Attributes;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Controllers
 {
+    [HandleLicense("All")]
     public class ConfigController : Controller
     {
         private readonly ApplicationDbContext _dbContext;

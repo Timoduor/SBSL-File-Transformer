@@ -6,10 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
+using SbslFileTransformer.Infrastructure.Licensing.Attributes;
 using SbslFileTransformer.Models;
 
 namespace SbslFileTransformer.Controllers
 {
+    [HandleLicense("All")]
     public class LogsController : Controller
     {
         private readonly ILogger<LogsController> _logger;

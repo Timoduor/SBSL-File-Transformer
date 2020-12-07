@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using PluginBase;
 using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Licensing.Attributes;
 using SbslFileTransformer.Infrastructure.Plugins;
 using SbslFileTransformer.Models;
 using System;
@@ -14,6 +15,7 @@ namespace SbslFileTransformer.Controllers
     /// <summary>
     /// select plugin -> select file(s) -> run job
     /// </summary>
+    [HandleLicense("All")]
     public class TaskController : Controller
     {
         private PluginManager _pluginManager;

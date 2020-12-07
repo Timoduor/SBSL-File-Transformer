@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using PluginBase;
 using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Licensing.Attributes;
 using SbslFileTransformer.Infrastructure.Plugins;
 using SbslFileTransformer.Models;
 using System;
@@ -13,6 +14,7 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Controllers
 {
+    [HandleLicense("All")]
     [AllowAnonymous]
     public class PluginController : Controller
     {
