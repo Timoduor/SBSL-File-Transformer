@@ -9,6 +9,7 @@ namespace SbslFileTransformer.Models
         public string Description { get; set; }
         public string InputFolder { get; set; }
         public string OutputFolder { get; set; }
+        //in seconds
         public int StartDelay { get; set; }
     }
 }

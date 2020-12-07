@@ -5,21 +5,19 @@ using System.Threading.Tasks;
 
 namespace CdmEtlPlugin
 {
-    public sealed class CdmConverter : IRunnable
+    public sealed class CdmConverter : RunnableBase
     {
-        public Guid Id => new Guid("abbae997-0ae8-4ce7-9a14-a7b2d84b21db");
+        public override Guid Id => new Guid("abbae997-0ae8-4ce7-9a14-a7b2d84b21db");
 
-        public string Name => "Cdm Converter";
+        public override string Name => "Cdm Converter";
 
-        public string Description => "This plugin loads cdm excel files and converts them to a csv format that blackline can process";
+        public override string Description => "This plugin loads cdm excel files and converts them to a csv format that blackline can process";
+        public override string OutputFolder { get; set; }
+        public override ILogger<IRunnable> Logger { get; set; }
+        public override int StartDelay { get; set; }
+        public override bool IsManualRun { get; set; }
 
-        public string InputFolder { get ; set ; }
-        public string OutputFolder { get; set; }
-        public ILogger<IRunnable> Logger { get; set; }
-        public int StartDelay { get; set; }
-        public bool IsManualRun { get; set; }
-
-        public void Dispose()
+        public override void Dispose()
         {
             //dispose any resources here
         }

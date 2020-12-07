@@ -7,6 +7,7 @@ using SbslFileTransformer.Infrastructure.Plugins;
 using SbslFileTransformer.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -72,7 +73,9 @@ namespace SbslFileTransformer.Controllers
                     Id = plugin.Id,
                     Name = plugin.Name,
                     Description = plugin.Description,
-                    OutputFolder = plugin.OutputFolder
+                    OutputFolder = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), $@"SBSLETL\{plugin.Name.Replace(" ", "")}\output"),
+                    InputFolder = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), $@"SBSLETL\{plugin.Name.Replace(" ", "")}\input"),
+                    StartDelay = 10 //specified in seconds
                 };
 
                 _dbContext.Plugins.Add(p);

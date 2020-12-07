@@ -64,6 +64,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     //ensure plugin projects or solution are rebuilt regular so they are picked up by reflection
                     if (runnable != null)
                     {
+                        if (string.IsNullOrEmpty(job.InputFolder))
+                        {
+                            job.InputFolder = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), $@"SBSLETL\{job.Name.Replace(" ", "")}\input");
+                            job.OutputFolder = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), $@"SBSLETL\{job.Name.Replace(" ", "")}\output");
+                        }
+
+                        Directory.CreateDirectory(job.OutputFolder);
+                        Directory.CreateDirectory(job.InputFolder);
+
                         runnable.OutputFolder = job.OutputFolder;
                         runnable.Logger = _jobLogger;
 

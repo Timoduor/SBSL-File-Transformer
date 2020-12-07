@@ -17,6 +17,7 @@ namespace PluginBase
         string Name { get; }
         string Description { get; }
         string OutputFolder { get; set; }
+        //in seconds
         int StartDelay { get; set; }
         bool IsManualRun { get; set; }//does not need startdelay
         Task<bool> Execute(string filePath);
