@@ -64,14 +64,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     //ensure plugin projects or solution are rebuilt regular so they are picked up by reflection
                     if (runnable != null)
                     {
-                        if (string.IsNullOrEmpty(job.InputFolder))
-                        {
-                            job.InputFolder = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), $@"SBSLETL\{job.Name.Replace(" ", "")}\input");
-                            job.OutputFolder = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), $@"SBSLETL\{job.Name.Replace(" ", "")}\output");
-                        }
-
-                        Directory.CreateDirectory(job.OutputFolder);
-                        Directory.CreateDirectory(job.InputFolder);
+                        EnsureJobDirectoriesExist(job);
 
                         runnable.OutputFolder = job.OutputFolder;
                         runnable.Logger = _jobLogger;
@@ -90,6 +83,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 _logger.LogError(ex, ex.Message);
             }
+        }
+
+        private static void EnsureJobDirectoriesExist(Plugin job)
+        {
+            if (string.IsNullOrEmpty(job.InputFolder))
+            {
+                job.InputFolder = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), $@"SBSLETL\{job.Name.Replace(" ", "")}\input");
+
+            }
+            Directory.CreateDirectory(job.InputFolder);
+
+            if (string.IsNullOrEmpty(job.OutputFolder))
+            {
+                job.OutputFolder = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), $@"SBSLETL\{job.Name.Replace(" ", "")}\output");
+            }
+            Directory.CreateDirectory(job.OutputFolder);
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)

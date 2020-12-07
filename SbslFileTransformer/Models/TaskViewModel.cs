@@ -7,7 +7,7 @@ namespace SbslFileTransformer.Models
     {
 
         //plugin id plus file paths
-        public List<Plugin> Plugins{ get; set; } = new List<Plugin>();
+        public List<PluginViewModel> Plugins{ get; set; } = new List<PluginViewModel>();
         public List<FileInfo> Files { get; set; } = new List<FileInfo>();
     }
 }

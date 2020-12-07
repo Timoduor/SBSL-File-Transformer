@@ -52,10 +52,18 @@ namespace SbslFileTransformer.Controllers
 
             foreach (var plugin in plugins)
             {
-                if (string.IsNullOrEmpty(plugin.InputFolder) || !Directory.Exists(plugin.InputFolder))
+                if (string.IsNullOrEmpty(plugin.InputFolder))
                     continue;
 
-                taskVM.Plugins.Add(plugin);
+                if (!Directory.Exists(plugin.InputFolder))
+                    Directory.CreateDirectory(plugin.InputFolder);
+
+                taskVM.Plugins.Add(new PluginViewModel {
+                    Id = plugin.Id,
+                    InputFolder = plugin.InputFolder,
+                    IsSelected = plugin.Id == selectedPlugin.Id,
+                    Name = plugin.Name
+                });
             }
 
             return View(taskVM);
