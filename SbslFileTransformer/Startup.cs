@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -30,6 +31,13 @@ namespace SbslFileTransformer
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlite(
                     Configuration.GetConnectionString("DefaultConnection")));
+
+            var keyStore = Path.Combine(Directory.GetCurrentDirectory(), "keys");
+
+            Directory.CreateDirectory(keyStore);
+
+            services.AddDataProtection()
+                    .PersistKeysToFileSystem(new DirectoryInfo(keyStore));
 
             //services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
             //{

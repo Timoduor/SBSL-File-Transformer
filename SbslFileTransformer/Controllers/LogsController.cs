@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Infrastructure.Licensing.Attributes;
 using SbslFileTransformer.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Controllers
 {
@@ -80,7 +80,7 @@ namespace SbslFileTransformer.Controllers
 
                 var command = connection.CreateCommand();
 
-                command.CommandText = "SELECT \"TimeStamp\", \"Level\", RenderedMessage, Properties, \"Exception\", id FROM Logs ORDER BY \"Timestamp\" DESC LIMIT 200";
+                command.CommandText = "SELECT \"TimeStamp\", \"Level\", RenderedMessage, Properties, \"Exception\", id FROM Logs ORDER BY \"Timestamp\" DESC LIMIT 1000";
 
                 using (var reader = command.ExecuteReader())
                 {

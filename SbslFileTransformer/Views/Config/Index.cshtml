@@ -5,7 +5,21 @@
 }
 
 <h1>Configurations</h1>
+<div class="row">
+    <div class="col-md-12">
+        <form asp-action="RestartService">
+            <div class="form-group">
+                <label class="control-label">Service Name:</label>
+                <input class="form-control" type="text" value="SBSL ETL Service" name="serviceName" />
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-warning" >Restart Service</button>
+            </div>
 
+        </form>
+    </div>
+</div>
+<hr />
 <p>
     <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="If ConfigType and Key combination exist then it's value will be UPDATED!">
         <a asp-action="Create" class="btn btn-primary">Create or Update</a>
@@ -29,21 +43,22 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.ConfigType)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Key)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Value)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Updated)
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ConfigType)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Key)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Value)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Updated)
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

@@ -34,10 +34,19 @@ namespace SbslFileTransformer.Infrastructure.Files
             _fileWatcher.Changed += OnChanged;
             //_fileWatcher.Deleted += OnDeleted;//MIGHT NEED THESE LATER ON
             //_fileWatcher.Renamed += OnRenamed;
+
+            _fileWatcher.Error += _fileWatcher_Error;
+        }
+
+        private void _fileWatcher_Error(object sender, ErrorEventArgs e)
+        {
+            _logger.LogError(e.GetException(), e.GetException().Message);
         }
 
         private async void OnChanged(object sender, FileSystemEventArgs e)
         {
+            await Task.Delay(7 * 1000);
+
             await ProcessFile(e.FullPath);
 
             _logger.LogInformation($"File {e.FullPath} changed!");
@@ -45,6 +54,8 @@ namespace SbslFileTransformer.Infrastructure.Files
 
         private async void OnCreated(object sender, FileSystemEventArgs e)
         {
+            await Task.Delay(7 * 1000);
+
             await ProcessFile(e.FullPath);
 
             _logger.LogInformation($"File {e.FullPath} created!");

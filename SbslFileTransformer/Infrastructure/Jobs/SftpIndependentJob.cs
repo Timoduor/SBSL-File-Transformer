@@ -36,6 +36,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             try
             {
+                _logger.LogInformation("Starting Sftp Independent...");
+
                 SftpConfigModel config;
 
                 int prodTimeSpan = 15;
@@ -52,7 +54,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                         Host = configurations.FirstOrDefault(c => c.Key == "Host")?.Value,
                         Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port")?.Value),
                         UserName = configurations.FirstOrDefault(c => c.Key == "UserName")?.Value,
-                        Password = _encryptionManager.Decrypt(configurations.FirstOrDefault(c => c.Key == "Password")?.Value),
+                        //Password = _encryptionManager.Decrypt(configurations.FirstOrDefault(c => c.Key == "Password")?.Value),
                         RecurseFolders = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "RecurseFolders")?.Value),
                         IncludeSandbox = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeSandbox")?.Value),
                         IncludeProduction = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value),
@@ -85,6 +87,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                                     TimeSpan.FromMinutes(sbTimeSpan));
 
                 }
+
+                _logger.LogInformation("Sftp Independent Job Started Successfully!");
             }
             catch (Exception ex)
             {
@@ -97,6 +101,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             try
             {
+                _logger.LogInformation($"Running file check and upload at {DateTime.Now}!");
+
                 var path = state?.ToString();
 
                 if (string.IsNullOrEmpty(path) || !Directory.Exists(path) || !File.Exists(path))
@@ -124,7 +130,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                     await UploadFileToSftp(path, uploadResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, path));
                 }
-            }catch(Exception ex)
+
+                _logger.LogInformation($"File check and upload ran successfully!");
+            }
+            catch(Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
             }
@@ -134,6 +143,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             try
             {
+                _logger.LogInformation($"Uploading file {filePath} to SFTP site at {DateTime.Now}!");
+
                 var previouslyUploaded = await FileHasBeenUploadedBefore(filePath, isProduction);
 
                 if (previouslyUploaded.Item2)
@@ -166,7 +177,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                         await dbContext.SaveChangesAsync();
 
-                        _logger.LogInformation($"File {filePath} has been successfully uploaded");
+                        _logger.LogInformation($"Uploaded file to SFTP {remotePath} site successfully!");
                     }
                     else
                     {
@@ -188,7 +199,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                if (await dbContext.UploadedFiles.AnyAsync(f => f.Md5 == md5 && f.IsProduction == isProduction))
+                var fileName = Path.GetFileName(filePath);
+
+                //check if md5/filename exists
+                if (await dbContext.UploadedFiles.AnyAsync(f => (f.Md5 == md5 && f.IsProduction == isProduction)
+                                    || (f.Name == fileName && f.IsProduction == isProduction)))
                 {
                     return (md5, true);
                 }

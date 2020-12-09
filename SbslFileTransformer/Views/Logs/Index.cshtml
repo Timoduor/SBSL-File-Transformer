@@ -22,7 +22,7 @@
         </div>
         <div class="card-body">
             <div class="table-wrapper-scroll-y my-custom-scrollbar">
-                <table class="table table-striped table-bordered table-sm">
+                <table class="table table-striped table-bordered table-sm small">
                     <thead class="thead-dark">
                         <tr>
                             <th>
@@ -45,7 +45,7 @@
                     <tbody>
                         @foreach (var item in Model.SqliteLogs)
                         {
-                        <tr>
+                        <tr class="@(item.Level == "Error" ? "bg-danger": item.Level == "Warning" ? "bg-warning" : "")">
                             <td>
                                 @Html.DisplayFor(modelItem => item.TimeStamp)
                             </td>
@@ -75,7 +75,7 @@
         </div>
         <div class="card-body">
             <div class="table-wrapper-scroll-y my-custom-scrollbar">
-                <table class="table table-striped table-bordered table-sm">
+                <table class="table table-striped table-bordered table-sm small">
                     <thead class="thead-dark">
                         <tr>
                             <th>

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
+using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Licensing.Attributes;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
@@ -26,9 +27,20 @@ namespace SbslFileTransformer.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var configs = await _dbContext.Configurations.OrderBy(c => c.ConfigType).ToListAsync();
+            var configs = await _dbContext.Configurations.Where(c => c.Key != "Password").OrderBy(c => c.ConfigType).ToListAsync();
 
             return View(configs);
+        }
+
+
+        public IActionResult RestartService(string serviceName)
+        {
+            if (string.IsNullOrEmpty(serviceName))
+                serviceName = "SBSL ETL Service";
+
+            StaticHelpers.RestartService(serviceName, 120 * 1000);
+
+            return RedirectToAction("Index");
         }
 
         public IActionResult Create()
@@ -68,7 +80,7 @@ namespace SbslFileTransformer.Controllers
                     Host = configurations.FirstOrDefault(c => c.Key == "Host")?.Value,
                     Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port")?.Value),
                     UserName = configurations.FirstOrDefault(c => c.Key == "UserName")?.Value,
-                    Password = configurations.FirstOrDefault(c => c.Key == "Password")?.Value,
+                    //Password = configurations.FirstOrDefault(c => c.Key == "Password")?.Value,
                     RecurseFolders = true,
                     IncludeSandbox = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeSandbox")?.Value),
                     IncludeProduction = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value),
