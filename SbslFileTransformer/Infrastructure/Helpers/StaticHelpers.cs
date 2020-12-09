@@ -4,7 +4,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 {
     public static class StaticHelpers
     {
-        public static void RestartService(string serviceName, int timeoutMilliseconds)
+        public static void RestartService(string serviceName)
         {
             Process process = new Process();
             process.StartInfo.FileName = "cmd";

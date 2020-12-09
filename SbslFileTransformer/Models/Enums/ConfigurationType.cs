@@ -2,6 +2,7 @@
 {
     public enum ConfigurationType
     {
-        Sftp
+        Sftp,
+        Service
     }
 }

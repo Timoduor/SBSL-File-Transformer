@@ -29,6 +29,8 @@ namespace SbslFileTransformer.Controllers
         {
             var configs = await _dbContext.Configurations.Where(c => c.Key != "Password").OrderBy(c => c.ConfigType).ToListAsync();
 
+            ViewBag.ServiceName = configs.FirstOrDefault(c => c.Key == "ServiceName" && c.ConfigType == ConfigurationType.Service).Value;
+
             return View(configs);
         }
 
@@ -36,9 +38,12 @@ namespace SbslFileTransformer.Controllers
         public IActionResult RestartService(string serviceName)
         {
             if (string.IsNullOrEmpty(serviceName))
+                serviceName = _dbContext.Configurations.First(c => c.Key == "ServiceName" && c.ConfigType == ConfigurationType.Service).Value;
+
+            if (string.IsNullOrEmpty(serviceName))
                 serviceName = "SBSL ETL Service";
 
-            StaticHelpers.RestartService(serviceName, 120 * 1000);
+            StaticHelpers.RestartService(serviceName);
 
             return RedirectToAction("Index");
         }

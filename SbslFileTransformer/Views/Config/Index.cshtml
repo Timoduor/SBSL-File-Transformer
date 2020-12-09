@@ -10,7 +10,7 @@
         <form asp-action="RestartService">
             <div class="form-group">
                 <label class="control-label">Service Name:</label>
-                <input class="form-control" type="text" value="SBSL ETL Service" name="serviceName" />
+                <input class="form-control" type="text" value="@ViewBag.ServiceName" name="serviceName" />
             </div>
             <div class="form-group">
                 <button type="submit" class="btn btn-warning" >Restart Service</button>
