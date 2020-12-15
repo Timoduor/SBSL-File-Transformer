@@ -9,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Jobs;
+using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Infrastructure.Plugins;
 using SbslFileTransformer.Infrastructure.Sftp;
 using Serilog;
@@ -81,6 +82,8 @@ namespace SbslFileTransformer
             services.AddTransient<SftpManager>();
 
             services.AddTransient<EncryptionManager>();
+
+            services.AddTransient<EmailSender>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

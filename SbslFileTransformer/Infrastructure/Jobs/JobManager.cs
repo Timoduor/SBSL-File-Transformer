@@ -26,7 +26,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         private ILogger<IRunnable> _jobLogger;
         private ILogger<InputFileWatcher> _fileLogger;
 
-        public JobManager(ILogger<JobManager> logger, ILogger<IRunnable> jobLogger, IServiceScopeFactory serviceScopeFactory, ILogger<InputFileWatcher> fileLogger)
+        public JobManager(ILogger<JobManager> logger, ILogger<IRunnable> jobLogger,
+            IServiceScopeFactory serviceScopeFactory, ILogger<InputFileWatcher> fileLogger)
         {
             _fileLogger = fileLogger;
             _logger = logger;

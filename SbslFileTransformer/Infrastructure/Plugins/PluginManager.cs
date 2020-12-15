@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using PluginBase;
 using System;
 using System.Collections.Generic;
@@ -11,10 +12,12 @@ namespace SbslFileTransformer.Infrastructure.Plugins
     public class PluginManager
     {
         private ILogger<PluginManager> _logger;
+        private IConfiguration _configuration;
 
-        public PluginManager(ILogger<PluginManager> logger)
+        public PluginManager(ILogger<PluginManager> logger, IConfiguration configuration)
         {
             _logger = logger;
+            _configuration = configuration;
         }
 
         public IEnumerable<IRunnable> GetPlugins(string pluginsFolder = "")

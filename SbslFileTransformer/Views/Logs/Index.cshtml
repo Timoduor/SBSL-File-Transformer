@@ -15,7 +15,65 @@
             </button>
         </div>
     }
-
+    <div class="card card-light">
+        <div class="card-header">
+            <strong>Uploaded Files</strong>
+        </div>
+        <div class="card-body">
+            <div class="table-wrapper-scroll-y my-custom-scrollbar">
+                <table class="table table-striped table-bordered table-sm small">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>
+                                Name
+                            </th>
+                            <th>
+                                Uploaded Date
+                            </th>
+                            <th>
+                                Size
+                            </th>
+                            <th>
+                                Md5
+                            </th>
+                            <th>
+                                Is Production
+                            </th>
+                            <th>
+                                File Path
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.UploadedFiles)
+                        {
+                        <tr class="@(item.IsProduction ? "bg-warning": "bg-light")">
+                            <td class="bg-">
+                                @Html.DisplayFor(modelItem => item.Name)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.UploadedDate)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Size)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Md5)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.IsProduction)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.FilePath)
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <br />
     <div class="card card-light">
         <div class="card-header">
             <strong>Log Entries</strong>
@@ -45,30 +103,30 @@
                     <tbody>
                         @foreach (var item in Model.SqliteLogs)
                         {
-                        <tr class="@(item.Level == "Error" ? "bg-danger": item.Level == "Warning" ? "bg-warning" : "")">
-                            <td>
-                                @Html.DisplayFor(modelItem => item.TimeStamp)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.Level)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.RenderedMessage)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.Properties)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.Exception)
-                            </td>
-                        </tr>
+                            <tr class="@(item.Level == "Error" ? "bg-danger": item.Level == "Warning" ? "bg-warning" : "")">
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.TimeStamp)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Level)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.RenderedMessage)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Properties)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Exception)
+                                </td>
+                            </tr>
                         }
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-    <br/>
+    <br />
     <div class="card card-deck">
         <div class="card-header">
             <strong>Log Files</strong>

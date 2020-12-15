@@ -7,6 +7,7 @@ namespace SbslFileTransformer.Models
     {
         public IOrderedEnumerable<IFileInfo> FileInfos { get; set; }
         public IOrderedEnumerable<SqliteLog> SqliteLogs { get; set; }
+        public IOrderedEnumerable<SftpUploadedFile> UploadedFiles { get; set; }
     }
 
     public class SqliteLog

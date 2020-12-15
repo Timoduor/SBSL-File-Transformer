@@ -3,6 +3,7 @@
     public enum ConfigurationType
     {
         Sftp,
-        Service
+        Service,
+        Email
     }
 }

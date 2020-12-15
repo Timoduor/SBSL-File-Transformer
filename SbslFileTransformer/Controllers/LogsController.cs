@@ -2,6 +2,7 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
+using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Licensing.Attributes;
 using SbslFileTransformer.Models;
 using System;
@@ -16,10 +17,12 @@ namespace SbslFileTransformer.Controllers
     {
         private readonly ILogger<LogsController> _logger;
         private readonly IFileProvider _fileProvider;
-        public LogsController(ILogger<LogsController> logger, IFileProvider fileProvider)
+        private readonly ApplicationDbContext _dbContext;
+        public LogsController(ILogger<LogsController> logger, IFileProvider fileProvider, ApplicationDbContext dbContext)
         {
             _fileProvider = fileProvider;
             _logger = logger;
+            _dbContext = dbContext;
         }
 
         public async Task<IActionResult> Index()
@@ -37,7 +40,8 @@ namespace SbslFileTransformer.Controllers
                 var newLogs = new LogInfo
                 {
                     FileInfos = latestFiles ?? new List<IFileInfo>().OrderByDescending(f => f.LastModified),
-                    SqliteLogs = sqliteLogs ?? new List<SqliteLog>().OrderByDescending(l => l.Id)
+                    SqliteLogs = sqliteLogs ?? new List<SqliteLog>().OrderByDescending(l => l.Id),
+                    UploadedFiles = _dbContext.UploadedFiles.OrderByDescending(f => f.UploadedDate).Take(1000).ToList().OrderByDescending(f => f.UploadedDate)
                 };
 
                 return View(newLogs);
@@ -105,5 +109,7 @@ namespace SbslFileTransformer.Controllers
 
             return logs.OrderByDescending(l => l.Id);
         }
+
+
     }
 }

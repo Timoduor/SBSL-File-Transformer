@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Files;
+using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Infrastructure.Sftp;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
@@ -22,14 +23,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         readonly ILogger<SftpIndependentJob> _logger;
         private ILogger<InputFileWatcher> _fileLogger;
         private readonly EncryptionManager _encryptionManager;
+        private readonly EmailSender _emailSender;
 
         public SftpIndependentJob(IServiceScopeFactory serviceScopeFactory, ILogger<SftpIndependentJob> logger
-            , ILogger<InputFileWatcher> fileLogger, EncryptionManager encryptionManager)
+            , ILogger<InputFileWatcher> fileLogger, EncryptionManager encryptionManager, EmailSender emailSender)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
             _fileLogger = fileLogger;
             _encryptionManager = encryptionManager;
+            _emailSender = emailSender;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -108,7 +111,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 if (string.IsNullOrEmpty(path) || !Directory.Exists(path) || !File.Exists(path))
                 {
                     //do check for all folders/files
-                    var options = new EnumerationOptions {
+                    var options = new EnumerationOptions
+                    {
                         MatchCasing = MatchCasing.CaseInsensitive,
                         MatchType = MatchType.Simple,
                         RecurseSubdirectories = true
@@ -118,28 +122,67 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                     foreach (var file in files)
                     {
-                        var uploadResult = await FileHasBeenUploadedBefore(file, isProduction);
+                        var newFileName = RenameFile(file);
 
-                        await UploadFileToSftp(file, uploadResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, file));
+                        var uploadCheckResult = await FileHasBeenUploadedBefore(newFileName.Item1, isProduction);
+
+                        await UploadFileToSftp(file, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1));
+
+                        ArchiveFile(newFileName);
                     }
                 }
                 else
                 {
-                    //do check for specific file
-                    var uploadResult = await FileHasBeenUploadedBefore(path, isProduction);
+                    var newFileName = RenameFile(path);
 
-                    await UploadFileToSftp(path, uploadResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, path));
+                    //do check for specific file
+                    var uploadResult = await FileHasBeenUploadedBefore(newFileName.Item1, isProduction);
+
+                    await UploadFileToSftp(path, uploadResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1));
+
+
                 }
 
                 _logger.LogInformation($"File check and upload ran successfully!");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
             }
         }
 
-        private async Task UploadFileToSftp(string filePath, string md5, bool isProduction, string relativePath)
+        private void ArchiveFile((string, string[]) newFileName)
+        {
+            throw new NotImplementedException();
+        }
+
+        private (string, string[]) RenameFile(string originalFile)
+        {
+            var lines = File.ReadAllLines(originalFile);
+
+            var pair = lines.FirstOrDefault(l => l.Trim().StartsWith(":28C:"))?.Split(":").Last();
+
+            if (pair != null)
+            {
+                var toRet = pair.Split("/");
+
+                var stmtSeq = pair.Replace("/", "-");
+
+                _logger.LogInformation($"Skipping file {Path.GetFileName(originalFile)} because it does not have a sequence number");
+
+                //send email maybe
+
+                var newFilename = Path.Combine(Path.GetDirectoryName(originalFile), stmtSeq + "-" + Path.GetFileName(originalFile));
+
+                File.Move(originalFile, newFilename);
+
+                return (newFilename, toRet);
+            }
+
+            return (originalFile, new string[] { });
+        }
+
+        private async Task UploadFileToSftp(string filePath, string md5, bool isProduction, string relativePath, string statementNo, string sequenceNo)
         {
             try
             {
@@ -172,7 +215,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                             Md5 = md5,
                             Name = Path.GetFileName(filePath),
                             Size = new FileInfo(filePath).Length,
-                            UploadedDate = DateTime.Now
+                            UploadedDate = DateTime.Now,
+                            MtStatementNo = statementNo,
+                            MtSequenceNo = sequenceNo
                         });
 
                         await dbContext.SaveChangesAsync();
@@ -185,7 +230,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
             }
