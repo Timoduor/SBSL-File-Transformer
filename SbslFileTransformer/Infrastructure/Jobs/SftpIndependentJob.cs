@@ -102,6 +102,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
         private async Task RunFileCheckAndUpload(object state, bool isProduction, string productionOrSandboxFolder)
         {
+
+            string fileToProcess = string.Empty;
+
             try
             {
                 _logger.LogInformation($"Running file check and upload at {DateTime.Now}!");
@@ -122,61 +125,78 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                     foreach (var file in files)
                     {
-                        var newFileName = RenameFile(file);
+                        var newFileName = RenameMTFile(file);
 
                         var uploadCheckResult = await FileHasBeenUploadedBefore(newFileName.Item1, isProduction);
 
-                        await UploadFileToSftp(file, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1));
+                        if (newFileName.Item2.Count() > 0)
+                        {
+                            await UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), newFileName.Item2[0], newFileName.Item2[1]);
+                        }
+                        else
+                        {
+                            await UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), string.Empty, string.Empty);
+                        }
 
-                        ArchiveFile(newFileName);
+                        fileToProcess = newFileName.Item1;
                     }
                 }
                 else
                 {
-                    var newFileName = RenameFile(path);
+                    var newFileName = RenameMTFile(path);
 
                     //do check for specific file
                     var uploadResult = await FileHasBeenUploadedBefore(newFileName.Item1, isProduction);
 
-                    await UploadFileToSftp(path, uploadResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1));
+                    if (newFileName.Item2.Count() > 0)
+                    {
 
+                        await UploadFileToSftp(newFileName.Item1, uploadResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), newFileName.Item2[0], newFileName.Item2[1]);
+                    }
+                    else
+                    {
+                        await UploadFileToSftp(newFileName.Item1, uploadResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), string.Empty, string.Empty);
+                    }
 
+                    fileToProcess = newFileName.Item1;
                 }
 
                 _logger.LogInformation($"File check and upload ran successfully!");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                _logger.LogError(ex, ex.Message + $" {fileToProcess}");
             }
         }
 
-        private void ArchiveFile((string, string[]) newFileName)
+        private (string, string[]) RenameMTFile(string originalFile)
         {
-            throw new NotImplementedException();
-        }
-
-        private (string, string[]) RenameFile(string originalFile)
-        {
-            var lines = File.ReadAllLines(originalFile);
-
-            var pair = lines.FirstOrDefault(l => l.Trim().StartsWith(":28C:"))?.Split(":").Last();
-
-            if (pair != null)
+            try
             {
-                var toRet = pair.Split("/");
+                var lines = File.ReadAllLines(originalFile);
 
-                var stmtSeq = pair.Replace("/", "-");
+                var pair = lines.FirstOrDefault(l => l.Trim().StartsWith(":28C:"))?.Split(":").Last();
 
-                _logger.LogInformation($"Skipping file {Path.GetFileName(originalFile)} because it does not have a sequence number");
+                if (pair != null)
+                {
+                    var toRet = pair.Split("/");
 
-                //send email maybe
+                    var stmtSeq = pair.Replace("/", "_");
 
-                var newFilename = Path.Combine(Path.GetDirectoryName(originalFile), stmtSeq + "-" + Path.GetFileName(originalFile));
+                    _logger.LogInformation($"Skipping file {Path.GetFileName(originalFile)} because it does not have a sequence number");
 
-                File.Move(originalFile, newFilename);
+                    //send email maybe
 
-                return (newFilename, toRet);
+                    var newFilename = Path.Combine(Path.GetDirectoryName(originalFile), stmtSeq + "_" + Path.GetFileName(originalFile));
+
+                    File.Move(originalFile, newFilename);
+
+                    return (newFilename, toRet);
+                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, ex.Message + $"{originalFile}");
             }
 
             return (originalFile, new string[] { });
@@ -232,7 +252,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                _logger.LogError(ex, ex.Message + $"{filePath}");
             }
         }
 

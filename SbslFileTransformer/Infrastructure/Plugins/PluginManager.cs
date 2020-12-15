@@ -12,12 +12,10 @@ namespace SbslFileTransformer.Infrastructure.Plugins
     public class PluginManager
     {
         private ILogger<PluginManager> _logger;
-        private IConfiguration _configuration;
 
-        public PluginManager(ILogger<PluginManager> logger, IConfiguration configuration)
+        public PluginManager(ILogger<PluginManager> logger)
         {
             _logger = logger;
-            _configuration = configuration;
         }
 
         public IEnumerable<IRunnable> GetPlugins(string pluginsFolder = "")

@@ -14,7 +14,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
         private EmailConfiguration _emailConfig;
         private ILogger<EmailSender> _logger;
 
-        public EmailSender(ApplicationDbContext dbContext, ILogger<EmailSender> logger)
+        public EmailSender(ILogger<EmailSender> logger)
         {
             _logger = logger;
 
@@ -25,7 +25,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
         {
             var message = new Message(recipients, subject, content);
 
-            var mimeMessage = CreateEmailMessage(message);
+            var mimeMessage = CreateEmailMessage(message, isHtml);
 
             await Send(mimeMessage);
         }
