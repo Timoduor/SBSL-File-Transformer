@@ -17,6 +17,8 @@ namespace SbslFileTransformer.Infrastructure.Sftp
         private readonly SftpConfig _config;
         private readonly ApplicationDbContext _dbContext;
 
+        private readonly static object _locker = new object();
+
         public SftpManager(ILogger<SftpManager> logger, ApplicationDbContext dbContext, EncryptionManager encryptionManager)
         {
             _logger = logger;
@@ -24,7 +26,8 @@ namespace SbslFileTransformer.Infrastructure.Sftp
 
             var configurations = _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
 
-            _config = new SftpConfig {
+            _config = new SftpConfig
+            {
                 Host = configurations.FirstOrDefault(c => c.Key == "Host")?.Value,
                 Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port")?.Value),
                 UserName = configurations.FirstOrDefault(c => c.Key == "UserName")?.Value,
@@ -54,30 +57,39 @@ namespace SbslFileTransformer.Infrastructure.Sftp
 
         public bool UploadFile(string localFilePath, string remoteFilePath)
         {
-            using var client = new SftpClient(_config.Host, _config.Port == 0 ? 22 : _config.Port, _config.UserName, _config.Password);
-            try
+            //lock (_locker)
             {
-                client.Connect();
+                using (var client = new SftpClient(_config.Host, _config.Port == 0 ? 22 : _config.Port, _config.UserName, _config.Password))
+                {
+                    try
+                    {
+                        client.Connect();
 
-                var directoryPath = Path.GetDirectoryName(remoteFilePath);
+                        var directoryPath = Path.GetDirectoryName(remoteFilePath);
 
-                CreateAllDirectories(client, directoryPath);
+                        CreateAllDirectories(client, directoryPath);
 
-                using var s = File.OpenRead(localFilePath);
-                client.UploadFile(s, remoteFilePath);
-                _logger.LogInformation($"Finished uploading file [{localFilePath}] to [{remoteFilePath}]");
-                return true;
+                        using (var s = File.OpenRead(localFilePath))
+                        {
+                            client.UploadFile(s, remoteFilePath);
+
+                            s.Close();
+                        }
+
+                        //client.Disconnect();
+
+                        _logger.LogInformation($"Finished uploading file [{localFilePath}] to [{remoteFilePath}]");
+                        return true;
+                    }
+                    catch (Exception exception)
+                    {
+                        //client.Disconnect();
+
+                        _logger.LogError(exception, $"Failed in uploading file [{localFilePath}] to [{remoteFilePath}]");
+                        return false;
+                    }
+                }
             }
-            catch (Exception exception)
-            {
-                _logger.LogError(exception, $"Failed in uploading file [{localFilePath}] to [{remoteFilePath}]");
-                return false;
-            }
-            finally
-            {
-                client.Disconnect();
-            }
-
         }
 
         public void CreateAllDirectories(SftpClient client, string path)

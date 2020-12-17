@@ -12,9 +12,11 @@ namespace SbslFileTransformer.Infrastructure.Encryption
         private readonly IDataProtectionProvider _dataProtectionProvider;
         private readonly ILogger<EncryptionManager> _logger;
 
+        private readonly static object _locker = new object();
+
         private string Purpose = "Encrypt SFTP Password";
 
-        public EncryptionManager(IDataProtectionProvider dataProtectionProvider, IConfiguration configuration, ILogger<EncryptionManager> logger)
+        public EncryptionManager(IDataProtectionProvider dataProtectionProvider, ILogger<EncryptionManager> logger)
         {
             _dataProtectionProvider = dataProtectionProvider;
             _logger = logger;
@@ -28,13 +30,13 @@ namespace SbslFileTransformer.Infrastructure.Encryption
 
         }
 
-        public string Encrypt(string input)
+        public string Encrypt(string input = "")
         {
             var protector = _dataProtectionProvider.CreateProtector(Purpose);
             return protector.Protect(input);
         }
 
-        public string Decrypt(string cipherText)
+        public string Decrypt(string cipherText = "")
         {
             var protector = _dataProtectionProvider.CreateProtector(Purpose);
             return protector.Unprotect(cipherText);
@@ -42,12 +44,18 @@ namespace SbslFileTransformer.Infrastructure.Encryption
 
         public string GetMd5(string filePath)
         {
-            using (var md5 = MD5.Create())
+            lock (_locker)
             {
-                using (var stream = File.OpenRead(filePath))
+                using (var md5 = MD5.Create())
                 {
-                    var hash = md5.ComputeHash(stream);
-                    return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+                    using (var stream = File.OpenRead(filePath))
+                    {
+                        var hash = md5.ComputeHash(stream);
+
+                        stream.Close();
+
+                        return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+                    }
                 }
             }
         }

@@ -1,7 +1,11 @@
 ﻿using MailKit.Net.Smtp;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Encryption;
+using SbslFileTransformer.Models;
+using SbslFileTransformer.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,17 +15,40 @@ namespace SbslFileTransformer.Infrastructure.Messaging
 {
     public class EmailSender
     {
-        private EmailConfiguration _emailConfig;
+        private SmtpConfigModel _emailConfig;
         private ILogger<EmailSender> _logger;
 
-        public EmailSender(ILogger<EmailSender> logger)
+        public EmailSender(IServiceScopeFactory serviceScopeFactory, ILogger<EmailSender> logger, EncryptionManager encryptionManager)
         {
             _logger = logger;
 
-            //get values from dbcontext to populate the email configuration
+            try
+            {
+                //get values from dbcontext to populate the email configuration
+                using (var scope = serviceScopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Email).ToList();
+
+                    _emailConfig = new SmtpConfigModel
+                    {
+                        Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port")?.Value),
+                        UserName = configurations.FirstOrDefault(c => c.Key == "UserName")?.Value,
+                        Password = encryptionManager.Decrypt(configurations.FirstOrDefault(c => c.Key == "Password")?.Value),
+                        EmailAddress = configurations.FirstOrDefault(c => c.Key == "EmailAddress")?.Value,
+                        SmtpServer = configurations.FirstOrDefault(c => c.Key == "SmtpServer")?.Value,
+                        Name = configurations.FirstOrDefault(c => c.Key == "Name")?.Value,
+                    };
+                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+            }
         }
 
-        public async void SendMessage(IEnumerable<string> recipients, string subject, string content, bool isHtml = false)
+        public async Task SendMessage(IEnumerable<string> recipients, string subject, string content, bool isHtml = false)
         {
             var message = new Message(recipients, subject, content);
 
@@ -65,7 +92,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
 
                     await client.SendAsync(mailMessage);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     _logger.LogError(ex.Message, ex);
                 }
@@ -78,15 +105,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
         }
     }
 
-    public class EmailConfiguration
-    {
-        public string Name { get; set; }
-        public string EmailAddress { get; set; }
-        public string SmtpServer { get; set; }
-        public int Port { get; set; }
-        public string UserName { get; set; }
-        public string Password { get; set; }
-    }
+
 
     public class Message
     {

@@ -45,20 +45,25 @@ namespace SbslFileTransformer.Infrastructure.Files
 
         private async void OnChanged(object sender, FileSystemEventArgs e)
         {
+
             await Task.Delay(20 * 1000);//20 second delay before file starts uploading
 
             await ProcessFile(e.FullPath);
 
             _logger.LogInformation($"File {e.FullPath} changed!");
+
+
         }
 
         private async void OnCreated(object sender, FileSystemEventArgs e)
         {
+
             await Task.Delay(20 * 1000);//20 second delay before file starts uploading
 
             await ProcessFile(e.FullPath);
 
             _logger.LogInformation($"File {e.FullPath} created!");
+
         }
 
         public void Dispose()

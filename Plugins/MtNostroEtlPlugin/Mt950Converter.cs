@@ -18,10 +18,11 @@ namespace MtNostroEtlPlugin
         public override string OutputFolder { get; set; }
         public override int StartDelay { get; set; }
         public override bool IsManualRun { get; set; }
+        public override string Entity { get; set; }
 
         public override void Dispose()
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public override async Task<bool> Execute(string filePath)

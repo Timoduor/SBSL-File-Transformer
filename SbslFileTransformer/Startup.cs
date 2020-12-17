@@ -77,7 +77,7 @@ namespace SbslFileTransformer
 
             services.AddHostedService<SftpIndependentJob>();
 
-            services.AddScoped<PluginManager>();
+            services.AddTransient<PluginManager>();
 
             services.AddTransient<SftpManager>();
 

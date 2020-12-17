@@ -19,6 +19,7 @@ namespace PluginBase
         public abstract string OutputFolder { get; set; }
         public abstract int StartDelay { get; set; }
         public abstract bool IsManualRun { get; set; }
+        public abstract string Entity { get; set; }
 
         public abstract void Dispose();
 

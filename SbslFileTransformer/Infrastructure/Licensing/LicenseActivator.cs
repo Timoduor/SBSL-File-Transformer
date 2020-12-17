@@ -66,7 +66,7 @@ namespace SbslFileTransformer.Infrastructure.Licensing
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
     }
 }

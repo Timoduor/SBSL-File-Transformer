@@ -82,15 +82,15 @@ namespace SbslFileTransformer.Controllers
 
                 var config = new SftpConfigModel
                 {
-                    Host = configurations.FirstOrDefault(c => c.Key == "Host")?.Value,
-                    Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port")?.Value),
-                    UserName = configurations.FirstOrDefault(c => c.Key == "UserName")?.Value,
+                    Host = configurations.FirstOrDefault(c => c.Key == "Host" && c.ConfigType == ConfigurationType.Sftp)?.Value,
+                    Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port" && c.ConfigType == ConfigurationType.Sftp)?.Value),
+                    UserName = configurations.FirstOrDefault(c => c.Key == "UserName" && c.ConfigType == ConfigurationType.Sftp)?.Value,
                     //Password = configurations.FirstOrDefault(c => c.Key == "Password")?.Value,
                     RecurseFolders = true,
-                    IncludeSandbox = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeSandbox")?.Value),
-                    IncludeProduction = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value),
-                    ProductionFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value,
-                    SandboxFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value,
+                    IncludeSandbox = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeSandbox" && c.ConfigType == ConfigurationType.Sftp)?.Value),
+                    IncludeProduction = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction" && c.ConfigType == ConfigurationType.Sftp)?.Value),
+                    ProductionFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder" && c.ConfigType == ConfigurationType.Sftp)?.Value,
+                    SandboxFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder" && c.ConfigType == ConfigurationType.Sftp)?.Value,
                 };
 
                 return View(config);
@@ -99,12 +99,146 @@ namespace SbslFileTransformer.Controllers
             return View(new SftpConfigModel());
         }
 
+        public async Task<IActionResult> Smtp()
+        {
+            var configurations = await _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Email).ToListAsync();
+
+            if (configurations.Count >= 5)
+            {
+
+                var config = new SmtpConfigModel
+                {
+                    EmailAddress = configurations.FirstOrDefault(c => c.Key == "EmailAddress" && c.ConfigType == ConfigurationType.Email)?.Value,
+                    Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port" && c.ConfigType == ConfigurationType.Email)?.Value),
+                    UserName = configurations.FirstOrDefault(c => c.Key == "UserName" && c.ConfigType == ConfigurationType.Email)?.Value,
+                    //Password = configurations.FirstOrDefault(c => c.Key == "Password")?.Value,
+                    SmtpServer = configurations.FirstOrDefault(c => c.Key == "SmtpServer" && c.ConfigType == ConfigurationType.Email)?.Value,
+                    Name = configurations.FirstOrDefault(c => c.Key == "Name" && c.ConfigType == ConfigurationType.Email)?.Value,
+                    Recipients = configurations.FirstOrDefault(c => c.Key == "Recipients" && c.ConfigType == ConfigurationType.Email)?.Value,
+                };
+
+                return View(config);
+            }
+
+            return View(new SmtpConfigModel());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateSmtpConfig(SmtpConfigModel config)
+        {
+            await UpdateSmtp(config);
+
+            return RedirectToAction("Index");
+        }
+
         [HttpPost]
         public async Task<IActionResult> UpdateConfig(SftpConfigModel config)
         {
             await UpdateSftp(config);
 
             return RedirectToAction("Index");
+        }
+
+
+        private async Task UpdateSmtp(SmtpConfigModel config)
+        {
+            //update host
+            if (!string.IsNullOrEmpty(config.UserName))
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Email,
+                    Key = "UserName",
+                    Value = config.UserName,
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
+
+            //update host
+            if (!string.IsNullOrEmpty(config.Password))
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Email,
+                    Key = "Password",
+                    Value = _encryptionManager.Encrypt(config.Password),
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
+
+            //update host
+            if (config.Port != 0)
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Email,
+                    Key = "Port",
+                    Value = config.Port.ToString(),
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
+
+            //update host
+            if (!string.IsNullOrEmpty(config.Name))
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Email,
+                    Key = "Name",
+                    Value = config.Name.ToString(),
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
+
+            //update host
+            if (!string.IsNullOrEmpty(config.SmtpServer))
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Email,
+                    Key = "SmtpServer",
+                    Value = config.SmtpServer.ToString(),
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
+
+            //update host
+            if (!string.IsNullOrEmpty(config.EmailAddress))
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Email,
+                    Key = "EmailAddress",
+                    Value = config.EmailAddress.ToString(),
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
+
+            //update host
+            if (!string.IsNullOrEmpty(config.Recipients))
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Email,
+                    Key = "Recipients",
+                    Value = config.Recipients.ToString(),
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
         }
 
         private async Task UpdateSftp(SftpConfigModel config)

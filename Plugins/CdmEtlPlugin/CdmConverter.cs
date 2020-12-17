@@ -16,6 +16,7 @@ namespace CdmEtlPlugin
         public override ILogger<IRunnable> Logger { get; set; }
         public override int StartDelay { get; set; }
         public override bool IsManualRun { get; set; }
+        public override string Entity { get; set; }
 
         public override void Dispose()
         {

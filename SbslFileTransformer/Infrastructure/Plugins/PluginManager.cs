@@ -12,10 +12,12 @@ namespace SbslFileTransformer.Infrastructure.Plugins
     public class PluginManager
     {
         private ILogger<PluginManager> _logger;
+        private ILogger<IRunnable> _loggerRunnable;
 
-        public PluginManager(ILogger<PluginManager> logger)
+        public PluginManager(ILogger<PluginManager> logger, ILogger<IRunnable> loggerRunnable)
         {
             _logger = logger;
+            _loggerRunnable = loggerRunnable;
         }
 
         public IEnumerable<IRunnable> GetPlugins(string pluginsFolder = "")
@@ -69,6 +71,9 @@ namespace SbslFileTransformer.Infrastructure.Plugins
                 if (typeof(IRunnable).IsAssignableFrom(type))
                 {
                     IRunnable result = Activator.CreateInstance(type) as IRunnable;
+
+                    result.Logger = _loggerRunnable;
+
                     if (result != null)
                     {
                         count++;
@@ -82,7 +87,7 @@ namespace SbslFileTransformer.Infrastructure.Plugins
                 string availableTypes = string.Join(",", assembly.GetTypes().Select(t => t.FullName));
 
                 _logger.LogWarning(
-                    $"Can't find any type which implements ICommand in {assembly} from {assembly.Location}.\n" +
+                    $"Can't find any type which implements IRunnable in {assembly} from {assembly.Location}.\n" +
                     $"Available types: {availableTypes}");
             }
         }

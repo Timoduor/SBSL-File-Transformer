@@ -22,16 +22,19 @@
                         @*@if (User.Identity.IsAuthenticated){}*@
 
                         <li class="nav-item">
-                            <a class="btn btn-info" asp-area="" asp-controller="Config" asp-action="Index">Configuration</a> -|-&nbsp;
+                            <a class="btn btn-info" asp-area="" asp-controller="Config" asp-action="Index">Configuration</a> -&nbsp;
                         </li>
                         <li class="nav-item">
-                            <a class="btn btn-success" asp-area="" asp-controller="Plugin" asp-action="Index">Plug-in Manager</a> -|-&nbsp;
+                            <a class="btn btn-success" asp-area="" asp-controller="Plugin" asp-action="Index">Plug-in Manager</a> -&nbsp;
                         </li>
                         <li class="nav-item">
-                            <a class="btn btn-primary" asp-area="" asp-controller="Task" asp-action="Index">Manual Tasks</a> -|-&nbsp;
+                            <a class="btn btn-primary" asp-area="" asp-controller="Task" asp-action="Index">Manual Tasks</a> -&nbsp;
                         </li>
                         <li class="nav-item">
-                            <a class="btn btn-dark" asp-area="" asp-controller="Config" asp-action="Sftp">SFTP Service</a> -|-&nbsp;
+                            <a class="btn btn-warning" asp-area="" asp-controller="Config" asp-action="Sftp">SFTP</a> -&nbsp;
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-dark" asp-area="" asp-controller="Config" asp-action="Smtp">Email</a> -&nbsp;
                         </li>
                         <li class="nav-item">
                             <a class="btn btn-secondary" asp-area="" asp-controller="Logs" asp-action="Index">Logs</a>

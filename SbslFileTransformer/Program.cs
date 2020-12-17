@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using Serilog.Filters;
 using Serilog.Formatting.Display;
 using System;
 using System.Globalization;
@@ -17,16 +18,18 @@ namespace SbslFileTransformer
 
             Log.Logger = new LoggerConfiguration()
 #if DEBUG
-                .MinimumLevel.Error()
+                .MinimumLevel.Information()
 #else
                 .MinimumLevel.Information()
 #endif
+                .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore"))
                 .Enrich.FromLogContext()
                 .WriteTo.SQLite("sbsletl_logs.db", retentionPeriod: TimeSpan.FromDays(31), rollOver:false)
                 .WriteTo.Console()
                 .WriteTo.RollingFile(formatter, Path.Combine(Directory.GetCurrentDirectory(), "logs/{Date}-SBSLETL.log"),
                     fileSizeLimitBytes: 10485760)
                 .CreateLogger();
+
 
             try
             {

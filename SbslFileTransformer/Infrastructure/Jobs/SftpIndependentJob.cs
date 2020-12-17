@@ -6,12 +6,15 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Files;
 using SbslFileTransformer.Infrastructure.Messaging;
+using SbslFileTransformer.Infrastructure.Plugins;
 using SbslFileTransformer.Infrastructure.Sftp;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,15 +27,19 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         private ILogger<InputFileWatcher> _fileLogger;
         private readonly EncryptionManager _encryptionManager;
         private readonly EmailSender _emailSender;
+        private readonly PluginManager _pluginManager;
+
+        private readonly static object _locker = new object();
 
         public SftpIndependentJob(IServiceScopeFactory serviceScopeFactory, ILogger<SftpIndependentJob> logger
-            , ILogger<InputFileWatcher> fileLogger, EncryptionManager encryptionManager, EmailSender emailSender)
+            , ILogger<InputFileWatcher> fileLogger, EncryptionManager encryptionManager, EmailSender emailSender, PluginManager pluginManager)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
             _fileLogger = fileLogger;
             _encryptionManager = encryptionManager;
             _emailSender = emailSender;
+            _pluginManager = pluginManager;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -76,8 +83,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     fileWatcher.ProcessFile = async fileToProcess => await RunFileCheckAndUpload(fileToProcess, true, config.ProductionFolder);
 
                     //sync all folders every hours
-                    var timerProduction = new Timer(async (state) => await RunFileCheckAndUpload(state, true, config.ProductionFolder), null, TimeSpan.Zero,
+                    var timerProduction = new Timer((state) => RunFileCheckAndUpload(state, true, config.ProductionFolder).GetAwaiter().GetResult(), null, TimeSpan.Zero,
                     TimeSpan.FromMinutes(prodTimeSpan));
+
                 }
 
                 if (config.IncludeSandbox)
@@ -86,16 +94,19 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                     fileWatcher.ProcessFile = async fileToProcess => await RunFileCheckAndUpload(fileToProcess, false, config.SandboxFolder);
 
-                    var timerSandbox = new Timer(async (state) => await RunFileCheckAndUpload(state, false, config.SandboxFolder), null, TimeSpan.Zero,
+                    var timerSandbox = new Timer((state) => RunFileCheckAndUpload(state, false, config.SandboxFolder).GetAwaiter().GetResult(), null, TimeSpan.Zero,
                                                     TimeSpan.FromMinutes(sbTimeSpan));
 
                 }
+
+                var timeValidator = new Timer((state) => RunMtSequenceValidationCheck().GetAwaiter().GetResult(), null, TimeSpan.Zero, TimeSpan.FromMinutes(10)); //TODO
+
 
                 _logger.LogInformation("Sftp Independent Job Started Successfully!");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                _logger.LogError(ex, ex.Message + " Error starting SFTP independent job");
             }
         }
 
@@ -125,47 +136,141 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                     foreach (var file in files)
                     {
-                        var newFileName = RenameMTFile(file);
-
-                        var uploadCheckResult = await FileHasBeenUploadedBefore(newFileName.Item1, isProduction);
-
-                        if (newFileName.Item2.Count() > 0)
-                        {
-                            await UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), newFileName.Item2[0], newFileName.Item2[1]);
-                        }
-                        else
-                        {
-                            await UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), string.Empty, string.Empty);
-                        }
-
-                        fileToProcess = newFileName.Item1;
+                        fileToProcess = await ProcessFileAndUpload(isProduction, productionOrSandboxFolder, file);
                     }
                 }
                 else
                 {
-                    var newFileName = RenameMTFile(path);
-
-                    //do check for specific file
-                    var uploadResult = await FileHasBeenUploadedBefore(newFileName.Item1, isProduction);
-
-                    if (newFileName.Item2.Count() > 0)
-                    {
-
-                        await UploadFileToSftp(newFileName.Item1, uploadResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), newFileName.Item2[0], newFileName.Item2[1]);
-                    }
-                    else
-                    {
-                        await UploadFileToSftp(newFileName.Item1, uploadResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), string.Empty, string.Empty);
-                    }
-
-                    fileToProcess = newFileName.Item1;
+                    fileToProcess = await ProcessFileAndUpload(isProduction, productionOrSandboxFolder, path);
                 }
 
                 _logger.LogInformation($"File check and upload ran successfully!");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message + $" {fileToProcess}");
+                _logger.LogError(ex, ex.Message + $" Error running file check and upload {fileToProcess}");
+            }
+        }
+
+        private async Task<string> ProcessFileAndUpload(bool isProduction, string productionOrSandboxFolder, string file)
+        {
+            var newFileName = RenameMTFile(file);
+
+            try
+            {
+                var uploadCheckResult = await FileHasBeenUploadedBefore(newFileName.Item1, isProduction);
+
+                if (uploadCheckResult.Item2)
+                {
+                    //_logger.LogInformation($"File {file} already uploaded!");
+                    return string.Empty;
+                }
+
+                if (newFileName.Item2.Count() > 0)
+                {
+                    if (newFileName.Item2.Count() == 1)
+                    {
+                        await UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), newFileName.Item2[0], string.Empty);
+                    }
+                    else
+                    {
+                        await UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), newFileName.Item2[0], newFileName.Item2[1]);
+                    }
+
+
+                }
+                else
+                {
+                    bool isBalanceFile = false;
+
+                    if (newFileName.Item1.ToLower().Contains("Nostro_Balances_Finacle_Format".ToLower()) && Path.GetExtension(newFileName.Item1.ToLower()) != ".txt")
+                    {
+                        isBalanceFile = true;
+
+                        var plugin = _pluginManager.GetPlugins().FirstOrDefault(p => p.Id == new Guid("701d74d6-bb48-4384-9d73-1466de46e61f"));
+
+                        if(plugin != null)
+                        {
+                            if (await plugin.Execute(newFileName.Item1))
+                            {
+                                var newPath = Path.ChangeExtension(newFileName.Item1, ".txt");
+
+                                await UploadFileToSftp(newPath, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newPath), string.Empty, string.Empty);
+                            }
+                        }
+                    }
+
+                    if (!isBalanceFile)
+                    {
+                        await UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), string.Empty, string.Empty);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message + " Error uploading file");
+            }
+
+            return newFileName.Item1;
+        }
+
+        private async Task RunMtSequenceValidationCheck()
+        {
+            try
+            {
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                    var uploadedToday = dbContext.UploadedFiles.Where(u => u.UploadedDate.Date == DateTime.Now.Date);
+
+                    var dict = uploadedToday.GroupBy(u => u.MtStatementNo).Select(u => new { Stmt = u.Key, Max = u.Max(u => u.MtSequenceNo) }).ToList();
+
+                    Dictionary<string, string> absent = new Dictionary<string, string>();
+
+                    foreach (var stmt in dict)
+                    {
+                        var worked = int.TryParse(stmt.Max, out int result);
+
+                        if (worked)
+                        {
+                            for (int i = 1; i <= Convert.ToInt32(result); i++)
+                            {
+                                if (uploadedToday.FirstOrDefault() == null)
+                                {
+                                    if (absent.ContainsKey(stmt.Stmt))
+                                    {
+                                        absent[stmt.Stmt] += i.ToString();
+                                    }
+                                    else
+                                    {
+                                        absent[stmt.Stmt] = i.ToString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (absent.Where(a => !string.IsNullOrEmpty(a.Value)).Count() > 0)
+                    {
+                        StringBuilder message = new StringBuilder();
+
+                        foreach (var val in absent)
+                        {
+                            message.AppendLine($"Statement No {val.Key} is missing Sequence Nos {val.Value}");
+                        }
+
+                        var config = await dbContext.Configurations.FirstOrDefaultAsync(c => c.ConfigType == ConfigurationType.Email && c.Key == "Recipients");
+
+                        var recipients = config.Value.Split(new char[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+                        await _emailSender.SendMessage(recipients, "Missing Seq. Nos", message.ToString());
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
             }
         }
 
@@ -173,32 +278,43 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             try
             {
-                var lines = File.ReadAllLines(originalFile);
-
-                var pair = lines.FirstOrDefault(l => l.Trim().StartsWith(":28C:"))?.Split(":").Last();
-
-                if (pair != null)
+                lock (_locker)
                 {
-                    var toRet = pair.Split("/");
+                    if (Path.GetFileName(originalFile).Split("_").Length > 2)
+                        return (originalFile, new string[] { });
 
-                    var stmtSeq = pair.Replace("/", "_");
+                    var lines = File.ReadAllLines(originalFile);
 
-                    _logger.LogInformation($"Skipping file {Path.GetFileName(originalFile)} because it does not have a sequence number");
+                    var pair = lines.FirstOrDefault(l => l.Trim().StartsWith(":28C:"))?.Split(":").Last();
 
-                    //send email maybe
+                    if (pair != null)
+                    {
+                        var toRet = pair.Split("/");
 
-                    var newFilename = Path.Combine(Path.GetDirectoryName(originalFile), stmtSeq + "_" + Path.GetFileName(originalFile));
+                        var stmtSeq = pair.Replace("/", "");
 
-                    File.Move(originalFile, newFilename);
+                        if (Path.GetFileName(originalFile).Substring(6,stmtSeq.Length) != stmtSeq)
+                        {
+                            var newFilename = Path.Combine(Path.GetDirectoryName(originalFile), Path.GetFileName(originalFile).Insert(6, stmtSeq));
 
-                    return (newFilename, toRet);
+                            if (!File.Exists(newFilename))
+                            {
+                                File.Copy(originalFile, newFilename);
+                            }
+                            //File.Delete(originalFile);
+
+                            return (newFilename, toRet);
+                        }
+                    }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message + $"{originalFile}");
+                _logger.LogError(ex, "Error renaming file " + $"{originalFile}");
             }
 
+            //_logger.LogInformation($"Skipping file {Path.GetFileName(originalFile)} because it does not have a sequence number");
+            //send email maybe
             return (originalFile, new string[] { });
         }
 
@@ -206,8 +322,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             try
             {
-                _logger.LogInformation($"Uploading file {filePath} to SFTP site at {DateTime.Now}!");
-
                 var previouslyUploaded = await FileHasBeenUploadedBefore(filePath, isProduction);
 
                 if (previouslyUploaded.Item2)
@@ -215,6 +329,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     _logger.LogWarning($"File {filePath} has been previously uploaded. Ignoring upload");
                     return;
                 }
+
+                _logger.LogInformation($"Uploading file {filePath} to SFTP site at {DateTime.Now}!");
 
                 using (var scope = _serviceScopeFactory.CreateScope())
                 {
@@ -252,7 +368,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message + $"{filePath}");
+                _logger.LogError(ex, $"Error uploading file {ex.Message}" + $"{filePath}");
             }
         }
 

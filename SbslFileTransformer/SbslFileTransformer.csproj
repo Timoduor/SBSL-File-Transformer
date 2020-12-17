@@ -58,6 +58,7 @@
 
   <ItemGroup>
     <Folder Include="Data\Migrations\" />
+    <Folder Include="Resources\" />
   </ItemGroup>
 
   <ItemGroup>

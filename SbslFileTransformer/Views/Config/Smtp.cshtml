@@ -1,0 +1,71 @@
+﻿@model SbslFileTransformer.Models.SmtpConfigModel
+
+@{
+    ViewData["Title"] = "SMTP";
+}
+
+<h2>Email Configuration</h2>
+
+<hr />
+<div class="row">
+    <div class="col-md-12">
+        <form asp-action="UpdateSmtpConfig">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="Name" class="control-label"></label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="EmailAddress" class="control-label"></label>
+                        <input asp-for="EmailAddress" class="form-control" />
+                        <span asp-validation-for="EmailAddress" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="SmtpServer" class="control-label"></label>
+                        <input asp-for="SmtpServer" class="form-control" />
+                        <span asp-validation-for="SmtpServer" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="SmtpServer" class="control-label"></label>
+                        <input asp-for="SmtpServer" class="form-control" />
+                        <span asp-validation-for="SmtpServer" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Recipients" class="control-label">Enter recipients either comma(,) separated or each in a new line</label>
+                        <textarea asp-for="Recipients" class="form-control" rows="5"></textarea>
+                        <span asp-validation-for="Recipients" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="Port" class="control-label"></label>
+                        <input asp-for="Port" class="form-control" type="number" />
+                        <span asp-validation-for="Port" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="UserName" class="control-label"></label>
+                        <input asp-for="UserName" class="form-control" />
+                        <span asp-validation-for="UserName" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Password" class="control-label"></label>
+                        <input asp-for="Password" class="form-control" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save Configuration" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index" class="btn btn-light float-right">Back to List</a>
+</div>
+
