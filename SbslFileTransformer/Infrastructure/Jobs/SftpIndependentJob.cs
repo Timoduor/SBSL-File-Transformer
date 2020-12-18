@@ -10,6 +10,7 @@ using SbslFileTransformer.Infrastructure.Plugins;
 using SbslFileTransformer.Infrastructure.Sftp;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
+using SbslFileTransformer.PluginsLocal;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -187,11 +188,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     {
                         isBalanceFile = true;
 
-                        var plugin = _pluginManager.GetPlugins().FirstOrDefault(p => p.Id == new Guid("701d74d6-bb48-4384-9d73-1466de46e61f"));
+                        ///var plugin = _pluginManager.GetPlugins().FirstOrDefault(p => p.Id == new Guid("701d74d6-bb48-4384-9d73-1466de46e61f"));
 
-                        if(plugin != null)
+                        //if(plugin != null)
                         {
-                            if (await plugin.Execute(newFileName.Item1))
+                            //if (await plugin.Execute(newFileName.Item1))
+                            //{
+                            var converter = new BalanceFileConverter();
+
+                            if (await converter.Execute(newFileName.Item1))
                             {
                                 var newPath = Path.ChangeExtension(newFileName.Item1, ".txt");
 
@@ -268,7 +273,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
             }
@@ -293,7 +298,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                         var stmtSeq = pair.Replace("/", "");
 
-                        if (Path.GetFileName(originalFile).Substring(6,stmtSeq.Length) != stmtSeq)
+                        if (Path.GetFileName(originalFile).Substring(6, stmtSeq.Length) != stmtSeq)
                         {
                             var newFilename = Path.Combine(Path.GetDirectoryName(originalFile), Path.GetFileName(originalFile).Insert(6, stmtSeq));
 
