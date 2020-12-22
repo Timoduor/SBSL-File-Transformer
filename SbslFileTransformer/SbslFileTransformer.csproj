@@ -14,6 +14,10 @@
     <ApplicationIcon>sbsl.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <PublishWithAspNetCoreTargetManifest>false</PublishWithAspNetCoreTargetManifest>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Remove="LicenseVerify.cer" />
   </ItemGroup>
@@ -38,6 +42,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="3.1.10" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.4" />
     <PackageReference Include="MimeKit" Version="2.10.1" />
+    <PackageReference Include="Portable.BouncyCastle" Version="1.8.8" />
     <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.0" />
@@ -54,7 +59,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Licensing\Licensing.csproj" />
-    <ProjectReference Include="..\Plugins\PluginBase\PluginBase.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -63,6 +67,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="DLLs\BouncyCastle.Crypto.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="sbsletl.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -28,19 +28,19 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         private ILogger<InputFileWatcher> _fileLogger;
         private readonly EncryptionManager _encryptionManager;
         private readonly EmailSender _emailSender;
-        private readonly PluginManager _pluginManager;
+        //private readonly PluginManager _pluginManager;
 
         private readonly static object _locker = new object();
 
         public SftpIndependentJob(IServiceScopeFactory serviceScopeFactory, ILogger<SftpIndependentJob> logger
-            , ILogger<InputFileWatcher> fileLogger, EncryptionManager encryptionManager, EmailSender emailSender, PluginManager pluginManager)
+            , ILogger<InputFileWatcher> fileLogger, EncryptionManager encryptionManager, EmailSender emailSender)//, PluginManager pluginManager)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
             _fileLogger = fileLogger;
             _encryptionManager = encryptionManager;
             _emailSender = emailSender;
-            _pluginManager = pluginManager;
+            //_pluginManager = pluginManager;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -195,6 +195,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                             //if (await plugin.Execute(newFileName.Item1))
                             //{
                             var converter = new BalanceFileConverter();
+
+                            converter.Entity = "IMKE";
 
                             if (await converter.Execute(newFileName.Item1))
                             {

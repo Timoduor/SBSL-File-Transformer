@@ -73,11 +73,11 @@ namespace SbslFileTransformer
 #if DEBUG
             services.AddRazorPages().AddRazorRuntimeCompilation();
 #endif
-            services.AddHostedService<JobManager>();
+            //services.AddHostedService<JobManager>();
 
             services.AddHostedService<SftpIndependentJob>();
 
-            services.AddTransient<PluginManager>();
+            //services.AddTransient<PluginManager>();
 
             services.AddTransient<SftpManager>();
 

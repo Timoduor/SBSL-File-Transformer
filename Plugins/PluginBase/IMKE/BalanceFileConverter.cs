@@ -8,7 +8,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SbslFileTransformer.PluginsLocal
+namespace Plugins.IMKE
 {
     public class BalanceFileConverter : RunnableBase
     {
@@ -30,12 +30,7 @@ namespace SbslFileTransformer.PluginsLocal
         {
             try
             {
-                if (string.IsNullOrEmpty(Entity))
-                    Entity = "IMKE";
-
                 await base.Execute(filePath);
-
-                DateTime fileDate = DateTime.Now;
 
                 lock (_locker)
                 {
@@ -56,11 +51,11 @@ namespace SbslFileTransformer.PluginsLocal
                                 var date1 = csv.GetField<DateTime>(2);
                                 var DorC = csv.GetField<int>(3);
                                 var openingBalance = csv.GetField<double>(4);
-                                var date2 = fileDate = csv.GetField<DateTime>(5);
+                                var date2 = csv.GetField<DateTime>(5);
                                 var DorC2 = csv.GetField<int>(6);
                                 var closingBalance = csv.GetField<double>(7);
 
-                                string toAppend = $"{Entity}\t{accNo}\tNostros\t\t\t\t\t\t\t\t{GetAccountName(accNo)}\tNostros\tA\tAsset\tTRUE\tTRUE\t\t{currency}\t{new DateTime(date2.Year, date2.Month, 1).AddMonths(1).AddDays(-1):MM/dd/yyyy}\t\t\t{-1 * DorC2 * closingBalance}\n";
+                                string toAppend = $"{Entity}\t{accNo}\tNostros\t\t\t\t\t\t\t{GetAccountName(accNo)}\tNostros\tA\tAsset\tTRUE\tTRUE\t{currency}\t{date2.ToString("MM/dd/yyyy")}\t\t{-1 * DorC2 * closingBalance}\r";
 
                                 output.AppendLine(toAppend);
                             }
@@ -69,10 +64,12 @@ namespace SbslFileTransformer.PluginsLocal
                         reader.Close();
                     }
 
-                    var outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_{fileDate:MMddyyyy}.txt");
+                    var outputPath = Path.Combine(Path.ChangeExtension(filePath, ".txt"));
 
-                    File.WriteAllText(outputPath, output.ToString());
-
+                    //if (!File.Exists(outputPath))
+                    {
+                        File.WriteAllText(outputPath, output.ToString());
+                    }
                     //File.Delete(filePath);
                 }
 

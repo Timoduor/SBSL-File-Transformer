@@ -20,27 +20,27 @@ namespace SbslFileTransformer.Controllers
     {
         private ILogger<PluginManager> _pluginLogger;
         private ApplicationDbContext _dbContext;
-        private PluginManager _pluginManager;
+        //private PluginManager _pluginManager;
 
-        public PluginController(ILogger<PluginManager> pluginLogger, ApplicationDbContext dbContext, PluginManager pluginManager)
+        public PluginController(ILogger<PluginManager> pluginLogger, ApplicationDbContext dbContext)//, PluginManager pluginManager)
         {
             _pluginLogger = pluginLogger;
             _dbContext = dbContext;
-            _pluginManager = pluginManager;
+            //_pluginManager = pluginManager;
         }
 
-        public async Task<IActionResult> Index()
-        {
-            var plugins = _pluginManager.GetPlugins();
+        //public async Task<IActionResult> Index()
+        //{
+        //    var plugins = _pluginManager.GetPlugins();
 
-            var savedPlugins = _dbContext.Plugins;
+        //    var savedPlugins = _dbContext.Plugins;
 
-            var unsaved = plugins.Where(p => !savedPlugins.Select(s => s.Id).Contains(p.Id));
+        //    var unsaved = plugins.Where(p => !savedPlugins.Select(s => s.Id).Contains(p.Id));
 
-            await SaveNewPlugins(unsaved);
+        //    await SaveNewPlugins(unsaved);
 
-            return View(savedPlugins);
-        }
+        //    return View(savedPlugins);
+        //}
 
         public async Task<IActionResult> Edit(Guid id)
         {

@@ -19,7 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
     public sealed class JobManager : IHostedService
     {
         private List<InputFileWatcher> _inputFileWatcher = new List<InputFileWatcher>();
-        private List<IRunnable> _jobs = new List<IRunnable>();
+        //private List<IRunnable> _jobs = new List<IRunnable>();
         private IServiceScopeFactory _serviceScopeFactory;
 
         private ILogger<JobManager> _logger;
@@ -36,7 +36,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
             using (var scope = _serviceScopeFactory.CreateScope())
             {
-                _jobs = scope.ServiceProvider.GetService<PluginManager>().GetPlugins().ToList();
+                //_jobs = scope.ServiceProvider.GetService<PluginManager>().GetPlugins().ToList();
             }
         }
 
@@ -60,19 +60,19 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 {
                     //maybe use Tasks here
 
-                    var runnable = _jobs.FirstOrDefault(j => j.Id == job.Id);
+                    //var runnable = _jobs.FirstOrDefault(j => j.Id == job.Id);
 
                     //ensure plugin projects or solution are rebuilt regular so they are picked up by reflection
-                    if (runnable != null)
+                    //if (runnable != null)
                     {
                         EnsureJobDirectoriesExist(job);
 
-                        runnable.OutputFolder = job.OutputFolder;
-                        runnable.Logger = _jobLogger;
+                        //runnable.OutputFolder = job.OutputFolder;
+                        //runnable.Logger = _jobLogger;
 
                         var fileWatcher = new InputFileWatcher(job.InputFolder, _fileLogger);
 
-                        fileWatcher.ProcessFile = async fileToProcess => await runnable.Execute(fileToProcess);
+                        //fileWatcher.ProcessFile = async fileToProcess => await runnable.Execute(fileToProcess);
 
                         _inputFileWatcher.Add(fileWatcher);
                     }
@@ -109,10 +109,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 watcher.Dispose();
             }
 
-            foreach (var job in _jobs)
-            {
-                job.Dispose();
-            }
+            //foreach (var job in _jobs)
+            //{
+            //    job.Dispose();
+            //}
 
             _logger.LogInformation("Job Manager stopped");
         }

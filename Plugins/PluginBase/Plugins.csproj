@@ -1,4 +1,3 @@
-
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
@@ -6,14 +5,12 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>C:\Projects\SbslFileTransformer\SbslFileTransformer\Plugins\</OutputPath>
+    <OutputPath></OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PluginBase\PluginBase.csproj" >
-      <Private>false</Private>
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </ProjectReference>
+    <PackageReference Include="CsvHelper" Version="18.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
   </ItemGroup>
 
 </Project>
