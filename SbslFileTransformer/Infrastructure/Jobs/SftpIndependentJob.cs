@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SbslFileTransformer.Converters;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Files;
@@ -28,19 +29,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         private ILogger<InputFileWatcher> _fileLogger;
         private readonly EncryptionManager _encryptionManager;
         private readonly EmailSender _emailSender;
-        //private readonly PluginManager _pluginManager;
 
-        private readonly static object _locker = new object();
+        private static readonly object _locker = new object();
 
         public SftpIndependentJob(IServiceScopeFactory serviceScopeFactory, ILogger<SftpIndependentJob> logger
-            , ILogger<InputFileWatcher> fileLogger, EncryptionManager encryptionManager, EmailSender emailSender)//, PluginManager pluginManager)
+            , ILogger<InputFileWatcher> fileLogger, EncryptionManager encryptionManager, EmailSender emailSender)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
             _fileLogger = fileLogger;
             _encryptionManager = encryptionManager;
             _emailSender = emailSender;
-            //_pluginManager = pluginManager;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -50,32 +49,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 _logger.LogInformation("Starting Sftp Independent...");
 
                 SftpConfigModel config;
+                int prodTimeSpan, sbTimeSpan;
 
-                int prodTimeSpan = 15;
-                int sbTimeSpan = 5;
-
-                using (var scope = _serviceScopeFactory.CreateScope())
-                {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-
-                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
-
-                    config = new SftpConfigModel
-                    {
-                        Host = configurations.FirstOrDefault(c => c.Key == "Host")?.Value,
-                        Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port")?.Value),
-                        UserName = configurations.FirstOrDefault(c => c.Key == "UserName")?.Value,
-                        //Password = _encryptionManager.Decrypt(configurations.FirstOrDefault(c => c.Key == "Password")?.Value),
-                        RecurseFolders = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "RecurseFolders")?.Value),
-                        IncludeSandbox = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeSandbox")?.Value),
-                        IncludeProduction = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value),
-                        ProductionFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value,
-                        SandboxFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value,
-                    };
-
-                    prodTimeSpan = Convert.ToInt32(dbContext.Configurations.FirstOrDefault(c => c.Key == "ProductionTimeSpanCheck")?.Value);
-                    sbTimeSpan = Convert.ToInt32(dbContext.Configurations.FirstOrDefault(c => c.Key == "SandboxTimeSpanCheck")?.Value);
-                }
+                GetConfiguration(out config, out prodTimeSpan, out sbTimeSpan);
 
                 if (config.IncludeProduction)
                 {
@@ -100,7 +76,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 }
 
-                var timeValidator = new Timer((state) => RunMtSequenceValidationCheck().GetAwaiter().GetResult(), null, TimeSpan.Zero, TimeSpan.FromMinutes(10)); //TODO
+                var timedValidator = new Timer((state) => MTFileConverter.RunMtSequenceValidationCheck(_serviceScopeFactory, _logger, _emailSender).GetAwaiter().GetResult(),
+                    null, TimeSpan.Zero, TimeSpan.FromMinutes(10)); //TODO
 
 
                 _logger.LogInformation("Sftp Independent Job Started Successfully!");
@@ -111,6 +88,33 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
         }
 
+        private void GetConfiguration(out SftpConfigModel config, out int prodTimeSpan, out int sbTimeSpan)
+        {
+            prodTimeSpan = 15;
+            sbTimeSpan = 5;
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
+
+                config = new SftpConfigModel
+                {
+                    Host = configurations.FirstOrDefault(c => c.Key == "Host")?.Value,
+                    Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port")?.Value),
+                    UserName = configurations.FirstOrDefault(c => c.Key == "UserName")?.Value,
+                    //Password = _encryptionManager.Decrypt(configurations.FirstOrDefault(c => c.Key == "Password")?.Value),
+                    RecurseFolders = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "RecurseFolders")?.Value),
+                    IncludeSandbox = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeSandbox")?.Value),
+                    IncludeProduction = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value),
+                    ProductionFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value,
+                    SandboxFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value,
+                };
+
+                prodTimeSpan = Convert.ToInt32(dbContext.Configurations.FirstOrDefault(c => c.Key == "ProductionTimeSpanCheck")?.Value);
+                sbTimeSpan = Convert.ToInt32(dbContext.Configurations.FirstOrDefault(c => c.Key == "SandboxTimeSpanCheck")?.Value);
+            }
+        }
 
         private async Task RunFileCheckAndUpload(object state, bool isProduction, string productionOrSandboxFolder)
         {
@@ -155,7 +159,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
         private async Task<string> ProcessFileAndUpload(bool isProduction, string productionOrSandboxFolder, string file)
         {
-            var newFileName = RenameMTFile(file);
+            (string, string[]) newFileName = MTFileConverter.RenameMTFile(file, _logger);
 
             try
             {
@@ -169,16 +173,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 if (newFileName.Item2.Count() > 0)
                 {
-                    if (newFileName.Item2.Count() == 1)
-                    {
-                        await UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), newFileName.Item2[0], string.Empty);
-                    }
-                    else
-                    {
-                        await UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), newFileName.Item2[0], newFileName.Item2[1]);
-                    }
-
-
+                    await UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), newFileName.Item2[0], newFileName.Item2.Count() == 1 ? string.Empty : newFileName.Item2[1]);
                 }
                 else
                 {
@@ -212,110 +207,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
 
             return newFileName.Item1;
-        }
-
-        private async Task RunMtSequenceValidationCheck()
-        {
-            try
-            {
-                using (var scope = _serviceScopeFactory.CreateScope())
-                {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-
-                    var uploadedToday = dbContext.UploadedFiles.Where(u => u.UploadedDate.Date == DateTime.Now.Date);
-
-                    var dict = uploadedToday.GroupBy(u => u.MtStatementNo).Select(u => new { Stmt = u.Key, Max = u.Max(u => u.MtSequenceNo) }).ToList();
-
-                    Dictionary<string, string> absent = new Dictionary<string, string>();
-
-                    foreach (var stmt in dict)
-                    {
-                        var worked = int.TryParse(stmt.Max, out int result);
-
-                        if (worked)
-                        {
-                            for (int i = 1; i <= Convert.ToInt32(result); i++)
-                            {
-                                if (uploadedToday.FirstOrDefault() == null)
-                                {
-                                    if (absent.ContainsKey(stmt.Stmt))
-                                    {
-                                        absent[stmt.Stmt] += i.ToString();
-                                    }
-                                    else
-                                    {
-                                        absent[stmt.Stmt] = i.ToString();
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (absent.Where(a => !string.IsNullOrEmpty(a.Value)).Count() > 0)
-                    {
-                        StringBuilder message = new StringBuilder();
-
-                        foreach (var val in absent)
-                        {
-                            message.AppendLine($"Statement No {val.Key} is missing Sequence Nos {val.Value}");
-                        }
-
-                        var config = await dbContext.Configurations.FirstOrDefaultAsync(c => c.ConfigType == ConfigurationType.Email && c.Key == "Recipients");
-
-                        var recipients = config.Value.Split(new char[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-                        await _emailSender.SendMessage(recipients, "Missing Seq. Nos", message.ToString());
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-            }
-        }
-
-        private (string, string[]) RenameMTFile(string originalFile)
-        {
-            try
-            {
-                lock (_locker)
-                {
-                    if (Path.GetFileName(originalFile).Split("_").Length > 2)
-                        return (originalFile, new string[] { });
-
-                    var lines = File.ReadAllLines(originalFile);
-
-                    var pair = lines.FirstOrDefault(l => l.Trim().StartsWith(":28C:"))?.Split(":").Last();
-
-                    if (pair != null)
-                    {
-                        var toRet = pair.Split("/");
-
-                        var stmtSeq = pair.Replace("/", "");
-
-                        if (Path.GetFileName(originalFile).Substring(6, stmtSeq.Length) != stmtSeq)
-                        {
-                            var newFilename = Path.Combine(Path.GetDirectoryName(originalFile), Path.GetFileName(originalFile).Insert(6, stmtSeq));
-
-                            if (!File.Exists(newFilename))
-                            {
-                                File.Copy(originalFile, newFilename);
-                            }
-                            //File.Delete(originalFile);
-
-                            return (newFilename, toRet);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error renaming file " + $"{originalFile}");
-            }
-
-            //_logger.LogInformation($"Skipping file {Path.GetFileName(originalFile)} because it does not have a sequence number");
-            //send email maybe
-            return (originalFile, new string[] { });
         }
 
         private async Task UploadFileToSftp(string filePath, string md5, bool isProduction, string relativePath, string statementNo, string sequenceNo)
