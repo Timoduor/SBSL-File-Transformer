@@ -188,22 +188,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     {
                         isBalanceFile = true;
 
-                        ///var plugin = _pluginManager.GetPlugins().FirstOrDefault(p => p.Id == new Guid("701d74d6-bb48-4384-9d73-1466de46e61f"));
+                        var converter = new BalanceFileConverter();
 
-                        //if(plugin != null)
+                        converter.Entity = "IMKE";
+
+                        if (await converter.Execute(newFileName.Item1))
                         {
-                            //if (await plugin.Execute(newFileName.Item1))
-                            //{
-                            var converter = new BalanceFileConverter();
+                            var newPath = Path.ChangeExtension(newFileName.Item1, ".txt");
 
-                            converter.Entity = "IMKE";
-
-                            if (await converter.Execute(newFileName.Item1))
-                            {
-                                var newPath = Path.ChangeExtension(newFileName.Item1, ".txt");
-
-                                await UploadFileToSftp(newPath, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newPath), string.Empty, string.Empty);
-                            }
+                            await UploadFileToSftp(newPath, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newPath), string.Empty, string.Empty);
                         }
                     }
 
