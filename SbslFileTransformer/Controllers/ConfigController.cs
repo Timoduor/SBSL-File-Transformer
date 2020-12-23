@@ -119,6 +119,7 @@ namespace SbslFileTransformer.Controllers
                     SmtpServer = configurations.FirstOrDefault(c => c.Key == "SmtpServer" && c.ConfigType == ConfigurationType.Email)?.Value,
                     Name = configurations.FirstOrDefault(c => c.Key == "Name" && c.ConfigType == ConfigurationType.Email)?.Value,
                     Recipients = configurations.FirstOrDefault(c => c.Key == "Recipients" && c.ConfigType == ConfigurationType.Email)?.Value,
+                    UseSsl = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "UseSsl" && c.ConfigType == ConfigurationType.Email)?.Value),
                 };
 
                 return View(config);
@@ -177,6 +178,20 @@ namespace SbslFileTransformer.Controllers
                     ConfigType = ConfigurationType.Email,
                     Key = "Password",
                     Value = _encryptionManager.Encrypt(config.Password),
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
+
+            //update host
+            //if (!string.IsNullOrEmpty(config.UseSsl))
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Email,
+                    Key = "UseSsl",
+                    Value = config.UseSsl.ToString(),
                     Updated = DateTime.Now
                 };
 

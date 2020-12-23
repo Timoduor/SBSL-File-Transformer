@@ -17,5 +17,6 @@ namespace SbslFileTransformer.Models
         [Required]
         public string Password { get; set; }
         public string Recipients { get; set; }
+        public bool UseSsl { get; set; }
     }
 }

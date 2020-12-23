@@ -40,6 +40,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
                         SmtpServer = configurations.FirstOrDefault(c => c.Key == "SmtpServer")?.Value,
                         Name = configurations.FirstOrDefault(c => c.Key == "Name")?.Value,
                         Recipients = configurations.FirstOrDefault(c => c.Key == "Recipients")?.Value,
+                        UseSsl = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "UseSsl" && c.ConfigType == ConfigurationType.Email)?.Value),
                     };
                 }
             }
@@ -103,7 +104,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
             {
                 try
                 {
-                    await client.ConnectAsync(_emailConfig.SmtpServer, _emailConfig.Port, false);
+                    await client.ConnectAsync(_emailConfig.SmtpServer, _emailConfig.Port, _emailConfig.UseSsl);
 
                     client.AuthenticationMechanisms.Remove("XOAUTH2");
 
