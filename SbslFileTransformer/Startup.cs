@@ -11,6 +11,7 @@ using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Infrastructure.Plugins;
+using SbslFileTransformer.Infrastructure.Reporting;
 using SbslFileTransformer.Infrastructure.Sftp;
 using Serilog;
 using System.IO;
@@ -76,6 +77,10 @@ namespace SbslFileTransformer
             //services.AddHostedService<JobManager>();
 
             services.AddHostedService<SftpIndependentJob>();
+
+            services.AddHostedService<ScheduledReporter>();
+
+            services.AddHostedService<MtBalanceExtractor>();
 
             //services.AddTransient<PluginManager>();
 

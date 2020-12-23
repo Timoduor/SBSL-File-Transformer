@@ -17,5 +17,6 @@ namespace SbslFileTransformer.Models
         public bool IncludeProduction { get; set; }
         public string SandboxFolder { get; set; }
         public string ProductionFolder { get; set; }
+        public string Entity { get; set; }
     }
 }

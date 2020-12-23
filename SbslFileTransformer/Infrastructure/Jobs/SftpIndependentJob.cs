@@ -6,6 +6,7 @@ using SbslFileTransformer.Converters;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Files;
+using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Infrastructure.Plugins;
 using SbslFileTransformer.Infrastructure.Sftp;
@@ -29,6 +30,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         private ILogger<InputFileWatcher> _fileLogger;
         private readonly EncryptionManager _encryptionManager;
         private readonly EmailSender _emailSender;
+        private string Entity;
 
         private static readonly object _locker = new object();
 
@@ -61,8 +63,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                     //sync all folders every hours
                     var timerProduction = new Timer((state) => RunFileCheckAndUpload(state, true, config.ProductionFolder).GetAwaiter().GetResult(), null, TimeSpan.Zero,
-                    TimeSpan.FromMinutes(prodTimeSpan));
-
+                                                            TimeSpan.FromMinutes(prodTimeSpan));
                 }
 
                 if (config.IncludeSandbox)
@@ -77,7 +78,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 }
 
                 var timedValidator = new Timer((state) => MTFileConverter.RunMtSequenceValidationCheck(_serviceScopeFactory, _logger, _emailSender).GetAwaiter().GetResult(),
-                    null, TimeSpan.Zero, TimeSpan.FromMinutes(10)); //TODO
+                                                null, TimeSpan.Zero, TimeSpan.FromMinutes(10)); //TODO
 
 
                 _logger.LogInformation("Sftp Independent Job Started Successfully!");
@@ -113,12 +114,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 prodTimeSpan = Convert.ToInt32(dbContext.Configurations.FirstOrDefault(c => c.Key == "ProductionTimeSpanCheck")?.Value);
                 sbTimeSpan = Convert.ToInt32(dbContext.Configurations.FirstOrDefault(c => c.Key == "SandboxTimeSpanCheck")?.Value);
+                Entity = configurations.FirstOrDefault(c => c.Key == "Entity")?.Value;
             }
         }
 
         private async Task RunFileCheckAndUpload(object state, bool isProduction, string productionOrSandboxFolder)
         {
-
             string fileToProcess = string.Empty;
 
             try
@@ -163,7 +164,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
             try
             {
-                var uploadCheckResult = await FileHasBeenUploadedBefore(newFileName.Item1, isProduction);
+                var uploadCheckResult = await StaticHelpers.FileHasBeenUploadedBefore(newFileName.Item1, isProduction, _serviceScopeFactory);
 
                 if (uploadCheckResult.Item2)
                 {
@@ -173,7 +174,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 if (newFileName.Item2.Count() > 0)
                 {
-                    await UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), newFileName.Item2[0], newFileName.Item2.Count() == 1 ? string.Empty : newFileName.Item2[1]);
+                    await StaticHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1),
+                        newFileName.Item2[0], newFileName.Item2.Count() == 1 ? string.Empty : newFileName.Item2[1], _serviceScopeFactory, _logger);
                 }
                 else
                 {
@@ -185,19 +187,21 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                         var converter = new BalanceFileConverter();
 
-                        converter.Entity = "IMKE";
+                        converter.Entity = Entity;
 
                         if (await converter.Execute(newFileName.Item1))
                         {
                             var newPath = Path.ChangeExtension(newFileName.Item1, ".txt");
 
-                            await UploadFileToSftp(newPath, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newPath), string.Empty, string.Empty);
+                            await StaticHelpers.UploadFileToSftp(newPath, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newPath),
+                                string.Empty, string.Empty, _serviceScopeFactory, _logger);
                         }
                     }
 
                     if (!isBalanceFile)
                     {
-                        await UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), string.Empty, string.Empty);
+                        await StaticHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction,
+                            Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), string.Empty, string.Empty, _serviceScopeFactory, _logger);
                     }
                 }
             }
@@ -209,79 +213,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             return newFileName.Item1;
         }
 
-        private async Task UploadFileToSftp(string filePath, string md5, bool isProduction, string relativePath, string statementNo, string sequenceNo)
-        {
-            try
-            {
-                var previouslyUploaded = await FileHasBeenUploadedBefore(filePath, isProduction);
 
-                if (previouslyUploaded.Item2)
-                {
-                    _logger.LogWarning($"File {filePath} has been previously uploaded. Ignoring upload");
-                    return;
-                }
-
-                _logger.LogInformation($"Uploading file {filePath} to SFTP site at {DateTime.Now}!");
-
-                using (var scope = _serviceScopeFactory.CreateScope())
-                {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-
-                    var sftpManager = scope.ServiceProvider.GetService<SftpManager>();
-
-                    string remotePath = isProduction ? "/PROD/" : "/SB/";
-
-                    remotePath = Path.Combine(remotePath, relativePath.Replace('\\', '/'));
-
-                    if (sftpManager.UploadFile(filePath, remotePath))
-                    {
-                        dbContext.UploadedFiles.Add(new SftpUploadedFile
-                        {
-                            FilePath = filePath,
-                            IsProduction = isProduction,
-                            Md5 = md5,
-                            Name = Path.GetFileName(filePath),
-                            Size = new FileInfo(filePath).Length,
-                            UploadedDate = DateTime.Now,
-                            MtStatementNo = statementNo,
-                            MtSequenceNo = sequenceNo
-                        });
-
-                        await dbContext.SaveChangesAsync();
-
-                        _logger.LogInformation($"Uploaded file to SFTP {remotePath} site successfully!");
-                    }
-                    else
-                    {
-                        _logger.LogWarning($"Failed to upload file {filePath}");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error uploading file {ex.Message}" + $"{filePath}");
-            }
-        }
-
-        private async Task<(string, bool)> FileHasBeenUploadedBefore(string filePath, bool isProduction)
-        {
-            var md5 = _encryptionManager.GetMd5(filePath);
-
-            using (var scope = _serviceScopeFactory.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-
-                var fileName = Path.GetFileName(filePath);
-
-                //check if md5/filename exists
-                if (await dbContext.UploadedFiles.AnyAsync(f => (f.Md5 == md5 && f.IsProduction == isProduction)
-                                    || (f.Name == fileName && f.IsProduction == isProduction)))
-                {
-                    return (md5, true);
-                }
-            }
-            return (md5, false);
-        }
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {

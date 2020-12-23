@@ -20,6 +20,9 @@
 
   <ItemGroup>
     <None Remove="LicenseVerify.cer" />
+    <None Remove="sbsletl.db-shm" />
+    <None Remove="sbsletl.db-wal" />
+    <None Remove="sbsletl_logs.db" />
   </ItemGroup>
 
   <ItemGroup>

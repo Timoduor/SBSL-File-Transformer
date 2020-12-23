@@ -4,6 +4,8 @@
     {
         Sftp,
         Service,
-        Email
+        Email,
+        Report,
+        Setting
     }
 }

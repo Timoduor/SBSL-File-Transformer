@@ -13,8 +13,8 @@ namespace SbslFileTransformer.Infrastructure.Files
 
         public Func<string, Task> ProcessFile;
 
-        private ILogger<InputFileWatcher> _logger;
-        public InputFileWatcher(string inputFolder, ILogger<InputFileWatcher> logger)
+        private ILogger _logger;
+        public InputFileWatcher(string inputFolder, ILogger logger)
         {
             _logger = logger;
 
