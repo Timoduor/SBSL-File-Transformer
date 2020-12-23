@@ -5,6 +5,7 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Licensing.Attributes;
+using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
@@ -18,11 +19,13 @@ namespace SbslFileTransformer.Controllers
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly EncryptionManager _encryptionManager;
+        private readonly EmailSender _emailSender;
 
-        public ConfigController(ApplicationDbContext dbContext, EncryptionManager encryptionManager)
+        public ConfigController(ApplicationDbContext dbContext, EncryptionManager encryptionManager, EmailSender emailSender)
         {
             _dbContext = dbContext;
             _encryptionManager = encryptionManager;
+            _emailSender = emailSender;
         }
 
         public async Task<IActionResult> Index()
@@ -137,6 +140,13 @@ namespace SbslFileTransformer.Controllers
             await UpdateSftp(config);
 
             return RedirectToAction("Index");
+        }
+
+        public async Task<IActionResult> SendTestEmail()
+        {
+            await _emailSender.SendMessage(null, "Test Email from Windows Box", "This is to confirm that the windows box can send emails");
+
+            return RedirectToAction("Smtp");
         }
 
 

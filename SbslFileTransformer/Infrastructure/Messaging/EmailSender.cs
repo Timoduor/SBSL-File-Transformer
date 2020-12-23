@@ -39,6 +39,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
                         EmailAddress = configurations.FirstOrDefault(c => c.Key == "EmailAddress")?.Value,
                         SmtpServer = configurations.FirstOrDefault(c => c.Key == "SmtpServer")?.Value,
                         Name = configurations.FirstOrDefault(c => c.Key == "Name")?.Value,
+                        Recipients = configurations.FirstOrDefault(c => c.Key == "Recipients")?.Value,
                     };
                 }
             }
@@ -50,6 +51,11 @@ namespace SbslFileTransformer.Infrastructure.Messaging
 
         public async Task SendMessage(IEnumerable<string> recipients, string subject, string content, bool isHtml = false)
         {
+            if(recipients == null || recipients.Count() == 0)
+            {
+                recipients = _emailConfig.Recipients.Split(',', '\n', '\r');
+            }
+
             var message = new Message(recipients, subject, content);
 
             var mimeMessage = CreateEmailMessage(message, isHtml);
@@ -117,7 +123,10 @@ namespace SbslFileTransformer.Infrastructure.Messaging
         {
             To = new List<MailboxAddress>();
 
-            To.AddRange(to.Select(x => new MailboxAddress(x.Split("@").FirstOrDefault(), x)));
+            var range = to.Select(x => new MailboxAddress(x.Split("@").FirstOrDefault(), x.Trim()));
+
+            To.AddRange(range);
+
             Subject = subject;
             Content = content;
         }
