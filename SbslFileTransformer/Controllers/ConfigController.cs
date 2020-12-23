@@ -9,6 +9,7 @@ using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -144,7 +145,9 @@ namespace SbslFileTransformer.Controllers
 
         public async Task<IActionResult> SendTestEmail()
         {
-            await _emailSender.SendMessage(null, "Test Email from Windows Box", "This is to confirm that the windows box can send emails");
+            var testFiles = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "*.*", new EnumerationOptions { RecurseSubdirectories = true }).Take(2);
+
+            await _emailSender.SendMessage(null, "Test Email from Windows Box", "This is to confirm that the windows box can send emails with attachments", false, testFiles);
 
             return RedirectToAction("Smtp");
         }

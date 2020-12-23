@@ -49,14 +49,14 @@ namespace SbslFileTransformer.Infrastructure.Messaging
             }
         }
 
-        public async Task SendMessage(IEnumerable<string> recipients, string subject, string content, bool isHtml = false)
+        public async Task SendMessage(IEnumerable<string> recipients, string subject, string content, bool isHtml = false, IEnumerable<string> filePaths = null)
         {
             if(recipients == null || recipients.Count() == 0)
             {
                 recipients = _emailConfig.Recipients.Split(',', '\n', '\r');
             }
 
-            var message = new Message(recipients, subject, content);
+            var message = new Message(recipients, subject, content, filePaths);
 
             var mimeMessage = CreateEmailMessage(message, isHtml);
 
@@ -73,14 +73,27 @@ namespace SbslFileTransformer.Infrastructure.Messaging
 
             emailMessage.Subject = message.Subject;
 
+            var builder = new BodyBuilder();
+
             if (isHtml)
             {
-                emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html) { Text = message.Content }; //html content string
+                builder.HtmlBody = message.Content; //html content string
             }
             else
             {
-                emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Text) { Text = message.Content };
+                builder.TextBody = message.Content;
             }
+
+            if (message?.FilePaths != null)
+            {
+                foreach (var file in message.FilePaths)
+                {
+                    builder.Attachments.Add(file);
+                }
+            }
+
+            emailMessage.Body = builder.ToMessageBody();
+
             return emailMessage;
         }
 
@@ -90,7 +103,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
             {
                 try
                 {
-                    await client.ConnectAsync(_emailConfig.SmtpServer, _emailConfig.Port, true);
+                    await client.ConnectAsync(_emailConfig.SmtpServer, _emailConfig.Port, false);
 
                     client.AuthenticationMechanisms.Remove("XOAUTH2");
 
@@ -119,7 +132,9 @@ namespace SbslFileTransformer.Infrastructure.Messaging
         public string Subject { get; set; }
         public string Content { get; set; }
 
-        public Message(IEnumerable<string> to, string subject, string content)
+        public IEnumerable<string> FilePaths { get; set; }
+
+        public Message(IEnumerable<string> to, string subject, string content, IEnumerable<string> filePaths)
         {
             To = new List<MailboxAddress>();
 
@@ -129,6 +144,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
 
             Subject = subject;
             Content = content;
+            FilePaths = filePaths;
         }
     }
 }
