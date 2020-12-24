@@ -126,6 +126,7 @@ namespace SbslFileTransformer.Converters
         public static async Task RunMTBalanceExtractor(object location, bool isProduction, string sandboxOrProdFolder, IServiceScopeFactory serviceScopeFactory, ILogger logger)
         {
             logger.LogInformation("Running MT Balance file extractor");
+
             try
             {
                 string loc = location.ToString();
@@ -142,31 +143,33 @@ namespace SbslFileTransformer.Converters
 
                     var paths = notProcessed.Select(f => f.FilePath);
 
-                    var filesInDirectoryToProcess = Directory.GetFiles(loc).Where(f => paths.Contains(f)).ToList();
-
-                    var resultFile = await ProcessFilesBalance(filesInDirectoryToProcess, sandboxOrProdFolder, entity, serviceScopeFactory);
-
-                    var md5 = encryptionManager.GetMd5(resultFile);
-
-                    if (File.Exists(resultFile))
+                    if (paths.Count() > 0)
                     {
-                        if (await StaticHelpers.UploadFileToSftp(resultFile, md5, isProduction, "", null, null, serviceScopeFactory, logger))
+                        var filesInDirectoryToProcess = Directory.GetFiles(loc).Where(f => paths.Contains(f)).ToList();
+
+                        var resultFile = await ProcessFilesBalance(filesInDirectoryToProcess, sandboxOrProdFolder, entity, serviceScopeFactory);
+
+                        if (File.Exists(resultFile))
                         {
-                            foreach (var file in notProcessed)
+                            var md5 = encryptionManager.GetMd5(resultFile);
+
+                            if (await StaticHelpers.UploadFileToSftp(resultFile, md5, isProduction, "", null, null, serviceScopeFactory, logger))
                             {
-                                if (filesInDirectoryToProcess.Contains(file.FilePath))
+                                foreach (var file in notProcessed)
                                 {
-                                    file.ProcessFor62F = true;
+                                    if (filesInDirectoryToProcess.Contains(file.FilePath))
+                                    {
+                                        file.ProcessFor62F = true;
+                                    }
                                 }
+
+                                dbContext.UpdateRange(notProcessed);
+
+                                await dbContext.SaveChangesAsync();
                             }
-
-                            dbContext.UpdateRange(notProcessed);
-
-                            await dbContext.SaveChangesAsync();
                         }
+                        logger.LogInformation($"Finished running balance file extractor on {paths.Count()} files");
                     }
-
-                    logger.LogInformation("Finished running balance file extractor");
                 }
             }
             catch (Exception ex)
@@ -193,7 +196,7 @@ namespace SbslFileTransformer.Converters
 
                     var bal = lines.FirstOrDefault(l => l.Contains(":62F:"));
 
-                    if(bal == null)
+                    if (bal == null)
                     {
                         continue;
                     }
@@ -252,7 +255,8 @@ namespace SbslFileTransformer.Converters
 
         private static DateTime GetLastBusinessDayOfMonth(DateTime date)
         {
-            var holidays = new List<DateTime> {/* list of observed holidays */};//exclude holidays https://stackoverflow.com/questions/273048/how-to-determine-the-last-business-day-in-a-given-month
+            //exclude holidays https://stackoverflow.com/questions/273048/how-to-determine-the-last-business-day-in-a-given-month
+            var holidays = new List<DateTime> {/* list of observed holidays */};
             DateTime lastBusinessDay = new DateTime();
             var i = DateTime.DaysInMonth(date.Year, date.Month);
             while (i > 0)

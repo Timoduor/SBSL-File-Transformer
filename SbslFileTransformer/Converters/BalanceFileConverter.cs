@@ -1,4 +1,5 @@
 ﻿using CsvHelper;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PluginBase;
 using SbslFileTransformer.Data;
@@ -15,7 +16,7 @@ namespace SbslFileTransformer.PluginsLocal
     public class BalanceFileConverter : RunnableBase
     {
         private readonly static object _locker = new object();
-        public override ILogger<IRunnable> Logger { get; set; }
+        public override ILogger Logger { get; set; }
 
         public override Guid Id => new Guid("701d74d6-bb48-4384-9d73-1466de46e61f");
 
@@ -27,7 +28,14 @@ namespace SbslFileTransformer.PluginsLocal
         public override int StartDelay { get; set; }
         public override bool IsManualRun { get; set; }
         public override string Entity { get; set; }
-        public ApplicationDbContext DbContext { get; set; }
+        public IServiceScopeFactory ServiceScopeFactory { get; set; }
+
+        public BalanceFileConverter(ILogger logger, IServiceScopeFactory serviceScopeFactory, string entity)
+        {
+            Logger = logger;
+            ServiceScopeFactory  = serviceScopeFactory;
+            Entity = entity;
+        }
 
         public override async Task<bool> Execute(string filePath)
         {
@@ -40,7 +48,19 @@ namespace SbslFileTransformer.PluginsLocal
 
                 DateTime fileDate = DateTime.Now;
 
-                var lookUp = DbContext.Accounts.Select(a => new { a.Number, a.Name }).ToDictionary(pair => pair.Number, pair => pair.Name);
+                Dictionary<string, string> lookUp = new Dictionary<string, string>();
+
+                using (var scope = ServiceScopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                    var pairs = dbContext.Accounts.Select(a => new { a.Number, a.Name });
+
+                    foreach(var acc in pairs)
+                    {
+                        lookUp.TryAdd(acc.Number, acc.Name);
+                    }
+                }
 
                 lock (_locker)
                 {

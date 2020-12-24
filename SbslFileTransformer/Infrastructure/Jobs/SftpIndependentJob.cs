@@ -28,27 +28,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         readonly IServiceScopeFactory _serviceScopeFactory;
         readonly ILogger<SftpIndependentJob> _logger;
         private ILogger<InputFileWatcher> _fileLogger;
-        private readonly EncryptionManager _encryptionManager;
-        private readonly EmailSender _emailSender;
         private string Entity;
-
-        private static readonly object _locker = new object();
+        private List<Timer> _timers = new List<Timer>();
 
         public SftpIndependentJob(IServiceScopeFactory serviceScopeFactory, ILogger<SftpIndependentJob> logger
-            , ILogger<InputFileWatcher> fileLogger, EncryptionManager encryptionManager, EmailSender emailSender)
+                            , ILogger<InputFileWatcher> fileLogger)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
             _fileLogger = fileLogger;
-            _encryptionManager = encryptionManager;
-            _emailSender = emailSender;
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken)
         {
             try
             {
-                _logger.LogInformation("Starting Sftp Independent...");
+                _logger.LogInformation("Starting SFTP Independent...");
 
                 SftpConfigModel config;
                 int prodTimeSpan, sbTimeSpan;
@@ -64,6 +59,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     //sync all folders every hours
                     var timerProduction = new Timer((state) => RunFileCheckAndUpload(state, true, config.ProductionFolder).GetAwaiter().GetResult(), null, TimeSpan.Zero,
                                                             TimeSpan.FromMinutes(prodTimeSpan));
+
+                    _timers.Add(timerProduction);
                 }
 
                 if (config.IncludeSandbox)
@@ -75,18 +72,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     var timerSandbox = new Timer((state) => RunFileCheckAndUpload(state, false, config.SandboxFolder).GetAwaiter().GetResult(), null, TimeSpan.Zero,
                                                     TimeSpan.FromMinutes(sbTimeSpan));
 
+                    _timers.Add(timerSandbox);
                 }
 
-                var timedValidator = new Timer((state) => MTFileConverter.RunMtSequenceValidationCheck(_serviceScopeFactory, _logger, _emailSender).GetAwaiter().GetResult(),
-                                                null, TimeSpan.Zero, TimeSpan.FromMinutes(10)); //TODO
-
-
-                _logger.LogInformation("Sftp Independent Job Started Successfully!");
+                _logger.LogInformation("SFTP Independent Job Started Successfully!");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message + " Error starting SFTP independent job");
             }
+
+            return Task.CompletedTask;
         }
 
         private void GetConfiguration(out SftpConfigModel config, out int prodTimeSpan, out int sbTimeSpan)
@@ -179,30 +175,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 }
                 else
                 {
-                    bool isBalanceFile = false;
-
                     if (newFileName.Item1.ToLower().Contains("Nostro_Balances_Finacle_Format".ToLower()) && Path.GetExtension(newFileName.Item1.ToLower()) != ".txt")
                     {
-                        isBalanceFile = true;
+                        var converter = new BalanceFileConverter(_logger, _serviceScopeFactory, Entity);
 
-                        var converter = new BalanceFileConverter();
-
-                        converter.Entity = Entity;
-
-                        if (await converter.Execute(newFileName.Item1))
-                        {
-                            var newPath = Path.ChangeExtension(newFileName.Item1, ".txt");
-
-                            await StaticHelpers.UploadFileToSftp(newPath, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newPath),
-                                string.Empty, string.Empty, _serviceScopeFactory, _logger);
-                        }
+                        await converter.Execute(newFileName.Item1);
                     }
 
-                    if (!isBalanceFile)
-                    {
-                        await StaticHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction,
-                            Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), string.Empty, string.Empty, _serviceScopeFactory, _logger);
-                    }
+                    await StaticHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction,
+                        Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), string.Empty, string.Empty, _serviceScopeFactory, _logger);
                 }
             }
             catch (Exception ex)
@@ -218,6 +199,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Sftp Independent Job stopped");
+
+            foreach (var timer in _timers)
+            {
+                timer?.Change(Timeout.Infinite, 0);
+                await timer.DisposeAsync();
+            }
         }
+
     }
 }

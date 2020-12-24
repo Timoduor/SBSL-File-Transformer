@@ -8,7 +8,7 @@ namespace PluginBase
 {
     public abstract class RunnableBase : IRunnable
     {
-        public abstract ILogger<IRunnable> Logger { get; set; }
+        public abstract ILogger Logger { get; set; }
 
         public abstract Guid Id { get; }
 

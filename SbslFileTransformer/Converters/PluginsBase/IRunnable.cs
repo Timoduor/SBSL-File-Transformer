@@ -12,7 +12,7 @@ namespace PluginBase
     /// </summary>
     public interface IRunnable : IDisposable
     {
-        ILogger<IRunnable> Logger { get; set; }
+        ILogger Logger { get; set; }
         Guid Id { get; }
         string Name { get; }
         string Description { get; }
