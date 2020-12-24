@@ -1,15 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Files;
 using SbslFileTransformer.Infrastructure.Helpers;
-using SbslFileTransformer.Infrastructure.Messaging;
-using SbslFileTransformer.Infrastructure.Plugins;
-using SbslFileTransformer.Infrastructure.Sftp;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using SbslFileTransformer.PluginsLocal;
@@ -17,7 +12,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 

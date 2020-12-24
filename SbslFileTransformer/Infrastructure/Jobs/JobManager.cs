@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using PluginBase;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Files;
-using SbslFileTransformer.Infrastructure.Plugins;
 using SbslFileTransformer.Models;
 using System;
 using System.Collections.Generic;
