@@ -36,20 +36,7 @@ namespace SbslFileTransformer.Converters
                     {
                         var toRet = pair.Split("/");
 
-                        //var stmtSeq = pair.Replace("/", "");
-
-                        //if (Path.GetFileName(originalFile).Substring(6, stmtSeq.Length) != stmtSeq)
-                        {
-                            //var newFilename = Path.Combine(Path.GetDirectoryName(originalFile), Path.GetFileName(originalFile).Insert(6, stmtSeq));
-
-                            //if (!File.Exists(newFilename))
-                            //{
-                            //    File.Copy(originalFile, newFilename);
-                            //}
-                            //File.Delete(originalFile);
-
-                            return (originalFile, toRet);
-                        }
+                        return (originalFile, toRet);
                     }
                 }
             }

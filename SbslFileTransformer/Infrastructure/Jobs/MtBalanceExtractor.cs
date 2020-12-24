@@ -8,6 +8,7 @@ using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -20,6 +21,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         private ILogger<MtBalanceExtractor> _logger;
         private IServiceScopeFactory _serviceScopeFactory;
         private EmailSender _emailSender;
+        private List<Timer> _timers = new List<Timer>();
 
 
         public MtBalanceExtractor(ILogger<MtBalanceExtractor> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
@@ -37,7 +39,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
             GetConfiguration(out config);
 
-            int loopTime = 5;
+            int loopTime = 20;
 
             if (config.IncludeProduction)
             {
@@ -45,7 +47,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 //sync all folders every hours
                 var timerProduction = new Timer((state) => MTFileConverter.RunMTBalanceExtractor(statementFolderProd, true, config.ProductionFolder, _serviceScopeFactory, _logger).GetAwaiter().GetResult(), null, TimeSpan.Zero,
-                TimeSpan.FromSeconds(loopTime));
+                TimeSpan.FromMinutes(loopTime));
+
+                _timers.Add(timerProduction);
             }
 
             if (config.IncludeSandbox)
@@ -53,12 +57,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 var statementFolder = Path.Combine(config.SandboxFolder, @"NOSTRO\STATEMENT");//TODO PUT IN CONFIG OR CHANGE FOR DIFFERENT COUNTRIES
 
                 var timerSandbox = new Timer((state) => MTFileConverter.RunMTBalanceExtractor(statementFolder, false, config.SandboxFolder, _serviceScopeFactory, _logger).GetAwaiter().GetResult(), null, TimeSpan.Zero,
-                                                TimeSpan.FromSeconds(loopTime));
+                                                TimeSpan.FromMinutes(loopTime));
 
+                _timers.Add(timerSandbox);
             }
 
             var timedValidator = new Timer((state) => MTFileConverter.RunMtSequenceValidationCheck(_serviceScopeFactory, _logger, _emailSender).GetAwaiter().GetResult(),
                                               null, TimeSpan.Zero, TimeSpan.FromHours(12)); //TODO
+
+            _timers.Add(timedValidator);
 
             return Task.CompletedTask;
         }
@@ -66,6 +73,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("MT Balance Extractor stopped");
+
+            _logger.LogInformation("Sftp Independent Job stopped");
+
+            foreach (var timer in _timers)
+            {
+                timer?.Change(Timeout.Infinite, 0);
+                await timer.DisposeAsync();
+            }
         }
 
         private void GetConfiguration(out SftpConfigModel config)
