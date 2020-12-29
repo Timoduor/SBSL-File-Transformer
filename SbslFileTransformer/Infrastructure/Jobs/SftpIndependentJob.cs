@@ -188,8 +188,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             return newFileName.Item1;
         }
 
-
-
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Sftp Independent Job stopped");

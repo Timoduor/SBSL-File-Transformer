@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Helpers
@@ -126,6 +127,21 @@ namespace SbslFileTransformer.Infrastructure.Helpers
             }
 
             return list;
+        }
+
+        public static string GetMd5(string filePath)
+        {
+            using (var md5 = MD5.Create())
+            {
+                using (var stream = File.OpenRead(filePath))
+                {
+                    var hash = md5.ComputeHash(stream);
+
+                    stream.Close();
+
+                    return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+                }
+            }
         }
 
     }
