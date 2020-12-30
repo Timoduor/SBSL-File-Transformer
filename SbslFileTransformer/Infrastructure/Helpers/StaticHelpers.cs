@@ -101,8 +101,8 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                 var fileName = Path.GetFileName(filePath);
 
                 //check if md5/filename exists
-                if (await dbContext.UploadedFiles.AnyAsync(f => (f.Md5 == md5 && f.IsProduction == isProduction)
-                                    || (f.Name == fileName && f.IsProduction == isProduction)))
+                if (await dbContext.UploadedFiles.AnyAsync(f => (f.Md5.ToUpper() == md5.ToUpper() && f.IsProduction == isProduction)
+                                    || (f.Name.ToUpper() == fileName.ToUpper() && f.IsProduction == isProduction)))
                 {
                     return (md5, true);
                 }

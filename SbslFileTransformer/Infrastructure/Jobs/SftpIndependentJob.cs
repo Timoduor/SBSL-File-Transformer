@@ -162,6 +162,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     return string.Empty;
                 }
 
+                //IF IT IS AN MT FILE
                 if (newFileName.Item2.Count() > 0)
                 {
                     await StaticHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1),
@@ -169,12 +170,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 }
                 else
                 {
+                    //IF IT IS A NOSTRO BALANCE FILE
                     if (newFileName.Item1.ToLower().Contains("Nostro_Balances_Finacle_Format".ToLower()) && Path.GetExtension(newFileName.Item1.ToLower()) != ".txt")
                     {
                         var converter = new BalanceFileConverter(_logger, _serviceScopeFactory, Entity);
 
                         await converter.Execute(newFileName.Item1);
                     }
+
+                    //IF IT IS A CDM FILE
+
+                    //IF IT IS A CAMT FILE
 
                     await StaticHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction,
                         Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), string.Empty, string.Empty, _serviceScopeFactory, _logger);

@@ -1,0 +1,80 @@
+﻿@model SbslFileTransformer.Models.ReportConfigModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h2>Email Reports</h2>
+
+<div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
+
+    <ul class="navbar-nav flex-grow-1">
+
+        <li class="nav-item">
+            <a class="btn btn-info" asp-area="" asp-controller="Report" asp-action="EmailGroups">Email Groups</a> -&nbsp;
+        </li>
+
+    </ul>
+</div>
+<hr />
+
+<form asp-action="Index">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="BaseUrl" class="control-label"></label>
+                <input asp-for="BaseUrl" class="form-control" />
+                <span asp-validation-for="BaseUrl" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EnvironmentUrl" class="control-label"></label>
+                <input asp-for="EnvironmentUrl" class="form-control" />
+                <span asp-validation-for="EnvironmentUrl" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="UserToken" class="control-label"></label>
+                <input asp-for="UserToken" class="form-control" />
+                <span asp-validation-for="UserToken" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="UserName" class="control-label"></label>
+                <input asp-for="UserName" class="form-control" />
+                <span asp-validation-for="UserName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="Password" class="control-label"></label>
+                <input asp-for="Password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ExportType" class="control-label"></label>
+                <input asp-for="ExportType" class="form-control" />
+                <span asp-validation-for="ExportType" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EmailHeader" class="control-label"></label>
+                <input asp-for="EmailHeader" class="form-control" />
+                <span asp-validation-for="EmailHeader" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EmailBody" class="control-label"></label>
+                <input asp-for="EmailBody" class="form-control" />
+                <span asp-validation-for="EmailBody" class="text-danger"></span>
+            </div>
+            <div>
+                <a asp-action="Index" asp-controller="Config" class="btn btn-light float-right">Back to List</a>
+            </div>
+        </div>
+
+
+
+    </div>
+</form>
+
+

@@ -10,7 +10,6 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Infrastructure.Messaging;
-using SbslFileTransformer.Infrastructure.Reporting;
 using SbslFileTransformer.Infrastructure.Sftp;
 using Serilog;
 using System.IO;

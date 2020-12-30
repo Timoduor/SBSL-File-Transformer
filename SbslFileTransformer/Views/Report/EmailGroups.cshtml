@@ -1,0 +1,60 @@
+﻿@model IEnumerable<SbslFileTransformer.Models.EmailGroup>
+
+@{
+    ViewData["Title"] = "EmailGroups";
+}
+
+<h1>EmailGroups</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Group Name
+            </th>
+
+            <th>
+                AgeAlertDuration
+            </th>
+            <th>
+                Account
+            </th>
+            <th>
+                Description
+            </th>
+            <th>
+                Emails
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.GroupName)
+            </td>
+
+            <td>
+                @Html.DisplayFor(modelItem => item.AgeAlertDuration)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Account)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Emails)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
