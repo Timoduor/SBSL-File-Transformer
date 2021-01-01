@@ -10,9 +10,12 @@
         /// <summary>
         /// CSV, PDF, XLSX
         /// </summary>
-        public string ExportType { get; set; } //CSV, PDF, XLSX
+        public string ExportType { get; set; }
         public string EmailHeader { get; set; } = "Reconciliation Ageing Report";
         public string EmailBody { get; set; }
-        public string 
+        public string ClientId { get; set; }
+        public string ClientSecret { get; set; }
+        public string Scope { get; set; }
+        public string TokenUrl { get; set; }
     }
 }

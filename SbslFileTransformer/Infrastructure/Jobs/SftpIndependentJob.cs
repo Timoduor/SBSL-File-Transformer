@@ -21,16 +21,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs
     {
         readonly IServiceScopeFactory _serviceScopeFactory;
         readonly ILogger<SftpIndependentJob> _logger;
-        private ILogger<InputFileWatcher> _fileLogger;
         private string Entity;
         private List<Timer> _timers = new List<Timer>();
 
-        public SftpIndependentJob(IServiceScopeFactory serviceScopeFactory, ILogger<SftpIndependentJob> logger
-                            , ILogger<InputFileWatcher> fileLogger)
+        public SftpIndependentJob(IServiceScopeFactory serviceScopeFactory, ILogger<SftpIndependentJob> logger)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
-            _fileLogger = fileLogger;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -46,22 +43,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 if (config.IncludeProduction)
                 {
-                    var fileWatcher = new InputFileWatcher(config.ProductionFolder, _fileLogger);
+                    //var fileWatcher = new InputFileWatcher(config.ProductionFolder, _fileLogger);
 
-                    fileWatcher.ProcessFile = async fileToProcess => await RunFileCheckAndUpload(fileToProcess, true, config.ProductionFolder);
+                    //fileWatcher.ProcessFile = async fileToProcess => await RunFileCheckAndUpload(fileToProcess, true, config.ProductionFolder);
 
                     //sync all folders every hours
                     var timerProduction = new Timer((state) => RunFileCheckAndUpload(state, true, config.ProductionFolder).GetAwaiter().GetResult(), null, TimeSpan.Zero,
-                                                            TimeSpan.FromMinutes(prodTimeSpan));
+                                                            TimeSpan.FromMinutes(5));
 
                     _timers.Add(timerProduction);
                 }
 
                 if (config.IncludeSandbox)
                 {
-                    var fileWatcher = new InputFileWatcher(config.SandboxFolder, _fileLogger);
+                    //var fileWatcher = new InputFileWatcher(config.SandboxFolder, _fileLogger);
 
-                    fileWatcher.ProcessFile = async fileToProcess => await RunFileCheckAndUpload(fileToProcess, false, config.SandboxFolder);
+                    //fileWatcher.ProcessFile = async fileToProcess => await RunFileCheckAndUpload(fileToProcess, false, config.SandboxFolder);
 
                     var timerSandbox = new Timer((state) => RunFileCheckAndUpload(state, false, config.SandboxFolder).GetAwaiter().GetResult(), null, TimeSpan.Zero,
                                                     TimeSpan.FromMinutes(sbTimeSpan));

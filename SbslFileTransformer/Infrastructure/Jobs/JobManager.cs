@@ -69,11 +69,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                         //runnable.OutputFolder = job.OutputFolder;
                         //runnable.Logger = _jobLogger;
 
-                        var fileWatcher = new InputFileWatcher(job.InputFolder, _fileLogger);
+                        //var fileWatcher = new InputFileWatcher(job.InputFolder, _fileLogger);
 
                         //fileWatcher.ProcessFile = async fileToProcess => await runnable.Execute(fileToProcess);
 
-                        _inputFileWatcher.Add(fileWatcher);
+                        //_inputFileWatcher.Add(fileWatcher);
                     }
                 }
 

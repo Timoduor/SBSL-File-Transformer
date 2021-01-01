@@ -222,7 +222,7 @@ namespace SbslFileTransformer.Converters
                 {
                     File.WriteAllText(outputPath, output.ToString());
 
-                    await Task.Delay(200);
+                    //await Task.Delay(200);
                 }
             }
 

@@ -23,7 +23,7 @@ namespace PluginBase
 
         public async virtual Task<bool> Execute(string filePath)
         {
-            await Task.Delay(TimeSpan.FromSeconds(StartDelay));
+            //await Task.Delay(TimeSpan.FromSeconds(StartDelay));
 
             return true;
         }

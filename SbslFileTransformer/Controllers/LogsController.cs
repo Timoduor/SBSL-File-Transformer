@@ -33,13 +33,13 @@ namespace SbslFileTransformer.Controllers
 
                 var latestFiles =
                           files
-                          .OrderByDescending(f => f.LastModified);
+                          .OrderByDescending(f => f.LastModified).Take(20);
 
                 IOrderedEnumerable<SqliteLog> sqliteLogs = await GetSqliteLogs();
 
                 var newLogs = new LogInfo
                 {
-                    FileInfos = latestFiles ?? new List<IFileInfo>().OrderByDescending(f => f.LastModified),
+                    FileInfos = latestFiles.OrderByDescending(f => f.LastModified) ?? new List<IFileInfo>().OrderByDescending(f => f.LastModified),
                     SqliteLogs = sqliteLogs ?? new List<SqliteLog>().OrderByDescending(l => l.Id),
                     UploadedFiles = _dbContext.UploadedFiles.OrderByDescending(f => f.UploadedDate).Take(1000).ToList().OrderByDescending(f => f.UploadedDate)
                 };

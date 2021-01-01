@@ -18,15 +18,13 @@ namespace SbslFileTransformer.Controllers
     [HandleLicense("All")]
     public class TaskController : Controller
     {
-        private PluginManager _pluginManager;
         private ILogger<TaskController> _logger;
         private ILogger<IRunnable> _pluginLogger;
         private ApplicationDbContext _dbContext;
 
-        public TaskController(PluginManager pluginManager, ILogger<TaskController> logger,
+        public TaskController(ILogger<TaskController> logger,
                             ApplicationDbContext dbContext, ILogger<IRunnable> pluginLogger)
         {
-            _pluginManager = pluginManager;
             _logger = logger;
             _dbContext = dbContext;
             _pluginLogger = pluginLogger;
@@ -75,24 +73,24 @@ namespace SbslFileTransformer.Controllers
         public async Task<IActionResult> RunPlugin(string plugin, string file)
         {
             //open the output directory when done
-            var pluginToRun = _pluginManager.GetPlugins().FirstOrDefault(p => p.Id == new Guid(plugin));
+            //var pluginToRun = _pluginManager.GetPlugins().FirstOrDefault(p => p.Id == new Guid(plugin));
 
-            if(pluginToRun != null)
-            {
-                pluginToRun.IsManualRun = true;
-                pluginToRun.Logger = _pluginLogger;
+            //if(pluginToRun != null)
+            //{
+            //    pluginToRun.IsManualRun = true;
+            //    pluginToRun.Logger = _pluginLogger;
 
-                var success = await pluginToRun.Execute(file);
+            //    var success = await pluginToRun.Execute(file);
 
-                if (success)
-                {
-                    TempData["Message"] = "Converter ran successfully to completion";
-                }
-                else
-                {
-                    TempData["Message"] = "Converter failed!";
-                }
-            }
+            //    if (success)
+            //    {
+            //        TempData["Message"] = "Converter ran successfully to completion";
+            //    }
+            //    else
+            //    {
+            //        TempData["Message"] = "Converter failed!";
+            //    }
+            //}
 
             return RedirectToAction("Index");
         }

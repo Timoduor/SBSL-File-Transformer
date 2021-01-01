@@ -72,15 +72,15 @@ namespace SbslFileTransformer
 #if DEBUG
             services.AddRazorPages().AddRazorRuntimeCompilation();
 #endif
-            //services.AddHostedService<JobManager>();
 
             services.AddHostedService<SftpIndependentJob>();
 
-            services.AddHostedService<ScheduledReporter>();
+            //services.AddHostedService<ScheduledReporter>();
 
             services.AddHostedService<MtBalanceExtractor>();
 
-            //services.AddTransient<PluginManager>();
+            services.AddHostedService<AuxilliaryProcesses>();
+
 
             services.AddTransient<SftpManager>();
 

@@ -38,7 +38,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
             GetConfiguration(out config);
 
-            int loopTime = 20;
+            int loopTime = 10;
 
             if (config.IncludeProduction)
             {
