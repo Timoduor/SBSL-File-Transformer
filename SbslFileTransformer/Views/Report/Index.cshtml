@@ -1,21 +1,20 @@
 ﻿@model SbslFileTransformer.Models.ReportConfigModel
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Scheduled Reports";
 }
 
-<h2>Email Reports</h2>
 
-<div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
-
-    <ul class="navbar-nav flex-grow-1">
-
-        <li class="nav-item">
-            <a class="btn btn-info" asp-area="" asp-controller="Report" asp-action="EmailGroups">Email Groups</a> -&nbsp;
-        </li>
-
-    </ul>
+<div class="row">
+    <div class="col-md-6">
+        <h2>Email Alerts</h2>
+    </div>
+    <div class="col-md-6">
+        <a class="btn btn-info float-right" asp-area="" asp-controller="Report" asp-action="EmailGroups">Email Groups</a>
+    </div>
 </div>
+
+
 <hr />
 
 <form asp-action="Index">

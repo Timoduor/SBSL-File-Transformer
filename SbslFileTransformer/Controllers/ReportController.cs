@@ -6,6 +6,7 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Licensing.Attributes;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -37,6 +38,7 @@ namespace SbslFileTransformer.Controllers
                 EmailBody = configurations.FirstOrDefault(c => c.Key == "EmailBody")?.Value,
                 EmailHeader = configurations.FirstOrDefault(c => c.Key == "EmailHeader")?.Value,
                 ExportType = configurations.FirstOrDefault(c => c.Key == "ExportType")?.Value,
+
             };
 
 
@@ -46,6 +48,8 @@ namespace SbslFileTransformer.Controllers
         [HttpPost]
         public async Task<IActionResult> Index(ReportConfigModel config)
         {
+            await UpdateReportConfig(config);
+
             return RedirectToAction("Index", "Config");
         }
 
@@ -56,9 +60,24 @@ namespace SbslFileTransformer.Controllers
             return View(groups);
         }
 
-        public async Task<IActionResult> EditGroup(int groupId)
+        public async Task<IActionResult> CreateGroup()
         {
-            var group = await _dbContext.EmailGroups.FindAsync(groupId);
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateGroup(EmailGroup group)
+        {
+            _dbContext.EmailGroups.Add(group);
+
+            await _dbContext.SaveChangesAsync();
+
+            return RedirectToAction("EmailGroups");
+        }
+
+        public async Task<IActionResult> EditGroup(int id)
+        {
+            var group = await _dbContext.EmailGroups.FindAsync(id);
 
             return View(group);
         }
@@ -70,7 +89,201 @@ namespace SbslFileTransformer.Controllers
 
             await _dbContext.SaveChangesAsync();
 
-            return RedirectToAction("Index");
+            return RedirectToAction("EmailGroups");
+        }
+
+        public async Task<IActionResult> Deactivate(int id, bool active)
+        {
+            var group = await _dbContext.EmailGroups.FindAsync(id);
+
+            group.IsActive = active;
+
+            _dbContext.Update(group);
+
+            await _dbContext.SaveChangesAsync();
+
+            return RedirectToAction("EmailGroups");
+        }
+
+        private async Task UpdateReportConfig(ReportConfigModel config)
+        {
+            if (!string.IsNullOrEmpty(config.BaseUrl))
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Report,
+                    Key = "BaseUrl",
+                    Value = config.BaseUrl,
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
+
+            if (!string.IsNullOrEmpty(config.ClientId))
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Report,
+                    Key = "ClientId",
+                    Value = config.ClientId,
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
+
+            if (!string.IsNullOrEmpty(config.ClientSecret))
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Report,
+                    Key = "ClientSecret",
+                    Value = config.ClientSecret,
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
+
+            if (!string.IsNullOrEmpty(config.EmailBody))
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Report,
+                    Key = "EmailBody",
+                    Value = config.EmailBody,
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
+
+            if (!string.IsNullOrEmpty(config.EmailHeader))
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Report,
+                    Key = "EmailHeader",
+                    Value = config.EmailHeader,
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
+
+            if (!string.IsNullOrEmpty(config.EnvironmentUrl))
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Report,
+                    Key = "EnvironmentUrl",
+                    Value = config.EnvironmentUrl,
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
+
+            if (!string.IsNullOrEmpty(config.ExportType))
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Report,
+                    Key = "ExportType",
+                    Value = config.ExportType,
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
+
+            if (!string.IsNullOrEmpty(config.Password))
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Report,
+                    Key = "Password",
+                    Value = config.Password,
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
+
+            if (!string.IsNullOrEmpty(config.Scope))
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Report,
+                    Key = "Scope",
+                    Value = config.Scope,
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
+
+            if (!string.IsNullOrEmpty(config.TokenUrl))
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Report,
+                    Key = "TokenUrl",
+                    Value = config.TokenUrl,
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
+
+            if (!string.IsNullOrEmpty(config.UserName))
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Report,
+                    Key = "UserName",
+                    Value = config.UserName,
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
+
+            if (!string.IsNullOrEmpty(config.UserToken))
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Report,
+                    Key = "UserToken",
+                    Value = config.UserToken,
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
+
+        }
+
+        private async Task CreateOrUpdate(Configuration config)
+        {
+
+            var existing = await _dbContext.Configurations.FirstOrDefaultAsync(c => c.Key.ToLower() == config.Key.ToLower() && c.ConfigType == config.ConfigType);
+
+            if (existing != null)
+            {
+                existing.Value = config.Value;
+                existing.Updated = DateTime.Now;
+
+                _dbContext.Entry(existing).State = EntityState.Modified;
+            }
+            else
+            {
+                config.Updated = DateTime.Now;
+                _dbContext.Add(config);
+            }
+
+            await _dbContext.SaveChangesAsync();
         }
 
 

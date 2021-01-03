@@ -1,23 +1,31 @@
 ﻿@model IEnumerable<SbslFileTransformer.Models.EmailGroup>
 
 @{
-    ViewData["Title"] = "EmailGroups";
+    ViewData["Title"] = "Email Groups";
 }
 
-<h1>EmailGroups</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
+
+<div class="row">
+    <div class="col-md-6">
+        <h3>Email Groups</h3>
+    </div>
+    <div class="col-md-6">
+        <a asp-action="CreateGroup" class="btn btn-primary float-right">Create New Group</a>
+    </div>
+</div>
+
+<hr />
+
 <table class="table">
     <thead>
         <tr>
             <th>
-                Group Name
+                Name
             </th>
 
             <th>
-                AgeAlertDuration
+                Period
             </th>
             <th>
                 Account
@@ -32,29 +40,37 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.GroupName)
-            </td>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.GroupName)
+                </td>
 
-            <td>
-                @Html.DisplayFor(modelItem => item.AgeAlertDuration)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Account)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Emails)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
-                @Html.ActionLink("Delete", "Delete", new { id = item.Id })
-            </td>
-        </tr>
-}
+                <td>
+                    @Html.DisplayFor(modelItem => item.AgeAlertDuration)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Account)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Emails)
+                </td>
+                <td>
+                    @Html.ActionLink("Edit", "EditGroup", "Report", new { id = item.Id }, new { @class = "btn btn-sm btn-info" }) |
+                    @if (item.IsActive)
+                    {
+                        @Html.ActionLink("Deactivate", "Deactivate", "Report", new { id = item.Id, active = false }, new { @class = "btn btn-sm btn-danger" })
+                    }
+                    else
+                    {
+                        @Html.ActionLink("Activate", "Deactivate", "Report", new { id = item.Id, active = true }, new { @class = "btn btn-sm btn-success" })
+                    }
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

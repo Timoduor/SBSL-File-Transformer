@@ -26,10 +26,6 @@ namespace SbslFileTransformer.Converters
             {
                 using (var reader = ExcelReaderFactory.CreateReader(stream))
                 {
-                    // Choose one of either 1 or 2:
-
-                    // 1. Use the reader methods
-
                     while (reader.Read())
                     {
                         if (string.IsNullOrEmpty(reader.GetValue(4)?.ToString()))

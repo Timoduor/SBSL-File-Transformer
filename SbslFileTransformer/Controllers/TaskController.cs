@@ -15,7 +15,7 @@ namespace SbslFileTransformer.Controllers
     /// <summary>
     /// select plugin -> select file(s) -> run job
     /// </summary>
-    [HandleLicense("All")]
+    //[HandleLicense("All")]
     public class TaskController : Controller
     {
         private ILogger<TaskController> _logger;
