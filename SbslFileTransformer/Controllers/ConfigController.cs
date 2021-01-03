@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Controllers
 {
-    [HandleLicense("All")]
+    //[HandleLicense("All")]
     public class ConfigController : Controller
     {
         private readonly ApplicationDbContext _dbContext;

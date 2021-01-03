@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Controllers
 {
-    [HandleLicense("All")]
+    //[HandleLicense("All")]
     public class LogsController : Controller
     {
         private readonly ILogger<LogsController> _logger;

@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace SbslFileTransformer.Controllers
 {
-    [HandleLicense("All")]
+    //[HandleLicense("All")]
     [AllowAnonymous]
     public class HomeController : Controller
     {
