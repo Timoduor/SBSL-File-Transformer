@@ -213,7 +213,7 @@ namespace SbslFileTransformer.Converters
 
                 foreach (var balance in balances)
                 {
-                    string toAppend = $"{entity}\t{await GetGLAccountNumber(balance.Account, dbContext)}\tNostros\t\t\t\t\t\t\t\t\tBalance_bank\t{GetLastBusinessDayOfMonth(balance.Date):MM/dd/yyyy}\t\t\t\t{balance.Amount}\t{balance.Currency}\n";
+                    string toAppend = $"{entity}\t{await GetGLAccountNumber(balance.Account, dbContext)}\tNostros\t\t\t\t\t\t\t\t\tBalance_bank\t{StaticHelpers.GetLastDayOfTheMonth(balance.Date):MM/dd/yyyy}\t\t\t\t{balance.Amount}\t{balance.Currency}\n";
 
                     output.Append(toAppend);
                 }
@@ -240,28 +240,7 @@ namespace SbslFileTransformer.Converters
             return accNo;
         }
 
-        private static DateTime GetLastBusinessDayOfMonth(DateTime date)
-        {
-            //exclude holidays https://stackoverflow.com/questions/273048/how-to-determine-the-last-business-day-in-a-given-month
-            var holidays = new List<DateTime> {/* list of observed holidays */};
-            DateTime lastBusinessDay = new DateTime();
-            var i = DateTime.DaysInMonth(date.Year, date.Month);
-            while (i > 0)
-            {
-                var dtCurrent = new DateTime(date.Year, date.Month, i);
-                if (dtCurrent.DayOfWeek < DayOfWeek.Saturday && dtCurrent.DayOfWeek > DayOfWeek.Sunday)
-                {
-                    lastBusinessDay = dtCurrent;
-                    i = 0;
-                }
-                else
-                {
-                    i = i - 1;
-                }
-            }
 
-            return lastBusinessDay;
-        }
 
         private class Balance
         {

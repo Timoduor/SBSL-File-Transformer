@@ -75,7 +75,7 @@ namespace SbslFileTransformer
 
             services.AddHostedService<SftpIndependentJob>();
 
-            services.AddHostedService<ScheduledReporter>();
+            //services.AddHostedService<ScheduledReporter>();
 
             services.AddHostedService<MtBalanceExtractor>();
 

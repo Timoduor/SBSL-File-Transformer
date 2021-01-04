@@ -45,7 +45,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 var statementFolderProd = Path.Combine(config.ProductionFolder, @$"{config.Entity}\NOSTRO\STATEMENT");//TODO PUT IN CONFIG OR CHANGE FOR DIFFERENT COUNTRIES
 
                 //sync all folders every hours
-                var timerProduction = new Timer((state) => MTFileConverter.RunMTBalanceExtractor(statementFolderProd, true, config.ProductionFolder, _serviceScopeFactory, _logger).GetAwaiter().GetResult(), null, TimeSpan.Zero,
+                var timerProduction = new Timer(async(state) => await MTFileConverter.RunMTBalanceExtractor(statementFolderProd, true, config.ProductionFolder, _serviceScopeFactory, _logger), null, TimeSpan.Zero,
                 TimeSpan.FromMinutes(loopTime));
 
                 _timers.Add(timerProduction);
@@ -55,13 +55,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 var statementFolder = Path.Combine(config.SandboxFolder, @"NOSTRO\STATEMENT");//TODO PUT IN CONFIG OR CHANGE FOR DIFFERENT COUNTRIES
 
-                var timerSandbox = new Timer((state) => MTFileConverter.RunMTBalanceExtractor(statementFolder, false, config.SandboxFolder, _serviceScopeFactory, _logger).GetAwaiter().GetResult(), null, TimeSpan.Zero,
+                var timerSandbox = new Timer(async(state) => await MTFileConverter.RunMTBalanceExtractor(statementFolder, false, config.SandboxFolder, _serviceScopeFactory, _logger), null, TimeSpan.Zero,
                                                 TimeSpan.FromMinutes(loopTime));
 
                 _timers.Add(timerSandbox);
             }
 
-            var timedValidator = new Timer((state) => MTFileConverter.RunMtSequenceValidationCheck(_serviceScopeFactory, _logger, _emailSender).GetAwaiter().GetResult(),
+            var timedValidator = new Timer(async(state) => await MTFileConverter.RunMtSequenceValidationCheck(_serviceScopeFactory, _logger, _emailSender),
                                               null, TimeSpan.Zero, TimeSpan.FromHours(12)); //TODO
 
             _timers.Add(timedValidator);

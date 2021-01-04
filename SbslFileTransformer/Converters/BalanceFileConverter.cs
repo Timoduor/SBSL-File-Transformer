@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PluginBase;
 using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -85,7 +86,7 @@ namespace SbslFileTransformer.PluginsLocal
                                 var DorC2 = csv.GetField<int>(6);
                                 var closingBalance = csv.GetField<double>(7);
 
-                                string toAppend = $"{Entity}\t{accNo}\tNostros\t\t\t\t\t\t\t\t{GetAccountName(accNo, lookUp)}\tNostros\tA\tAsset\tTRUE\tTRUE\t\t{currency}\t{new DateTime(date2.Year, date2.Month, 1).AddMonths(1).AddDays(-1):MM/dd/yyyy}\t\t\t{-1 * DorC2 * closingBalance}\n";
+                                string toAppend = $"{Entity}\t{accNo}\tNostros\t\t\t\t\t\t\t\t{GetAccountName(accNo, lookUp)}\tNostros\tA\tAsset\tTRUE\tTRUE\t\t{currency}\t{StaticHelpers.GetLastDayOfTheMonth(date2):MM/dd/yyyy}\t\t\t{-1 * DorC2 * closingBalance}\n";
 
                                 output.Append(toAppend);
                             }
@@ -109,6 +110,7 @@ namespace SbslFileTransformer.PluginsLocal
                 return false;
             }
         }
+
 
 
         private string GetAccountName(string accountNumber, Dictionary<string,string> dict)

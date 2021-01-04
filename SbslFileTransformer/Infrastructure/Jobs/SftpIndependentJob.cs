@@ -48,7 +48,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     //fileWatcher.ProcessFile = async fileToProcess => await RunFileCheckAndUpload(fileToProcess, true, config.ProductionFolder);
 
                     //sync all folders every hours
-                    var timerProduction = new Timer((state) => RunFileCheckAndUpload(state, true, config.ProductionFolder).GetAwaiter().GetResult(), null, TimeSpan.Zero,
+                    var timerProduction = new Timer(async(state) => await RunFileCheckAndUpload(state, true, config.ProductionFolder), null, TimeSpan.Zero,
                                                             TimeSpan.FromMinutes(5));
 
                     _timers.Add(timerProduction);
@@ -60,7 +60,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                     //fileWatcher.ProcessFile = async fileToProcess => await RunFileCheckAndUpload(fileToProcess, false, config.SandboxFolder);
 
-                    var timerSandbox = new Timer((state) => RunFileCheckAndUpload(state, false, config.SandboxFolder).GetAwaiter().GetResult(), null, TimeSpan.Zero,
+                    var timerSandbox = new Timer(async(state) => await RunFileCheckAndUpload(state, false, config.SandboxFolder), null, TimeSpan.Zero,
                                                     TimeSpan.FromMinutes(sbTimeSpan));
 
                     _timers.Add(timerSandbox);

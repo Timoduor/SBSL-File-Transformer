@@ -37,7 +37,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             _logger.LogInformation("Starting Scheduled reporter job...");
 
-            _timer = new Timer((state) => ProcessNewReport().GetAwaiter().GetResult(), null, TimeSpan.Zero, TimeSpan.FromHours(12));
+            _timer = new Timer(async(state) => await ProcessNewReport(), null, TimeSpan.Zero, TimeSpan.FromHours(12));
 
             return Task.CompletedTask;
         }

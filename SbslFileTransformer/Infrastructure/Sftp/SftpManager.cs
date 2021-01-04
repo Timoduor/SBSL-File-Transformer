@@ -57,7 +57,7 @@ namespace SbslFileTransformer.Infrastructure.Sftp
 
         public bool UploadFile(string localFilePath, string remoteFilePath)
         {
-            //lock (_locker)
+            lock (_locker)
             {
                 using (var client = new SftpClient(_config.Host, _config.Port == 0 ? 22 : _config.Port, _config.UserName, _config.Password))
                 {
@@ -71,25 +71,24 @@ namespace SbslFileTransformer.Infrastructure.Sftp
 
                         using (var s = File.OpenRead(localFilePath))
                         {
-                            client.UploadFile(s, remoteFilePath);
+                            client.UploadFile(s, remoteFilePath, true);
 
-                            s.Close();
+                            client.Disconnect();
                         }
-
-                        //client.Disconnect();
 
                         _logger.LogInformation($"Finished uploading file [{localFilePath}] to [{remoteFilePath}]");
                         return true;
                     }
                     catch (Exception exception)
                     {
-                        //client.Disconnect();
+                        client.Disconnect();
 
                         _logger.LogError(exception, $"Failed in uploading file [{localFilePath}] to [{remoteFilePath}]");
-                        return false;
+
                     }
                 }
             }
+            return false;
         }
 
         public void CreateAllDirectories(SftpClient client, string path)
