@@ -39,29 +39,6 @@ namespace SbslFileTransformer
             services.AddDataProtection()
                     .PersistKeysToFileSystem(new DirectoryInfo(keyStore));
 
-            //services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
-            //{
-            //    options.SignIn.RequireConfirmedAccount = false;//TODO: SHOULD BE CHANGED IN PRODUCTION
-            //    options.User.RequireUniqueEmail = true;
-            //    options.Password.RequiredLength = 6;
-            //    options.Password.RequireNonAlphanumeric = false;
-            //    options.Password.RequireUppercase = false;
-            //    options.Password.RequireLowercase = false;
-            //    options.Password.RequireDigit = true;
-            //})
-            //    .AddEntityFrameworkStores<ApplicationDbContext>()
-            //    .AddDefaultTokenProviders();
-
-            //services.ConfigureApplicationCookie(config =>
-            //{
-            //    config.LoginPath = "/Auth/Login";
-            //    config.LogoutPath = "/Auth/Logout";
-            //    config.SlidingExpiration = true;
-            //    config.AccessDeniedPath = "/Auth/Login";
-            //    config.Cookie.Name = "SBSLETL.2021";
-            //    config.Cookie.MaxAge = TimeSpan.FromDays(30);
-            //});
-
             IFileProvider physicalProvider = new PhysicalFileProvider(Directory.GetCurrentDirectory());
 
             services.AddSingleton(physicalProvider);

@@ -270,9 +270,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 }
             }
 
-            var olderThan3days = openItems.Where(i => i.DaysOverdue >= 3);
-            var olderThan5days = openItems.Where(i => i.DaysOverdue >= 5);
-            var olderThan7days = openItems.Where(i => i.DaysOverdue >= 7);
+            var olderThan3days = openItems.Where(i => i.DaysOverdue >= 3 && i.DaysOverdue < 5);
+            var olderThan5days = openItems.Where(i => i.DaysOverdue >= 5 && i.DaysOverdue < 7);
+            var olderThan7days = openItems.Where(i => i.DaysOverdue >= 7 && i.DaysOverdue < 30);
             var olderThan30days = openItems.Where(i => i.DaysOverdue >= 30);
 
             daysRecordsPairs.Add(3, olderThan3days.ToList());
