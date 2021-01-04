@@ -8,7 +8,7 @@
         public string UserName { get; set; }
         public string Password { get; set; }
         /// <summary>
-        /// CSV, PDF, XLSX
+        /// CSV, PDF, Excel
         /// </summary>
         public string ExportType { get; set; }
         public string EmailHeader { get; set; } = "Reconciliation Ageing Report";

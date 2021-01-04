@@ -161,7 +161,7 @@ namespace SbslFileTransformer.Converters
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message, ex);
+                logger.LogError(ex, ex.Message);
             }
         }
 

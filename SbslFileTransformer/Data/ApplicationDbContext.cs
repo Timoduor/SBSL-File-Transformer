@@ -16,5 +16,6 @@ namespace SbslFileTransformer.Data
         public DbSet<SftpUploadedFile> UploadedFiles { get; set; }
         public DbSet<AccountsLookup> Accounts { get; set; }
         public DbSet<EmailGroup> EmailGroups { get; set; }
+        public DbSet<ProcessedReport> ProcessedReports { get; set; }
     }
 }
