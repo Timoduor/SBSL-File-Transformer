@@ -200,13 +200,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
         private IEnumerable<string> GetEmails(int key)
         {
+            var emails = new List<string>();
+
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
                 var groups = dbContext.EmailGroups.Where(g => g.AgeAlertDuration >= key);
 
-                return groups.Select(g => g.Emails).ToList();
+                var groupEmails = groups.ToList().Select(g => g.Emails);
+
+                foreach(var group in groupEmails)
+                {
+                    emails.AddRange(group.Split(',', '\r', '\n'));
+                }
+
+                return emails;
             }
         }
 
