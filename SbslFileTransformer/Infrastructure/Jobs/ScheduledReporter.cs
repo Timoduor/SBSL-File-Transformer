@@ -93,9 +93,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                 //ONLY SEND EMAILS IF FILE HAS 1 OR MORE RECORDS
 
                                 await _emailSender.SendMessage(emails, config.EmailHeader, config.EmailBody, filePaths: new string[] { key.Value });
-
-                                await SaveToDb(report, dbContext, config);
                             }
+                            await SaveToDb(report, dbContext, config);
                         }
                     }
                 }
@@ -286,12 +285,31 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             var olderThan7days = openItems.Where(i => i.DaysOverdue >= 7 && i.DaysOverdue < 30);
             var olderThan30days = openItems.Where(i => i.DaysOverdue >= 30);
 
-            daysRecordsPairs.Add(3, olderThan3days.ToList());
-            daysRecordsPairs.Add(5, olderThan5days.ToList());
-            daysRecordsPairs.Add(7, olderThan7days.ToList());
-            daysRecordsPairs.Add(30, olderThan30days.ToList());
+            if (olderThan3days.Count() > 0)
+            {
+                daysRecordsPairs.Add(3, olderThan3days.ToList());
+            }
+            if (olderThan5days.Count() > 0)
+            {
+                daysRecordsPairs.Add(5, olderThan5days.ToList());
+            }
+            if (olderThan7days.Count() > 0)
+            {
+                daysRecordsPairs.Add(7, olderThan7days.ToList());
+            }
+            if (olderThan7days.Count() > 0)
+            {
+                daysRecordsPairs.Add(30, olderThan30days.ToList());
+            }
 
-            return CreateCsvFile(daysRecordsPairs);
+            if (daysRecordsPairs.Count() > 0)
+            {
+                return CreateCsvFile(daysRecordsPairs);
+            }
+            else
+            {
+                return new Dictionary<int, string>();
+            }
         }
 
         private Dictionary<int, string> CreateCsvFile(Dictionary<int, List<OpenItem>> items)

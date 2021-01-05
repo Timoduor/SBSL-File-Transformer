@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Licensing.Attributes;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
@@ -12,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Controllers
 {
-    [HandleLicense("All")]
+    //[HandleLicense("All")]
     [AllowAnonymous]
     public class ReportController : Controller
     {
