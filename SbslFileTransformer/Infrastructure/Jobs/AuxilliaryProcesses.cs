@@ -35,6 +35,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         public Task StopAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Auxilliary Services stopped!");
+
+            _timer.Dispose();
+
             return Task.CompletedTask;
         }
     }

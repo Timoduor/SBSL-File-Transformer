@@ -52,11 +52,11 @@ namespace SbslFileTransformer
 
             services.AddHostedService<SftpIndependentJob>();
 
-            services.AddHostedService<ScheduledReporter>();
+            //services.AddHostedService<ScheduledReporter>();
 
             services.AddHostedService<MtBalanceExtractor>();
 
-            services.AddHostedService<AuxilliaryProcesses>();
+            //services.AddHostedService<AuxilliaryProcesses>();
 
 
             services.AddTransient<SftpManager>();

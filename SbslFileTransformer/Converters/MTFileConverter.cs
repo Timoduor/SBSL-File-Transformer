@@ -128,11 +128,13 @@ namespace SbslFileTransformer.Converters
 
                     var notProcessed = dbContext.UploadedFiles.Where(u => u.ProcessFor62F == false);
 
-                    var paths = notProcessed.Select(f => f.FilePath);
+                    var paths = notProcessed.Select(f => f.FilePath).ToList();
 
                     if (paths.Count() > 0)
                     {
-                        var filesInDirectoryToProcess = Directory.GetFiles(loc).Where(f => paths.Contains(f)).ToList();
+                        var filesInDirectory = Directory.GetFiles(loc).ToList();
+
+                        var filesInDirectoryToProcess = filesInDirectory.Where(f => paths.Any(p => f.ToLower() == p.ToLower())).ToList();
 
                         var resultFile = await ProcessFilesBalance(filesInDirectoryToProcess, sandboxOrProdFolder, entity, serviceScopeFactory);
 

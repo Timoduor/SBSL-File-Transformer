@@ -90,6 +90,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                 //key is the overdue days used to select the email groups
                                 var emails = GetEmails(key.Key);
 
+                                //ONLY SEND EMAILS IF FILE HAS 1 OR MORE RECORDS
+
                                 await _emailSender.SendMessage(emails, config.EmailHeader, config.EmailBody, filePaths: new string[] { key.Value });
 
                                 await SaveToDb(report, dbContext, config);
