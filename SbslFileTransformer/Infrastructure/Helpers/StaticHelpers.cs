@@ -28,7 +28,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
         }
 
         public static async Task<bool> UploadFileToSftp(string filePath, string md5, bool isProduction, string relativePath,
-            string statementNo, string sequenceNo, IServiceScopeFactory serviceScopeFactory, ILogger logger)
+            string accountNo, string statementNo, string sequenceNo, IServiceScopeFactory serviceScopeFactory, ILogger logger)
         {
             try
             {
@@ -62,6 +62,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                             Name = Path.GetFileName(filePath),
                             Size = new FileInfo(filePath).Length,
                             UploadedDate = DateTime.Now,
+                            MtAccountNo = accountNo,
                             MtStatementNo = statementNo,
                             MtSequenceNo = sequenceNo
                         });

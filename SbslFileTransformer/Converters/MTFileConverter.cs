@@ -19,24 +19,25 @@ namespace SbslFileTransformer.Converters
     {
         private static object _locker = new object();
 
-        public static (string, string[]) RenameMTFile(string originalFile, ILogger logger)
+        public static (string, string, string[]) RenameMTFile(string originalFile, ILogger logger)
         {
             try
             {
                 lock (_locker)
                 {
                     if (Path.GetFileName(originalFile).Split("_").Length > 2)
-                        return (originalFile, new string[] { });
+                        return (originalFile, string.Empty, new string[] { });
 
                     var lines = File.ReadAllLines(originalFile);
 
                     var pair = lines.FirstOrDefault(l => l.Trim().StartsWith(":28C:"))?.Split(":").Last();
+                    var account = lines.FirstOrDefault(l => l.Trim().StartsWith(":25:"))?.Split(":").Last();
 
                     if (pair != null)
                     {
                         var toRet = pair.Split("/");
 
-                        return (originalFile, toRet);
+                        return (originalFile, account, toRet);
                     }
                 }
             }
@@ -47,7 +48,7 @@ namespace SbslFileTransformer.Converters
 
             //_logger.LogInformation($"Skipping file {Path.GetFileName(originalFile)} because it does not have a sequence number");
             //send email maybe
-            return (originalFile, new string[] { });
+            return (originalFile, string.Empty, new string[] { });
         }
 
         public static async Task RunMtSequenceValidationCheck(IServiceScopeFactory serviceScopeFactory, ILogger logger, EmailSender emailSender)
@@ -58,9 +59,9 @@ namespace SbslFileTransformer.Converters
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var uploadedToday = dbContext.UploadedFiles.Where(u => u.UploadedDate.Date == DateTime.Now.Date);
+                    var uploadedToday = dbContext.UploadedFiles.Where(u => u.UploadedDate.Date == DateTime.Now.Date && u.MtAccountNo != null);
 
-                    var dict = uploadedToday.GroupBy(u => u.MtStatementNo).Select(u => new { Stmt = u.Key, Max = u.Max(u => u.MtSequenceNo) }).ToList();
+                    var dict = uploadedToday.GroupBy(u => u.MtAccountNo).Select(u => new { Account = u.Key, Max = u.Max(u => u.MtSequenceNo) }).ToList();
 
                     Dictionary<string, string> absent = new Dictionary<string, string>();
 
@@ -68,39 +69,61 @@ namespace SbslFileTransformer.Converters
                     {
                         var worked = int.TryParse(stmt.Max, out int result);
 
+                        var present = uploadedToday.Where(u => u.MtAccountNo == stmt.Account).Select(u => u.MtSequenceNo).ToList();
+
                         if (worked)
                         {
                             for (int i = 1; i <= Convert.ToInt32(result); i++)
                             {
-                                if (uploadedToday.FirstOrDefault() == null)
+
+                                var current = i.ToString().PadLeft(5, '0');
+
+                                if (!present.Contains(current))
                                 {
-                                    if (absent.ContainsKey(stmt.Stmt))
+                                    if (absent.ContainsKey(stmt.Account))
                                     {
-                                        absent[stmt.Stmt] += i.ToString();
+                                        absent[stmt.Account] += ", " + i.ToString();
                                     }
                                     else
                                     {
-                                        absent[stmt.Stmt] = i.ToString();
+                                        absent[stmt.Account] = i.ToString();
                                     }
                                 }
                             }
                         }
                     }
 
+                    StringBuilder message = new StringBuilder();
+
+                    var unfinalized = uploadedToday.Where(u => !u.ProcessFor62F).Select(u => u.MtAccountNo).Distinct().ToList();
+
+                    message.AppendLine();
+
+                    foreach (var acc in unfinalized)
+                    {
+                        if (!uploadedToday.Where(u => u.ProcessFor62F && u.MtAccountNo == acc).Any())
+                        {
+                            message.AppendLine($"Account No. {acc} is missing Closing Balance Statement file");
+
+                            message.AppendLine();
+                        }
+                    }
+
                     if (absent.Where(a => !string.IsNullOrEmpty(a.Value)).Count() > 0)
                     {
-                        StringBuilder message = new StringBuilder();
 
                         foreach (var val in absent)
                         {
-                            message.AppendLine($"Statement No {val.Key} is missing Sequence Nos {val.Value}");
+                            message.AppendLine($"Account No. {val.Key} is missing Statement(s) for Sequence Numbers: {val.Value}");
+
+                            message.AppendLine();
                         }
 
                         var config = await dbContext.Configurations.FirstOrDefaultAsync(c => c.ConfigType == ConfigurationType.Email && c.Key == "Recipients");
 
                         var recipients = config.Value.Split(new char[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-                        await emailSender.SendMessage(recipients, "Missing Seq. Nos", message.ToString());
+                        await emailSender.SendMessage(recipients, "Missing Closing Balances & Sequence Numbers", message.ToString());
                     }
                 }
             }
@@ -142,7 +165,7 @@ namespace SbslFileTransformer.Converters
                         {
                             var md5 = encryptionManager.GetMd5(resultFile);
 
-                            if (await StaticHelpers.UploadFileToSftp(resultFile, md5, isProduction, "", null, null, serviceScopeFactory, logger))
+                            if (await StaticHelpers.UploadFileToSftp(resultFile, md5, isProduction, "", null, null, null, serviceScopeFactory, logger))
                             {
                                 foreach (var file in notProcessed)
                                 {

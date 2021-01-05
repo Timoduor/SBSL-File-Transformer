@@ -11,6 +11,7 @@ namespace SbslFileTransformer.Models
         public long Size { get; set; }
         public bool IsProduction { get; set; }
         public string FilePath { get; set; }
+        public string MtAccountNo { get; set; }
         public string MtStatementNo { get; set; }
         public string MtSequenceNo { get; set; }
         public bool ProcessFor62F { get; set; }
