@@ -168,7 +168,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 else
                 {
                     //IF IT IS A NOSTRO BALANCE FILE
-                    if (newFileName.Item1.ToLower().Contains("Nostro_Balances_Finacle_Format".ToLower()) && Path.GetExtension(newFileName.Item1.ToLower()) != ".txt")
+                    if (newFileName.Item1.ToLower().Contains("Nostro_Balance".ToLower()) && Path.GetExtension(newFileName.Item1.ToLower()) != ".txt")
                     {
                         var converter = new BalanceFileConverter(_logger, _serviceScopeFactory, Entity);
 
