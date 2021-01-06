@@ -147,7 +147,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
         private async Task<string> ProcessFileAndUpload(bool isProduction, string productionOrSandboxFolder, string file)
         {
-            (string, string[]) newFileName = MTFileConverter.RenameMTFile(file, _logger);
+            (string, string, string[]) newFileName = MTFileConverter.RenameMTFile(file, _logger);
 
             try
             {
@@ -160,10 +160,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 }
 
                 //IF IT IS AN MT FILE
-                if (newFileName.Item2.Count() > 0)
+                if (newFileName.Item3.Count() > 0)
                 {
-                    await StaticHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1),
-                        newFileName.Item2[0], newFileName.Item2.Count() == 1 ? string.Empty : newFileName.Item2[1], _serviceScopeFactory, _logger);
+                    await StaticHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), newFileName.Item2,
+                        newFileName.Item3[0], newFileName.Item3.Count() == 1 ? string.Empty : newFileName.Item3[1], _serviceScopeFactory, _logger);
                 }
                 else
                 {
@@ -180,7 +180,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     //IF IT IS A CAMT FILE
 
                     await StaticHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction,
-                        Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), string.Empty, string.Empty, _serviceScopeFactory, _logger);
+                        Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), string.Empty, string.Empty, string.Empty, _serviceScopeFactory, _logger);
                 }
             }
             catch (Exception ex)
