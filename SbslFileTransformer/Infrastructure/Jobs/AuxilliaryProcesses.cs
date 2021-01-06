@@ -30,7 +30,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             var timer = new Timer((state) => RestartService(), null, TimeSpan.Zero, TimeSpan.FromHours(2));
             _timers.Add(timer);
 
-            var timerArchive = new Timer(async (state) => await ArchiveOldFiles(), null, TimeSpan.Zero, TimeSpan.FromHours(5));
+            var timerArchive = new Timer(async (state) => await ArchiveOldFiles(), null, TimeSpan.Zero, TimeSpan.FromHours(2));
             _timers.Add(timerArchive);
 
             return Task.CompletedTask;
@@ -51,7 +51,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             try
             {
-                if (DateTime.Now.Hour >= 15 && DateTime.Now.Hour <= 6)
+                if (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 7)
                 {
                     using (var scope = _serviceScopeFactory.CreateScope())
                     {
