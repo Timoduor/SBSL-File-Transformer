@@ -51,7 +51,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             try
             {
-                if (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 7)
+                if ((DateTime.Now.Hour >= 15 && DateTime.Now.Hour <= 23) || (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 7))
                 {
                     using (var scope = _serviceScopeFactory.CreateScope())
                     {

@@ -49,7 +49,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                     //sync all folders every hours
                     var timerProduction = new Timer(async(state) => await RunFileCheckAndUpload(state, true, config.ProductionFolder), null, TimeSpan.Zero,
-                                                            TimeSpan.FromMinutes(5));
+                                                            TimeSpan.FromMinutes(7));
 
                     _timers.Add(timerProduction);
                 }
