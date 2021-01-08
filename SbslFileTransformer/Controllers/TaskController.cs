@@ -2,8 +2,6 @@
 using Microsoft.Extensions.Logging;
 using PluginBase;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Licensing.Attributes;
-using SbslFileTransformer.Infrastructure.Plugins;
 using SbslFileTransformer.Models;
 using System;
 using System.IO;

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SbslFileTransformer.Converters.Camt053
+﻿namespace SbslFileTransformer.Converters.Camt053
 {
     public class ExtractedRecord
     {
