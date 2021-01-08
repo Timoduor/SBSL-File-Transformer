@@ -15,15 +15,20 @@ namespace SbslFileTransformer.Converters.Camt053
 
             var xDoc = XDocument.Load(new StringReader(xmlInputData));
 
-            var unwrapped = xDoc.Descendants();
-            var node = unwrapped.Where(n => n.Name.LocalName == "BkToCstmrStmt").First();
+            xDoc.Descendants().Attributes().Where(x => x.IsNamespaceDeclaration).Remove();
 
-            var doc = Serializers.Desiarilize<BankToCustomer>(node.ToString());
+            foreach (var elem in xDoc.Descendants())
+                elem.Name = elem.Name.LocalName;
+
+            var unwrapped = xDoc.Descendants();
+            var node = unwrapped.Where(n => n.Name.LocalName == "Document").First();
+
+            var doc = Serializers.Desiarilize<Document>(node.ToString());
 
 
             var records = new List<ExtractedRecord>();
 
-            foreach (var entry in doc.Stmt.Ntry)
+            foreach (var entry in doc.BkStmt.Stmt.Ntry)
             {
                 var rec = new ExtractedRecord
                 {
@@ -42,22 +47,22 @@ namespace SbslFileTransformer.Converters.Camt053
                     BICFI = entry.NtryDtls.TxDtls.RltdPties.InitgPty.Agt.FinInstnId.BICFI,
 
 
-                    Id = doc.Stmt.Id,
-                    AccountNumber = doc.Stmt.Account.Id.Othr.Id,
-                    PgNb = doc.Stmt.StmtPgntn.PgNb,
-                    LastPgInd = doc.Stmt.StmtPgntn.LastPgInd,
-                    ElctrncSeqNb = doc.Stmt.ElctrncSeqNb,
-                    CreDtTm = doc.Stmt.CreDtTm,
-                    Sum = doc.Stmt.TxsSummry.TtlNtries.Sum,
-                    NbOfNtries = doc.Stmt.TxsSummry.TtlNtries.NbOfNtries,
-                    AnyBIC = doc.Stmt.Account.Ownr.Id.OrgId.AnyBIC
+                    Id = doc.BkStmt.Stmt.Id,
+                    AccountNumber = doc.BkStmt.Stmt.Account.Id.Othr.Id,
+                    PgNb = doc.BkStmt.Stmt.StmtPgntn.PgNb,
+                    LastPgInd = doc.BkStmt.Stmt.StmtPgntn.LastPgInd,
+                    ElctrncSeqNb = doc.BkStmt.Stmt.ElctrncSeqNb,
+                    CreDtTm = doc.BkStmt.Stmt.CreDtTm,
+                    Sum = doc.BkStmt.Stmt.TxsSummry.TtlNtries.Sum,
+                    NbOfNtries = doc.BkStmt.Stmt.TxsSummry.TtlNtries.NbOfNtries,
+                    AnyBIC = doc.BkStmt.Stmt.Account.Ownr.Id.OrgId.AnyBIC
 
                 };
                 records.Add(rec);
             }
 
             var balance = new List<BalanceExctracted>();
-            foreach (var entry in doc.Stmt.Bal)
+            foreach (var entry in doc.BkStmt.Stmt.Bal)
             {
                 var bal = new BalanceExctracted
                 {
@@ -66,7 +71,7 @@ namespace SbslFileTransformer.Converters.Camt053
                     CdtDbtInd = entry.CdtDbtInd,
                     BalanceDate = entry.Dt.Dt,
 
-                    AccountNumber = doc.Stmt.Account.Id.Othr.Id
+                    AccountNumber = doc.BkStmt.Stmt.Account.Id.Othr.Id
 
                 };
                 balance.Add(bal);
