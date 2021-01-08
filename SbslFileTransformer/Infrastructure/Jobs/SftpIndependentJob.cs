@@ -151,7 +151,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
             try
             {
-                var uploadCheckResult = await StaticHelpers.FileHasBeenUploadedBefore(newFileName.Item1, isProduction, _serviceScopeFactory);
+                var uploadCheckResult = await FileHelpers.FileHasBeenUploadedBefore(newFileName.Item1, isProduction, _serviceScopeFactory);
 
                 if (uploadCheckResult.Item2)
                 {
@@ -162,7 +162,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 //IF IT IS AN MT FILE
                 if (newFileName.Item3.Count() > 0)
                 {
-                    await StaticHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), newFileName.Item2,
+                    await FileHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), newFileName.Item2,
                         newFileName.Item3[0], newFileName.Item3.Count() == 1 ? string.Empty : newFileName.Item3[1], _serviceScopeFactory, _logger);
                 }
                 else
@@ -179,7 +179,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                     //IF IT IS A CAMT FILE
 
-                    await StaticHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction,
+                    await FileHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction,
                         Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), string.Empty, string.Empty, string.Empty, _serviceScopeFactory, _logger);
                 }
             }

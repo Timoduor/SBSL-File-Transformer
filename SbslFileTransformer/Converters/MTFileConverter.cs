@@ -165,7 +165,7 @@ namespace SbslFileTransformer.Converters
                         {
                             var md5 = encryptionManager.GetMd5(resultFile);
 
-                            if (await StaticHelpers.UploadFileToSftp(resultFile, md5, isProduction, "", null, null, null, serviceScopeFactory, logger))
+                            if (await FileHelpers.UploadFileToSftp(resultFile, md5, isProduction, "", null, null, null, serviceScopeFactory, logger))
                             {
                                 foreach (var file in notProcessed)
                                 {
@@ -238,7 +238,7 @@ namespace SbslFileTransformer.Converters
 
                 foreach (var balance in balances)
                 {
-                    string toAppend = $"{entity}\t{await GetGLAccountNumber(balance.Account, dbContext)}\tNostros\t\t\t\t\t\t\t\t\tBalance_bank\t{StaticHelpers.GetLastDayOfTheMonth(balance.Date):MM/dd/yyyy}\t\t\t\t{balance.Amount}\t{balance.Currency}\n";
+                    string toAppend = $"{entity}\t{await GetGLAccountNumber(balance.Account, dbContext)}\tNostros\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(balance.Date):MM/dd/yyyy}\t\t\t\t{balance.Amount}\t{balance.Currency}\n";
 
                     output.Append(toAppend);
                 }

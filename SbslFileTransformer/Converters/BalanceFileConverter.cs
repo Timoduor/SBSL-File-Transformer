@@ -86,7 +86,7 @@ namespace SbslFileTransformer.PluginsLocal
                                 var DorC2 = csv.GetField<int>(6);
                                 var closingBalance = csv.GetField<double>(7);
 
-                                string toAppend = $"{Entity}\t{accNo}\tNostros\t\t\t\t\t\t\t\t{GetAccountName(accNo, lookUp)}\tNostros\tA\tAsset\tTRUE\tTRUE\t\t{currency}\t{StaticHelpers.GetLastDayOfTheMonth(date2):MM/dd/yyyy}\t\t\t{-1 * DorC2 * closingBalance}\n";
+                                string toAppend = $"{Entity}\t{accNo}\tNostros\t\t\t\t\t\t\t\t{GetAccountName(accNo, lookUp)}\tNostros\tA\tAsset\tTRUE\tTRUE\t\t{currency}\t{ContentHelpers.GetLastDayOfTheMonth(date2):MM/dd/yyyy}\t\t\t{-1 * DorC2 * closingBalance}\n";
 
                                 output.Append(toAppend);
                             }

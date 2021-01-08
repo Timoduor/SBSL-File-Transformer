@@ -100,7 +100,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 if (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 4)
                 {
-                    StaticHelpers.RestartService("SBSL ETL Service");
+                    FileHelpers.RestartService("SBSL ETL Service");
                 }
             }
             catch(Exception ex)

@@ -28,24 +28,37 @@ namespace SbslFileTransformer.Converters
                 {
                     while (reader.Read())
                     {
-                        if (string.IsNullOrEmpty(reader.GetValue(4)?.ToString()))
+                        var testValue = reader.GetValue(5)?.ToString();
+
+                        if (string.IsNullOrEmpty(testValue) || testValue.ToLower().Contains("Account".ToLower()))
                         {
                             continue;
                         }
 
                         var row = new CdmCols
                         {
+                            //ID
                             Col2 = reader.GetValue(2)?.ToString(),
-                            Col4 = reader.GetValue(4)?.ToString(),
-                            Col9 = reader.GetValue(9)?.ToString(),
-                            Col12 = reader.GetValue(12)?.ToString(),
-                            Col17 = reader.GetValue(17)?.ToString(),
-                            Col21 = reader.GetValue(21)?.ToString(),
-                            Col23 = reader.GetValue(23)?.ToString(),
-                            Col25 = reader.GetValue(25)?.ToString(),
-                            Col28 = reader.GetValue(28)?.ToString(),
-                            Col33 = reader.GetValue(33)?.ToString(),
-                            Col40 = reader.GetValue(40)?.ToString(),
+                            //ACC
+                            Col4 = reader.GetValue(5)?.ToString(),
+                            //CODE
+                            Col9 = reader.GetValue(13)?.ToString(),
+                            //NAME
+                            Col12 = reader.GetValue(15)?.ToString(),
+                            //COMMENT
+                            Col17 = reader.GetValue(18)?.ToString(),
+                            //CODE2
+                            Col21 = reader.GetValue(25)?.ToString(),
+                            //STATUS
+                            Col23 = reader.GetValue(27)?.ToString(),
+                            //CURRENCY
+                            Col25 = reader.GetValue(30)?.ToString(),
+                            //AMOUNT
+                            Col28 = reader.GetValue(31)?.ToString(),
+                            //TXN REF
+                            Col33 = reader.GetValue(36)?.ToString(),
+                            //DATE
+                            Col40 = reader.GetValue(38)?.ToString(),
                         };
 
                         list.Add(row);
@@ -73,16 +86,27 @@ namespace SbslFileTransformer.Converters
 
         public class CdmCols
         {
+            //ID
             public string Col2 { get; set; }
+            //ACC
             public string Col4 { get; set; }
+            //CODE
             public string Col9 { get; set; }
+            //NAME
             public string Col12 { get; set; }
+            //COMMENT
             public string Col17 { get; set; }
+            //CODE2
             public string Col21 { get; set; }
+            //STATUS
             public string Col23 { get; set; }
+            //CURRENCY
             public string Col25 { get; set; }
+            //AMOUNT
             public string Col28 { get; set; }
+            //TXN REF
             public string Col33 { get; set; }
+            //DATE
             public string Col40 { get; set; }
         }
     }
