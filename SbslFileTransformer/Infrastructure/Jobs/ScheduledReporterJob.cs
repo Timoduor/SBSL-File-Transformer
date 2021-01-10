@@ -21,14 +21,14 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs
 {
-    public class ScheduledReporter : IHostedService
+    public class ScheduledReporterJob : IHostedService
     {
-        private readonly ILogger<ScheduledReporter> _logger;
+        private readonly ILogger<ScheduledReporterJob> _logger;
         private readonly EmailSender _emailSender;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private Timer _timer;
 
-        public ScheduledReporter(ILogger<ScheduledReporter> logger, EmailSender emailSender, IServiceScopeFactory serviceScopeFactory)
+        public ScheduledReporterJob(ILogger<ScheduledReporterJob> logger, EmailSender emailSender, IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;
             _emailSender = emailSender;

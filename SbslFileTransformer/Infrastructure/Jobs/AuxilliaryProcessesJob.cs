@@ -13,13 +13,13 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs
 {
-    public class AuxilliaryProcesses : IHostedService
+    public class AuxilliaryProcessesJob : IHostedService
     {
-        ILogger<AuxilliaryProcesses> _logger;
+        ILogger<AuxilliaryProcessesJob> _logger;
         private readonly IServiceScopeFactory _serviceScopeFactory;
 
         List<Timer> _timers = new List<Timer>();
-        public AuxilliaryProcesses(ILogger<AuxilliaryProcesses> logger, IServiceScopeFactory serviceScopeFactory)
+        public AuxilliaryProcessesJob(ILogger<AuxilliaryProcessesJob> logger, IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -73,7 +73,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                         var searchOptions = new EnumerationOptions
                         {
-                            RecurseSubdirectories = true
+                            RecurseSubdirectories = true,
+                            MatchCasing = MatchCasing.CaseInsensitive
                         };
 
                         foreach(var file in Directory.GetFiles(productionFolder, "*.*", searchOptions))

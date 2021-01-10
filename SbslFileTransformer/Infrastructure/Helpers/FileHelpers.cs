@@ -16,16 +16,10 @@ namespace SbslFileTransformer.Infrastructure.Helpers
     {
         public static void RestartService(string serviceName)
         {
-            https://stackoverflow.com/questions/28431621/how-to-restart-windows-service-by-itself-c-sharp
-            Environment.Exit(1); // has to be 1 so that the service sees it as a failure and restarts itself
+            //https://stackoverflow.com/questions/28431621/how-to-restart-windows-service-by-itself-c-sharp
+            // has to be 1 so that the service sees it as a failure and restarts itself
 
-            //Process process = new Process();
-            //process.StartInfo.FileName = "cmd";
-            //process.StartInfo.Arguments = $"/c net stop \"{serviceName}\" & net start \"{serviceName}\"";
-            //process.StartInfo.LoadUserProfile = false;
-            //process.StartInfo.UseShellExecute = false;
-            //process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            //process.Start();
+            Environment.Exit(1);
         }
 
         public static async Task<bool> UploadFileToSftp(string filePath, string md5, bool isProduction, string relativePath,

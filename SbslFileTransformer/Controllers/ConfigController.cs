@@ -145,7 +145,7 @@ namespace SbslFileTransformer.Controllers
 
         public async Task<IActionResult> SendTestEmail()
         {
-            var testFiles = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory), "*.*", new EnumerationOptions { RecurseSubdirectories = true }).Take(2);
+            var testFiles = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory), "*.*", new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive }).Take(2);
 
             await _emailSender.SendMessage(null, "Test Email from Windows Box", "This is to confirm that the windows box can send emails with attachments", false, testFiles);
 

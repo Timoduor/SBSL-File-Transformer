@@ -1,0 +1,83 @@
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using SbslFileTransformer.Converters;
+using SbslFileTransformer.Data;
+using SbslFileTransformer.Models.Enums;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace SbslFileTransformer.Infrastructure.Jobs.Converters
+{
+    public class CdmConverterJob : IHostedService
+    {
+        private Timer _timer;
+        private ILogger<CdmConverterJob> _logger;
+        IServiceScopeFactory _serviceScopeFactory;
+
+        public CdmConverterJob(ILogger<CdmConverterJob> logger, IServiceScopeFactory serviceScopeFactory)
+        {
+            _logger = logger;
+            _serviceScopeFactory = serviceScopeFactory;
+        }
+
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
+            _timer = new Timer(state => ConvertCdmFile(), null, TimeSpan.Zero, TimeSpan.FromMinutes(10));
+
+            return Task.CompletedTask;
+        }
+
+        private void ConvertCdmFile()
+        {
+            try
+            {
+                var prodFolder = string.Empty;
+                var sbFolder = string.Empty;
+                var Entity = string.Empty;
+
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
+
+                    Entity = dbContext.Configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
+                    prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
+                    sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
+                }
+
+                var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
+
+                var files = Directory.GetFiles(prodFolder, "*.xls", options).ToList();
+
+                files.AddRange(Directory.GetFiles(sbFolder, "*.xls", options));
+
+                var cdmConverter = new CdmFileConverter();
+
+                foreach (var file in files)
+                {
+                    //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
+                    if (file.ToLower().Contains("cdm"))
+                    {
+                        cdmConverter.ConvertFile(file);
+                    }
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+            }
+        }
+
+        public async Task StopAsync(CancellationToken cancellationToken)
+        {
+            await _timer.DisposeAsync();
+        }
+    }
+}

@@ -6,7 +6,6 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
-using SbslFileTransformer.PluginsLocal;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -166,18 +165,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 }
                 else
                 {
-                    //IF IT IS A NOSTRO BALANCE FILE
-                    if (newFileName.Item1.ToLower().Contains("Nostro_Balance".ToLower()) && Path.GetExtension(newFileName.Item1.ToLower()) != ".txt")
-                    {
-                        var converter = new BalanceFileConverter(_logger, _serviceScopeFactory, Entity);
-
-                        await converter.Execute(newFileName.Item1);
-                    }
-
-                    //IF IT IS A CDM FILE
-
-                    //IF IT IS A CAMT FILE
-
                     await FileHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction,
                         Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), string.Empty, string.Empty, string.Empty, _serviceScopeFactory, _logger);
                 }

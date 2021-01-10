@@ -26,7 +26,7 @@ namespace SbslFileTransformer.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var configurations = _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Report).ToList();
+            var configurations = await _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Report).ToListAsync();
 
             var config = new ReportConfigModel
             {
@@ -59,7 +59,7 @@ namespace SbslFileTransformer.Controllers
             return View(groups);
         }
 
-        public async Task<IActionResult> CreateGroup()
+        public IActionResult CreateGroup()
         {
             return View();
         }

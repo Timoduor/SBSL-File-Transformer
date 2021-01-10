@@ -1,5 +1,6 @@
 ﻿using CsvHelper;
 using ExcelDataReader;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -15,7 +16,7 @@ namespace SbslFileTransformer.Converters
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
-        public void ConvertFile(string inputFile, string outputFile)
+        public void ConvertFile(string inputFile, string outputFile = null)
         {
             //remove all rows where column E is blank
             //remove all columns with blanks
@@ -64,6 +65,13 @@ namespace SbslFileTransformer.Converters
                         list.Add(row);
                     }
                 }
+            }
+
+            if (string.IsNullOrEmpty(outputFile))
+            {
+                var outputFolder = Path.GetDirectoryName(inputFile);
+
+                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH:mm:ss}_CdmRecs.csv");
             }
 
             WriteToFile(list, outputFile);

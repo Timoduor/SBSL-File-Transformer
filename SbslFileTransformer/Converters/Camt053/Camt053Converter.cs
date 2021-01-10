@@ -9,9 +9,14 @@ namespace SbslFileTransformer.Converters.Camt053
 {
     public class Camt053Converter
     {
-        public void ProcessCamtFile(string file, string outputFolder)
+        public void ProcessCamtFile(string file, string outputFolder = null)
         {
             var xmlInputData = File.ReadAllText(file);
+
+            if (string.IsNullOrEmpty(outputFolder))
+            {
+                outputFolder = Path.GetDirectoryName(file);
+            }
 
             var xDoc = XDocument.Load(new StringReader(xmlInputData));
 
@@ -77,10 +82,10 @@ namespace SbslFileTransformer.Converters.Camt053
                 balance.Add(bal);
             }
 
-            var camtRecordsFile = $"{DateTime.Now:yyyy_MM_dd_HH:mm:ss}_CamtRecs.csv";
+            var camtRecordsFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH:mm:ss}_CamtRecs.csv");
             SaveFiles.SaveToCsv(records, camtRecordsFile);
 
-            var camtBalanceFile = $"{DateTime.Now:yyyy_MM_dd_HH:mm:ss}_CamtBals.csv";
+            var camtBalanceFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH:mm:ss}_CamtBals.csv");
             SaveFiles.SaveToCsv(records, camtRecordsFile);
         }
     }

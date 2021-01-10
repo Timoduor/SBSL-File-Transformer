@@ -9,6 +9,8 @@ using Microsoft.Extensions.Hosting;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Jobs;
+using SbslFileTransformer.Infrastructure.Jobs.Converters;
+using SbslFileTransformer.Infrastructure.Jobs.Extractors;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Infrastructure.Sftp;
 using Serilog;
@@ -50,19 +52,18 @@ namespace SbslFileTransformer
             services.AddRazorPages().AddRazorRuntimeCompilation();
 #endif
 
-            services.AddHostedService<SftpIndependentJob>();
-
-            services.AddHostedService<ScheduledReporter>();
-
-            services.AddHostedService<MtBalanceExtractor>();
-
-            services.AddHostedService<AuxilliaryProcesses>();
-
             services.AddTransient<SftpManager>();
-
             services.AddTransient<EncryptionManager>();
-
             services.AddTransient<EmailSender>();
+
+
+            services.AddHostedService<ScheduledReporterJob>();
+            services.AddHostedService<MtBalanceExtractorJob>();
+            services.AddHostedService<AuxilliaryProcessesJob>();
+            services.AddHostedService<GLBalanceExtractorJob>();
+            services.AddHostedService<Camt053ConverterJob>();
+            services.AddHostedService<CdmConverterJob>();
+            services.AddHostedService<SftpIndependentJob>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

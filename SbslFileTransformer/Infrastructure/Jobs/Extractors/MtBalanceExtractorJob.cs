@@ -15,15 +15,15 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs
 {
-    public class MtBalanceExtractor : IHostedService
+    public class MtBalanceExtractorJob : IHostedService
     {
-        private ILogger<MtBalanceExtractor> _logger;
+        private ILogger<MtBalanceExtractorJob> _logger;
         private IServiceScopeFactory _serviceScopeFactory;
         private EmailSender _emailSender;
         private List<Timer> _timers = new List<Timer>();
 
 
-        public MtBalanceExtractor(ILogger<MtBalanceExtractor> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public MtBalanceExtractorJob(ILogger<MtBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;

@@ -1,12 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using PluginBase;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Models;
 using System;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Controllers
 {
@@ -17,15 +15,12 @@ namespace SbslFileTransformer.Controllers
     public class TaskController : Controller
     {
         private ILogger<TaskController> _logger;
-        private ILogger<IRunnable> _pluginLogger;
         private ApplicationDbContext _dbContext;
 
-        public TaskController(ILogger<TaskController> logger,
-                            ApplicationDbContext dbContext, ILogger<IRunnable> pluginLogger)
+        public TaskController(ILogger<TaskController> logger, ApplicationDbContext dbContext)
         {
             _logger = logger;
             _dbContext = dbContext;
-            _pluginLogger = pluginLogger;
         }
 
         public IActionResult Index(Guid? pluginId)
@@ -68,27 +63,8 @@ namespace SbslFileTransformer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> RunPlugin(string plugin, string file)
+        public IActionResult RunPlugin(string plugin, string file)
         {
-            //open the output directory when done
-            //var pluginToRun = _pluginManager.GetPlugins().FirstOrDefault(p => p.Id == new Guid(plugin));
-
-            //if(pluginToRun != null)
-            //{
-            //    pluginToRun.IsManualRun = true;
-            //    pluginToRun.Logger = _pluginLogger;
-
-            //    var success = await pluginToRun.Execute(file);
-
-            //    if (success)
-            //    {
-            //        TempData["Message"] = "Converter ran successfully to completion";
-            //    }
-            //    else
-            //    {
-            //        TempData["Message"] = "Converter failed!";
-            //    }
-            //}
 
             return RedirectToAction("Index");
         }

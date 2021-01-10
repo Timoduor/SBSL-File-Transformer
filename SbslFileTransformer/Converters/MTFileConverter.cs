@@ -155,7 +155,9 @@ namespace SbslFileTransformer.Converters
 
                     if (paths.Count() > 0)
                     {
-                        var filesInDirectory = Directory.GetFiles(loc).ToList();
+                        var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
+
+                        var filesInDirectory = Directory.GetFiles(loc, "*.*", options).ToList();
 
                         var filesInDirectoryToProcess = filesInDirectory.Where(f => paths.Any(p => f.ToLower() == p.ToLower())).ToList();
 

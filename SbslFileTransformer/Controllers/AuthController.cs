@@ -15,6 +15,13 @@ namespace SbslFileTransformer.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
 
+        public AuthController(ILogger<AuthController> logger, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
+        {
+            _logger = logger;
+            _signInManager = signInManager;
+            _userManager = userManager;
+        }
+
         [AllowAnonymous]
         public IActionResult Login(string returnUrl)
         {

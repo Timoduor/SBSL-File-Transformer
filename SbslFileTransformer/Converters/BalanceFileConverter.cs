@@ -1,7 +1,6 @@
 ﻿using CsvHelper;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using PluginBase;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using System;
@@ -10,42 +9,39 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace SbslFileTransformer.PluginsLocal
+namespace SbslFileTransformer.Converters
 {
-    public class BalanceFileConverter : RunnableBase
+    public class BalanceFileConverter
     {
         private readonly static object _locker = new object();
-        public override ILogger Logger { get; set; }
+        public ILogger Logger { get; set; }
 
-        public override Guid Id => new Guid("701d74d6-bb48-4384-9d73-1466de46e61f");
+        public Guid Id => new Guid("701d74d6-bb48-4384-9d73-1466de46e61f");
 
-        public override string Name => "Finacle Balance File Converter";
+        public string Name => "Finacle Balance File Converter";
 
-        public override string Description => "Converts finacle generated csv file to standard blackline tab separated file";
+        public string Description => "Converts finacle generated csv file to standard blackline tab separated file";
 
-        public override string OutputFolder { get; set; }
-        public override int StartDelay { get; set; }
-        public override bool IsManualRun { get; set; }
-        public override string Entity { get; set; }
+        public string OutputFolder { get; set; }
+        public int StartDelay { get; set; }
+        public bool IsManualRun { get; set; }
+        public string Entity { get; set; }
         public IServiceScopeFactory ServiceScopeFactory { get; set; }
 
         public BalanceFileConverter(ILogger logger, IServiceScopeFactory serviceScopeFactory, string entity)
         {
             Logger = logger;
-            ServiceScopeFactory  = serviceScopeFactory;
+            ServiceScopeFactory = serviceScopeFactory;
             Entity = entity;
         }
 
-        public override async Task<bool> Execute(string filePath)
+        public bool Execute(string filePath)
         {
             try
             {
                 if (string.IsNullOrEmpty(Entity))
                     Entity = "IMKE";
-
-                await base.Execute(filePath);
 
                 DateTime fileDate = DateTime.Now;
 
@@ -57,7 +53,7 @@ namespace SbslFileTransformer.PluginsLocal
 
                     var pairs = dbContext.Accounts.Select(a => new { a.Number, a.Name });
 
-                    foreach(var acc in pairs)
+                    foreach (var acc in pairs)
                     {
                         lookUp.TryAdd(acc.Number, acc.Name);
                     }
@@ -97,9 +93,7 @@ namespace SbslFileTransformer.PluginsLocal
 
                     var outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_{fileDate:MMddyyyy}.txt");
 
-                    File.WriteAllText(outputPath, output.ToString());
-
-                    //File.Delete(filePath);
+                    File.WriteAllTextAsync(outputPath, output.ToString());
                 }
 
                 return true;
@@ -111,9 +105,7 @@ namespace SbslFileTransformer.PluginsLocal
             }
         }
 
-
-
-        private string GetAccountName(string accountNumber, Dictionary<string,string> dict)
+        private string GetAccountName(string accountNumber, Dictionary<string, string> dict)
         {
             if (dict.ContainsKey(accountNumber))
             {
@@ -147,9 +139,5 @@ namespace SbslFileTransformer.PluginsLocal
             return false;
         }
 
-        public override void Dispose()
-        {
-            //throw new NotImplementedException();
-        }
     }
 }
