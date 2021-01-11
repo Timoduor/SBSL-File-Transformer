@@ -51,6 +51,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             try
             {
+                //do it only afternoons or at night
                 if ((DateTime.Now.Hour >= 15 && DateTime.Now.Hour <= 23) || (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 7))
                 {
                     using (var scope = _serviceScopeFactory.CreateScope())
@@ -99,6 +100,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             try
             {
+                //do it only at night
                 if (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 4)
                 {
                     FileHelpers.RestartService("SBSL ETL Service");

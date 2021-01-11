@@ -63,6 +63,7 @@ namespace SbslFileTransformer
             services.AddHostedService<GLBalanceExtractorJob>();
             services.AddHostedService<Camt053ConverterJob>();
             services.AddHostedService<CdmConverterJob>();
+            services.AddHostedService<KenSwitchConverterJob>();
             services.AddHostedService<SftpIndependentJob>();
         }
 

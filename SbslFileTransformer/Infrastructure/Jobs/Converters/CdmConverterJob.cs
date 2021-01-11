@@ -26,6 +26,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Starting CDM Converter Job");
+
             _timer = new Timer(state => ConvertCdmFile(), null, TimeSpan.Zero, TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;

@@ -1,10 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters.Camt053;
+using SbslFileTransformer.Converters.KenSwitch;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -12,13 +13,13 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class Camt053ConverterJob : IHostedService
+    public class KenSwitchConverterJob : IHostedService
     {
         private Timer _timer;
-        private ILogger<Camt053ConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
+        ILogger<KenSwitchConverterJob> _logger;
 
-        public Camt053ConverterJob(ILogger<Camt053ConverterJob> logger, IServiceScopeFactory serviceScopeFactory)
+        public KenSwitchConverterJob(ILogger<KenSwitchConverterJob> logger, IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -26,14 +27,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting CAMT053 Converter Job");
+            _logger.LogInformation("Starting KenSwitch Converter Job");
 
-            _timer = new Timer(state => ConvertCamtFile(), null, TimeSpan.Zero, TimeSpan.FromMinutes(10));
+            _timer = new Timer(state => ConvertKenSwitchPdfs(), null, TimeSpan.Zero, TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private void ConvertCamtFile()
+        private void ConvertKenSwitchPdfs()
         {
             try
             {
@@ -54,18 +55,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                var files = Directory.GetFiles(prodFolder, "*.xml", options).ToList();
+                var files = Directory.GetFiles(prodFolder, "*.pdf", options).ToList();
 
-                files.AddRange(Directory.GetFiles(sbFolder, "*.xml", options));
+                files.AddRange(Directory.GetFiles(sbFolder, "*.pdf", options));
 
-                var camtConverter = new Camt053Converter();
+                var converter = new KenSwitchConverter();
 
                 foreach (var file in files)
                 {
-                    //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
-                    if (file.ToLower().Contains("camt053"))
+                    if (file.ToLower().Contains("kenswitch"))
                     {
-                        camtConverter.ProcessCamtFile(file);
+                        converter.ConverterKenSwitchFile(file);
                     }
                 }
             }
@@ -77,6 +77,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Stopping KS converter job");
+
             await _timer.DisposeAsync();
         }
     }
