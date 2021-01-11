@@ -15,5 +15,6 @@ namespace SbslFileTransformer.Models
         public string MtStatementNo { get; set; }
         public string MtSequenceNo { get; set; }
         public bool ProcessFor62F { get; set; }
+        public bool Converted { get; set; }
     }
 }

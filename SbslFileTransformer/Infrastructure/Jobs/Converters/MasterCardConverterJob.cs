@@ -24,6 +24,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         {
             _logger.LogInformation("Starting MasterCard Converter Job");
 
+            //mark the file as already converted
+
             return Task.CompletedTask;
         }
 

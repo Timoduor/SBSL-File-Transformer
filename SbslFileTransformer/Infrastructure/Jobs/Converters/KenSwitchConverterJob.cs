@@ -51,21 +51,34 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     Entity = dbContext.Configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
-                }
 
-                var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                var files = Directory.GetFiles(prodFolder, "*.pdf", options).ToList();
+                    var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                files.AddRange(Directory.GetFiles(sbFolder, "*.pdf", options));
+                    var files = Directory.GetFiles(prodFolder, "*.pdf", options).ToList();
 
-                var converter = new KenSwitchConverter();
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.pdf", options));
 
-                foreach (var file in files)
-                {
-                    if (file.ToLower().Contains("kenswitch"))
+                    var converter = new KenSwitchConverter();
+
+                    foreach (var file in files)
                     {
-                        converter.ConverterKenSwitchFile(file);
+                        if (file.ToLower().Contains("kenswitch"))
+                        {
+                            var fileToProcess = dbContext.UploadedFiles.Where(f => f.FilePath.ToLower() == file.ToLower()).FirstOrDefault();
+
+                            if (fileToProcess != null && fileToProcess.Converted == false)
+                            {
+                                converter.ConverterKenSwitchFile(file);
+
+                                //mark the file as already converted
+                                fileToProcess.Converted = true;
+
+                                dbContext.Update(fileToProcess);
+
+                                dbContext.SaveChanges();
+                            }
+                        }
                     }
                 }
             }

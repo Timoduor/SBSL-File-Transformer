@@ -50,22 +50,35 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     Entity = dbContext.Configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
-                }
 
-                var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                var files = Directory.GetFiles(prodFolder, "*.xml", options).ToList();
+                    var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                files.AddRange(Directory.GetFiles(sbFolder, "*.xml", options));
+                    var files = Directory.GetFiles(prodFolder, "*.xml", options).ToList();
 
-                var camtConverter = new Camt053Converter();
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.xml", options));
 
-                foreach (var file in files)
-                {
-                    //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
-                    if (file.ToLower().Contains("camt053"))
+                    var camtConverter = new Camt053Converter();
+
+                    foreach (var file in files)
                     {
-                        camtConverter.ProcessCamtFile(file);
+                        //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
+                        if (file.ToLower().Contains("camt053"))
+                        {
+                            var fileToProcess = dbContext.UploadedFiles.Where(f => f.FilePath.ToLower() == file.ToLower()).FirstOrDefault();
+
+                            if (fileToProcess != null && fileToProcess.Converted == false)
+                            {
+                                camtConverter.ProcessCamtFile(file);
+
+                                //mark the file as already converted
+                                fileToProcess.Converted = true;
+
+                                dbContext.Update(fileToProcess);
+
+                                dbContext.SaveChanges();
+                            }
+                        }
                     }
                 }
             }
