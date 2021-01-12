@@ -17,6 +17,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
         private Timer _timer;
         private ILogger<GLBalanceExtractorJob> _logger;
         private IServiceScopeFactory _serviceScopeFactory;
+        bool _isRunning;
 
         public GLBalanceExtractorJob(IServiceScopeFactory serviceScopeFactory, ILogger<GLBalanceExtractorJob> logger)
         {
@@ -35,6 +36,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
         {
             try
             {
+                if (_isRunning)
+                {
+                    return;
+                }
+
+                _isRunning = true;
+
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
                 var Entity = string.Empty;
@@ -69,6 +77,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
+            }
+            finally
+            {
+                _isRunning = false;
             }
         }
 

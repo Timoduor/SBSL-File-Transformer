@@ -21,6 +21,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         readonly ILogger<SftpIndependentJob> _logger;
         private string Entity;
         private List<Timer> _timers = new List<Timer>();
+        bool _isRunning;
 
         public SftpIndependentJob(IServiceScopeFactory serviceScopeFactory, ILogger<SftpIndependentJob> logger)
         {
@@ -109,6 +110,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
             try
             {
+                if (_isRunning)
+                {
+                    return;
+                }
+
+                _isRunning = true;
+
                 _logger.LogInformation($"Running file check and upload at {DateTime.Now}!");
 
                 var path = state?.ToString();
@@ -140,6 +148,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message + $" Error running file check and upload {fileToProcess}");
+            }
+            finally
+            {
+                _isRunning = false;
             }
         }
 

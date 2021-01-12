@@ -17,6 +17,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         private Timer _timer;
         private ILogger<CdmConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
+        bool _isRunning;
 
         public CdmConverterJob(ILogger<CdmConverterJob> logger, IServiceScopeFactory serviceScopeFactory)
         {
@@ -37,6 +38,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         {
             try
             {
+                if (_isRunning)
+                {
+                    return;
+                }
+
+                _isRunning = true;
+
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
                 var Entity = string.Empty;
@@ -81,12 +89,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         }
                     }
                 }
-
-
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
+            }
+            finally
+            {
+                _isRunning = false;
             }
         }
 

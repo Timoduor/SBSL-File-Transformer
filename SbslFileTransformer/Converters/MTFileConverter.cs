@@ -19,6 +19,9 @@ namespace SbslFileTransformer.Converters
     {
         private static object _locker = new object();
 
+        static bool _isRunningExtractor;
+        static bool _isRunningValidator;
+
         public static (string, string, string[]) RenameMTFile(string originalFile, ILogger logger)
         {
             try
@@ -55,6 +58,13 @@ namespace SbslFileTransformer.Converters
         {
             try
             {
+                if (_isRunningValidator)
+                {
+                    return;
+                }
+
+                _isRunningValidator = true;
+
                 using (var scope = serviceScopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
@@ -131,6 +141,10 @@ namespace SbslFileTransformer.Converters
             {
                 logger.LogError(ex, ex.Message);
             }
+            finally
+            {
+                _isRunningValidator = false;
+            }
         }
 
         public static async Task RunMTBalanceExtractor(object location, bool isProduction, string sandboxOrProdFolder, IServiceScopeFactory serviceScopeFactory, ILogger logger)
@@ -139,6 +153,13 @@ namespace SbslFileTransformer.Converters
 
             try
             {
+                if (_isRunningExtractor)
+                {
+                    return;
+                }
+
+                _isRunningExtractor = true;
+
                 string loc = location.ToString();
 
                 using (var scope = serviceScopeFactory.CreateScope())
@@ -189,6 +210,10 @@ namespace SbslFileTransformer.Converters
             catch (Exception ex)
             {
                 logger.LogError(ex, ex.Message);
+            }
+            finally
+            {
+                _isRunningExtractor = false;
             }
         }
 

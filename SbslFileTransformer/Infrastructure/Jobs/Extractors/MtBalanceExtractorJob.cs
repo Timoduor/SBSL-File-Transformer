@@ -22,7 +22,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         private EmailSender _emailSender;
         private List<Timer> _timers = new List<Timer>();
 
-
         public MtBalanceExtractorJob(ILogger<MtBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;

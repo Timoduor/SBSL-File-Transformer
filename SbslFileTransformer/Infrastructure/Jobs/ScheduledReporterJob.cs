@@ -27,6 +27,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         private readonly EmailSender _emailSender;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private Timer _timer;
+        bool _isRunning;
 
         public ScheduledReporterJob(ILogger<ScheduledReporterJob> logger, EmailSender emailSender, IServiceScopeFactory serviceScopeFactory)
         {
@@ -48,6 +49,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             try
             {
+                if (_isRunning)
+                {
+                    return;
+                }
+
+                _isRunning = true;
+
                 var config = GetConfiguration();
 
                 //FOR TEST PURPOSES ONLY
@@ -102,6 +110,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
+            }
+            finally
+            {
+                _isRunning = false;
             }
         }
 

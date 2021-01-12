@@ -17,6 +17,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
     {
         ILogger<AuxilliaryProcessesJob> _logger;
         private readonly IServiceScopeFactory _serviceScopeFactory;
+        bool _isRunning;
 
         List<Timer> _timers = new List<Timer>();
         public AuxilliaryProcessesJob(ILogger<AuxilliaryProcessesJob> logger, IServiceScopeFactory serviceScopeFactory)
@@ -51,6 +52,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             try
             {
+                if (_isRunning)
+                {
+                    return;
+                }
+
+                _isRunning = true;
+
                 //do it only afternoons or at night
                 if ((DateTime.Now.Hour >= 15 && DateTime.Now.Hour <= 23) || (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 7))
                 {
@@ -61,6 +69,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                         var backUpPath = (await dbContext.Configurations.FirstOrDefaultAsync(b => b.ConfigType == Models.Enums.ConfigurationType.Sftp && b.Key == "BackUpFolder")).Value;
 
                         var productionFolder = (await dbContext.Configurations.FirstOrDefaultAsync(b => b.ConfigType == Models.Enums.ConfigurationType.Sftp && b.Key == "ProductionFolder")).Value;
+
+                        var backUpAllFilesPeriod = (await dbContext.Configurations.FirstOrDefaultAsync(b => b.ConfigType == Models.Enums.ConfigurationType.Setting && b.Key == "BackUpAllFilesPeriod")).Value;
 
                         var oldUploadedFiles = dbContext.UploadedFiles.Where(f => f.UploadedDate < DateTime.Now.AddDays(-5));
 
@@ -78,11 +88,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                             MatchCasing = MatchCasing.CaseInsensitive
                         };
 
-                        foreach(var file in Directory.GetFiles(productionFolder, "*.*", searchOptions))
+                        double period = 7;
+
+                        double.TryParse(backUpAllFilesPeriod, out period);
+
+                        foreach (var file in Directory.GetFiles(productionFolder, "*.*", searchOptions))
                         {
                             var props = new FileInfo(file);
 
-                            if(props.LastWriteTime < DateTime.Now.AddDays(-7) || props.CreationTime < DateTime.Now.AddDays(-7))
+                            if(props.LastWriteTime < DateTime.Now.AddDays(-period) || props.CreationTime < DateTime.Now.AddDays(-period))
                             {
                                 File.Move(file, Path.Combine(backUpPath, Path.GetFileName(file)));
                             }
@@ -93,6 +107,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             catch(Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
+            }
+            finally
+            {
+                _isRunning = false;
             }
         }
 
