@@ -121,7 +121,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 //do it only at night
                 if (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 4)
                 {
+#if (!DEBUG)
                     FileHelpers.RestartService("SBSL ETL Service");
+#endif
                 }
             }
             catch(Exception ex)
