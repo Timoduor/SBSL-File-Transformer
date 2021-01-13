@@ -3,12 +3,15 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters.Camt053;
 using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Helpers;
+using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
@@ -17,12 +20,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         private Timer _timer;
         private ILogger<Camt053ConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
+        EmailSender _emailSender;
         bool _isRunning = false;
 
-        public Camt053ConverterJob(ILogger<Camt053ConverterJob> logger, IServiceScopeFactory serviceScopeFactory)
+        public Camt053ConverterJob(ILogger<Camt053ConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
+            _emailSender = emailSender;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -77,9 +82,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                             {
-                                camtConverter.ProcessCamtFile(file);
+                                try
+                                {
+                                    camtConverter.ProcessCamtFile(file);
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogError(ex, ex.Message);
+                                    EmailHelpers.SendEmails(dbContext, "Error in CAMT file conversion" ,$"Problem with XML file {file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                }
 
-                                //mark the file as already converted
                                 fileToProcess.Converted = true;
 
                                 dbContext.Update(fileToProcess);

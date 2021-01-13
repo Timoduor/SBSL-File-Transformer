@@ -46,11 +46,12 @@ namespace SbslFileTransformer.Converters
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.GetDirectoryName(inputFile);
+                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Converted");
+                Directory.CreateDirectory(outputFolder);
 
                 var name = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH:mm:ss}_{name}.csv");
+                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{name}.csv");
             }
 
 

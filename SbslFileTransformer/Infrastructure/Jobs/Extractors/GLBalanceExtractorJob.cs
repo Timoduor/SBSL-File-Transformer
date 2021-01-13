@@ -70,7 +70,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                 {
                     if (file.ToLower().Contains("Nostro_Balance".ToLower()) && Path.GetExtension(file.ToLower()) != ".txt")
                     {
-                        converter.Execute(file);
+                        try
+                        {
+                            converter.Execute(file);
+                        }
+                        catch(Exception ex)
+                        {
+                            _logger.LogError(ex, ex.Message);
+                        }
                     }
                 }
             }

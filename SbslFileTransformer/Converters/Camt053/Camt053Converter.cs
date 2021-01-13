@@ -11,6 +11,7 @@ namespace SbslFileTransformer.Converters.Camt053
     {
         public void ProcessCamtFile(string file, string outputFolder = null)
         {
+
             var xmlInputData = File.ReadAllText(file);
 
             if (string.IsNullOrEmpty(outputFolder))
@@ -58,15 +59,15 @@ namespace SbslFileTransformer.Converters.Camt053
                     LastPgInd = doc.BkStmt.Stmt.StmtPgntn.LastPgInd,
                     ElctrncSeqNb = doc.BkStmt.Stmt.ElctrncSeqNb,
                     CreDtTm = doc.BkStmt.Stmt.CreDtTm,
-                    Sum = doc.BkStmt.Stmt.TxsSummry.TtlNtries.Sum,
-                    NbOfNtries = doc.BkStmt.Stmt.TxsSummry.TtlNtries.NbOfNtries,
+                    Sum = doc.BkStmt.Stmt.TxsSummry?.TtlNtries?.Sum,
+                    NbOfNtries = doc.BkStmt.Stmt.TxsSummry?.TtlNtries?.NbOfNtries,
                     AnyBIC = doc.BkStmt.Stmt.Account.Ownr.Id.OrgId.AnyBIC
 
                 };
                 records.Add(rec);
             }
 
-            var balance = new List<BalanceExctracted>();
+            var balances = new List<BalanceExctracted>();
             foreach (var entry in doc.BkStmt.Stmt.Bal)
             {
                 var bal = new BalanceExctracted
@@ -77,16 +78,22 @@ namespace SbslFileTransformer.Converters.Camt053
                     BalanceDate = entry.Dt.Dt,
 
                     AccountNumber = doc.BkStmt.Stmt.Account.Id.Othr.Id
-
                 };
-                balance.Add(bal);
+                balances.Add(bal);
             }
 
-            var camtRecordsFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH:mm:ss}_CamtRecs.csv");
+            var outputRecs = Path.Combine(outputFolder, "Recs");
+            Directory.CreateDirectory(outputRecs);
+
+            var camtRecordsFile = Path.Combine(outputRecs, $"{Path.GetFileNameWithoutExtension(file)}.csv");
             SaveFiles.SaveToCsv(records, camtRecordsFile);
 
-            var camtBalanceFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH:mm:ss}_CamtBals.csv");
-            SaveFiles.SaveToCsv(records, camtRecordsFile);
+            var outputBals = Path.Combine(outputFolder, "Bals");
+            Directory.CreateDirectory(outputBals);
+
+            var camtBalanceFile = Path.Combine(outputBals, $"{Path.GetFileNameWithoutExtension(file)}.csv");
+            SaveFiles.BalanceToCSV(balances, camtBalanceFile);
+
         }
     }
 }

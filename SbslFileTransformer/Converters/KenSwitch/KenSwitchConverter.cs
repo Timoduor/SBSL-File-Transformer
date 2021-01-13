@@ -17,7 +17,7 @@ namespace SbslFileTransformer.Converters.KenSwitch
         {
             if (string.IsNullOrEmpty(outputFolder))
             {
-                outputFolder = Path.GetDirectoryName(inputFile);
+                outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Converted");
             }
 
             var text = SbslPdfReader.GetTextFromPDF(inputFile);
@@ -200,7 +200,9 @@ namespace SbslFileTransformer.Converters.KenSwitch
 
             Directory.CreateDirectory(outputFolder);
 
-            WriteToFile(outputLines, Path.Combine(outputFolder, $"{DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss")}_KS_{ksType}.csv"));
+            var fileName = Path.GetFileNameWithoutExtension(inputFile);
+
+            WriteToFile(outputLines, Path.Combine(outputFolder, $"{DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss")}_{fileName}.csv"));
 
             Thread.Sleep(1000);
         }

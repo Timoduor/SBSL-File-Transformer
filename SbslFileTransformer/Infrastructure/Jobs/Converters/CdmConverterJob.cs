@@ -3,8 +3,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters;
 using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Helpers;
+using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -17,12 +20,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         private Timer _timer;
         private ILogger<CdmConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
+        EmailSender _emailSender;
         bool _isRunning;
 
-        public CdmConverterJob(ILogger<CdmConverterJob> logger, IServiceScopeFactory serviceScopeFactory)
+        public CdmConverterJob(ILogger<CdmConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
+            _emailSender = emailSender;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -77,14 +82,23 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                             {
-                                cdmConverter.ConvertFile(file);
+                                try
+                                {
+                                    cdmConverter.ConvertFile(file);
+                                }
+                                catch(Exception ex)
+                                {
+                                    _logger.LogError(ex, ex.Message);
 
-                                //mark the file as already converted
+                                    EmailHelpers.SendEmails(dbContext, "Problem Converting CDM files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                }
+
                                 fileToProcess.Converted = true;
 
                                 dbContext.Update(fileToProcess);
 
                                 dbContext.SaveChanges();
+
                             }
                         }
                     }
@@ -99,6 +113,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 _isRunning = false;
             }
         }
+
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {

@@ -3,6 +3,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters.KenSwitch;
 using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Helpers;
+using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
 using System.Collections.Generic;
@@ -18,12 +20,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         private Timer _timer;
         IServiceScopeFactory _serviceScopeFactory;
         ILogger<KenSwitchConverterJob> _logger;
+        EmailSender _emailSender;
         bool _isRunning;
 
-        public KenSwitchConverterJob(ILogger<KenSwitchConverterJob> logger, IServiceScopeFactory serviceScopeFactory)
+        public KenSwitchConverterJob(ILogger<KenSwitchConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
+            _emailSender = emailSender;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -77,14 +81,24 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                             {
-                                converter.ConverterKenSwitchFile(file);
+                                try
+                                {
+                                    converter.ConverterKenSwitchFile(file);
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogError(ex, ex.Message);
 
-                                //mark the file as already converted
+                                    EmailHelpers.SendEmails(dbContext, "Problem Converting KenSwitch files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                }
+
                                 fileToProcess.Converted = true;
 
                                 dbContext.Update(fileToProcess);
 
                                 dbContext.SaveChanges();
+
+
                             }
                         }
                     }

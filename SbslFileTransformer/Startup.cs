@@ -57,6 +57,7 @@ namespace SbslFileTransformer
             services.AddTransient<EmailSender>();
 
 
+            services.AddHostedService<SftpIndependentJob>();
             services.AddHostedService<ScheduledReporterJob>();
             services.AddHostedService<MtBalanceExtractorJob>();
             services.AddHostedService<AuxilliaryProcessesJob>();
@@ -64,7 +65,8 @@ namespace SbslFileTransformer
             services.AddHostedService<Camt053ConverterJob>();
             services.AddHostedService<CdmConverterJob>();
             services.AddHostedService<KenSwitchConverterJob>();
-            services.AddHostedService<SftpIndependentJob>();
+            services.AddHostedService<MasterCardConverterJob>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
