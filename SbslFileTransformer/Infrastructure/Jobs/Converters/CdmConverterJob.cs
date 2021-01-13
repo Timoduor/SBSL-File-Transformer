@@ -21,7 +21,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         private ILogger<CdmConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
-        bool _isRunning;
+        volatile bool _isRunning;
 
         public CdmConverterJob(ILogger<CdmConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

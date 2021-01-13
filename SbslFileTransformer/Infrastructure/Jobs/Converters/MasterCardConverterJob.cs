@@ -20,7 +20,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         private ILogger<MasterCardConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
-        bool _isRunning;
+        volatile bool _isRunning;
         Timer _timer;
 
         public MasterCardConverterJob(ILogger<MasterCardConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)

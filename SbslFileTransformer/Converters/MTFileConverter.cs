@@ -19,18 +19,19 @@ namespace SbslFileTransformer.Converters
     {
         private static object _locker = new object();
 
-        static bool _isRunningExtractor;
-        static bool _isRunningValidator;
+        volatile static bool _isRunningExtractor;
+        volatile static bool _isRunningValidator;
 
         public static (string, string, string[]) RenameMTFile(string originalFile, ILogger logger)
         {
+            //if it is not in the statement folder
+            if (!originalFile.ToLower().Contains("nostro") || !originalFile.ToLower().Contains("statement"))
+                return (originalFile, string.Empty, new string[] { });
+
             try
             {
                 lock (_locker)
                 {
-                    if (Path.GetFileName(originalFile).Split("_").Length > 2)
-                        return (originalFile, string.Empty, new string[] { });
-
                     var lines = File.ReadAllLines(originalFile);
 
                     var pair = lines.FirstOrDefault(l => l.Trim().StartsWith(":28C:"))?.Split(":").Last();
@@ -49,8 +50,6 @@ namespace SbslFileTransformer.Converters
                 logger.LogError(ex, "Error renaming file " + $"{originalFile}");
             }
 
-            //_logger.LogInformation($"Skipping file {Path.GetFileName(originalFile)} because it does not have a sequence number");
-            //send email maybe
             return (originalFile, string.Empty, new string[] { });
         }
 

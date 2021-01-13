@@ -17,7 +17,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
         private Timer _timer;
         private ILogger<GLBalanceExtractorJob> _logger;
         private IServiceScopeFactory _serviceScopeFactory;
-        bool _isRunning;
+        volatile bool _isRunning;
 
         public GLBalanceExtractorJob(IServiceScopeFactory serviceScopeFactory, ILogger<GLBalanceExtractorJob> logger)
         {

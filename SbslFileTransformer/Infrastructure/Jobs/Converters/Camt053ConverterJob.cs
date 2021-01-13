@@ -21,7 +21,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         private ILogger<Camt053ConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
-        bool _isRunning = false;
+        volatile bool _isRunning = false;
 
         public Camt053ConverterJob(ILogger<Camt053ConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

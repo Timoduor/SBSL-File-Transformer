@@ -27,7 +27,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         private readonly EmailSender _emailSender;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private Timer _timer;
-        bool _isRunning;
+        volatile bool _isRunning;
 
         public ScheduledReporterJob(ILogger<ScheduledReporterJob> logger, EmailSender emailSender, IServiceScopeFactory serviceScopeFactory)
         {

@@ -20,8 +20,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         readonly IServiceScopeFactory _serviceScopeFactory;
         readonly ILogger<SftpIndependentJob> _logger;
         private string Entity;
-        private List<Timer> _timers = new List<Timer>();
-        bool _isRunning;
+        Timer _timer;
+        volatile bool _isRunning;
 
         public SftpIndependentJob(IServiceScopeFactory serviceScopeFactory, ILogger<SftpIndependentJob> logger)
         {
@@ -42,27 +42,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 if (config.IncludeProduction)
                 {
-                    //var fileWatcher = new InputFileWatcher(config.ProductionFolder, _fileLogger);
-
-                    //fileWatcher.ProcessFile = async fileToProcess => await RunFileCheckAndUpload(fileToProcess, true, config.ProductionFolder);
-
-                    //sync all folders every hours
-                    var timerProduction = new Timer(async(state) => await RunFileCheckAndUpload(state, true, config.ProductionFolder), null, TimeSpan.Zero,
+                    _timer = new Timer(async (state) => await RunFileCheckAndUpload(state, true, config.ProductionFolder), null, TimeSpan.Zero,
                                                             TimeSpan.FromMinutes(7));
-
-                    _timers.Add(timerProduction);
                 }
-
-                if (config.IncludeSandbox)
+                else// (config.IncludeSandbox)
                 {
-                    //var fileWatcher = new InputFileWatcher(config.SandboxFolder, _fileLogger);
-
-                    //fileWatcher.ProcessFile = async fileToProcess => await RunFileCheckAndUpload(fileToProcess, false, config.SandboxFolder);
-
-                    var timerSandbox = new Timer(async(state) => await RunFileCheckAndUpload(state, false, config.SandboxFolder), null, TimeSpan.Zero,
+                    _timer = new Timer(async (state) => await RunFileCheckAndUpload(state, false, config.SandboxFolder), null, TimeSpan.Zero,
                                                     TimeSpan.FromMinutes(sbTimeSpan));
-
-                    _timers.Add(timerSandbox);
                 }
 
                 _logger.LogInformation("SFTP Independent Job Started Successfully!");
@@ -193,11 +179,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             _logger.LogInformation("Sftp Independent Job stopped");
 
-            foreach (var timer in _timers)
-            {
-                timer?.Change(Timeout.Infinite, 0);
-                await timer.DisposeAsync();
-            }
+            await _timer.DisposeAsync();
         }
 
     }

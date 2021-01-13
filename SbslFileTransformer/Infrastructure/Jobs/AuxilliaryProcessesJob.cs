@@ -17,7 +17,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
     {
         ILogger<AuxilliaryProcessesJob> _logger;
         private readonly IServiceScopeFactory _serviceScopeFactory;
-        bool _isRunning;
+        volatile bool _isRunning;
 
         List<Timer> _timers = new List<Timer>();
         public AuxilliaryProcessesJob(ILogger<AuxilliaryProcessesJob> logger, IServiceScopeFactory serviceScopeFactory)

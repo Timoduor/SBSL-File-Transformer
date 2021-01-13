@@ -21,7 +21,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         IServiceScopeFactory _serviceScopeFactory;
         ILogger<KenSwitchConverterJob> _logger;
         EmailSender _emailSender;
-        bool _isRunning;
+        volatile bool _isRunning;
 
         public KenSwitchConverterJob(ILogger<KenSwitchConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
