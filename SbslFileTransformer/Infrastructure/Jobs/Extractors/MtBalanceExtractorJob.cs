@@ -52,7 +52,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
             if (config.IncludeSandbox)
             {
-                var statementFolder = Path.Combine(config.SandboxFolder, @"NOSTRO\STATEMENT");//TODO PUT IN CONFIG OR CHANGE FOR DIFFERENT COUNTRIES
+                var statementFolder = Path.Combine(config.SandboxFolder, @$"{config.Entity}\NOSTRO\STATEMENT");//TODO PUT IN CONFIG OR CHANGE FOR DIFFERENT COUNTRIES
 
                 var timerSandbox = new Timer(async(state) => await MTFileConverter.RunMTBalanceExtractor(statementFolder, false, config.SandboxFolder, _serviceScopeFactory, _logger), null, TimeSpan.Zero,
                                                 TimeSpan.FromMinutes(loopTime));
