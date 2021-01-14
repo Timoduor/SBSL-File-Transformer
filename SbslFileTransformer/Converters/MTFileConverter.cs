@@ -187,7 +187,7 @@ namespace SbslFileTransformer.Converters
                         {
                             var md5 = encryptionManager.GetMd5(resultFile);
 
-                            if (await FileHelpers.UploadFileToSftp(resultFile, md5, isProduction, "", null, null, null, serviceScopeFactory, logger))
+                            if (FileHelpers.UploadFileToSftp(resultFile, md5, isProduction, "", null, null, null, serviceScopeFactory, logger))
                             {
                                 foreach (var file in notProcessed)
                                 {
@@ -282,7 +282,7 @@ namespace SbslFileTransformer.Converters
 
         private static async Task<string> GetGLAccountNumber(string accNo, ApplicationDbContext dbContext)
         {
-            var account = (await dbContext.Accounts.FirstOrDefaultAsync(a => a.Account == accNo || a.Account.Contains(accNo)))?.Number;
+            var account = (await dbContext.Accounts.FirstOrDefaultAsync(a => a.Account.ToLower() == accNo.ToLower() || a.Account.ToLower().Contains(accNo.ToLower())))?.Number;
 
             if (!string.IsNullOrEmpty(account))
             {

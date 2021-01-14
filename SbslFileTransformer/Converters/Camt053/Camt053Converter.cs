@@ -81,13 +81,13 @@ namespace SbslFileTransformer.Converters.Camt053
                 balances.Add(bal);
             }
 
-            var outputRecs = Path.Combine(outputFolder, "Recs");
+            var outputRecs = Path.Combine(outputFolder, "Trans");
             Directory.CreateDirectory(outputRecs);
 
             var camtRecordsFile = Path.Combine(outputRecs, $"{Path.GetFileNameWithoutExtension(file)}.csv");
             SaveFiles.SaveToCsv(records, camtRecordsFile);
 
-            var outputBals = Path.Combine(outputFolder, "Trans");
+            var outputBals = Path.Combine(outputFolder, "Bals");
             Directory.CreateDirectory(outputBals);
 
             var camtBalanceFile = Path.Combine(outputBals, $"{Path.GetFileNameWithoutExtension(file)}.csv");

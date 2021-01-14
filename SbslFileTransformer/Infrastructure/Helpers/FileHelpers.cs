@@ -7,6 +7,7 @@ using SbslFileTransformer.Infrastructure.Sftp;
 using SbslFileTransformer.Models;
 using System;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
@@ -22,88 +23,91 @@ namespace SbslFileTransformer.Infrastructure.Helpers
             Environment.Exit(1);
         }
 
-        public static async Task<bool> UploadFileToSftp(string filePath, string md5, bool isProduction, string relativePath,
+        static object _locker = new object();
+
+        public static bool UploadFileToSftp(string filePath, string md5, bool isProduction, string relativePath,
             string accountNo, string statementNo, string sequenceNo, IServiceScopeFactory serviceScopeFactory, ILogger logger)
         {
-            try
+            lock (_locker)
             {
-                var previouslyUploaded = await FileHasBeenUploadedBefore(filePath, isProduction, serviceScopeFactory);
-
-                if (previouslyUploaded.Item2)
+                try
                 {
-                    logger.LogWarning($"File {filePath} has been previously uploaded. Ignoring upload");
-                    return true;
+
+                    var previouslyUploaded = FileHasBeenUploadedBefore(filePath, isProduction, serviceScopeFactory);
+
+                    if (previouslyUploaded.Item2)
+                    {
+                        logger.LogWarning($"File {filePath} has been previously uploaded. Ignoring upload");
+                        return true;
+                    }
+
+                    logger.LogInformation($"Uploading file {filePath} to SFTP site at {DateTime.Now}!");
+
+                    using (var scope = serviceScopeFactory.CreateScope())
+                    {
+                        var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                        var sftpManager = scope.ServiceProvider.GetService<SftpManager>();
+
+                        string remotePath = isProduction ? "/PROD/" : "/SB/";
+
+                        remotePath = Path.Combine(remotePath, relativePath.Replace('\\', '/'));
+
+                        if (sftpManager.UploadFile(filePath, remotePath))
+                        {
+                            dbContext.UploadedFiles.Add(new SftpUploadedFile
+                            {
+                                FilePath = filePath,
+                                IsProduction = isProduction,
+                                Md5 = md5,
+                                Name = Path.GetFileName(filePath),
+                                Size = new FileInfo(filePath).Length,
+                                UploadedDate = DateTime.Now,
+                                MtAccountNo = accountNo,
+                                MtStatementNo = statementNo,
+                                MtSequenceNo = sequenceNo
+                            });
+
+                            dbContext.SaveChanges();
+
+                            logger.LogInformation($"Uploaded file to SFTP {remotePath} site successfully!");
+
+                            return true;
+                        }
+                        else
+                        {
+                            logger.LogWarning($"Failed to upload file {filePath}");
+                        }
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Error uploading file {ex.Message}" + $"{filePath}");
                 }
 
-                logger.LogInformation($"Uploading file {filePath} to SFTP site at {DateTime.Now}!");
+                return false;
+            }
+        }
+
+        public static (string, bool) FileHasBeenUploadedBefore(string filePath, bool isProduction, IServiceScopeFactory serviceScopeFactory)
+        {
+            lock (_locker)
+            {
+                string md5 = GetMd5(filePath);
 
                 using (var scope = serviceScopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var sftpManager = scope.ServiceProvider.GetService<SftpManager>();
-
-                    string remotePath = isProduction ? "/PROD/" : "/SB/";
-
-                    remotePath = Path.Combine(remotePath, relativePath.Replace('\\', '/'));
-
-                    if (sftpManager.UploadFile(filePath, remotePath))
+                    //check if md5/filename exists
+                    if (dbContext.UploadedFiles.Any(f => f.Md5.ToUpper() == md5.ToUpper()))
                     {
-                        dbContext.UploadedFiles.Add(new SftpUploadedFile
-                        {
-                            FilePath = filePath,
-                            IsProduction = isProduction,
-                            Md5 = md5,
-                            Name = Path.GetFileName(filePath),
-                            Size = new FileInfo(filePath).Length,
-                            UploadedDate = DateTime.Now,
-                            MtAccountNo = accountNo,
-                            MtStatementNo = statementNo,
-                            MtSequenceNo = sequenceNo
-                        });
-
-                        await dbContext.SaveChangesAsync();
-
-                        logger.LogInformation($"Uploaded file to SFTP {remotePath} site successfully!");
-
-                        return true;
-                    }
-                    else
-                    {
-                        logger.LogWarning($"Failed to upload file {filePath}");
+                        return (md5, true);
                     }
                 }
+                return (md5, false);
             }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error uploading file {ex.Message}" + $"{filePath}");
-            }
-
-            return false;
-        }
-
-        public static async Task<(string, bool)> FileHasBeenUploadedBefore(string filePath, bool isProduction, IServiceScopeFactory serviceScopeFactory)
-        {
-            string md5 = string.Empty;
-
-            using (var scope = serviceScopeFactory.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-
-                var encryptionManager = scope.ServiceProvider.GetService<EncryptionManager>();
-
-                md5 = encryptionManager.GetMd5(filePath);
-
-                var fileName = Path.GetFileName(filePath);
-
-                //check if md5/filename exists
-                if (await dbContext.UploadedFiles.AnyAsync(f => (f.Md5.ToUpper() == md5.ToUpper() && f.IsProduction == isProduction)
-                                    || (f.Name.ToUpper() == fileName.ToUpper() && f.IsProduction == isProduction)))
-                {
-                    return (md5, true);
-                }
-            }
-            return (md5, false);
         }
 
         public static string GetMd5(string filePath)

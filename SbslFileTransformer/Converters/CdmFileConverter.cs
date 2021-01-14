@@ -59,7 +59,7 @@ namespace SbslFileTransformer.Converters
                             //TXN REF
                             Col33 = reader.GetValue(36)?.ToString(),
                             //DATE
-                            Col40 = reader.GetValue(38)?.ToString(),
+                            Col40 = reader.GetValue(42)?.ToString(),
                         };
 
                         list.Add(row);

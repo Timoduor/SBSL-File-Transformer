@@ -41,12 +41,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 if (config.IncludeProduction)
                 {
-                    _timer = new Timer(async (state) => await RunFileCheckAndUpload(state, true, config.ProductionFolder), null, TimeSpan.Zero,
+                    _timer = new Timer((state) => RunFileCheckAndUpload(state, true, config.ProductionFolder), null, TimeSpan.Zero,
                                                             TimeSpan.FromMinutes(7));
                 }
                 else// (config.IncludeSandbox)
                 {
-                    _timer = new Timer(async (state) => await RunFileCheckAndUpload(state, false, config.SandboxFolder), null, TimeSpan.Zero,
+                    _timer = new Timer((state) => RunFileCheckAndUpload(state, false, config.SandboxFolder), null, TimeSpan.Zero,
                                                     TimeSpan.FromMinutes(sbTimeSpan));
                 }
 
@@ -89,7 +89,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
         }
 
-        private async Task RunFileCheckAndUpload(object state, bool isProduction, string productionOrSandboxFolder)
+        private void RunFileCheckAndUpload(object state, bool isProduction, string productionOrSandboxFolder)
         {
             string fileToProcess = string.Empty;
 
@@ -120,12 +120,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                     foreach (var file in files)
                     {
-                        fileToProcess = await ProcessFileAndUpload(isProduction, productionOrSandboxFolder, file);
+                        fileToProcess = ProcessFileAndUpload(isProduction, productionOrSandboxFolder, file);
                     }
                 }
                 else
                 {
-                    fileToProcess = await ProcessFileAndUpload(isProduction, productionOrSandboxFolder, path);
+                    fileToProcess = ProcessFileAndUpload(isProduction, productionOrSandboxFolder, path);
                 }
 
                 _logger.LogInformation($"File check and upload ran successfully!");
@@ -140,13 +140,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
         }
 
-        private async Task<string> ProcessFileAndUpload(bool isProduction, string productionOrSandboxFolder, string file)
+        private string ProcessFileAndUpload(bool isProduction, string productionOrSandboxFolder, string file)
         {
             (string, string, string[]) newFileName = MTFileConverter.RenameMTFile(file, _logger);
 
             try
             {
-                var uploadCheckResult = await FileHelpers.FileHasBeenUploadedBefore(newFileName.Item1, isProduction, _serviceScopeFactory);
+                var uploadCheckResult = FileHelpers.FileHasBeenUploadedBefore(newFileName.Item1, isProduction, _serviceScopeFactory);
 
                 if (uploadCheckResult.Item2)
                 {
@@ -157,12 +157,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 //IF IT IS AN MT FILE
                 if (newFileName.Item3.Count() > 0)
                 {
-                    await FileHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), newFileName.Item2,
+                    FileHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), newFileName.Item2,
                         newFileName.Item3[0], newFileName.Item3.Count() == 1 ? string.Empty : newFileName.Item3[1], _serviceScopeFactory, _logger);
                 }
                 else
                 {
-                    await FileHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction,
+                    FileHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction,
                         Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), string.Empty, string.Empty, string.Empty, _serviceScopeFactory, _logger);
                 }
             }
