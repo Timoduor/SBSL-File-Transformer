@@ -49,6 +49,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 _isRunning = true;
 
+                _logger.LogInformation("Running CAMT053 Converter Job");
+
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
                 var Entity = string.Empty;

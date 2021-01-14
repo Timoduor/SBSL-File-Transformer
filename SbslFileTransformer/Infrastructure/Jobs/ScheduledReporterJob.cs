@@ -56,6 +56,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 _isRunning = true;
 
+                _logger.LogInformation("Running reporting job");
+
                 var config = GetConfiguration();
 
                 //FOR TEST PURPOSES ONLY

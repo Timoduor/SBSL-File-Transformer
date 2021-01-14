@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -57,6 +58,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 }
 
                 _isRunning = true;
+
+                _logger.LogInformation("Running file Archive Job");
 
                 //do it only afternoons or at night
                 if ((DateTime.Now.Hour >= 15 && DateTime.Now.Hour <= 23) || (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 7))
@@ -117,6 +120,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             try
             {
+                _logger.LogInformation("Restarting SBSL Service");
+
                 //do it only at night
                 if (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 4)
                 {

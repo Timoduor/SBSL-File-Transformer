@@ -43,6 +43,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                 _isRunning = true;
 
+                _logger.LogInformation("Running GL Balance Extractor Job");
+
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
                 var Entity = string.Empty;

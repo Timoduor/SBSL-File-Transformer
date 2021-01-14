@@ -49,6 +49,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 _isRunning = true;
 
+                _logger.LogInformation("Running MasterCard converter job");
+
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
                 var Entity = string.Empty;

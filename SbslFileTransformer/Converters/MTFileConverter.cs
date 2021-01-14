@@ -169,7 +169,7 @@ namespace SbslFileTransformer.Converters
 
                     var encryptionManager = scope.ServiceProvider.GetService<EncryptionManager>();
 
-                    var notProcessed = dbContext.UploadedFiles.Where(u => u.ProcessFor62F == false);
+                    var notProcessed = dbContext.UploadedFiles.Where(u => u.ProcessFor62F == false && u.FilePath.ToLower().Contains("statement"));
 
                     var paths = notProcessed.Select(f => f.FilePath).ToList();
 
@@ -191,7 +191,7 @@ namespace SbslFileTransformer.Converters
                             {
                                 foreach (var file in notProcessed)
                                 {
-                                    if (filesInDirectoryToProcess.Contains(file.FilePath))
+                                    if (filesInDirectoryToProcess.Contains(file.FilePath, StringComparer.OrdinalIgnoreCase))
                                     {
                                         file.ProcessFor62F = true;
                                     }

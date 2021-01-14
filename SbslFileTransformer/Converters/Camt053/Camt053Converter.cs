@@ -87,7 +87,7 @@ namespace SbslFileTransformer.Converters.Camt053
             var camtRecordsFile = Path.Combine(outputRecs, $"{Path.GetFileNameWithoutExtension(file)}.csv");
             SaveFiles.SaveToCsv(records, camtRecordsFile);
 
-            var outputBals = Path.Combine(outputFolder, "Bals");
+            var outputBals = Path.Combine(outputFolder, "Trans");
             Directory.CreateDirectory(outputBals);
 
             var camtBalanceFile = Path.Combine(outputBals, $"{Path.GetFileNameWithoutExtension(file)}.csv");

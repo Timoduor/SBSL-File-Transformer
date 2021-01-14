@@ -50,7 +50,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 _timers.Add(timerProduction);
             }
 
-            if (config.IncludeSandbox)
+            else //if (config.IncludeSandbox)
             {
                 var statementFolder = Path.Combine(config.SandboxFolder, @$"{config.Entity}\NOSTRO\STATEMENT");//TODO PUT IN CONFIG OR CHANGE FOR DIFFERENT COUNTRIES
 
@@ -71,8 +71,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("MT Balance Extractor stopped");
-
-            _logger.LogInformation("Sftp Independent Job stopped");
 
             foreach (var timer in _timers)
             {
