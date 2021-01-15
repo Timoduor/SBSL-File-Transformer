@@ -69,7 +69,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 //        //key is the overdue days used to select the email groups
                 //        var emails = GetEmails(key.Key);
 
-                //        await _emailSender.SendMessage(emails, $"Overdue recons by {key.Key} days", $"This is a report for reconciliations overdue by {key.Key} days", filePaths: new string[] { key.Value });
+                //        await _emailSender.SendMessage(emails, $"Overdue recons by {key.Key} days or more", $"This is an auto-generated report for reconciliations overdue by {key.Key} days or more", filePaths: new string[] { key.Value });
                 //    }
                 //}
 
@@ -89,7 +89,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                             continue;
                         }
 
-                        var reportPath = Path.Combine(Path.GetTempPath(), $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{report.Name}."+ (config.ExportType == "Excel" ? "xlsx" : config.ExportType));
+                        var reportPath = Path.Combine(Path.GetTempPath(), $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{report.Name}." + (config.ExportType == "Excel" ? "xlsx" : config.ExportType));
 
                         if (await DownloadReport(report.ReportId, config, reportPath, token))
                         {
@@ -221,7 +221,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                var groups = dbContext.EmailGroups.Where(g => g.AgeAlertDuration >= key);
+                var groups = dbContext.EmailGroups.Where(g => g.AgeAlertDuration >= key && g.IsActive);
 
                 var groupEmails = groups.ToList().Select(g => g.Emails);
 
@@ -265,30 +265,37 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                         if (DateTime.TryParseExact(col3, "MM/dd/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out postedDate))
                         {
-                            var openItem = new OpenItem
+                            try
                             {
-                                DaysOverdue = (DateTime.Now - postedDate).TotalDays,
-                                PostedDate = postedDate,
+                                var openItem = new OpenItem
+                                {
+                                    DaysOverdue = Convert.ToInt32((DateTime.Now - postedDate).TotalDays),
+                                    PostedDate = postedDate,
 
-                                AccName = reader.GetValue(2)?.ToString(),
-                                Account = lastAccountNo,
-                                ActiveCertStatus = reader.GetValue(14)?.ToString(),
-                                Amount = reader.GetValue(4).ToString().Contains("(") ? Convert.ToDouble(reader.GetValue(4)?.ToString().Trim('(', ')')) * -1 : Convert.ToDouble(reader.GetValue(4)?.ToString().Trim('(', ')')),
-                                Entity = reader.GetValue(1).ToString(),
-                                FunctionalArea = reader.GetValue(13).ToString(),
-                                ItemId = Convert.ToInt32(reader.GetValue(15).ToString()),
-                                ItemSide = reader.GetValue(8).ToString(),
-                                ItemSubType = reader.GetValue(5).ToString(),
+                                    AccName = reader.GetValue(2)?.ToString(),
+                                    Account = lastAccountNo,
+                                    ActiveCertStatus = reader.GetValue(14)?.ToString(),
+                                    Amount = reader.GetValue(4).ToString().Contains("(") ? Convert.ToDouble(reader.GetValue(4)?.ToString().Trim('(', ')')) * -1 : Convert.ToDouble(reader.GetValue(4)?.ToString().Trim('(', ')')),
+                                    Entity = reader.GetValue(1)?.ToString(),
+                                    FunctionalArea = reader.GetValue(13)?.ToString(),
+                                    //ItemId = Convert.ToInt32(reader.GetValue(15)?.ToString()),
+                                    ItemSide = reader.GetValue(8)?.ToString(),
+                                    ItemSubType = reader.GetValue(5)?.ToString(),
 
-                                Reference1 = reader.GetValue(10).ToString(),
-                                Reference2 = reader.GetValue(11).ToString(),
-                                Reference3 = reader.GetValue(12).ToString(),
-                                TheyBalance = reader.GetValue(7).ToString().Contains("(") ? Convert.ToDouble(reader.GetValue(7)?.ToString().Trim('(', ')')) * -1 : Convert.ToDouble(reader.GetValue(7)?.ToString().Trim('(', ')')),
-                                TransNarrative = reader.GetValue(9).ToString(),
-                                WeBalance = reader.GetValue(6).ToString().Contains("(") ? Convert.ToDouble(reader.GetValue(7)?.ToString().Trim('(', ')')) * -1 : Convert.ToDouble(reader.GetValue(7)?.ToString().Trim('(', ')')),
-                            };
+                                    Reference1 = reader.GetValue(10)?.ToString(),
+                                    Reference2 = reader.GetValue(11)?.ToString(),
+                                    Reference3 = reader.GetValue(12)?.ToString(),
+                                    TheyBalance = reader.GetValue(7).ToString().Contains("(") ? Convert.ToDouble(reader.GetValue(7)?.ToString().Trim('(', ')')) * -1 : Convert.ToDouble(reader.GetValue(7)?.ToString().Trim('(', ')')),
+                                    TransNarrative = reader.GetValue(9)?.ToString(),
+                                    WeBalance = reader.GetValue(6).ToString().Contains("(") ? Convert.ToDouble(reader.GetValue(7)?.ToString().Trim('(', ')')) * -1 : Convert.ToDouble(reader.GetValue(7)?.ToString().Trim('(', ')')),
+                                };
 
-                            openItems.Add(openItem);
+                                openItems.Add(openItem);
+                            }
+                            catch(Exception ex)
+                            {
+                                _logger.LogError(ex, ex.Message);
+                            }
                         }
                     }
                 }
@@ -425,7 +432,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         public string Entity { get; set; }
         public string AccName { get; set; }
         public DateTime PostedDate { get; set; }
-        public double DaysOverdue { get; set; }
+        public int DaysOverdue { get; set; }
         public double Amount { get; set; }
         public string ItemSubType { get; set; }
         public double WeBalance { get; set; }

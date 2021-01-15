@@ -139,7 +139,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
         {
             To = new List<MailboxAddress>();
 
-            var range = to.Select(x => new MailboxAddress(x.Split("@").FirstOrDefault(), x.Trim()));
+            var range = to.Select(x => new MailboxAddress(x.Split("@").FirstOrDefault().Trim(), x.Trim()));
 
             To.AddRange(range);
 

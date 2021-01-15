@@ -7,6 +7,7 @@ using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -19,7 +20,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         readonly IServiceScopeFactory _serviceScopeFactory;
         readonly ILogger<SftpIndependentJob> _logger;
         private string Entity;
-        Timer _timer;
+        List<Timer> _timers = new List<Timer>();
         volatile bool _isRunning;
 
         public SftpIndependentJob(IServiceScopeFactory serviceScopeFactory, ILogger<SftpIndependentJob> logger)
@@ -41,13 +42,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 if (config.IncludeProduction)
                 {
-                    _timer = new Timer((state) => RunFileCheckAndUpload(state, true, config.ProductionFolder), null, TimeSpan.Zero,
-                                                            TimeSpan.FromMinutes(7));
+                    var timerProd = new Timer((state) => RunFileCheckAndUpload(state, true, config.ProductionFolder), null, TimeSpan.Zero,
+                                                            TimeSpan.FromMinutes(prodTimeSpan));
+
+                    _timers.Add(timerProd);
                 }
-                else// (config.IncludeSandbox)
+
+                if (config.IncludeSandbox)
                 {
-                    _timer = new Timer((state) => RunFileCheckAndUpload(state, false, config.SandboxFolder), null, TimeSpan.Zero,
+                    var timerSB = new Timer((state) => RunFileCheckAndUpload(state, false, config.SandboxFolder), null, TimeSpan.Zero,
                                                     TimeSpan.FromMinutes(sbTimeSpan));
+
+                    _timers.Add(timerSB);
                 }
 
                 _logger.LogInformation("SFTP Independent Job Started Successfully!");
@@ -178,7 +184,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             _logger.LogInformation("Sftp Independent Job stopped");
 
-            await _timer.DisposeAsync();
+            foreach (var timer in _timers)
+            {
+                await timer.DisposeAsync();
+            }
         }
 
     }
