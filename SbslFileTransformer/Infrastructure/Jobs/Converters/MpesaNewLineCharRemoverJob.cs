@@ -69,9 +69,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.xls", options).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.xlsx", options).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.xls", options));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.xlsx", options));
 
                     var cdmConverter = new MpesaCharRemover();
 
