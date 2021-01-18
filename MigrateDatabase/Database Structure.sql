@@ -16,6 +16,8 @@ CREATE DATABASE /*!32312 IF NOT EXISTS*/`fileetl` /*!40100 DEFAULT CHARACTER SET
 
 USE `fileetl`;
 
+SET GLOBAL local_infile = true;
+
 /*Table structure for table `accounts` */
 
 DROP TABLE IF EXISTS `accounts`;
