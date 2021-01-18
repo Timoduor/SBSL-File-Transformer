@@ -100,7 +100,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                             if(props.LastWriteTime < DateTime.Now.AddDays(-period) || props.CreationTime < DateTime.Now.AddDays(-period))
                             {
-                                File.Move(file, Path.Combine(backUpPath, Path.GetFileName(file)));
+                                var destination = Path.Combine(backUpPath, Path.GetFileName(file));
+
+                                if (File.Exists(destination))
+                                {
+                                    File.Delete(destination);
+                                }
+
+                                File.Move(file, destination);
                             }
                         }
                     }
