@@ -31,7 +31,7 @@ namespace SbslFileTransformer
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlite(
+                options.UseMySql(
                     Configuration.GetConnectionString("DefaultConnection")));
 
             var keyStore = Path.Combine(Directory.GetCurrentDirectory(), "keys");

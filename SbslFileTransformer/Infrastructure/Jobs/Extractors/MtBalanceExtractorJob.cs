@@ -85,6 +85,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
+                dbContext.Database.EnsureCreated();
+
                 var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp || c.ConfigType == ConfigurationType.Setting).ToList();
 
                 config = new SftpConfigModel
