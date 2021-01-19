@@ -18,6 +18,8 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Office.Interop.Excel;
+using Range = Microsoft.Office.Interop.Excel.Range;
 
 namespace SbslFileTransformer.Infrastructure.Jobs
 {
@@ -95,14 +97,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                         {
                             var results = ProcessReportFile(reportPath);
 
-                            foreach (var key in results)
+                            foreach (var key in results.Item2)
                             {
                                 //key is the overdue days used to select the email groups
                                 var emails = GetEmails(key.Key);
 
                                 //ONLY SEND EMAILS IF FILE HAS 1 OR MORE RECORDS
 
-                                await _emailSender.SendMessage(emails, config.EmailHeader, config.EmailBody, filePaths: new string[] { key.Value });
+                                await _emailSender.SendMessage(emails, config.EmailHeader, config.EmailBody, filePaths: new string[] { results.Item1, key.Value });
                             }
                             await SaveToDb(report, dbContext, config);
                         }
@@ -239,7 +241,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         /// </summary>
         /// <param name="savedFile"></param>
         /// <returns>List of key: email group name and value: list of files to send to them</returns>
-        private Dictionary<int, string> ProcessReportFile(string inputFile)
+        private (string, Dictionary<int, string>) ProcessReportFile(string inputFile)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -271,23 +273,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                 {
                                     DaysOverdue = Convert.ToInt32((DateTime.Now - postedDate).TotalDays),
                                     PostedDate = postedDate,
-
                                     AccName = reader.GetValue(2)?.ToString(),
-                                    Account = lastAccountNo,
-                                    ActiveCertStatus = reader.GetValue(14)?.ToString(),
-                                    Amount = reader.GetValue(4).ToString().Contains("(") ? Convert.ToDouble(reader.GetValue(4)?.ToString().Trim('(', ')')) * -1 : Convert.ToDouble(reader.GetValue(4)?.ToString().Trim('(', ')')),
+                                    //Account = lastAccountNo,
+                                    Amount = reader.GetValue(4)?.ToString(),
                                     Entity = reader.GetValue(1)?.ToString(),
-                                    FunctionalArea = reader.GetValue(13)?.ToString(),
+                                    //ActiveCertStatus = reader.GetValue(14)?.ToString(),
+                                    //FunctionalArea = reader.GetValue(13)?.ToString(),
                                     //ItemId = Convert.ToInt32(reader.GetValue(15)?.ToString()),
-                                    ItemSide = reader.GetValue(8)?.ToString(),
-                                    ItemSubType = reader.GetValue(5)?.ToString(),
+                                    //ItemSide = reader.GetValue(8)?.ToString(),
+                                    //ItemSubType = reader.GetValue(5)?.ToString(),
 
-                                    Reference1 = reader.GetValue(10)?.ToString(),
-                                    Reference2 = reader.GetValue(11)?.ToString(),
-                                    Reference3 = reader.GetValue(12)?.ToString(),
-                                    TheyBalance = reader.GetValue(7).ToString().Contains("(") ? Convert.ToDouble(reader.GetValue(7)?.ToString().Trim('(', ')')) * -1 : Convert.ToDouble(reader.GetValue(7)?.ToString().Trim('(', ')')),
-                                    TransNarrative = reader.GetValue(9)?.ToString(),
-                                    WeBalance = reader.GetValue(6).ToString().Contains("(") ? Convert.ToDouble(reader.GetValue(7)?.ToString().Trim('(', ')')) * -1 : Convert.ToDouble(reader.GetValue(7)?.ToString().Trim('(', ')')),
+                                    //Reference1 = reader.GetValue(10)?.ToString(),
+                                    //Reference2 = reader.GetValue(11)?.ToString(),
+                                    //Reference3 = reader.GetValue(12)?.ToString(),
+                                    //TheyBalance = reader.GetValue(7)?.ToString(),
+                                    //TransNarrative = reader.GetValue(9)?.ToString(),
+                                    //WeBalance = reader.GetValue(6)?.ToString(),
                                 };
 
                                 openItems.Add(openItem);
@@ -323,14 +324,83 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 daysRecordsPairs.Add(30, olderThan30days.ToList());
             }
 
+            var agingExcel = CreateModifiedAgingExcel(inputFile);
+
             if (daysRecordsPairs.Count() > 0)
             {
-                return CreateCsvFile(daysRecordsPairs);
+                return (agingExcel, CreateCsvFile(daysRecordsPairs));
             }
             else
             {
-                return new Dictionary<int, string>();
+                return (inputFile,  new Dictionary<int, string>());
             }
+        }
+
+        private string CreateModifiedAgingExcel(string inputFile)
+        {
+            var inputFileName = Path.GetFileName(inputFile);
+
+            var outputFilePath = Path.Combine(Path.GetTempPath(), DateTime.Now.ToString("yyyy_MM_dd_") + inputFileName);
+
+            var app = new Application();
+            var workbook = app.Workbooks.Open(inputFile);
+            var sheet = (Worksheet)workbook.Worksheets[1];
+
+            Range range = sheet.Range["E1"];
+
+            range.EntireColumn.Insert(XlInsertShiftDirection.xlShiftToRight,
+                XlInsertFormatOrigin.xlFormatFromRightOrBelow);
+
+            //set header
+            sheet.Range["E6"].Value = "Days Overdue";
+
+            //set formula for cells
+            var rows = sheet.UsedRange.Rows.Count;
+
+            for(var i = 7; i <= rows; i++)
+            {
+                DateTime outputDate;
+
+                var dateFromExcel = sheet.Range[$"D{i}"].Value?.ToString();
+
+                if (dateFromExcel != null && DateTime.TryParse(dateFromExcel, out outputDate))
+                {
+                    //var diff = (DateTime.Now - outputDate).Days;
+
+                    sheet.Range[$"E{i}"].Formula = $"=IF(NOT(ISBLANK(D{i})),DATEDIF(D{i}, TODAY(), \"D\"),\"\")";
+
+                    sheet.Range[$"E{i}"].NumberFormat = "0";
+
+                    int diff = 0;
+
+                    if (Int32.TryParse(sheet.Range[$"E{i}"].Value.ToString(), out diff))
+                    {
+                        if (diff >= 3 && diff <= 5)
+                        {
+                            sheet.Range[$"E{i}"].Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.GreenYellow);
+                        }
+                        if (diff > 5 && diff <= 7)
+                        {
+                            sheet.Range[$"E{i}"].Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.RosyBrown);
+                        }
+                        if (diff > 7 && diff <= 30)
+                        {
+                            sheet.Range[$"E{i}"].Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Yellow);
+                        }
+                        if (diff > 30)
+                        {
+                            sheet.Range[$"E{i}"].Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Red);
+                        }
+                    }
+                }
+            }
+
+            //save new excel
+            app.DisplayAlerts = false;
+            workbook.SaveAs2(outputFilePath);
+            workbook.Close(true);
+
+            return outputFilePath;
         }
 
         private Dictionary<int, string> CreateCsvFile(Dictionary<int, List<OpenItem>> items)
@@ -428,23 +498,23 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
     public class OpenItem
     {
-        public string Account { get; set; }
+        //public string Account { get; set; }
         public string Entity { get; set; }
         public string AccName { get; set; }
         public DateTime PostedDate { get; set; }
         public int DaysOverdue { get; set; }
-        public double Amount { get; set; }
-        public string ItemSubType { get; set; }
-        public double WeBalance { get; set; }
-        public double TheyBalance { get; set; }
-        public string ItemSide { get; set; }
-        public string TransNarrative { get; set; }
-        public string Reference1 { get; set; }
-        public string Reference2 { get; set; }
-        public string Reference3 { get; set; }
-        public string FunctionalArea { get; set; }
-        public string ActiveCertStatus { get; set; }
-        public int ItemId { get; set; }
+        public string Amount { get; set; }
+        //public string ItemSubType { get; set; }
+        //public string WeBalance { get; set; }
+        //public string TheyBalance { get; set; }
+        //public string ItemSide { get; set; }
+        //public string TransNarrative { get; set; }
+        //public string Reference1 { get; set; }
+        //public string Reference2 { get; set; }
+        //public string Reference3 { get; set; }
+        //public string FunctionalArea { get; set; }
+        //public string ActiveCertStatus { get; set; }
+        //public string ItemId { get; set; }
     }
 
     public class ReportModel
