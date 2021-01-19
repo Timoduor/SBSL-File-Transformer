@@ -21,7 +21,10 @@ namespace SbslFileTransformer.Converters
 
             var next = range.Find(searchText, MatchCase: false);
 
-            matches.Add(new Cell { Row = next.Row, Col = next.Column });
+            if (next != null)
+            {
+                matches.Add(new Cell { Row = next.Row, Col = next.Column });
+            }
 
             while (true)
             {
@@ -35,7 +38,7 @@ namespace SbslFileTransformer.Converters
             {
                 var current = (Range)range.Cells[cell.Row, cell.Col];
 
-                current.Value = current.Value.ToString().Replace(searchText, replaceText);
+                current.Value = current.Value.ToString()?.Replace(searchText, replaceText);
             }
 
             if (string.IsNullOrEmpty(outputFile))

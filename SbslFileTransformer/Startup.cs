@@ -67,6 +67,7 @@ namespace SbslFileTransformer
             services.AddHostedService<KenSwitchConverterJob>();
             services.AddHostedService<MasterCardConverterJob>();
             services.AddHostedService<MpesaNewLineCharRemoverJob>();
+            services.AddHostedService<EpinConverterJob>();
 
         }
 

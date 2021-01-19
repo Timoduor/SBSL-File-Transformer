@@ -15,7 +15,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
             var recipients = config.Value.Split(new char[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-            emailSender.SendMessage(recipients, header, body, false, files);//yeah maybe
+            emailSender.SendMessage(recipients, header, body, false, files);//yeah maybe not async/await
         }
     }
 }
