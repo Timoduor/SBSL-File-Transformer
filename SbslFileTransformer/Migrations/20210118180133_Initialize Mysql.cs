@@ -1,12 +1,30 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
-using System;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace SbslFileTransformer.Migrations
 {
-    public partial class Init2 : Migration
+    public partial class InitializeMysql : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Accounts",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Entity = table.Column<string>(nullable: true),
+                    Name = table.Column<string>(nullable: true),
+                    Number = table.Column<string>(nullable: true),
+                    Account = table.Column<string>(nullable: true),
+                    Currency = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Accounts", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -47,6 +65,40 @@ namespace SbslFileTransformer.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Configurations",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    ConfigType = table.Column<int>(nullable: false),
+                    Key = table.Column<string>(nullable: false),
+                    Value = table.Column<string>(nullable: false),
+                    Updated = table.Column<DateTime>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Configurations", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EmailGroups",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    GroupName = table.Column<string>(nullable: true),
+                    Emails = table.Column<string>(nullable: true),
+                    AgeAlertDuration = table.Column<int>(nullable: false),
+                    Account = table.Column<string>(nullable: true),
+                    Description = table.Column<string>(nullable: true),
+                    IsActive = table.Column<bool>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EmailGroups", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Plugins",
                 columns: table => new
                 {
@@ -63,11 +115,49 @@ namespace SbslFileTransformer.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ProcessedReports",
+                columns: table => new
+                {
+                    Id = table.Column<long>(nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    ReportId = table.Column<long>(nullable: false),
+                    ProcessedDate = table.Column<DateTime>(nullable: false),
+                    Name = table.Column<string>(nullable: true),
+                    Format = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProcessedReports", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UploadedFiles",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false),
+                    Name = table.Column<string>(nullable: true),
+                    Md5 = table.Column<string>(nullable: true),
+                    UploadedDate = table.Column<DateTime>(nullable: false),
+                    Size = table.Column<long>(nullable: false),
+                    IsProduction = table.Column<bool>(nullable: false),
+                    FilePath = table.Column<string>(nullable: true),
+                    MtAccountNo = table.Column<string>(nullable: true),
+                    MtStatementNo = table.Column<string>(nullable: true),
+                    MtSequenceNo = table.Column<string>(nullable: true),
+                    ProcessFor62F = table.Column<bool>(nullable: false),
+                    Converted = table.Column<bool>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UploadedFiles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     RoleId = table.Column<string>(nullable: false),
                     ClaimType = table.Column<string>(nullable: true),
                     ClaimValue = table.Column<string>(nullable: true)
@@ -88,7 +178,7 @@ namespace SbslFileTransformer.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     UserId = table.Column<string>(nullable: false),
                     ClaimType = table.Column<string>(nullable: true),
                     ClaimValue = table.Column<string>(nullable: true)
@@ -209,6 +299,9 @@ namespace SbslFileTransformer.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "Accounts");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
             migrationBuilder.DropTable(
@@ -224,7 +317,19 @@ namespace SbslFileTransformer.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "Configurations");
+
+            migrationBuilder.DropTable(
+                name: "EmailGroups");
+
+            migrationBuilder.DropTable(
                 name: "Plugins");
+
+            migrationBuilder.DropTable(
+                name: "ProcessedReports");
+
+            migrationBuilder.DropTable(
+                name: "UploadedFiles");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

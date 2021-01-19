@@ -16,6 +16,10 @@ namespace MigrateDatabase
         static void Main(string[] args)
         {
             ImportData();
+
+            Console.WriteLine("Completed successfully!");
+
+            Console.ReadLine();
         }
 
         private static void ImportData()
@@ -24,6 +28,8 @@ namespace MigrateDatabase
 
             foreach (var table in tables.Where(x=>!x.Contains("_")))
             {
+                Console.WriteLine($"Importing data for {table}...");
+
                 var dt = FetchData(table);
                 using (MySqlConnection connection = new MySqlConnection(_conn))
                 {
@@ -31,6 +37,8 @@ namespace MigrateDatabase
                     var bulkCopy = new MySqlBulkCopy(connection) { DestinationTableName = table };
                     bulkCopy.WriteToServer(dt);
                 }
+
+
             }
         }
 
