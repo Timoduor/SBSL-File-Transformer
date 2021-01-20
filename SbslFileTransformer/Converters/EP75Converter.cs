@@ -43,7 +43,7 @@ namespace SbslFileTransformer.Converters
                         TranAmount = decimal.Parse(amount),
                         Currency = lines[i].Substring(114, 4).Trim(),
                         SettledAmount = lines[i].Substring(118, 15).Trim(),
-                        Terminal = lines[i + 1].Substring(60, 25).Trim()
+                        Terminal = lines[i + 1].Substring(63, 22).Trim()
                     };
 
                     records.Add(rec);
