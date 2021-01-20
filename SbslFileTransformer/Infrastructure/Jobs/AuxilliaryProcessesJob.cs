@@ -31,7 +31,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             var timer = new Timer((state) => RestartService(), null, TimeSpan.Zero, TimeSpan.FromHours(2));
             _timers.Add(timer);
 
-            var timerArchive = new Timer(async (state) => await ArchiveOldFiles(), null, TimeSpan.Zero, TimeSpan.FromHours(2));
+            var timerArchive = new Timer(async (state) => await ArchiveOldFiles(), null, TimeSpan.FromSeconds(new Random().Next(20, 60)), TimeSpan.FromHours(2));
             _timers.Add(timerArchive);
 
             return Task.CompletedTask;

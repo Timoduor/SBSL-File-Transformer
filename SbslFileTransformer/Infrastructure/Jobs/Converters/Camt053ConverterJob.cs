@@ -33,7 +33,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         {
             _logger.LogInformation("Starting CAMT053 Converter Job");
 
-            _timer = new Timer(state => ConvertCamtFile(), null, TimeSpan.Zero, TimeSpan.FromMinutes(10));
+            _timer = new Timer(state => ConvertCamtFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }

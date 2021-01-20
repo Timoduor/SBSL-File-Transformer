@@ -42,7 +42,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             _logger.LogInformation("Starting Scheduled reporter job...");
 
-            _timer = new Timer(async (state) => await ProcessNewReport(), null, TimeSpan.Zero, TimeSpan.FromHours(12));
+            _timer = new Timer(async (state) => await ProcessNewReport(), null, TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromHours(12));
 
             return Task.CompletedTask;
         }
@@ -410,7 +410,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             foreach (var group in items)
             {
 
-                var tempFilePath = Path.Combine(Path.GetTempPath(), DateTime.Now.ToString("yyyy_MM_dd_") + group.Key.ToString() + ".csv");
+                var tempFilePath = Path.Combine(Path.GetTempPath(), DateTime.Now.ToString("yyyy_MM_dd_") + group.Key + ".csv");
 
                 using (var writer = new StreamWriter(tempFilePath))
                 {

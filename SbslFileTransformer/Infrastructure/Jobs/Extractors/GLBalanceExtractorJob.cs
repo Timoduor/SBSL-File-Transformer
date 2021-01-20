@@ -27,7 +27,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _timer = new Timer(state => ExtractGLBalances(), null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
+            _timer = new Timer(state => ExtractGLBalances(), null, TimeSpan.FromSeconds(new Random().Next(5, 20)), TimeSpan.FromMinutes(5));
 
             return Task.CompletedTask;
         }
