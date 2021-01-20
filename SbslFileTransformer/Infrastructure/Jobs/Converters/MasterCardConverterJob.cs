@@ -33,7 +33,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         {
             _logger.LogInformation("Starting MasterCard Converter Job");
 
-            _timer = new Timer(state => ConvertMasterCardFile(), null, TimeSpan.Zero, TimeSpan.FromMinutes(10));
+            _timer = new Timer(state => ConvertMasterCardFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }

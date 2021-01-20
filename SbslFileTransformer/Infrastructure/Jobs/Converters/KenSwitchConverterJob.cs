@@ -33,7 +33,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         {
             _logger.LogInformation("Starting KenSwitch Converter Job");
 
-            _timer = new Timer(state => ConvertKenSwitchPdfs(), null, TimeSpan.Zero, TimeSpan.FromMinutes(10));
+            _timer = new Timer(state => ConvertKenSwitchPdfs(), null, TimeSpan.FromSeconds(new Random().Next(5, 15)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }

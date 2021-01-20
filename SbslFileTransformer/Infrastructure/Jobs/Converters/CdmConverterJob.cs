@@ -33,7 +33,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         {
             _logger.LogInformation("Starting CDM Converter Job");
 
-            _timer = new Timer(state => ConvertCdmFile(), null, TimeSpan.Zero, TimeSpan.FromMinutes(10));
+            _timer = new Timer(state => ConvertCdmFile(), null, TimeSpan.FromSeconds(new Random().Next(5, 20)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }

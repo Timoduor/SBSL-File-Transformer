@@ -1,4 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters;
@@ -6,14 +12,8 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace SbslFileTransformer.Infrastructure.Jobs
+namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 {
     public class MtBalanceExtractorJob : IHostedService
     {
@@ -44,8 +44,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 var statementFolderProd = Path.Combine(config.ProductionFolder, @$"{config.Entity}\NOSTRO\STATEMENT");//TODO PUT IN CONFIG OR CHANGE FOR DIFFERENT COUNTRIES
 
                 //sync all folders every hours
-                var timerProduction = new Timer(async(state) => await MTFileConverter.RunMTBalanceExtractor(statementFolderProd, true, config.ProductionFolder, _serviceScopeFactory, _logger), null, TimeSpan.Zero,
-                TimeSpan.FromMinutes(loopTime));
+                var timerProduction = new Timer(async(state) => await MTFileConverter.RunMTBalanceExtractor(statementFolderProd, true, config.ProductionFolder, _serviceScopeFactory, _logger)
+                    , null, TimeSpan.FromSeconds(new Random().Next(5, 30)), TimeSpan.FromMinutes(loopTime));
 
                 _timers.Add(timerProduction);
             }
@@ -54,14 +54,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 var statementFolder = Path.Combine(config.SandboxFolder, @$"{config.Entity}\NOSTRO\STATEMENT");//TODO PUT IN CONFIG OR CHANGE FOR DIFFERENT COUNTRIES
 
-                var timerSandbox = new Timer(async(state) => await MTFileConverter.RunMTBalanceExtractor(statementFolder, false, config.SandboxFolder, _serviceScopeFactory, _logger), null, TimeSpan.Zero,
-                                                TimeSpan.FromMinutes(loopTime));
+                var timerSandbox = new Timer(async(state) => await MTFileConverter.RunMTBalanceExtractor(statementFolder, false, config.SandboxFolder, _serviceScopeFactory, _logger)
+                    , null, TimeSpan.FromSeconds(new Random().Next(5, 30)), TimeSpan.FromMinutes(loopTime));
 
                 _timers.Add(timerSandbox);
             }
 
             var timedValidator = new Timer(async(state) => await MTFileConverter.RunMtSequenceValidationCheck(_serviceScopeFactory, _logger, _emailSender),
-                                              null, TimeSpan.Zero, TimeSpan.FromHours(12)); //TODO
+                                              null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromHours(12)); //TODO
 
             _timers.Add(timedValidator);
 
