@@ -69,6 +69,8 @@ namespace SbslFileTransformer
             services.AddHostedService<MpesaNewLineCharRemoverJob>();
             services.AddHostedService<EpinConverterJob>();
             services.AddHostedService<EP75ConverterJob>();
+            services.AddHostedService<PdfToMTFileJob>();
+            services.AddHostedService<CamtToMultiCurrJob>();
 
         }
 
