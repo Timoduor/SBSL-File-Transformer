@@ -63,17 +63,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 var config = GetConfiguration();
 
                 //FOR TEST PURPOSES ONLY
-                {
-                    var testResults = ProcessReportFile(@"C:\Users\Yida\Downloads\KE Nostro Open Items Daily Report.xlsx");
+                //{
+                //    var testResults = ProcessReportFile(@"C:\Users\Yida\Downloads\KE Nostro Open Items Daily Report.xlsx");
 
-                    foreach (var key in testResults.Item2)
-                    {
-                        //key is the overdue days used to select the email groups
-                        var emails = GetEmails(key.Key);
+                //    foreach (var key in testResults.Item2)
+                //    {
+                //        //key is the overdue days used to select the email groups
+                //        var emails = GetEmails(key.Key);
 
-                        await _emailSender.SendMessage(emails, $"Overdue recons by {key.Key} days or more", $"This is an auto-generated report for reconciliations overdue by {key.Key} days or more", filePaths: new string[] { testResults.Item1, key.Value });
-                    }
-                }
+                //        await _emailSender.SendMessage(emails, $"Overdue recons by {key.Key} days or more", $"This is an auto-generated report for reconciliations overdue by {key.Key} days or more", filePaths: new string[] { testResults.Item1, key.Value });
+                //    }
+                //}
 
 
                 var token = await GetLoginToken(config);
