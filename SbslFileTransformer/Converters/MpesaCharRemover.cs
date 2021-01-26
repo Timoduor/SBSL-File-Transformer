@@ -1,9 +1,9 @@
-﻿using Microsoft.Office.Interop.Excel;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using Range = Microsoft.Office.Interop.Excel.Range;
+using System.Linq;
+using OfficeOpenXml;
 
 namespace SbslFileTransformer.Converters
 {
@@ -11,49 +11,32 @@ namespace SbslFileTransformer.Converters
     {
         public void FindAndReplaceOccurrences(string inputFile, string searchText, string replaceText, string outputFile = null)
         {
-            var app = new Application();
-            var workbook = app.Workbooks.Open(inputFile);
-            var sheet = (Worksheet)workbook.Worksheets[1];
-
-            var matches = new HashSet<Cell>(new CellComparer());
-
-            var range = sheet.UsedRange;
-
-            var next = range.Find(searchText, MatchCase: false);
-
-            if (next != null)
+            using (var package = new ExcelPackage(new FileInfo(inputFile)))
             {
-                matches.Add(new Cell { Row = next.Row, Col = next.Column });
+                var sheet = package.Workbook.Worksheets.First();
+
+                var query = from cell in sheet.Cells.Where(c => !string.IsNullOrEmpty(c.Value?.ToString()))
+                    where cell.Value?.ToString()?.ToLower().Contains(searchText.ToLower()) == true
+                    select cell;
+
+                foreach (var cell in query)
+                {
+                    cell.Value = cell.Value.ToString()?.Replace(searchText, replaceText);
+                }
+
+                if (string.IsNullOrEmpty(outputFile))
+                {
+                    var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Converted");
+                    Directory.CreateDirectory(outputFolder);
+
+                    var fileName = Path.GetFileNameWithoutExtension(inputFile);
+
+                    outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{fileName}.xlsx");
+                }
+
+                package.SaveAs(new FileInfo(outputFile));
+
             }
-
-            while (true)
-            {
-                next = range.FindNext(next);
-
-                if (!matches.Add(new Cell { Row = next.Row, Col = next.Column }))
-                    break;
-            }
-
-            foreach (var cell in matches)
-            {
-                var current = (Range)range.Cells[cell.Row, cell.Col];
-
-                current.Value = current.Value.ToString()?.Replace(searchText, replaceText);
-            }
-
-            if (string.IsNullOrEmpty(outputFile))
-            {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Converted");
-                Directory.CreateDirectory(outputFolder);
-
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
-
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{fileName}.xlsx");
-            }
-
-            app.DisplayAlerts = false;
-            workbook.SaveAs2(outputFile);
-            workbook.Close(true);
         }
 
         private static string GetExcelColumnName(int columnNumber)
@@ -73,22 +56,4 @@ namespace SbslFileTransformer.Converters
         }
     }
 
-    public struct Cell
-    {
-        public int Row { get; set; }
-        public int Col { get; set; }
-    }
-
-    public class CellComparer : IEqualityComparer<Cell>
-    {
-        public bool Equals(Cell x, Cell y)
-        {
-            return x.Row == y.Row && x.Col == y.Col;
-        }
-
-        public int GetHashCode([DisallowNull] Cell obj)
-        {
-            return obj.GetHashCode();
-        }
-    }
 }

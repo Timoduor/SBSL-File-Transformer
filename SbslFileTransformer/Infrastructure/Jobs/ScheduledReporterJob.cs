@@ -11,6 +11,7 @@ using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -18,8 +19,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Office.Interop.Excel;
-using Range = Microsoft.Office.Interop.Excel.Range;
+using OfficeOpenXml;
 
 namespace SbslFileTransformer.Infrastructure.Jobs
 {
@@ -63,17 +63,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 var config = GetConfiguration();
 
                 //FOR TEST PURPOSES ONLY
-                //{
-                //    var testResults = ProcessReportFile(@"C:\Users\Yida\Downloads\CBK Open Items Daily Report (8).xlsx");
+                {
+                    var testResults = ProcessReportFile(@"C:\Users\Yida\Downloads\KE Nostro Open Items Daily Report.xlsx");
 
-                //    foreach (var key in testResults)
-                //    {
-                //        //key is the overdue days used to select the email groups
-                //        var emails = GetEmails(key.Key);
+                    foreach (var key in testResults.Item2)
+                    {
+                        //key is the overdue days used to select the email groups
+                        var emails = GetEmails(key.Key);
 
-                //        await _emailSender.SendMessage(emails, $"Overdue recons by {key.Key} days or more", $"This is an auto-generated report for reconciliations overdue by {key.Key} days or more", filePaths: new string[] { key.Value });
-                //    }
-                //}
+                        await _emailSender.SendMessage(emails, $"Overdue recons by {key.Key} days or more", $"This is an auto-generated report for reconciliations overdue by {key.Key} days or more", filePaths: new string[] { testResults.Item1, key.Value });
+                    }
+                }
 
 
                 var token = await GetLoginToken(config);
@@ -123,7 +123,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
         private async Task SaveToDb(ReportModel report, ApplicationDbContext dbContext, ReportConfigModel config)
         {
-            dbContext.ProcessedReports.Add(new ProcessedReport {
+            dbContext.ProcessedReports.Add(new ProcessedReport
+            {
                 Format = config.ExportType,
                 ReportId = report.ReportId,
                 Name = report.Name,
@@ -227,7 +228,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 var groupEmails = groups.ToList().Select(g => g.Emails);
 
-                foreach(var group in groupEmails)
+                foreach (var group in groupEmails)
                 {
                     emails.AddRange(group.Split(',', '\r', '\n'));
                 }
@@ -293,7 +294,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                                 openItems.Add(openItem);
                             }
-                            catch(Exception ex)
+                            catch (Exception ex)
                             {
                                 _logger.LogError(ex, ex.Message);
                             }
@@ -332,7 +333,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
             else
             {
-                return (inputFile,  new Dictionary<int, string>());
+                return (inputFile, new Dictionary<int, string>());
             }
         }
 
@@ -342,65 +343,85 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
             var outputFilePath = Path.Combine(Path.GetTempPath(), DateTime.Now.ToString("yyyy_MM_dd_") + inputFileName);
 
-            var app = new Application();
-            var workbook = app.Workbooks.Open(inputFile);
-            var sheet = (Worksheet)workbook.Worksheets[1];
-
-            Range range = sheet.Range["E1"];
-
-            range.EntireColumn.Insert(XlInsertShiftDirection.xlShiftToRight,
-                XlInsertFormatOrigin.xlFormatFromRightOrBelow);
-
-            //set header
-            sheet.Range["E6"].Value = "Days Overdue";
-
-            //set formula for cells
-            var rows = sheet.UsedRange.Rows.Count;
-
-            for(var i = 7; i <= rows; i++)
+            using (var package = new ExcelPackage(new FileInfo(inputFile)))
             {
-                DateTime outputDate;
+                var sheet = package.Workbook.Worksheets.First();
 
-                var dateFromExcel = sheet.Range[$"D{i}"].Value?.ToString();
-
-                if (dateFromExcel != null && DateTime.TryParse(dateFromExcel, out outputDate))
+                var maxDateInt = sheet.Cells["D:D"].Max(c =>
                 {
-                    //var diff = (DateTime.Now - outputDate).Days;
-
-                    sheet.Range[$"E{i}"].Formula = $"=IF(NOT(ISBLANK(D{i})),DATEDIF(D{i}, TODAY(), \"D\"),\"\")";
-
-                    sheet.Range[$"E{i}"].NumberFormat = "0";
-
-                    int diff = 0;
-
-                    if (Int32.TryParse(sheet.Range[$"E{i}"].Value.ToString(), out diff))
+                    if (int.TryParse(c.Value?.ToString(), out int result))
                     {
+                        return result;
+                    }
+
+                    return 0;
+                });
+
+                var maxDate = FromExcelSerialDate(maxDateInt);
+
+                sheet.InsertColumn(5, 1);
+
+                //set maxDate
+                sheet.Cells["A5"].Value = $"Recon Date: {maxDate:MM/dd/yyyy}";
+                sheet.Cells["A5"].Style.Font.Bold = true;
+                //set header
+                sheet.Cells["E6"].Value = "DAYS OVERDUE";
+
+                //set formula for cells
+                var start = sheet.Dimension.Start;
+                var end = sheet.Dimension.End;
+
+                for (var i = start.Row + 7; i <= end.Row; i++)
+                {
+                    var dateFromExcel = sheet.Cells[$"D{i}"].Value?.ToString();
+
+                    if (dateFromExcel != null && int.TryParse(dateFromExcel, out int dateInt))
+                    {
+                        var outputDate = FromExcelSerialDate(dateInt);
+
+                        var diff = (DateTime.Now - outputDate).Days;
+
+                        sheet.Cells[$"E{i}"].Formula =
+                            $"=IF(NOT(ISBLANK(D{i})),DATEDIF(D{i}, TODAY(), \"D\"),\"\")";
+
+                        sheet.Cells[$"E{i}"].Style.Numberformat.Format = "0";
+
+
                         if (diff >= 3 && diff <= 5)
                         {
-                            sheet.Range[$"E{i}"].Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.GreenYellow);
+                            sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.GreenYellow);
                         }
+
                         if (diff > 5 && diff <= 7)
                         {
-                            sheet.Range[$"E{i}"].Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.RosyBrown);
+                            sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.RosyBrown);
                         }
+
                         if (diff > 7 && diff <= 30)
                         {
-                            sheet.Range[$"E{i}"].Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Yellow);
+                            sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Yellow);
                         }
+
                         if (diff > 30)
                         {
-                            sheet.Range[$"E{i}"].Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Red);
+                            sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Red);
                         }
+
                     }
+
                 }
+
+                //save new excel
+                package.SaveAs(new FileInfo(outputFilePath));
             }
 
-            //save new excel
-            app.DisplayAlerts = false;
-            workbook.SaveAs2(outputFilePath);
-            workbook.Close(true);
-
             return outputFilePath;
+        }
+
+        private DateTime FromExcelSerialDate(int SerialDate)
+        {
+            if (SerialDate > 59) SerialDate -= 1; //Excel/Lotus 2/29/1900 bug
+            return new DateTime(1899, 12, 31).AddDays(SerialDate);
         }
 
         private Dictionary<int, string> CreateCsvFile(Dictionary<int, List<OpenItem>> items)

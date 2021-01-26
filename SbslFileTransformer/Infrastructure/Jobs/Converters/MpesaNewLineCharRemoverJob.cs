@@ -50,7 +50,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 _isRunning = true;
 
-                _logger.LogInformation("Running CDM converter job");
+                _logger.LogInformation("Running NewLine Remover job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
