@@ -18,7 +18,7 @@ namespace SbslFileTransformer
 
             Log.Logger = new LoggerConfiguration()
 #if DEBUG
-                .MinimumLevel.Debug()
+                .MinimumLevel.Information()
 #else
                 .MinimumLevel.Information()
 #endif

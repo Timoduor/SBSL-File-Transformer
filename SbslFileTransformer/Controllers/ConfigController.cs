@@ -119,6 +119,7 @@ namespace SbslFileTransformer.Controllers
                     Name = configurations.FirstOrDefault(c => c.Key == "Name" && c.ConfigType == ConfigurationType.Email)?.Value,
                     Recipients = configurations.FirstOrDefault(c => c.Key == "Recipients" && c.ConfigType == ConfigurationType.Email)?.Value,
                     UseSsl = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "UseSsl" && c.ConfigType == ConfigurationType.Email)?.Value),
+                    UseDefaultCredentials = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "UseDefaultCredentials" && c.ConfigType == ConfigurationType.Email)?.Value),
                 };
 
                 return View(config);
@@ -145,7 +146,19 @@ namespace SbslFileTransformer.Controllers
 
         public async Task<IActionResult> SendTestEmail()
         {
-            var testFiles = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory), "*.*", new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive }).Take(2);
+            var testFiles = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory), "*.*", new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive }).Take(2).ToList();
+
+            for (int i = 0; i < testFiles.Count; i++)
+            {
+                var newFileName = Path.ChangeExtension(testFiles[i], ".txt");
+
+                if (!System.IO.File.Exists(newFileName))
+                {
+                    System.IO.File.Copy(testFiles[i], newFileName);
+                }
+
+                testFiles[i] = Path.ChangeExtension(testFiles[i], ".txt");
+            }
 
             await _emailSender.SendMessage(null, "Test Email from Windows Box", "This is to confirm that the windows box can send emails with attachments", false, testFiles);
 
@@ -191,6 +204,18 @@ namespace SbslFileTransformer.Controllers
                     ConfigType = ConfigurationType.Email,
                     Key = "UseSsl",
                     Value = config.UseSsl.ToString(),
+                    Updated = DateTime.Now
+                };
+
+                await CreateOrUpdate(configuration);
+            }
+
+            {
+                var configuration = new Configuration
+                {
+                    ConfigType = ConfigurationType.Email,
+                    Key = "UseDefaultCredentials",
+                    Value = config.UseDefaultCredentials.ToString(),
                     Updated = DateTime.Now
                 };
 

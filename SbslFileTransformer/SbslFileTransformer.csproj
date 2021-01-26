@@ -31,6 +31,7 @@
 
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="18.0.0" />
+    <PackageReference Include="EPPlus" Version="5.5.2" />
     <PackageReference Include="ExcelDataReader" Version="3.6.0" />
     <PackageReference Include="itext7" Version="7.1.13" />
     <PackageReference Include="MailKit" Version="2.10.0" />
@@ -84,7 +85,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="sbsletl.db">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

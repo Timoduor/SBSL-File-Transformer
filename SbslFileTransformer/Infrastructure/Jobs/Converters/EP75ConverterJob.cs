@@ -34,7 +34,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         {
             _logger.LogInformation("Starting EP75 Converter Job");
 
-            _timer = new Timer(state => ConvertEP75File(), null, TimeSpan.Zero, TimeSpan.FromMinutes(10));
+            _timer = new Timer(state => ConvertEP75File(), null, TimeSpan.FromSeconds(new Random().Next(10, 35)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
@@ -50,7 +50,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 _isRunning = true;
 
-                _logger.LogInformation("Running MasterCard converter job");
+                _logger.LogInformation("Running EP75 converter job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;

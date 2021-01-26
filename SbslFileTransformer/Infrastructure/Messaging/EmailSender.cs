@@ -1,4 +1,5 @@
-﻿using MailKit.Net.Smtp;
+﻿
+using System.Net.Mail;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MimeKit;
@@ -8,6 +9,7 @@ using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -41,6 +43,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
                         Name = configurations.FirstOrDefault(c => c.Key == "Name")?.Value,
                         Recipients = configurations.FirstOrDefault(c => c.Key == "Recipients")?.Value,
                         UseSsl = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "UseSsl" && c.ConfigType == ConfigurationType.Email)?.Value),
+                        UseDefaultCredentials = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "UseDefaultCredentials" && c.ConfigType == ConfigurationType.Email)?.Value),
                     };
                 }
             }
@@ -100,26 +103,67 @@ namespace SbslFileTransformer.Infrastructure.Messaging
 
         private async Task Send(MimeMessage mailMessage)
         {
-            using (var client = new SmtpClient())
+            if (_emailConfig.UseDefaultCredentials)
             {
-                try
+                using (var client = new SmtpClient(_emailConfig.SmtpServer, _emailConfig.Port))
                 {
-                    await client.ConnectAsync(_emailConfig.SmtpServer, _emailConfig.Port, _emailConfig.UseSsl);
+                    client.UseDefaultCredentials = _emailConfig.UseDefaultCredentials;
+                    client.EnableSsl = _emailConfig.UseSsl;
 
-                    client.AuthenticationMechanisms.Remove("XOAUTH2");
+                    try
+                    {
+                        var address = mailMessage.From.Mailboxes.First().Address;
+                        var name = mailMessage.From.Mailboxes.First().Name;
 
-                    await client.AuthenticateAsync(_emailConfig.UserName, _emailConfig.Password);
+                        var message = new MailMessage()
+                        {
+                            From = new MailAddress(address, name),
+                            Body = mailMessage.TextBody,
+                        };
 
-                    await client.SendAsync(mailMessage);
+                        foreach (var email in mailMessage.To.Mailboxes)
+                        {
+                            message.To.Add(email.Address);
+                        }
+
+                        foreach (var attachment in mailMessage.Attachments)
+                        {
+                            var memoryStream = new MemoryStream();
+                            await attachment.WriteToAsync(memoryStream);
+
+                            message.Attachments.Add(new Attachment(memoryStream, attachment.ContentDisposition.FileName));
+                        }
+
+                        client.Send(message);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex.Message, ex);
+                    }
                 }
-                catch (Exception ex)
+            }
+            else
+            {
+                using (var client = new MailKit.Net.Smtp.SmtpClient())
                 {
-                    _logger.LogError(ex.Message, ex);
-                }
-                finally
-                {
-                    client.Disconnect(true);
-                    client.Dispose();
+                    try
+                    {
+                        await client.ConnectAsync(_emailConfig.SmtpServer, _emailConfig.Port, _emailConfig.UseSsl);
+
+                        client.AuthenticationMechanisms.Remove("XOAUTH2");
+
+                        await client.AuthenticateAsync(_emailConfig.UserName, _emailConfig.Password);
+
+                        await client.SendAsync(mailMessage);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex.Message, ex);
+                    }
+                    finally
+                    {
+                        client.Disconnect(true);
+                    }
                 }
             }
         }
