@@ -6,6 +6,7 @@
         Service,
         Email,
         Report,
-        Setting
+        Setting,
+        ReportUser
     }
 }

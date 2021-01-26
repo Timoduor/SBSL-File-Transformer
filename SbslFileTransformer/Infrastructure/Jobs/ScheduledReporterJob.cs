@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
+using OfficeOpenXml;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Messaging;
@@ -19,7 +20,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using OfficeOpenXml;
 
 namespace SbslFileTransformer.Infrastructure.Jobs
 {
@@ -42,7 +42,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             _logger.LogInformation("Starting Scheduled reporter job...");
 
-            _timer = new Timer(async (state) => await ProcessNewReport(), null, TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromHours(12));
+            _timer = new Timer(async (state) => await ProcessNewReport(), null, TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
@@ -75,38 +75,45 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 //    }
                 //}
 
+                var tokens = await GetLoginTokens(config);
 
-                var token = await GetLoginToken(config);
-
-                var allReports = await GetRecentReports(config, token);
-
-                using (var scope = _serviceScopeFactory.CreateScope())
+                foreach (var token in tokens)
                 {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    foreach (var report in allReports)
+                    var allReports = await GetRecentReports(config, token);
+
+                    using (var scope = _serviceScopeFactory.CreateScope())
                     {
-                        if (dbContext.ProcessedReports.Any(r => r.ReportId == report.ReportId))
+                        var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                        foreach (var report in allReports)
                         {
-                            continue;
-                        }
-
-                        var reportPath = Path.Combine(Path.GetTempPath(), $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{report.Name}." + (config.ExportType == "Excel" ? "xlsx" : config.ExportType));
-
-                        if (await DownloadReport(report.ReportId, config, reportPath, token))
-                        {
-                            var results = ProcessReportFile(reportPath);
-
-                            foreach (var key in results.Item2)
+                            if (dbContext.ProcessedReports.Any(r => r.ReportId == report.ReportId))
                             {
-                                //key is the overdue days used to select the email groups
-                                var emails = GetEmails(key.Key);
-
-                                //ONLY SEND EMAILS IF FILE HAS 1 OR MORE RECORDS
-
-                                await _emailSender.SendMessage(emails, config.EmailHeader, config.EmailBody, filePaths: new string[] { results.Item1, key.Value });
+                                continue;
                             }
-                            await SaveToDb(report, dbContext, config);
+
+                            var reportPath = Path.Combine(Path.GetTempPath(),
+                                $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{report.Name}." +
+                                (config.ExportType == "Excel" ? "xlsx" : config.ExportType));
+
+                            if (await DownloadReport(report.ReportId, config, reportPath, token))
+                            {
+                                var results = ProcessReportFile(reportPath);
+
+                                foreach (var key in results.Item2)
+                                {
+                                    //key is the overdue days used to select the email groups
+                                    var emails = GetEmails(key.Key);
+
+                                    //ONLY SEND EMAILS IF FILE HAS 1 OR MORE RECORDS
+
+                                    await _emailSender.SendMessage(emails, config.EmailHeader, config.EmailBody,
+                                        filePaths: new string[] {results.Item1, key.Value});
+                                }
+
+                                await SaveToDb(report, dbContext, config);
+                            }
                         }
                     }
                 }
@@ -134,33 +141,38 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             await dbContext.SaveChangesAsync();
         }
 
-        private async Task<string> GetLoginToken(ReportConfigModel config)
+        private async Task<List<string>> GetLoginTokens(ReportConfigModel config)
         {
+            var tokens = new List<string>();
+
             try
             {
-                using (var client = new HttpClient())
+                foreach (var user in config.UserNamesAndPasswords)
                 {
-                    var content = new List<KeyValuePair<string, string>>
+                    using (var client = new HttpClient())
                     {
-                        new KeyValuePair<string, string>( "grant_type", "password" ),
-                        new KeyValuePair<string, string>( "scope", config.Scope ),
-                        new KeyValuePair<string, string>( "username", config.UserName ),
-                        new KeyValuePair<string, string>( "client_id", config.ClientId ),
-                        new KeyValuePair<string, string>( "client_secret", config.ClientSecret ),
-                        new KeyValuePair<string, string>( "password", config.Password ),
-                    };
+                        var content = new List<KeyValuePair<string, string>>
+                        {
+                            new KeyValuePair<string, string>("grant_type", "password"),
+                            new KeyValuePair<string, string>("scope", config.Scope),
+                            new KeyValuePair<string, string>("username", user.Key),
+                            new KeyValuePair<string, string>("password", user.Value),
+                            new KeyValuePair<string, string>("client_id", config.ClientId),
+                            new KeyValuePair<string, string>("client_secret", config.ClientSecret),
+                        };
 
-                    var formdata = new FormUrlEncodedContent(content);
+                        var formdata = new FormUrlEncodedContent(content);
 
-                    var response = await client.PostAsync(config.TokenUrl, formdata);
+                        var response = await client.PostAsync(config.TokenUrl, formdata);
 
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var respContent = await response.Content.ReadAsStringAsync();
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var respContent = await response.Content.ReadAsStringAsync();
 
-                        dynamic data = JObject.Parse(respContent);
+                            dynamic data = JObject.Parse(respContent);
 
-                        return data.access_token;
+                            tokens.Add(data.access_token);
+                        }
                     }
                 }
             }
@@ -168,7 +180,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 _logger.LogError(ex, ex.Message);
             }
-            return string.Empty;
+            return tokens;
         }
 
         private async Task<IEnumerable<ReportModel>> GetRecentReports(ReportConfigModel config, string token)
@@ -202,7 +214,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                 Notes = item.notes,
                                 ReportId = item.id,
                                 StartTime = item.startTime,
-                                Status = item.status
+                                Status = item.status,
+                                UserToken = token
                             });
                         }
                     }
@@ -463,12 +476,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Report).ToList();
 
+                var userLogins = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.ReportUser).ToList();
+
                 var config = new ReportConfigModel
                 {
                     BaseUrl = configurations.FirstOrDefault(c => c.Key == "BaseUrl")?.Value,
                     EnvironmentUrl = configurations.FirstOrDefault(c => c.Key == "EnvironmentUrl")?.Value,
-                    UserName = configurations.FirstOrDefault(c => c.Key == "UserName")?.Value,
-                    Password = configurations.FirstOrDefault(c => c.Key == "Password")?.Value,
                     UserToken = configurations.FirstOrDefault(c => c.Key == "UserToken")?.Value,
                     EmailBody = configurations.FirstOrDefault(c => c.Key == "EmailBody")?.Value,
                     EmailHeader = configurations.FirstOrDefault(c => c.Key == "EmailHeader")?.Value,
@@ -478,6 +491,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     ClientId = configurations.FirstOrDefault(c => c.Key == "ClientId")?.Value,
                     ClientSecret = configurations.FirstOrDefault(c => c.Key == "ClientSecret")?.Value,
                 };
+
+                config.UserNamesAndPasswords = new Dictionary<string, string>();
+
+                foreach (var login in userLogins)
+                {
+                    config.UserNamesAndPasswords.Add(login.Key, login.Value);
+                }
 
                 return config;
             }
@@ -548,5 +568,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         public string Notes { get; set; }
         public string StartTime { get; set; }
         public string Status { get; set; }
+        public string UserToken { get; set; }
     }
 }

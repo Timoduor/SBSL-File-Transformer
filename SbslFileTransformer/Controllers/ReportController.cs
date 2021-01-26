@@ -32,12 +32,10 @@ namespace SbslFileTransformer.Controllers
             {
                 BaseUrl = configurations.FirstOrDefault(c => c.Key == "BaseUrl")?.Value,
                 EnvironmentUrl = configurations.FirstOrDefault(c => c.Key == "EnvironmentUrl")?.Value,
-                UserName = configurations.FirstOrDefault(c => c.Key == "UserName")?.Value,
                 UserToken = configurations.FirstOrDefault(c => c.Key == "UserToken")?.Value,
                 EmailBody = configurations.FirstOrDefault(c => c.Key == "EmailBody")?.Value,
                 EmailHeader = configurations.FirstOrDefault(c => c.Key == "EmailHeader")?.Value,
                 ExportType = configurations.FirstOrDefault(c => c.Key == "ExportType")?.Value,
-
             };
 
 
@@ -197,19 +195,6 @@ namespace SbslFileTransformer.Controllers
                 await CreateOrUpdate(configuration);
             }
 
-            if (!string.IsNullOrEmpty(config.Password))
-            {
-                var configuration = new Configuration
-                {
-                    ConfigType = ConfigurationType.Report,
-                    Key = "Password",
-                    Value = config.Password,
-                    Updated = DateTime.Now
-                };
-
-                await CreateOrUpdate(configuration);
-            }
-
             if (!string.IsNullOrEmpty(config.Scope))
             {
                 var configuration = new Configuration
@@ -230,19 +215,6 @@ namespace SbslFileTransformer.Controllers
                     ConfigType = ConfigurationType.Report,
                     Key = "TokenUrl",
                     Value = config.TokenUrl,
-                    Updated = DateTime.Now
-                };
-
-                await CreateOrUpdate(configuration);
-            }
-
-            if (!string.IsNullOrEmpty(config.UserName))
-            {
-                var configuration = new Configuration
-                {
-                    ConfigType = ConfigurationType.Report,
-                    Key = "UserName",
-                    Value = config.UserName,
                     Updated = DateTime.Now
                 };
 
