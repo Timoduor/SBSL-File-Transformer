@@ -169,9 +169,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                         {
                             var respContent = await response.Content.ReadAsStringAsync();
 
-                            dynamic data = JObject.Parse(respContent);
+                            var data = JObject.Parse(respContent);
 
-                            tokens.Add(data.access_token);
+                            tokens.Add((string)data.SelectToken("access_token"));
                         }
                     }
                 }

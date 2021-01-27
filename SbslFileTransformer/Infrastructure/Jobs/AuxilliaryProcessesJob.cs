@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿extern alias MySqlDataAlias;
+
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -9,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 
 namespace SbslFileTransformer.Infrastructure.Jobs
 {
@@ -30,8 +33,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             var timer = new Timer((state) => RestartService(), null, TimeSpan.Zero, TimeSpan.FromHours(2));
             _timers.Add(timer);
 
-            var timerArchive = new Timer(async (state) => await ArchiveOldFiles(), null, TimeSpan.FromSeconds(new Random().Next(20, 60)), TimeSpan.FromHours(2));
+            var timerArchive = new Timer(async (state) => await ArchiveOldFiles(), null, TimeSpan.FromSeconds(new Random().Next(60, 300)), TimeSpan.FromHours(2));
             _timers.Add(timerArchive);
+
+            var timerBackup = new Timer(async (state) => await BackupDb(), null, TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromHours(0.5));
+            _timers.Add(timerBackup);
 
             return Task.CompletedTask;
         }
@@ -142,6 +148,68 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
         }
 
+        private async Task BackupDb()
+        {
+            try
+            {
+                string connectionString;
 
+                string backUpFolder = @"C:\SBSLETL_DbBackup";
+
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                    connectionString = dbContext.Database.GetDbConnection().ConnectionString;
+
+                    backUpFolder = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
+                                       b.ConfigType == Models.Enums.ConfigurationType.Sftp && b.Key == "BackUpFolder"))
+                                   ?.Value ??
+                                   backUpFolder;
+                }
+
+                string backUpDirectory = Path.Combine(backUpFolder, "SBSLETL_DB_Backup");
+
+                Directory.CreateDirectory(backUpDirectory);
+
+                string backUpFile = Path.Combine(backUpDirectory, $"{DateTime.Now:yyyy_MM_dd_HH}.sql");
+
+                using (var conn = new MySqlDataAlias::MySql.Data.MySqlClient.MySqlConnection(connectionString))
+                {
+                    using (var cmd = new MySqlDataAlias::MySql.Data.MySqlClient.MySqlCommand())
+                    {
+                        using (var mb = new MySql.Data.MySqlClient.MySqlBackup(cmd))
+                        {
+                            cmd.Connection = conn;
+                            conn.Open();
+                            mb.ExportToFile(backUpFile);
+                            conn.Close();
+                        }
+                    }
+                }
+
+                //DELETE OLD BACKUPS 2 days or older
+                var searchOptions = new EnumerationOptions
+                {
+                    RecurseSubdirectories = true,
+                    MatchCasing = MatchCasing.CaseInsensitive
+                };
+
+                foreach (var file in Directory.GetFiles(backUpDirectory, "*.*", searchOptions))
+                {
+                    var props = new FileInfo(file);
+
+                    if (props.LastWriteTime < DateTime.Now.AddDays(-2) ||
+                        props.CreationTime < DateTime.Now.AddDays(-2))
+                    {
+                        File.Delete(file);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+            }
+        }
     }
 }
