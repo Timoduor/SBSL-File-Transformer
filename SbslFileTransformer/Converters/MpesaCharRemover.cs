@@ -29,7 +29,7 @@ namespace SbslFileTransformer.Converters
 
                     var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                    outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{fileName}.xlsx");
+                    outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileName}.xlsx");
                 }
 
                 package.SaveAs(new FileInfo(outputFile));

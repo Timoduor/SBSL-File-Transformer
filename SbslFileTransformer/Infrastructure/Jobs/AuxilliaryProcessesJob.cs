@@ -67,7 +67,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 _logger.LogInformation("Running file Archive Job");
 
                 //do it only afternoons or at night
-                if ((DateTime.Now.Hour >= 15 && DateTime.Now.Hour <= 23) || (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 7))
+                if ((DateTime.Now.Hour >= 19 && DateTime.Now.Hour <= 23) || (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 7))
                 {
                     using (var scope = _serviceScopeFactory.CreateScope())
                     {

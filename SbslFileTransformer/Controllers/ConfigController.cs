@@ -62,6 +62,19 @@ namespace SbslFileTransformer.Controllers
             return View();
         }
 
+        public IActionResult Update(int configType, string key)
+        {
+            var config = _dbContext.Configurations.FirstOrDefault(c => c.ConfigType == (ConfigurationType)configType && c.Key == key);
+
+            ViewBag.ConfigTypes = new SelectList(Enum.GetValues(typeof(ConfigurationType)).Cast<ConfigurationType>().Select(v => new SelectListItem
+            {
+                Text = v.ToString(),
+                Value = ((int)v).ToString()
+            }).ToList(), "Value", "Text", configType);
+
+            return View(config);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create(Configuration config)
         {

@@ -77,9 +77,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     foreach (var file in files)
                     {
                         //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
-                        if (file.ToLower().Contains("mpesa") || file.ToLower().Contains("c2b"))
+                        if ((file.ToLower().Contains("mpesa") || file.ToLower().Contains("c2b")) && !file.ToLower().Contains("converted"))
                         {
-                            var fileToProcess = dbContext.UploadedFiles.Where(f => f.FilePath.ToLower() == file.ToLower()).FirstOrDefault();
+                            var fileToProcess = dbContext.UploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                             {

@@ -187,11 +187,14 @@ namespace SbslFileTransformer.Converters
                         {
                             var md5 = encryptionManager.GetMd5(resultFile);
 
-                            if (FileHelpers.UploadFileToSftp(resultFile, md5, isProduction, "", null, null, null, serviceScopeFactory, logger))
+                            if (FileHelpers.UploadFileToSftp(resultFile, md5, isProduction,
+                                Path.GetFileName(resultFile), null, null, null,
+                                serviceScopeFactory, logger))
                             {
                                 foreach (var file in notProcessed)
                                 {
-                                    if (filesInDirectoryToProcess.Contains(file.FilePath, StringComparer.OrdinalIgnoreCase))
+                                    if (filesInDirectoryToProcess.Contains(file.FilePath,
+                                        StringComparer.OrdinalIgnoreCase))
                                     {
                                         file.ProcessFor62F = true;
                                     }
@@ -239,7 +242,7 @@ namespace SbslFileTransformer.Converters
                         continue;
                     }
 
-                    var account = lines.FirstOrDefault(l => l.Contains(":25:")).Split(":").Last().Trim();
+                    var account = lines.FirstOrDefault(l => l.Contains(":25:"))?.Split(":").Last().Trim();
 
                     var balParts = bal.Split(":").Last();
 
