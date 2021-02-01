@@ -8,11 +8,13 @@ namespace SbslFileTransformer.Infrastructure.Helpers
     public class SbslPdfReader
     {
 
-        public static string GetTextFromPDF(string path)
+        public static string GetTextFromPDF(string path, string password = "")
         {
             StringBuilder content = new StringBuilder();
 
-            using (PdfReader reader = new PdfReader(path))
+            var readProps = new ReaderProperties().SetPassword(Encoding.Default.GetBytes(password));
+
+            using (PdfReader reader = new PdfReader(path, readProps))
             {
                 var pdfDocument = new PdfDocument(reader);
 

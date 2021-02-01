@@ -92,13 +92,14 @@ namespace SbslFileTransformer.Infrastructure.Helpers
             lock (_locker)
             {
                 string md5 = GetMd5(filePath);
+                string name = Path.GetFileName(filePath);
 
                 using (var scope = serviceScopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
                     //check if md5/filename exists
-                    if (dbContext.UploadedFiles.Any(f => f.Md5.ToUpper() == md5.ToUpper()))
+                    if (dbContext.UploadedFiles.Any(f => f.Md5.ToUpper() == md5.ToUpper() || f.Name.ToLower() == name.ToLower()))
                     {
                         return (md5, true);
                     }
