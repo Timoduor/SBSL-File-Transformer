@@ -72,33 +72,34 @@ namespace SbslFileTransformer.Converters
 
                     var dict = uploadedToday.GroupBy(u => u.MtAccountNo).Select(u => new { Account = u.Key, Max = u.Max(u => u.MtSequenceNo) }).ToList();
 
-                    Dictionary<string, string> absent = new Dictionary<string, string>();
+                    //Dictionary<string, string> absent = new Dictionary<string, string>();
+
+                    var absent = new List<MTFileValidation>();
 
                     foreach (var stmt in dict)
                     {
-                        var worked = int.TryParse(stmt.Max, out int result);
+                        var StatementNos = uploadedToday.Where(u => u.MtAccountNo == stmt.Account).Select(u => u.MtStatementNo).Distinct().ToList();
 
-                        var present = uploadedToday.Where(u => u.MtAccountNo == stmt.Account).Select(u => u.MtSequenceNo).ToList();
-
-                        if (worked)
+                        foreach (var StatementNo in StatementNos)
                         {
-                            for (int i = 1; i <= Convert.ToInt32(result); i++)
+                            var validation = new MTFileValidation { Account = stmt.Account, Statement = StatementNo, Sequences = new List<string>() };
+
+                            var worked = int.TryParse(stmt.Max, out int result);
+
+                            var present = uploadedToday.Where(u => u.MtAccountNo == stmt.Account && u.MtStatementNo == StatementNo).Select(u => u.MtSequenceNo).Distinct().ToList();
+
+                            if (worked)
                             {
-
-                                var current = i.ToString().PadLeft(5, '0');
-
-                                if (!present.Contains(current))
+                                for (int i = 1; i <= result; i++)
                                 {
-                                    if (absent.ContainsKey(stmt.Account))
-                                    {
-                                        absent[stmt.Account] += ", " + i.ToString();
-                                    }
-                                    else
-                                    {
-                                        absent[stmt.Account] = i.ToString();
-                                    }
+                                    var current = i.ToString().PadLeft(5, '0');
+
+                                    if (!present.Contains(current))
+                                        validation.Sequences.Add(i.ToString());
                                 }
                             }
+
+                            absent.Add(validation);
                         }
                     }
 
@@ -118,22 +119,23 @@ namespace SbslFileTransformer.Converters
                         }
                     }
 
-                    if (absent.Where(a => !string.IsNullOrEmpty(a.Value)).Count() > 0)
+                    foreach (var val in absent)
                     {
+                        var seqs = "";
 
-                        foreach (var val in absent)
-                        {
-                            message.AppendLine($"Account No. {val.Key} is missing Statement(s) for Sequence Numbers: {val.Value}");
+                        foreach (var seq in val.Sequences)
+                            seqs += seq + ", ";
 
-                            message.AppendLine();
-                        }
+                        message.AppendLine($"Account No. {val.Account} is missing Statement(s) {val.Statement} for Sequence Numbers: {seqs}");
 
-                        var config = await dbContext.Configurations.FirstOrDefaultAsync(c => c.ConfigType == ConfigurationType.Email && c.Key == "Recipients");
-
-                        var recipients = config.Value.Split(new char[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-                        await emailSender.SendMessage(recipients, "Missing Closing Balances & Sequence Numbers", message.ToString());
+                        message.AppendLine();
                     }
+
+                    var config = await dbContext.Configurations.FirstOrDefaultAsync(c => c.ConfigType == ConfigurationType.Email && c.Key == "Recipients");
+
+                    var recipients = config.Value.Split(new char[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    await emailSender.SendMessage(recipients, "Missing Closing Balances & Sequence Numbers", message.ToString());
                 }
             }
             catch (Exception ex)
@@ -294,8 +296,6 @@ namespace SbslFileTransformer.Converters
             return accNo;
         }
 
-
-
         private class Balance
         {
             public string Entity { get; set; }
@@ -303,6 +303,13 @@ namespace SbslFileTransformer.Converters
             public DateTime Date { get; set; }
             public double Amount { get; set; }
             public string Currency { get; set; }
+        }
+
+        private class MTFileValidation
+        {
+            public string Account { get; set; }
+            public string Statement { get; set; }
+            public List<string> Sequences { get; set; }
         }
     }
 }
