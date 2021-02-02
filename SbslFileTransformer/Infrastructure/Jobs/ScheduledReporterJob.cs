@@ -93,6 +93,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                 continue;
                             }
 
+                            _logger.LogInformation($"Processing report {report.Name} with ID {report.ReportId}");
+
                             var reportPath = Path.Combine(Path.GetTempPath(),
                                 $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{report.Name}." +
                                 (config.ExportType == "Excel" ? "xlsx" : config.ExportType));
@@ -101,18 +103,30 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                             {
                                 var results = ProcessReportFile(reportPath);
 
-                                foreach (var key in results.Item2)
+                                _logger.LogInformation($"Sending emails for report {report.Name} with ID {report.ReportId}");
+
+                                if (results.Item2.Count > 0)
                                 {
-                                    //key is the overdue days used to select the email groups
-                                    var emails = GetEmails(key.Key);
+                                    foreach (var key in results.Item2)
+                                    {
+                                        //key is the overdue days used to select the email groups
+                                        var emails = GetEmails(key.Key);
 
-                                    //ONLY SEND EMAILS IF FILE HAS 1 OR MORE RECORDS
+                                        //ONLY SEND EMAILS IF FILE HAS 1 OR MORE RECORDS
 
-                                    await _emailSender.SendMessage(emails, config.EmailHeader, config.EmailBody,
-                                        filePaths: new string[] {results.Item1, key.Value});
+                                        await _emailSender.SendMessage(emails, config.EmailHeader, config.EmailBody,
+                                            filePaths: new string[] { results.Item1, key.Value });
+                                    }
+                                }
+                                else
+                                {
+                                    await _emailSender.SendMessage(GetEmails(0), config.EmailHeader, config.EmailBody,
+                                        filePaths: new string[] { results.Item1 });
                                 }
 
                                 await SaveToDb(report, dbContext, config);
+
+                                _logger.LogInformation($"Finished processing report {report.Name} with ID {report.ReportId}");
                             }
                         }
                     }
@@ -237,7 +251,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                var groups = dbContext.EmailGroups.Where(g => g.AgeAlertDuration >= key && g.IsActive);
+                var groups = dbContext.EmailGroups.Where(g => g.AgeAlertDuration == key && g.IsActive);
 
                 var groupEmails = groups.ToList().Select(g => g.Emails);
 
@@ -279,13 +293,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                         DateTime postedDate;
 
-                        if (DateTime.TryParseExact(col3, "MM/dd/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out postedDate))
+                        if (DateTime.TryParse(col3, out postedDate))
                         {
                             try
                             {
+                                int daysOverdue = Convert.ToInt32((DateTime.Now - postedDate).TotalDays);
+
                                 var openItem = new OpenItem
                                 {
-                                    DaysOverdue = Convert.ToInt32((DateTime.Now - postedDate).TotalDays),
+                                    DaysOverdue = daysOverdue,
                                     PostedDate = postedDate,
                                     AccName = reader.GetValue(2)?.ToString(),
                                     //Account = lastAccountNo,
@@ -333,7 +349,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 daysRecordsPairs.Add(7, olderThan7days.ToList());
             }
-            if (olderThan7days.Count() > 0)
+            if (olderThan30days.Count() > 0)
             {
                 daysRecordsPairs.Add(30, olderThan30days.ToList());
             }

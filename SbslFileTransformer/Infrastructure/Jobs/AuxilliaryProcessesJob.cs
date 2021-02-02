@@ -83,9 +83,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                         foreach (var file in oldUploadedFiles)
                         {
-                            if (File.Exists(file.FilePath))
+                            string source = file.FilePath;
+                            string destination = Path.Combine(backUpPath, Path.GetFileName(file.FilePath));
+
+                            if (File.Exists(source))
                             {
-                                File.Move(file.FilePath, Path.Combine(backUpPath, Path.GetFileName(file.FilePath)));
+                                File.Move(source, destination, true);
                             }
                         }
 
@@ -107,12 +110,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                             {
                                 var destination = Path.Combine(backUpPath, Path.GetFileName(file));
 
-                                if (File.Exists(destination))
-                                {
-                                    File.Delete(destination);
-                                }
-
-                                File.Move(file, destination);
+                                File.Move(file, destination, true);
                             }
                         }
                     }

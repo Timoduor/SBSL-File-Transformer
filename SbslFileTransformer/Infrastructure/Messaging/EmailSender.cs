@@ -47,7 +47,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
                     };
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
             }
@@ -55,7 +55,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
 
         public async Task SendMessage(IEnumerable<string> recipients, string subject, string content, bool isHtml = false, IEnumerable<string> filePaths = null)
         {
-            if(recipients == null || recipients.Count() == 0)
+            if (recipients == null || recipients.Count() == 0)
             {
                 recipients = _emailConfig.Recipients.Split(',', '\n', '\r');
             }
@@ -110,60 +110,47 @@ namespace SbslFileTransformer.Infrastructure.Messaging
                     client.UseDefaultCredentials = _emailConfig.UseDefaultCredentials;
                     client.EnableSsl = _emailConfig.UseSsl;
 
-                    try
+
+                    var address = mailMessage.From.Mailboxes.First().Address;
+                    var name = mailMessage.From.Mailboxes.First().Name;
+
+                    var message = new MailMessage()
                     {
-                        var address = mailMessage.From.Mailboxes.First().Address;
-                        var name = mailMessage.From.Mailboxes.First().Name;
+                        From = new MailAddress(address, name),
+                        Body = mailMessage.TextBody,
+                    };
 
-                        var message = new MailMessage()
-                        {
-                            From = new MailAddress(address, name),
-                            Body = mailMessage.TextBody,
-                        };
-
-                        foreach (var email in mailMessage.To.Mailboxes)
-                        {
-                            message.To.Add(email.Address);
-                        }
-
-                        foreach (var attachment in mailMessage.Attachments)
-                        {
-                            var memoryStream = new MemoryStream();
-                            await attachment.WriteToAsync(memoryStream);
-
-                            message.Attachments.Add(new Attachment(memoryStream, attachment.ContentDisposition.FileName));
-                        }
-
-                        client.Send(message);
-                    }
-                    catch (Exception ex)
+                    foreach (var email in mailMessage.To.Mailboxes)
                     {
-                        _logger.LogError(ex.Message, ex);
+                        message.To.Add(email.Address);
                     }
+
+                    foreach (var attachment in mailMessage.Attachments)
+                    {
+                        var memoryStream = new MemoryStream();
+                        await attachment.WriteToAsync(memoryStream);
+
+                        message.Attachments.Add(new Attachment(memoryStream, attachment.ContentDisposition.FileName));
+                    }
+
+                    client.Send(message);
+
                 }
             }
             else
             {
                 using (var client = new MailKit.Net.Smtp.SmtpClient())
                 {
-                    try
-                    {
-                        await client.ConnectAsync(_emailConfig.SmtpServer, _emailConfig.Port, _emailConfig.UseSsl);
 
-                        client.AuthenticationMechanisms.Remove("XOAUTH2");
+                    await client.ConnectAsync(_emailConfig.SmtpServer, _emailConfig.Port, _emailConfig.UseSsl);
 
-                        await client.AuthenticateAsync(_emailConfig.UserName, _emailConfig.Password);
+                    client.AuthenticationMechanisms.Remove("XOAUTH2");
 
-                        await client.SendAsync(mailMessage);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex.Message, ex);
-                    }
-                    finally
-                    {
-                        client.Disconnect(true);
-                    }
+                    await client.AuthenticateAsync(_emailConfig.UserName, _emailConfig.Password);
+
+                    await client.SendAsync(mailMessage);
+
+                    client.Disconnect(true);
                 }
             }
         }
