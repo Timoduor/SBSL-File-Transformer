@@ -9,6 +9,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Converters
 {
@@ -36,7 +37,7 @@ namespace SbslFileTransformer.Converters
             Entity = entity;
         }
 
-        public bool Execute(string filePath)
+        public async Task<bool> Execute(string filePath)
         {
             try
             {
@@ -59,42 +60,40 @@ namespace SbslFileTransformer.Converters
                     }
                 }
 
-                lock (_locker)
+                if (Path.GetExtension(filePath) != ".csv")
+                    return false;
+
+                StringBuilder output = new StringBuilder();
+                //code to convert
+                using (var reader = new StreamReader(filePath))
                 {
-                    if (Path.GetExtension(filePath) != ".csv")
-                        return false;
-
-                    StringBuilder output = new StringBuilder();
-                    //code to convert
-                    using (var reader = new StreamReader(filePath))
+                    using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                     {
-                        using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                        while (csv.Read())
                         {
-                            while (csv.Read())
-                            {
 
-                                var accNo = csv.GetField(0);
-                                var currency = csv.GetField(1);
-                                var date1 = csv.GetField<DateTime>(2);
-                                var DorC = csv.GetField<int>(3);
-                                var openingBalance = csv.GetField<double>(4);
-                                var date2 = fileDate = csv.GetField<DateTime>(5);
-                                var DorC2 = csv.GetField<int>(6);
-                                var closingBalance = csv.GetField<double>(7);
+                            var accNo = csv.GetField(0);
+                            var currency = csv.GetField(1);
+                            var date1 = csv.GetField<DateTime>(2);
+                            var DorC = csv.GetField<int>(3);
+                            var openingBalance = csv.GetField<double>(4);
+                            var date2 = fileDate = csv.GetField<DateTime>(5);
+                            var DorC2 = csv.GetField<int>(6);
+                            var closingBalance = csv.GetField<double>(7);
 
-                                string toAppend = $"{Entity}\t{accNo}\tNostros\t\t\t\t\t\t\t\t{GetAccountName(accNo, lookUp)}\tNostros\tA\tAsset\tTRUE\tTRUE\t\t{currency}\t{ContentHelpers.GetLastDayOfTheMonth(date2):MM/dd/yyyy}\t\t\t{-1 * DorC2 * closingBalance}\n";
+                            string toAppend = $"{Entity}\t{accNo}\tNostros\t\t\t\t\t\t\t\t{GetAccountName(accNo, lookUp)}\tNostros\tA\tAsset\tTRUE\tTRUE\t\t{currency}\t{ContentHelpers.GetLastDayOfTheMonth(date2):MM/dd/yyyy}\t\t\t{-1 * DorC2 * closingBalance}\n";
 
-                                output.Append(toAppend);
-                            }
-
+                            output.Append(toAppend);
                         }
-                        reader.Close();
+
                     }
-
-                    var outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_{fileDate:MMddyyyy}.txt");
-
-                    File.WriteAllTextAsync(outputPath, output.ToString());
+                    reader.Close();
                 }
+
+                var outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_{fileDate:MMddyyyy}.txt");
+
+                if (!File.Exists(outputPath))
+                    await File.WriteAllTextAsync(outputPath, output.ToString());
 
                 return true;
             }

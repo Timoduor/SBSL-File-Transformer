@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Converters
@@ -19,8 +20,8 @@ namespace SbslFileTransformer.Converters
     {
         private static object _locker = new object();
 
-        volatile static bool _isRunningExtractor;
-        volatile static bool _isRunningValidator;
+        static readonly SemaphoreSlim SemaphoreExtractor = new SemaphoreSlim(1,1);
+        static readonly SemaphoreSlim SemaphoreValidator = new SemaphoreSlim(1, 1);
 
         public static (string, string, string[]) RenameMTFile(string originalFile, ILogger logger)
         {
@@ -57,12 +58,7 @@ namespace SbslFileTransformer.Converters
         {
             try
             {
-                if (_isRunningValidator)
-                {
-                    return;
-                }
-
-                _isRunningValidator = true;
+                await SemaphoreValidator.WaitAsync();
 
                 using (var scope = serviceScopeFactory.CreateScope())
                 {
@@ -144,7 +140,7 @@ namespace SbslFileTransformer.Converters
             }
             finally
             {
-                _isRunningValidator = false;
+                SemaphoreValidator.Release();
             }
         }
 
@@ -154,12 +150,7 @@ namespace SbslFileTransformer.Converters
 
             try
             {
-                if (_isRunningExtractor)
-                {
-                    return;
-                }
-
-                _isRunningExtractor = true;
+                await SemaphoreExtractor.WaitAsync();
 
                 string loc = location.ToString();
 
@@ -217,7 +208,7 @@ namespace SbslFileTransformer.Converters
             }
             finally
             {
-                _isRunningExtractor = false;
+                SemaphoreExtractor.Release();
             }
         }
 

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Messaging;
@@ -19,7 +20,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         private readonly ILogger<PdfToMTFileJob> _logger;
         readonly IServiceScopeFactory _serviceScopeFactory;
         readonly EmailSender _emailSender;
-        volatile bool _isRunning;
+        private static SemaphoreSlim _semaphore;
 
         public CamtToMultiCurrJob(ILogger<PdfToMTFileJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
@@ -31,21 +32,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         {
             _logger.LogInformation("Starting PDF To MT File Converter Job");
 
-            _timer = new Timer(state => ConvertCamtToMultiCurrFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
+            _semaphore = new SemaphoreSlim(1, 1);
+
+            _timer = new Timer(async state => await ConvertCamtToMultiCurrFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private void ConvertCamtToMultiCurrFile()
+        private async Task ConvertCamtToMultiCurrFile()
         {
             try
             {
-                if (_isRunning)
-                {
-                    return;
-                }
-
-                _isRunning = true;
+                await _semaphore.WaitAsync();
 
                 _logger.LogInformation("Running PDF To MT File converter job");
 
@@ -56,7 +54,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
+                    var configurations = await dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToListAsync();
 
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
@@ -75,7 +73,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
                         if (file.ToLower().Contains("camt053") && file.ToLower().Contains("bals"))
                         {
-                            var fileToProcess = dbContext.UploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
+                            var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                             {
@@ -94,7 +92,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                 dbContext.Update(fileToProcess);
 
-                                dbContext.SaveChanges();
+                                await dbContext.SaveChangesAsync();
 
                             }
                         }
@@ -107,7 +105,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             }
             finally
             {
-                _isRunning = false;
+                _semaphore.Release();
             }
         }
 

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters;
@@ -20,7 +21,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         private ILogger<PdfToMTFileJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
-        volatile bool _isRunning;
+        static SemaphoreSlim _semaphore;
 
         public PdfToMTFileJob(ILogger<PdfToMTFileJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
@@ -33,21 +34,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         {
             _logger.LogInformation("Starting PDF To MT File Converter Job");
 
-            _timer = new Timer(state => ConvertPdfToMTFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
+            _semaphore = new SemaphoreSlim(1, 1);
+
+            _timer = new Timer(async state => await ConvertPdfToMTFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private void ConvertPdfToMTFile()
+        private async Task ConvertPdfToMTFile()
         {
             try
             {
-                if (_isRunning)
-                {
-                    return;
-                }
-
-                _isRunning = true;
+                await _semaphore.WaitAsync();
 
                 _logger.LogInformation("Running PDF To MT File converter job");
 
@@ -79,7 +77,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
                         if (file.ToLower().Contains("mtPdfs"))
                         {
-                            var fileToProcess = dbContext.UploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
+                            var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                             {
@@ -98,7 +96,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                 dbContext.Update(fileToProcess);
 
-                                dbContext.SaveChanges();
+                                await dbContext.SaveChangesAsync();
 
                             }
                         }
@@ -111,7 +109,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             }
             finally
             {
-                _isRunning = false;
+                _semaphore.Release();
             }
         }
 

@@ -17,7 +17,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
         private Timer _timer;
         private ILogger<GLBalanceExtractorJob> _logger;
         private IServiceScopeFactory _serviceScopeFactory;
-        volatile bool _isRunning;
+        static SemaphoreSlim _semaphore;
 
         public GLBalanceExtractorJob(IServiceScopeFactory serviceScopeFactory, ILogger<GLBalanceExtractorJob> logger)
         {
@@ -27,21 +27,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _timer = new Timer(state => ExtractGLBalances(), null, TimeSpan.FromSeconds(new Random().Next(5, 20)), TimeSpan.FromMinutes(5));
+            _timer = new Timer(async state => await ExtractGLBalances(), null, TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
+
+            _semaphore = new SemaphoreSlim(1, 1);
 
             return Task.CompletedTask;
         }
 
-        private void ExtractGLBalances()
+        private async Task ExtractGLBalances()
         {
             try
             {
-                if (_isRunning)
-                {
-                    return;
-                }
-
-                _isRunning = true;
+                await _semaphore.WaitAsync();
 
                 _logger.LogInformation("Running GL Balance Extractor Job");
 
@@ -74,7 +71,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                     {
                         try
                         {
-                            converter.Execute(file);
+                            await converter.Execute(file);
                         }
                         catch(Exception ex)
                         {
@@ -89,7 +86,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
             }
             finally
             {
-                _isRunning = false;
+                _semaphore.Release();
             }
         }
 

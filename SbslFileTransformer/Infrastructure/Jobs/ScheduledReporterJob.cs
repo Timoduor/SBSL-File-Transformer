@@ -29,7 +29,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         private readonly EmailSender _emailSender;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private Timer _timer;
-        volatile bool _isRunning;
+        private static SemaphoreSlim _semaphore;
 
         public ScheduledReporterJob(ILogger<ScheduledReporterJob> logger, EmailSender emailSender, IServiceScopeFactory serviceScopeFactory)
         {
@@ -42,6 +42,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             _logger.LogInformation("Starting Scheduled reporter job...");
 
+            _semaphore = new SemaphoreSlim( 1, 1);
+
             _timer = new Timer(async (state) => await ProcessNewReport(), null, TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
@@ -49,14 +51,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
         private async Task ProcessNewReport()
         {
+
             try
             {
-                if (_isRunning)
-                {
-                    return;
-                }
-
-                _isRunning = true;
+                await _semaphore.WaitAsync();
 
                 _logger.LogInformation("Running reporting job");
 
@@ -116,12 +114,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                                         await _emailSender.SendMessage(emails, config.EmailHeader, config.EmailBody,
                                             filePaths: new string[] { results.Item1, key.Value });
+
+                                        await Task.Delay(60000);
                                     }
                                 }
                                 else
                                 {
                                     await _emailSender.SendMessage(GetEmails(0), config.EmailHeader, config.EmailBody,
                                         filePaths: new string[] { results.Item1 });
+
+                                    await Task.Delay(60000);
                                 }
 
                                 await SaveToDb(report, dbContext, config);
@@ -138,7 +140,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
             finally
             {
-                _isRunning = false;
+                _semaphore.Release();
             }
         }
 
@@ -370,7 +372,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             var inputFileName = Path.GetFileName(inputFile);
 
-            var outputFilePath = Path.Combine(Path.GetTempPath(), DateTime.Now.ToString("yyyy_MM_dd_") + inputFileName);
+            var outputFilePath = Path.Combine(Path.GetTempPath(), "Aged_" + inputFileName);
 
             using (var package = new ExcelPackage(new FileInfo(inputFile)))
             {
@@ -408,10 +410,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     {
                         var outputDate = FromExcelSerialDate(dateInt);
 
-                        var diff = (DateTime.Now - outputDate).Days;
+                        var diff = (maxDate - outputDate).Days;
 
                         sheet.Cells[$"E{i}"].Formula =
-                            $"=IF(NOT(ISBLANK(D{i})),DATEDIF(D{i}, TODAY(), \"D\"),\"\")";
+                            $"=IF(NOT(ISBLANK(D{i})),DATEDIF(D{i}, {maxDateInt}, \"D\"),\"\")";
 
                         sheet.Cells[$"E{i}"].Style.Numberformat.Format = "0";
 

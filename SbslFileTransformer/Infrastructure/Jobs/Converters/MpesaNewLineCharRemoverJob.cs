@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
@@ -19,7 +20,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         Timer _timer;
         ILogger<MpesaNewLineCharRemoverJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
-        volatile bool _isRunning;
+        private static SemaphoreSlim _semaphore;
         EmailSender _emailSender;
 
         public MpesaNewLineCharRemoverJob(ILogger<MpesaNewLineCharRemoverJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
@@ -33,21 +34,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         {
             _logger.LogInformation("Starting NewLine Remover Job");
 
-            _timer = new Timer(state => ConvertC2BFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
+            _semaphore = new SemaphoreSlim(1, 1);
+
+            _timer = new Timer(async state => await ConvertC2BFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private void ConvertC2BFile()
+        private async Task ConvertC2BFile()
         {
             try
             {
-                if (_isRunning)
-                {
-                    return;
-                }
-
-                _isRunning = true;
+                await _semaphore.WaitAsync();
 
                 _logger.LogInformation("Running NewLine Remover job");
 
@@ -59,7 +57,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
+                    var configurations = await dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToListAsync();
 
                     Entity = dbContext.Configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
@@ -79,7 +77,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
                         if ((file.ToLower().Contains("mpesa") || file.ToLower().Contains("c2b")) && !file.ToLower().Contains("converted"))
                         {
-                            var fileToProcess = dbContext.UploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
+                            var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                             {
@@ -98,7 +96,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                 dbContext.Update(fileToProcess);
 
-                                dbContext.SaveChanges();
+                                await dbContext.SaveChangesAsync();
 
                             }
                         }
@@ -111,7 +109,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             }
             finally
             {
-                _isRunning = false;
+                _semaphore.Release();
             }
         }
 

@@ -21,7 +21,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         readonly ILogger<SftpIndependentJob> _logger;
         private string Entity;
         List<Timer> _timers = new List<Timer>();
-        volatile bool _isRunning;
+        private static SemaphoreSlim _semaphore;
 
         public SftpIndependentJob(IServiceScopeFactory serviceScopeFactory, ILogger<SftpIndependentJob> logger)
         {
@@ -35,6 +35,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 _logger.LogInformation("Starting SFTP Independent...");
 
+                _semaphore = new SemaphoreSlim(1, 1);
+
                 SftpConfigModel config;
                 int prodTimeSpan, sbTimeSpan;
 
@@ -42,7 +44,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 if (config.IncludeProduction)
                 {
-                    var timerProd = new Timer((state) => RunFileCheckAndUpload(state, true, config.ProductionFolder), null, TimeSpan.Zero,
+                    var timerProd = new Timer(async ( state) => await RunFileCheckAndUpload(state, true, config.ProductionFolder), null, TimeSpan.Zero,
                                                             TimeSpan.FromMinutes(prodTimeSpan));
 
                     _timers.Add(timerProd);
@@ -50,7 +52,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 if (config.IncludeSandbox)
                 {
-                    var timerSB = new Timer((state) => RunFileCheckAndUpload(state, false, config.SandboxFolder), null, TimeSpan.Zero,
+                    var timerSB = new Timer(async(state) => await RunFileCheckAndUpload(state, false, config.SandboxFolder), null, TimeSpan.Zero,
                                                     TimeSpan.FromMinutes(sbTimeSpan));
 
                     _timers.Add(timerSB);
@@ -95,18 +97,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
         }
 
-        private void RunFileCheckAndUpload(object state, bool isProduction, string productionOrSandboxFolder)
+        private async Task RunFileCheckAndUpload(object state, bool isProduction, string productionOrSandboxFolder)
         {
             string fileToProcess = string.Empty;
 
             try
             {
-                if (_isRunning)
-                {
-                    return;
-                }
-
-                _isRunning = true;
+                await _semaphore.WaitAsync();
 
                 _logger.LogInformation($"Running file check and upload at {DateTime.Now}!");
 
@@ -142,7 +139,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
             finally
             {
-                _isRunning = false;
+                _semaphore.Release();
             }
         }
 

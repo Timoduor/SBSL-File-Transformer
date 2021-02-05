@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
@@ -19,7 +20,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         private ILogger<MasterCardConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
-        volatile bool _isRunning;
+        private static SemaphoreSlim _semaphore;
         Timer _timer;
 
         public MasterCardConverterJob(ILogger<MasterCardConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
@@ -33,21 +34,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         {
             _logger.LogInformation("Starting MasterCard Converter Job");
 
-            _timer = new Timer(state => ConvertMasterCardFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
+            _semaphore = new SemaphoreSlim(1, 1);
+
+            _timer = new Timer(async state => await ConvertMasterCardFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private void ConvertMasterCardFile()
+        private async Task ConvertMasterCardFile()
         {
             try
             {
-                if (_isRunning)
-                {
-                    return;
-                }
-
-                _isRunning = true;
+                await _semaphore.WaitAsync();
 
                 _logger.LogInformation("Running MasterCard converter job");
 
@@ -78,7 +76,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     {
                         if (file.ToLower().Contains("mastercard"))
                         {
-                            var fileToProcess = dbContext.UploadedFiles.Where(f => f.FilePath.ToLower() == file.ToLower()).FirstOrDefault();
+                            var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                             {
@@ -97,7 +95,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                 dbContext.Update(fileToProcess);
 
-                                dbContext.SaveChanges();
+                                await dbContext.SaveChangesAsync();
                             }
                         }
                     }
@@ -110,7 +108,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             }
             finally
             {
-                _isRunning = false;
+                _semaphore.Release();
             }
         }
 

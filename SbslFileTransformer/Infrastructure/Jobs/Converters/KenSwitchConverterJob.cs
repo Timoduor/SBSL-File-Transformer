@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
@@ -20,7 +21,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         IServiceScopeFactory _serviceScopeFactory;
         ILogger<KenSwitchConverterJob> _logger;
         EmailSender _emailSender;
-        volatile bool _isRunning;
+        private static SemaphoreSlim _semaphore;
 
         public KenSwitchConverterJob(ILogger<KenSwitchConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
@@ -33,21 +34,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         {
             _logger.LogInformation("Starting KenSwitch Converter Job");
 
-            _timer = new Timer(state => ConvertKenSwitchPdfs(), null, TimeSpan.FromSeconds(new Random().Next(5, 15)), TimeSpan.FromMinutes(10));
+            _semaphore = new SemaphoreSlim(1, 1);
+
+            _timer = new Timer(async state => await ConvertKenSwitchPdfs(), null, TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private void ConvertKenSwitchPdfs()
+        private async Task ConvertKenSwitchPdfs()
         {
             try
             {
-                if (_isRunning)
-                {
-                    return;
-                }
-
-                _isRunning = true;
+                await _semaphore.WaitAsync();
 
                 _logger.LogInformation("Running KenSwitch converter job");
 
@@ -78,7 +76,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     {
                         if (file.ToLower().Contains("kenswitch"))
                         {
-                            var fileToProcess = dbContext.UploadedFiles.Where(f => f.FilePath.ToLower() == file.ToLower()).FirstOrDefault();
+                            var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                             {
@@ -97,7 +95,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                 dbContext.Update(fileToProcess);
 
-                                dbContext.SaveChanges();
+                                await dbContext.SaveChangesAsync();
 
 
                             }
@@ -111,7 +109,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             }
             finally
             {
-                _isRunning = false;
+                _semaphore.Release();
             }
         }
 

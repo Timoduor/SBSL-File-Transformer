@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
@@ -19,7 +20,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         private ILogger<EP75ConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
-        volatile bool _isRunning;
+        private static SemaphoreSlim _semaphore;
         Timer _timer;
 
         public EP75ConverterJob(ILogger<EP75ConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
@@ -33,21 +34,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         {
             _logger.LogInformation("Starting EP75 Converter Job");
 
-            _timer = new Timer(state => ConvertEP75File(), null, TimeSpan.FromSeconds(new Random().Next(10, 35)), TimeSpan.FromMinutes(10));
+            _semaphore = new SemaphoreSlim(1, 1);
+
+            _timer = new Timer(async state => await ConvertEP75File(), null, TimeSpan.FromSeconds(new Random().Next(10, 35)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private void ConvertEP75File()
+        private async Task ConvertEP75File()
         {
             try
             {
-                if (_isRunning)
-                {
-                    return;
-                }
-
-                _isRunning = true;
+                await _semaphore.WaitAsync();
 
                 _logger.LogInformation("Running EP75 converter job");
 
@@ -59,7 +57,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
+                    var configurations = await dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToListAsync();
 
                     Entity = dbContext.Configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity")?.Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
@@ -78,7 +76,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     {
                         if (file.ToLower().Contains("ep75"))
                         {
-                            var fileToProcess = dbContext.UploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
+                            var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                             {
@@ -97,7 +95,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                 dbContext.Update(fileToProcess);
 
-                                dbContext.SaveChanges();
+                                await dbContext.SaveChangesAsync();
                             }
                         }
                     }
@@ -110,7 +108,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             }
             finally
             {
-                _isRunning = false;
+                _semaphore.Release();
             }
         }
 

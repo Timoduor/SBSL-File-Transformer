@@ -19,7 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
     {
         ILogger<AuxilliaryProcessesJob> _logger;
         private readonly IServiceScopeFactory _serviceScopeFactory;
-        volatile bool _isRunning;
+        private static SemaphoreSlim _semaphore;
 
         List<Timer> _timers = new List<Timer>();
         public AuxilliaryProcessesJob(ILogger<AuxilliaryProcessesJob> logger, IServiceScopeFactory serviceScopeFactory)
@@ -30,6 +30,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
+            _semaphore = new SemaphoreSlim(1, 1);
+
             var timer = new Timer((state) => RestartService(), null, TimeSpan.Zero, TimeSpan.FromHours(2));
             _timers.Add(timer);
 
@@ -57,12 +59,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             try
             {
-                if (_isRunning)
-                {
-                    return;
-                }
-
-                _isRunning = true;
+                await _semaphore.WaitAsync();
 
                 _logger.LogInformation("Running file Archive Job");
 
@@ -79,7 +76,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                         var backUpAllFilesPeriod = (await dbContext.Configurations.FirstOrDefaultAsync(b => b.ConfigType == Models.Enums.ConfigurationType.Setting && b.Key == "BackUpAllFilesPeriod")).Value;
 
-                        var oldUploadedFiles = dbContext.UploadedFiles.Where(f => f.UploadedDate < DateTime.Now.AddDays(-5));
+                        var oldUploadedFiles = dbContext.UploadedFiles.Where(f => f.UploadedDate < DateTime.Now.AddDays(-7));
 
                         foreach (var file in oldUploadedFiles)
                         {
@@ -122,7 +119,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
             finally
             {
-                _isRunning = false;
+                _semaphore.Release();
             }
         }
 
