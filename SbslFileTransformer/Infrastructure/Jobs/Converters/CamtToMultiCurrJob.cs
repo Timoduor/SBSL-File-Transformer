@@ -30,7 +30,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting PDF To MT File Converter Job");
+            _logger.LogInformation("Starting CAMT File Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 

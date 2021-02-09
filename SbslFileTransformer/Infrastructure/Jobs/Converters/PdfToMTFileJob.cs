@@ -70,12 +70,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.pdf", options));
 
-                    //var cdmConverter = new CdmFileConverter();
+                    var pdfConverter = new PdfToMTFilesConverter();
 
                     foreach (var file in files)
                     {
                         //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
-                        if (file.ToLower().Contains("mtPdfs"))
+                        //////////////////////////////////////////////if (file.ToLower().Contains("mtPdfs"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -83,7 +83,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             {
                                 try
                                 {
-                                    //cdmConverter.ConvertFile(file);
+                                    var pdfPassword = await dbContext.Configurations.FirstOrDefaultAsync(c => c.ConfigType == ConfigurationType.Setting  && c.Key == "PdfPassword");
+                                    pdfConverter.ConvertFile(file, pdfPassword?.Value);
                                 }
                                 catch (Exception ex)
                                 {

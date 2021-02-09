@@ -131,7 +131,7 @@ namespace SbslFileTransformer.Converters
 
                     var recipients = config.Value.Split(new char[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-                    await emailSender.SendMessage(recipients, "Missing Closing Balances & Sequence Numbers", message.ToString());
+                    EmailHelpers.SendEmails(dbContext,  "Missing Closing Balances & Sequence Numbers", message.ToString(), null, emailSender);
                 }
             }
             catch (Exception ex)

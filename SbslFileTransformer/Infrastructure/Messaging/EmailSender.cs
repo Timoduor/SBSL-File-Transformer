@@ -55,7 +55,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
 
         public async Task SendMessage(IEnumerable<string> recipients, string subject, string content, bool isHtml = false, IEnumerable<string> filePaths = null)
         {
-            if (recipients == null || recipients.Count() == 0)
+            if (recipients == null || !recipients.Any())
             {
                 recipients = _emailConfig.Recipients.Split(',', '\n', '\r');
             }

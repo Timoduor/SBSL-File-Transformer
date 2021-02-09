@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SbslFileTransformer.Infrastructure.Helpers;
 
 
 namespace SbslFileTransformer.Infrastructure.Jobs
@@ -40,6 +41,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
             var timerBackup = new Timer(async (state) => await BackupDb(), null, TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromHours(0.5));
             _timers.Add(timerBackup);
+
+            var timerClearTemp = new Timer(async (state) => await ClearTempFolder(), null, TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromHours(0.5));
+            _timers.Add(timerClearTemp);
 
             return Task.CompletedTask;
         }
@@ -103,7 +107,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                         {
                             var props = new FileInfo(file);
 
-                            if(props.LastWriteTime < DateTime.Now.AddDays(-period) || props.CreationTime < DateTime.Now.AddDays(-period))
+                            if (props.LastWriteTime < DateTime.Now.AddDays(-period) || props.CreationTime < DateTime.Now.AddDays(-period))
                             {
                                 var destination = Path.Combine(backUpPath, Path.GetFileName(file));
 
@@ -113,13 +117,43 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
             }
             finally
             {
                 _semaphore.Release();
+            }
+        }
+
+        private async Task ClearTempFolder()
+        {
+            try
+            {
+                var tempFolder = await FileHelpers.GetTempPath(_serviceScopeFactory);
+
+                //DELETE OLD BACKUPS 2 days or older
+                var searchOptions = new EnumerationOptions
+                {
+                    RecurseSubdirectories = true,
+                    MatchCasing = MatchCasing.CaseInsensitive
+                };
+
+                foreach (var file in Directory.GetFiles(tempFolder, "*.*", searchOptions))
+                {
+                    var props = new FileInfo(file);
+
+                    if (props.LastWriteTime < DateTime.Now.AddDays(-1) ||
+                        props.CreationTime < DateTime.Now.AddDays(-1))
+                    {
+                        File.Delete(file);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
             }
         }
 
@@ -137,7 +171,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 #endif
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
             }

@@ -7,6 +7,8 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace SbslFileTransformer.Infrastructure.Helpers
 {
@@ -123,6 +125,27 @@ namespace SbslFileTransformer.Infrastructure.Helpers
             }
         }
 
+        public static async Task<string> GetTempPath(IServiceScopeFactory serviceScopeFactory)
+        {
+            string backUpFolder = @"C:\SBSLETL_DbBackup";
+
+            using (var scope = serviceScopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                backUpFolder = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
+                                   b.ConfigType == Models.Enums.ConfigurationType.Sftp && b.Key == "BackUpFolder"))
+                               ?.Value ??
+                               backUpFolder;
+            }
+
+            string tempFolderDirectory = Path.Combine(backUpFolder, "SBSLETL_Temp");
+
+            if (!Directory.Exists(tempFolderDirectory))
+                Directory.CreateDirectory(tempFolderDirectory);
+
+            return tempFolderDirectory;
+        }
     }
 
 

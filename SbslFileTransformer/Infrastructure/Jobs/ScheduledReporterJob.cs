@@ -20,6 +20,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Infrastructure.Jobs
 {
@@ -56,7 +57,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running reporting job");
+                _logger.LogInformation("Running reporting job...");
 
                 var config = GetConfiguration();
 
@@ -93,13 +94,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                             _logger.LogInformation($"Processing report {report.Name} with ID {report.ReportId}");
 
-                            var reportPath = Path.Combine(Path.GetTempPath(),
+                            var reportPath = Path.Combine(await FileHelpers.GetTempPath(_serviceScopeFactory),
                                 $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{report.Name}." +
                                 (config.ExportType == "Excel" ? "xlsx" : config.ExportType));
 
                             if (await DownloadReport(report.ReportId, config, reportPath, token))
                             {
-                                var results = ProcessReportFile(reportPath);
+                                var results = await ProcessReportFile(reportPath);
 
                                 _logger.LogInformation($"Sending emails for report {report.Name} with ID {report.ReportId}");
 
@@ -111,19 +112,25 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                         var emails = GetEmails(key.Key);
 
                                         //ONLY SEND EMAILS IF FILE HAS 1 OR MORE RECORDS
+                                        foreach (var email in emails)
+                                        {
+                                            await _emailSender.SendMessage(new []{ email }, config.EmailHeader, config.EmailBody,
+                                                filePaths: new string[] {results.Item1, key.Value});
 
-                                        await _emailSender.SendMessage(emails, config.EmailHeader, config.EmailBody,
-                                            filePaths: new string[] { results.Item1, key.Value });
-
-                                        await Task.Delay(60000);
+                                            await Task.Delay(10000);
+                                        }
                                     }
                                 }
                                 else
                                 {
-                                    await _emailSender.SendMessage(GetEmails(0), config.EmailHeader, config.EmailBody,
-                                        filePaths: new string[] { results.Item1 });
+                                    foreach (var email in GetEmails(0))
+                                    {
+                                        await _emailSender.SendMessage(new[] {email}, config.EmailHeader,
+                                            config.EmailBody,
+                                            filePaths: new string[] {results.Item1});
 
-                                    await Task.Delay(60000);
+                                        await Task.Delay(10000);
+                                    }
                                 }
 
                                 await SaveToDb(report, dbContext, config);
@@ -271,7 +278,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         /// </summary>
         /// <param name="savedFile"></param>
         /// <returns>List of key: email group name and value: list of files to send to them</returns>
-        private (string, Dictionary<int, string>) ProcessReportFile(string inputFile)
+        private async Task<(string, Dictionary<int, string>)> ProcessReportFile(string inputFile)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -339,28 +346,28 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             var olderThan7days = openItems.Where(i => i.DaysOverdue >= 7 && i.DaysOverdue < 30);
             var olderThan30days = openItems.Where(i => i.DaysOverdue >= 30);
 
-            if (olderThan3days.Count() > 0)
+            if (olderThan3days.Any())
             {
                 daysRecordsPairs.Add(3, olderThan3days.ToList());
             }
-            if (olderThan5days.Count() > 0)
+            if (olderThan5days.Any())
             {
                 daysRecordsPairs.Add(5, olderThan5days.ToList());
             }
-            if (olderThan7days.Count() > 0)
+            if (olderThan7days.Any())
             {
                 daysRecordsPairs.Add(7, olderThan7days.ToList());
             }
-            if (olderThan30days.Count() > 0)
+            if (olderThan30days.Any())
             {
                 daysRecordsPairs.Add(30, olderThan30days.ToList());
             }
 
-            var agingExcel = CreateModifiedAgingExcel(inputFile);
+            var agingExcel = await CreateModifiedAgingExcel(inputFile);
 
-            if (daysRecordsPairs.Count() > 0)
+            if (daysRecordsPairs.Any())
             {
-                return (agingExcel, CreateCsvFile(daysRecordsPairs));
+                return (agingExcel, await CreateCsvFile(daysRecordsPairs));
             }
             else
             {
@@ -368,11 +375,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
         }
 
-        private string CreateModifiedAgingExcel(string inputFile)
+        private async Task<string> CreateModifiedAgingExcel(string inputFile)
         {
             var inputFileName = Path.GetFileName(inputFile);
 
-            var outputFilePath = Path.Combine(Path.GetTempPath(), "Aged_" + inputFileName);
+            var outputFilePath = Path.Combine(await FileHelpers.GetTempPath(_serviceScopeFactory), "Aged_" + inputFileName);
 
             using (var package = new ExcelPackage(new FileInfo(inputFile)))
             {
@@ -443,7 +450,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 }
 
                 //save new excel
-                package.SaveAs(new FileInfo(outputFilePath));
+                await package.SaveAsAsync(new FileInfo(outputFilePath));
             }
 
             return outputFilePath;
@@ -455,20 +462,20 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             return new DateTime(1899, 12, 31).AddDays(SerialDate);
         }
 
-        private Dictionary<int, string> CreateCsvFile(Dictionary<int, List<OpenItem>> items)
+        private async Task<Dictionary<int, string>> CreateCsvFile(Dictionary<int, List<OpenItem>> items)
         {
             var dict = new Dictionary<int, string>();
 
             foreach (var group in items)
             {
 
-                var tempFilePath = Path.Combine(Path.GetTempPath(), DateTime.Now.ToString("yyyy_MM_dd_") + group.Key + ".csv");
+                var tempFilePath = Path.Combine(await FileHelpers.GetTempPath(_serviceScopeFactory), DateTime.Now.ToString("yyyy_MM_dd_") + group.Key + ".csv");
 
                 using (var writer = new StreamWriter(tempFilePath))
                 {
                     using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                     {
-                        csv.WriteRecords(group.Value);
+                        await csv.WriteRecordsAsync(@group.Value);
                     }
                 }
 
