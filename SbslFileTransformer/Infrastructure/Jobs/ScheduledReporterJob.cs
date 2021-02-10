@@ -77,7 +77,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 var tokens = await GetLoginTokens(config);
 
-                _logger.LogInformation($"Successfully fetched report tokens for {tokens.Count}");
+                _logger.LogInformation($"Successfully fetched report tokens for {tokens.Count} users");
 
                 foreach (var token in tokens)
                 {
