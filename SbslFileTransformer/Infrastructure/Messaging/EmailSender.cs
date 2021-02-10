@@ -7,11 +7,18 @@ using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
+using System.Net.Mime;
+using System.Text;
 using System.Threading.Tasks;
+using MimeKit.IO;
+using MimeKit.IO.Filters;
+using ContentDisposition = MimeKit.ContentDisposition;
+using ContentType = MimeKit.ContentType;
 
 namespace SbslFileTransformer.Infrastructure.Messaging
 {
@@ -92,13 +99,73 @@ namespace SbslFileTransformer.Infrastructure.Messaging
             {
                 foreach (var file in message.FilePaths)
                 {
-                    builder.Attachments.Add(file);
+                    string mediaType = GetMediaType(file);
+
+                    var disposition = new ContentDisposition(DispositionTypeNames.Attachment)
+                    {
+                        FileName = Path.GetFileName(file),
+                        CreationDate = DateTime.Now,
+                        IsAttachment = true,
+                        ModificationDate = DateTime.Now,
+                        Size = new FileInfo(file).Length,
+                        ReadDate = DateTime.Now
+                    };
+
+                    var contentType = new ContentType(mediaType.Split('/')[0], mediaType.Split('/')[1])
+                    {
+                        Name = Path.GetFileName(file),
+                        CharsetEncoding = Encoding.Default,
+                    };
+
+                    MimePart attachment = !contentType.IsMimeType("text", "*") ? new MimePart(contentType) : (MimePart)new TextPart(contentType.MediaSubtype);
+                    LoadContent(attachment, File.OpenRead(file));
+                    var mimeEntity = (MimeEntity)attachment;
+
+                    mimeEntity.ContentDisposition = disposition;
+                    mimeEntity.ContentDisposition.FileName = Path.GetFileName(file);
+                    mimeEntity.ContentType.Name = Path.GetFileName(file);
+
+                    builder.Attachments.Add(mimeEntity);
                 }
             }
 
             emailMessage.Body = builder.ToMessageBody();
 
             return emailMessage;
+        }
+
+        private void LoadContent(MimePart attachment, FileStream stream)
+        {
+            MemoryBlockStream memoryBlockStream = new MemoryBlockStream();
+            if (attachment.ContentType.IsMimeType("text", "*"))
+            {
+                byte[] numArray = ArrayPool<byte>.Shared.Rent(4096);
+                BestEncodingFilter bestEncodingFilter = new BestEncodingFilter();
+                try
+                {
+                    int num;
+                    int outputIndex;
+                    int outputLength;
+                    while ((num = stream.Read(numArray, 0, 4096)) > 0)
+                    {
+                        bestEncodingFilter.Filter(numArray, 0, num, out outputIndex, out outputLength);
+                        memoryBlockStream.Write(numArray, 0, num);
+                    }
+                    bestEncodingFilter.Flush(numArray, 0, 0, out outputIndex, out outputLength);
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(numArray);
+                }
+                attachment.ContentTransferEncoding = bestEncodingFilter.GetBestEncoding(EncodingConstraint.SevenBit);
+            }
+            else
+            {
+                attachment.ContentTransferEncoding = ContentEncoding.Base64;
+                stream.CopyTo((Stream)memoryBlockStream, 4096);
+            }
+            memoryBlockStream.Position = 0L;
+            attachment.Content = (IMimeContent)new MimeContent((Stream)memoryBlockStream);
         }
 
         private async Task Send(MimeMessage mailMessage)
@@ -130,7 +197,25 @@ namespace SbslFileTransformer.Infrastructure.Messaging
                         var memoryStream = new MemoryStream();
                         await attachment.WriteToAsync(memoryStream);
 
-                        message.Attachments.Add(new Attachment(memoryStream, attachment.ContentDisposition.FileName));
+                        var mediaType = GetMediaType(attachment.ContentDisposition.FileName);
+
+                        message.Attachments.Add(new Attachment(memoryStream, attachment.ContentDisposition.FileName, mediaType)
+                        {
+                            ContentType = new System.Net.Mime.ContentType(mediaType),
+                            NameEncoding = Encoding.Default,
+                            Name = attachment.ContentDisposition.FileName,
+                            TransferEncoding = TransferEncoding.Base64,
+                            ContentDisposition =
+                            {
+                                FileName = attachment.ContentDisposition.FileName,
+                                Inline = false,
+                                CreationDate = DateTime.Now,
+                                DispositionType = DispositionTypeNames.Attachment,
+                                ModificationDate = DateTime.Now,
+                                ReadDate = DateTime.Now,
+                                Size =  attachment.ContentDisposition.Size ?? -1,
+                            }
+                        });
                     }
 
                     client.Send(message);
@@ -153,6 +238,31 @@ namespace SbslFileTransformer.Infrastructure.Messaging
                     client.Disconnect(true);
                 }
             }
+        }
+
+        private static string GetMediaType(string file)
+        {
+            var extension = Path.GetExtension(file)?.ToLower();
+
+            string mediaType;
+
+            switch (extension)
+            {
+                case ".txt":
+                    mediaType = "text/plain";
+                    break;
+                case ".csv":
+                    mediaType = "text/csv";
+                    break;
+                case ".xlsx":
+                    mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                    break;
+                default:
+                    mediaType = "text/plain";
+                    break;
+            }
+
+            return mediaType;
         }
     }
 

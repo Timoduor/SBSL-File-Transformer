@@ -60,7 +60,7 @@ namespace SbslFileTransformer.Converters
                     }
                 }
 
-                if (Path.GetExtension(filePath) != ".csv")
+                if (Path.GetExtension(filePath).ToLower() != ".csv")
                     return false;
 
                 StringBuilder output = new StringBuilder();
@@ -90,7 +90,7 @@ namespace SbslFileTransformer.Converters
                     reader.Close();
                 }
 
-                var outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_{fileDate:MMddyyyy}.txt");
+                var outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_{Entity}.txt");
 
                 if (!File.Exists(outputPath))
                     await File.WriteAllTextAsync(outputPath, output.ToString());
