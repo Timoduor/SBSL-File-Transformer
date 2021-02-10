@@ -7,7 +7,6 @@ using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,8 +14,6 @@ using System.Net.Mail;
 using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
-using MimeKit.IO;
-using MimeKit.IO.Filters;
 using ContentDisposition = MimeKit.ContentDisposition;
 using ContentType = MimeKit.ContentType;
 
@@ -74,7 +71,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
             await Send(mimeMessage);
         }
 
-        private MimeMessage CreateEmailMessage(Message message, bool isHtml = false)
+        private (MimeMessage, Message) CreateEmailMessage(Message message, bool isHtml = false)
         {
             var emailMessage = new MimeMessage();
 
@@ -101,74 +98,18 @@ namespace SbslFileTransformer.Infrastructure.Messaging
                 {
                     string mediaType = GetMediaType(file);
 
-                    var disposition = new ContentDisposition(DispositionTypeNames.Attachment)
-                    {
-                        FileName = Path.GetFileName(file),
-                        CreationDate = DateTime.Now,
-                        IsAttachment = true,
-                        ModificationDate = DateTime.Now,
-                        Size = new FileInfo(file).Length,
-                        ReadDate = DateTime.Now
-                    };
+                    var contentType = new ContentType(mediaType.Split('/')[0], mediaType.Split('/')[1]);
 
-                    var contentType = new ContentType(mediaType.Split('/')[0], mediaType.Split('/')[1])
-                    {
-                        Name = Path.GetFileName(file),
-                        CharsetEncoding = Encoding.Default,
-                    };
-
-                    MimePart attachment = !contentType.IsMimeType("text", "*") ? new MimePart(contentType) : (MimePart)new TextPart(contentType.MediaSubtype);
-                    LoadContent(attachment, File.OpenRead(file));
-                    var mimeEntity = (MimeEntity)attachment;
-
-                    mimeEntity.ContentDisposition = disposition;
-                    mimeEntity.ContentDisposition.FileName = Path.GetFileName(file);
-                    mimeEntity.ContentType.Name = Path.GetFileName(file);
-
-                    builder.Attachments.Add(mimeEntity);
+                    builder.Attachments.Add(Path.GetFileName(file), File.OpenRead(file), contentType);
                 }
             }
 
             emailMessage.Body = builder.ToMessageBody();
 
-            return emailMessage;
+            return (emailMessage, message);
         }
 
-        private void LoadContent(MimePart attachment, FileStream stream)
-        {
-            MemoryBlockStream memoryBlockStream = new MemoryBlockStream();
-            if (attachment.ContentType.IsMimeType("text", "*"))
-            {
-                byte[] numArray = ArrayPool<byte>.Shared.Rent(4096);
-                BestEncodingFilter bestEncodingFilter = new BestEncodingFilter();
-                try
-                {
-                    int num;
-                    int outputIndex;
-                    int outputLength;
-                    while ((num = stream.Read(numArray, 0, 4096)) > 0)
-                    {
-                        bestEncodingFilter.Filter(numArray, 0, num, out outputIndex, out outputLength);
-                        memoryBlockStream.Write(numArray, 0, num);
-                    }
-                    bestEncodingFilter.Flush(numArray, 0, 0, out outputIndex, out outputLength);
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(numArray);
-                }
-                attachment.ContentTransferEncoding = bestEncodingFilter.GetBestEncoding(EncodingConstraint.SevenBit);
-            }
-            else
-            {
-                attachment.ContentTransferEncoding = ContentEncoding.Base64;
-                stream.CopyTo((Stream)memoryBlockStream, 4096);
-            }
-            memoryBlockStream.Position = 0L;
-            attachment.Content = (IMimeContent)new MimeContent((Stream)memoryBlockStream);
-        }
-
-        private async Task Send(MimeMessage mailMessage)
+        private async Task Send((MimeMessage, Message) mailMessage)
         {
             if (_emailConfig.UseDefaultCredentials)
             {
@@ -177,45 +118,27 @@ namespace SbslFileTransformer.Infrastructure.Messaging
                     client.UseDefaultCredentials = _emailConfig.UseDefaultCredentials;
                     client.EnableSsl = _emailConfig.UseSsl;
 
-
-                    var address = mailMessage.From.Mailboxes.First().Address;
-                    var name = mailMessage.From.Mailboxes.First().Name;
-
-                    var message = new MailMessage()
+                    var message = new MailMessage
                     {
-                        From = new MailAddress(address, name),
-                        Body = mailMessage.TextBody,
+                        From = new MailAddress(_emailConfig.EmailAddress, _emailConfig.Name),
+                        Body = mailMessage.Item2.Content,
                     };
 
-                    foreach (var email in mailMessage.To.Mailboxes)
+                    foreach (var email in mailMessage.Item2.To)
                     {
                         message.To.Add(email.Address);
                     }
 
-                    foreach (var attachment in mailMessage.Attachments)
+                    foreach (var file in mailMessage.Item2.FilePaths)
                     {
-                        var memoryStream = new MemoryStream();
-                        await attachment.WriteToAsync(memoryStream);
+                        Attachment data = new Attachment(file, MediaTypeNames.Application.Octet);
 
-                        var mediaType = GetMediaType(attachment.ContentDisposition.FileName);
+                        var disposition = data.ContentDisposition;
+                        disposition.CreationDate = File.GetCreationTime(file);
+                        disposition.ModificationDate = File.GetLastWriteTime(file);
+                        disposition.ReadDate = File.GetLastAccessTime(file);
 
-                        message.Attachments.Add(new Attachment(memoryStream, attachment.ContentDisposition.FileName, mediaType)
-                        {
-                            ContentType = new System.Net.Mime.ContentType(mediaType),
-                            NameEncoding = Encoding.Default,
-                            Name = attachment.ContentDisposition.FileName,
-                            TransferEncoding = TransferEncoding.Base64,
-                            ContentDisposition =
-                            {
-                                FileName = attachment.ContentDisposition.FileName,
-                                Inline = false,
-                                CreationDate = DateTime.Now,
-                                DispositionType = DispositionTypeNames.Attachment,
-                                ModificationDate = DateTime.Now,
-                                ReadDate = DateTime.Now,
-                                Size =  attachment.ContentDisposition.Size ?? -1,
-                            }
-                        });
+                        message.Attachments.Add(data);
                     }
 
                     client.Send(message);
@@ -233,7 +156,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
 
                     await client.AuthenticateAsync(_emailConfig.UserName, _emailConfig.Password);
 
-                    await client.SendAsync(mailMessage);
+                    await client.SendAsync(mailMessage.Item1);
 
                     client.Disconnect(true);
                 }

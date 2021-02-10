@@ -144,8 +144,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 {
                     var props = new FileInfo(file);
 
-                    if (props.LastWriteTime < DateTime.Now.AddDays(-1) ||
-                        props.CreationTime < DateTime.Now.AddDays(-1))
+                    if (props.LastWriteTime < DateTime.Now.AddDays(-7) ||
+                        props.CreationTime < DateTime.Now.AddDays(-7))
                     {
                         File.Delete(file);
                     }

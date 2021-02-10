@@ -73,13 +73,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 //        await _emailSender.SendMessage(emails, $"Overdue recons by {key.Key} days or more", $"This is an auto-generated report for reconciliations overdue by {key.Key} days or more", filePaths: new string[] { testResults.Item1, key.Value });
                 //    }
                 //}
+                _logger.LogInformation($"Fetching tokens for {config.UserNamesAndPasswords.Count} users");
 
                 var tokens = await GetLoginTokens(config);
+
+                _logger.LogInformation($"Successfully fetched report tokens for {tokens.Count}");
 
                 foreach (var token in tokens)
                 {
 
-                    var allReports = await GetRecentReports(config, token);
+                    var allReports = (await GetRecentReports(config, token)).ToList();
+
+                    _logger.LogInformation($"Fetched {allReports.Count} reports for user {token}");
 
                     using (var scope = _serviceScopeFactory.CreateScope())
                     {
@@ -114,7 +119,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                         //ONLY SEND EMAILS IF FILE HAS 1 OR MORE RECORDS
                                         foreach (var email in emails)
                                         {
-                                            await _emailSender.SendMessage(new []{ email }, config.EmailHeader, config.EmailBody,
+                                            await _emailSender.SendMessage(new []{ email }, config.EmailHeader, config.EmailBody
+                                                                        + $@"{Environment.NewLine} Previous Recon Reports can be found here 
+                                                                {Environment.NewLine}{Environment.NewLine} \\PVRECON04\Archives\SBSLETL_Temp",
                                                 filePaths: new string[] {results.Item1, key.Value});
 
                                             await Task.Delay(10000);
@@ -126,7 +133,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                     foreach (var email in GetEmails(0))
                                     {
                                         await _emailSender.SendMessage(new[] {email}, config.EmailHeader,
-                                            config.EmailBody,
+                                            config.EmailBody + $@"{Environment.NewLine} Previous Recon Reports can be found here 
+                                                                {Environment.NewLine}{Environment.NewLine} \\PVRECON04\Archives\SBSLETL_Temp",
                                             filePaths: new string[] {results.Item1});
 
                                         await Task.Delay(10000);
