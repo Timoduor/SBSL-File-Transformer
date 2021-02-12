@@ -129,16 +129,19 @@ namespace SbslFileTransformer.Infrastructure.Messaging
                         message.To.Add(email.Address);
                     }
 
-                    foreach (var file in mailMessage.Item2.FilePaths)
+                    if (mailMessage.Item2.FilePaths != null)
                     {
-                        Attachment data = new Attachment(file, MediaTypeNames.Application.Octet);
+                        foreach (var file in mailMessage.Item2.FilePaths)
+                        {
+                            Attachment data = new Attachment(file, MediaTypeNames.Application.Octet);
 
-                        var disposition = data.ContentDisposition;
-                        disposition.CreationDate = File.GetCreationTime(file);
-                        disposition.ModificationDate = File.GetLastWriteTime(file);
-                        disposition.ReadDate = File.GetLastAccessTime(file);
+                            var disposition = data.ContentDisposition;
+                            disposition.CreationDate = File.GetCreationTime(file);
+                            disposition.ModificationDate = File.GetLastWriteTime(file);
+                            disposition.ReadDate = File.GetLastAccessTime(file);
 
-                        message.Attachments.Add(data);
+                            message.Attachments.Add(data);
+                        }
                     }
 
                     client.Send(message);

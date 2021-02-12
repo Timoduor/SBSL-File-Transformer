@@ -90,7 +90,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 {
                                     _logger.LogError(ex, ex.Message);
 
-                                    EmailHelpers.SendEmails(dbContext, "Problem Converting CDM files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting CDM files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
 
                                 fileToProcess.Converted = true;

@@ -1,12 +1,12 @@
-﻿using CsvHelper;
-using ExcelDataReader;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
 
-namespace SbslFileTransformer.Converters
+namespace SbslFileTransformer.Converters.CDM
 {
     public class CdmFileConverter
     {
@@ -74,7 +74,7 @@ namespace SbslFileTransformer.Converters
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileName}.csv");
+                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileName}_IMKE.csv");
             }
 
             WriteToFile(list, outputFile);

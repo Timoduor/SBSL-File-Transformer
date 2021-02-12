@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using SbslFileTransformer.Converters.CDM;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
@@ -70,7 +71,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.xls", options));
 
-                    var cdmConverter = new CdmFileConverter();
+
 
                     foreach (var file in files)
                     {
@@ -83,13 +84,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             {
                                 try
                                 {
-                                    cdmConverter.ConvertFile(file);
+                                    if (Entity == "IMRW")
+                                    {
+                                        var cdmConverter = new CdmConverterRwanda();
+                                        cdmConverter.ConvertFile(file);
+                                    }
+                                    if (Entity == "IMKE")
+                                    {
+                                        var cdmConverter = new CdmFileConverter();
+                                        cdmConverter.ConvertFile(file);
+                                    }
                                 }
                                 catch(Exception ex)
                                 {
                                     _logger.LogError(ex, ex.Message);
 
-                                    EmailHelpers.SendEmails(dbContext, "Problem Converting CDM files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting CDM files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
 
                                 fileToProcess.Converted = true;

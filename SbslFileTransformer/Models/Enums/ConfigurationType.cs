@@ -7,6 +7,7 @@
         Email,
         Report,
         Setting,
-        ReportUser
+        ReportUser,
+        ConversionFolder
     }
 }
