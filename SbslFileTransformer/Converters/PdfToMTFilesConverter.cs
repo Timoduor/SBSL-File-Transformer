@@ -1,9 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
 using iText.Kernel.Pdf.Canvas.Parser.Listener;
+using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Converters
 {
@@ -14,8 +19,10 @@ namespace SbslFileTransformer.Converters
             var text = GetTextFromPdf(inputFile, password);
 
             string bankAcc = string.Empty;
+            string currency = string.Empty;
             var transactions = new List<ExtractedTableCRDB>();
             bool isNewTableLine = true;
+            double closingBal = 0;
 
             ExtractedTableCRDB extractedTableLine = null;
 
@@ -32,6 +39,18 @@ namespace SbslFileTransformer.Converters
                 if (line.ToLower().Contains("account:"))
                 {
                     bankAcc = line.Split(":")[1].Trim();
+                    continue;
+                }
+
+                if (line.ToLower().Contains("available balance"))
+                {
+                    currency = line.Split(' ')[3].Trim();
+                    continue;
+                }
+
+                if (line.ToLower().Contains("cleared balance"))
+                {
+                    closingBal = Convert.ToDouble(line.Split(' ')[8]);
                 }
 
                 if (areTableValues && Regex.IsMatch(line.Trim(), @"^\d{2}\.\d{2}\.\d{4}$") && isNewTableLine)
@@ -89,20 +108,64 @@ namespace SbslFileTransformer.Converters
                     extractedTableLine.BookBalance = numbers[2];
 
                     isNewTableLine = true;
-                    continue;
                 }
             }
 
             StringBuilder lines = new StringBuilder();
 
+            var balDate = DateTime.ParseExact(transactions.First().ValueDate, "dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+
             lines.AppendLine(":20:" + "1");
-            lines.AppendLine(":25:" + "1/1");
-            lines.AppendLine(":28C:" + bankAcc);
+            lines.AppendLine(":25:" + bankAcc);
+            lines.AppendLine(":28C:" + "1/1");
+            lines.AppendLine(":60M:" + $@"C{balDate:yyMMdd}{currency}0,00");
 
             foreach (var record in transactions)
             {
+                var valDate = DateTime.ParseExact(record.ValueDate, "dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                var valDateStr = valDate.ToString("yyMMdd");
+                var valDateStr2 = valDate.ToString("MMdd");
 
+                string dOrC = "C";
+
+                double amountC = Convert.ToDouble(record.Credit);
+                double amountD = Convert.ToDouble(record.Debit);
+
+                bool useC = true;
+                if (amountC > 0)
+                {
+                    dOrC = "C";
+                }
+                else if(amountD > 0)
+                {
+                    useC = false;
+                    dOrC = "D";
+                }
+
+                var narrative = $"{record.Ref?.Trim()}";
+                var c61 =
+                    $"{valDateStr}{valDateStr2}{dOrC}R{(useC ? amountC.ToString("N2").Replace(",", "").Replace(".", ",") : amountD.ToString("N2").Replace(",", "").Replace(".", ","))}S205{narrative}";
+
+                lines.AppendLine($":61:{c61}{record.Details?.Trim()}");
             }
+
+            lines.AppendLine(":62F:" + $@"C{balDate:yyMMdd}{currency}{closingBal.ToString("N2").Replace(",", "").Replace(".", ",")}");
+
+            var fileName = Path.GetFileNameWithoutExtension(inputFile);
+
+            if (string.IsNullOrEmpty(outputFile))
+            {
+                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Converted");
+                Directory.CreateDirectory(outputFolder);
+
+                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileName}.txt");
+            }
+            else
+            {
+                outputFile = Path.Combine(outputFile, $"{DateTime.Now:yyyy_MM_dd}_{fileName}.txt");
+            }
+
+            File.WriteAllText(outputFile,lines.ToString());
         }
 
 

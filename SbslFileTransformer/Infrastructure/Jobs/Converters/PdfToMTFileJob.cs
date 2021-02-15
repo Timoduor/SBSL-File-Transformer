@@ -63,6 +63,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
+                    bool isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value);
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
@@ -75,7 +76,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     foreach (var file in files)
                     {
                         //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
-                        //////////////////////////////////////////////if (file.ToLower().Contains("mtPdfs"))
+                        if (file.ToLower().Contains("crdb"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -83,8 +84,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             {
                                 try
                                 {
-                                    var pdfPassword = await dbContext.Configurations.FirstOrDefaultAsync(c => c.ConfigType == ConfigurationType.Setting  && c.Key == "PdfPassword");
-                                    pdfConverter.ConvertFile(file, pdfPassword?.Value);
+                                    string statementFolder = Path.Combine(sbFolder, @$"{Entity}\NOSTRO\STATEMENT");
+
+                                    if (isProd)
+                                        statementFolder = Path.Combine(prodFolder, @$"{Entity}\NOSTRO\STATEMENT");
+
+
+                                    var pdfPassword = await dbContext.Configurations.FirstOrDefaultAsync(c => c.ConfigType == ConfigurationType.Setting && c.Key == "PdfPassword");
+                                    pdfConverter.ConvertFile(file, pdfPassword?.Value, statementFolder);
                                 }
                                 catch (Exception ex)
                                 {
