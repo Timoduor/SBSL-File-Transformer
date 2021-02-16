@@ -172,7 +172,7 @@ namespace SbslFileTransformer.Converters
 
                         var filesInDirectory = Directory.GetFiles(loc, "*.*", options).ToList();
 
-                        var filesInDirectoryToProcess = filesInDirectory.Where(f => paths.Any(p => f.ToLower() == p.ToLower())).ToList();
+                        var filesInDirectoryToProcess = filesInDirectory.Where(f => paths.Any(p => f.ToLower() == p.ToLower())).OrderBy(f => new FileInfo(f).LastWriteTime).ToList();
 
                         var resultFile = await ProcessFilesBalance(filesInDirectoryToProcess, sandboxOrProdFolder, entity, serviceScopeFactory);
 
@@ -184,7 +184,7 @@ namespace SbslFileTransformer.Converters
                                 Path.GetFileName(resultFile), null, null, null,
                                 serviceScopeFactory, logger))
                             {
-                                foreach (var file in notProcessed)
+                                foreach (var file in notProcessed.OrderBy(f => f.UploadedDate))
                                 {
                                     if (filesInDirectoryToProcess.Contains(file.FilePath,
                                         StringComparer.OrdinalIgnoreCase))

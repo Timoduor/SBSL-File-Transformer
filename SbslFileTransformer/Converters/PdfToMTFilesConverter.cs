@@ -146,7 +146,7 @@ namespace SbslFileTransformer.Converters
                 var c61 =
                     $"{valDateStr}{valDateStr2}{dOrC}R{(useC ? amountC.ToString("N2").Replace(",", "").Replace(".", ",") : amountD.ToString("N2").Replace(",", "").Replace(".", ","))}S205{narrative}";
 
-                lines.AppendLine($":61:{c61}{record.Details?.Trim()}");
+                lines.AppendLine($":61:{c61}  {record.Details?.Trim()}");
             }
 
             lines.AppendLine(":62F:" + $@"C{balDate:yyMMdd}{currency}{closingBal.ToString("N2").Replace(",", "").Replace(".", ",")}");
@@ -158,11 +158,11 @@ namespace SbslFileTransformer.Converters
                 var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Converted");
                 Directory.CreateDirectory(outputFolder);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileName}.txt");
+                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyyMMdd}{new string(fileName.TakeLast(10).ToArray())}.txt");
             }
             else
             {
-                outputFile = Path.Combine(outputFile, $"{DateTime.Now:yyyy_MM_dd}_{fileName}.txt");
+                outputFile = Path.Combine(outputFile, $"{DateTime.Now:yyyyMMdd}{new string(fileName.TakeLast(10).ToArray())}.txt");
             }
 
             File.WriteAllText(outputFile,lines.ToString());
