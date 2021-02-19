@@ -1,29 +1,29 @@
-﻿using Microsoft.Extensions.Hosting;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class PdfToMTFileJob : IHostedService
+    public class MpesaB2CConverterJob : IHostedService
     {
-        private Timer _timer;
-        private ILogger<PdfToMTFileJob> _logger;
+        private ILogger<MpesaC2BConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
-        static SemaphoreSlim _semaphore;
+        private static SemaphoreSlim _semaphore;
+        Timer _timer;
 
-        public PdfToMTFileJob(ILogger<PdfToMTFileJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public MpesaB2CConverterJob(ILogger<MpesaC2BConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -32,22 +32,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting PDF To MT File Converter Job");
+            _logger.LogInformation("Starting MPesa B2C Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await ConvertPdfToMTFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await ConvertMpesaB2C2BFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task ConvertPdfToMTFile()
+        private async Task ConvertMpesaB2C2BFile()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running PDF To MT File converter job");
+                _logger.LogInformation("Running MPesa B2C converter job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -63,20 +63,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
-                    bool isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value);
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.pdf", options).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.a024", options).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.pdf", options));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.a024", options));
 
-                    var pdfConverter = new PdfToMTFilesConverter();
+                    var mpesaConverter = new MpesaC2BConverter();
 
                     foreach (var file in files)
                     {
-                        //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
-                        if (file.ToLower().Contains("crdb"))
+                        if (file.ToLower().Contains("bnr"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -84,20 +82,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             {
                                 try
                                 {
-                                    string statementFolder = Path.Combine(sbFolder, @$"{Entity}\NOSTRO\STATEMENT");
-
-                                    if (isProd)
-                                        statementFolder = Path.Combine(prodFolder, @$"{Entity}\NOSTRO\STATEMENT");
-
-
-                                    var pdfPassword = await dbContext.Configurations.FirstOrDefaultAsync(c => c.ConfigType == ConfigurationType.Setting && c.Key == "PdfPassword");
-                                    pdfConverter.ConvertFile(file, pdfPassword?.Value, statementFolder);
+                                    mpesaConverter.ConvertFile(file);
                                 }
                                 catch (Exception ex)
                                 {
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting CDM files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting MPesa B2C files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
 
                                 fileToProcess.Converted = true;
@@ -105,11 +96,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 dbContext.Update(fileToProcess);
 
                                 await dbContext.SaveChangesAsync();
-
                             }
                         }
                     }
                 }
+
             }
             catch (Exception ex)
             {
@@ -121,9 +112,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             }
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
+        public Task StopAsync(CancellationToken cancellationToken)
         {
-            await _timer.DisposeAsync();
+            _semaphore.Dispose();
+            _timer.Dispose();
+            return Task.CompletedTask;
         }
     }
 }

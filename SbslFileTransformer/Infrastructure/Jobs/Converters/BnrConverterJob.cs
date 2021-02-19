@@ -1,77 +1,81 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SbslFileTransformer.Converters;
+using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Helpers;
+using SbslFileTransformer.Infrastructure.Messaging;
+using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Messaging;
-using SbslFileTransformer.Infrastructure.Helpers;
-using SbslFileTransformer.Models.Enums;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class CamtToMultiCurrJob : IHostedService
+    public class BnrConverterJob : IHostedService
     {
-        private Timer _timer;
-        private readonly ILogger<CamtToMultiCurrJob> _logger;
-        readonly IServiceScopeFactory _serviceScopeFactory;
-        readonly EmailSender _emailSender;
+        private ILogger<BnrConverterJob> _logger;
+        IServiceScopeFactory _serviceScopeFactory;
+        EmailSender _emailSender;
         private static SemaphoreSlim _semaphore;
+        Timer _timer;
 
-        public CamtToMultiCurrJob(ILogger<CamtToMultiCurrJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public BnrConverterJob(ILogger<BnrConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
             _emailSender = emailSender;
         }
+
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting CAMT File Converter Job");
+            _logger.LogInformation("Starting BNR Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await ConvertCamtToMultiCurrFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await ConvertBnrFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task ConvertCamtToMultiCurrFile()
+        private async Task ConvertBnrFile()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running PDF To MT File converter job");
+                _logger.LogInformation("Running BNR converter job");
 
-                string prodFolder;
-                string sbFolder;
+                var prodFolder = string.Empty;
+                var sbFolder = string.Empty;
+                var Entity = string.Empty;
 
                 using (var scope = _serviceScopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = await dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToListAsync();
+                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
 
+                    Entity = dbContext.Configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.csv", options).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.xls", options).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.csv", options));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.xls", options));
 
-                    //var cdmConverter = new CdmFileConverter();
+                    var bnrConverter = new BnrConverter();
 
                     foreach (var file in files)
                     {
-                        //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
-                        if (file.ToLower().Contains("camt053") && file.ToLower().Contains("bals"))
+                        if (file.ToLower().Contains("bnr"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -79,13 +83,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             {
                                 try
                                 {
-                                    //cdmConverter.ConvertFile(file);
+                                    bnrConverter.ConvertFile(file);
                                 }
                                 catch (Exception ex)
                                 {
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting CDM files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting BNR files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
 
                                 fileToProcess.Converted = true;
@@ -93,11 +97,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 dbContext.Update(fileToProcess);
 
                                 await dbContext.SaveChangesAsync();
-
                             }
                         }
                     }
                 }
+
             }
             catch (Exception ex)
             {
@@ -109,9 +113,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             }
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
+        public Task StopAsync(CancellationToken cancellationToken)
         {
-            await _timer.DisposeAsync();
+            _semaphore.Dispose();
+            _timer.Dispose();
+            return Task.CompletedTask;
         }
     }
 }

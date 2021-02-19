@@ -12,7 +12,7 @@ using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Converters
 {
-    public class PdfToMTFilesConverter
+    public class CrdbPdfToMTFilesConverter
     {
         public void ConvertFile(string inputFile, string password = "", string outputFile = null)
         {
