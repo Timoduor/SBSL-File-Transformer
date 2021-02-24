@@ -122,7 +122,7 @@ namespace SbslFileTransformer.Converters
                         foreach (var seq in val.Sequences)
                             seqs += seq + ", ";
 
-                        message.AppendLine($"Account No. {val.Account} is missing Statement(s) {val.Statement} for Sequence Numbers: {seqs}");
+                        message.AppendLine($"Account No. {val.Account} is with Statement(s) {val.Statement} for is missing Sequence Numbers: {seqs}");
 
                         message.AppendLine();
                     }
@@ -131,7 +131,7 @@ namespace SbslFileTransformer.Converters
 
                     var recipients = config.Value.Split(new char[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-                    await EmailHelpers.SendEmails(dbContext,  "Missing Closing Balances & Sequence Numbers", message.ToString(), null, emailSender);
+                    await EmailHelpers.SendEmails(dbContext,  "Possible Missing Closing Balances & Sequence Numbers", message.ToString(), null, emailSender);
                 }
             }
             catch (Exception ex)

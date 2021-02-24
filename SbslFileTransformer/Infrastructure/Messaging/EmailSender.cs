@@ -122,6 +122,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
                     {
                         From = new MailAddress(_emailConfig.EmailAddress, _emailConfig.Name),
                         Body = mailMessage.Item2.Content,
+                        Subject = mailMessage.Item2.Subject
                     };
 
                     foreach (var email in mailMessage.Item2.To)
@@ -153,7 +154,6 @@ namespace SbslFileTransformer.Infrastructure.Messaging
             {
                 using (var client = new MailKit.Net.Smtp.SmtpClient())
                 {
-
                     await client.ConnectAsync(_emailConfig.SmtpServer, _emailConfig.Port, _emailConfig.UseSsl);
 
                     client.AuthenticationMechanisms.Remove("XOAUTH2");
