@@ -71,7 +71,8 @@ namespace SbslFileTransformer
             services.AddHostedService<EP75ConverterJob>();
             services.AddHostedService<CrdbPdfToMTFileJob>();
             services.AddHostedService<BnrConverterJob>();
-            services.AddHostedService<MpesaC2BConverterJob>();
+            services.AddHostedService<MpesaBalanceExtractorJob>();
+            services.AddHostedService<MpesaB2CnC2BConverterJob>();
 
             services.AddHostedService<CamtToMultiCurrJob>();
 

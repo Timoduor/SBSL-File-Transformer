@@ -15,15 +15,15 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class MpesaB2CConverterJob : IHostedService
+    public class MpesaBalanceExtractorJob : IHostedService
     {
-        private ILogger<MpesaC2BConverterJob> _logger;
+        private ILogger<MpesaBalanceExtractorJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
         private static SemaphoreSlim _semaphore;
         Timer _timer;
 
-        public MpesaB2CConverterJob(ILogger<MpesaC2BConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public MpesaBalanceExtractorJob(ILogger<MpesaBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -32,22 +32,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting MPesa B2C Converter Job");
+            _logger.LogInformation("Starting MPesa Balance Extractor Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await ConvertMpesaB2C2BFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await MpesaFileBalanceExtractor(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task ConvertMpesaB2C2BFile()
+        private async Task MpesaFileBalanceExtractor()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running MPesa B2C converter job");
+                _logger.LogInformation("Running MPesa Balance Extractor job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -66,15 +66,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.a024", options).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.xls", options).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.a024", options));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.xls", options));
 
-                    var mpesaConverter = new MpesaC2BConverter();
+                    var mpesaConverter = new MpesaBalanceExtractor();
 
                     foreach (var file in files)
                     {
-                        if (file.ToLower().Contains("bnr"))
+                        if (file.ToLower().Contains("mpesa") || file.ToLower().Contains("c2b"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -88,7 +88,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 {
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting MPesa B2C files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting MPesa C2B files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
 
                                 fileToProcess.Converted = true;

@@ -43,7 +43,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             _logger.LogInformation("Starting Scheduled reporter job...");
 
-            _semaphore = new SemaphoreSlim( 1, 1);
+            _semaphore = new SemaphoreSlim(1, 1);
 
             _timer = new Timer(async (state) => await ProcessNewReport(), null, TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(10));
 
@@ -103,47 +103,46 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                 $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{report.Name}." +
                                 (config.ExportType == "Excel" ? "xlsx" : config.ExportType));
 
-                            if (await DownloadReport(report.ReportId, config, reportPath, token))
+                            try
                             {
-                                var results = await ProcessReportFile(reportPath);
 
-                                _logger.LogInformation($"Sending emails for report {report.Name} with ID {report.ReportId}");
-
-                                if (results.Item2.Count > 0)
+                                if (await DownloadReport(report.ReportId, config, reportPath, token))
                                 {
-                                    foreach (var key in results.Item2)
+                                    var results = await ProcessReportFile(reportPath);
+
+                                    _logger.LogInformation($"Sending emails for report {report.Name} with ID {report.ReportId}");
+
+                                    if (results.Item2.Count > 0)
                                     {
-                                        //key is the overdue days used to select the email groups
-                                        var emails = GetEmails(key.Key);
-
-                                        //ONLY SEND EMAILS IF FILE HAS 1 OR MORE RECORDS
-                                        foreach (var email in emails)
+                                        foreach (var key in results.Item2)
                                         {
-                                            await _emailSender.SendMessage(new []{ email }, config.EmailHeader, config.EmailBody
-                                                                        + $@"{Environment.NewLine} Previous Recon Reports can be found here 
-                                                                {Environment.NewLine}{Environment.NewLine} \\PVRECON04\Archives\SBSLETL_Temp",
-                                                filePaths: new string[] {results.Item1, key.Value});
+                                            //key is the overdue days used to select the email groups
+                                            var emails = GetEmails(key.Key);
 
-                                            await Task.Delay(10000);
+                                            //ONLY SEND EMAILS IF FILE HAS 1 OR MORE RECORDS
+                                            await _emailSender.SendMessage(emails, config.EmailHeader, config.EmailBody + Environment.NewLine + $"{key.Key} Days overdue", false,
+                                                filePaths: new string[] { results.Item1, key.Value });
+
+                                            await Task.Delay(7000);
                                         }
                                     }
-                                }
-                                else
-                                {
-                                    foreach (var email in GetEmails(0))
+                                    else
                                     {
-                                        await _emailSender.SendMessage(new[] {email}, config.EmailHeader,
-                                            config.EmailBody + $@"{Environment.NewLine} Previous Recon Reports can be found here 
-                                                                {Environment.NewLine}{Environment.NewLine} \\PVRECON04\Archives\SBSLETL_Temp",
-                                            filePaths: new string[] {results.Item1});
+                                        await _emailSender.SendMessage(GetEmails(3), config.EmailHeader,
+                                            config.EmailBody,
+                                            filePaths: new string[] { results.Item1 });
 
-                                        await Task.Delay(10000);
+                                        await Task.Delay(7000);
                                     }
+
+                                    await SaveToDb(report, dbContext, config);
+
+                                    _logger.LogInformation($"Finished processing report {report.Name} with ID {report.ReportId}");
                                 }
-
-                                await SaveToDb(report, dbContext, config);
-
-                                _logger.LogInformation($"Finished processing report {report.Name} with ID {report.ReportId}");
+                            }
+                            catch(Exception ex)
+                            {
+                                _logger.LogError(ex, ex.Message);
                             }
                         }
                     }
@@ -182,6 +181,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 {
                     using (var client = new HttpClient())
                     {
+                        client.Timeout = TimeSpan.FromMinutes(10);
+
                         var content = new List<KeyValuePair<string, string>>
                         {
                             new KeyValuePair<string, string>("grant_type", "password"),
@@ -204,6 +205,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                             tokens.Add((string)data.SelectToken("access_token"));
                         }
+
                     }
                 }
             }
@@ -224,6 +226,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 using (var client = new HttpClient())
                 {
+                    client.Timeout = TimeSpan.FromMinutes(10);
+
                     client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
                     var response = await client.GetAsync(reportsUrl);
@@ -274,7 +278,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 foreach (var group in groupEmails)
                 {
-                    emails.AddRange(group.Split(',', '\r', '\n'));
+                    emails.AddRange(group.Split(new[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries));
                 }
 
                 return emails;
@@ -543,6 +547,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 using (var client = new HttpClient())
                 {
+                    client.Timeout = TimeSpan.FromMinutes(10);
+
                     client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
                     var response = await client.GetAsync(reportToDownload);

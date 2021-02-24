@@ -1,0 +1,141 @@
+﻿using CsvHelper;
+using ExcelDataReader;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Text;
+
+namespace SbslFileTransformer.Infrastructure.Jobs.Converters
+{
+    public class MpesaB2CnC2BConverter
+    {
+        public MpesaB2CnC2BConverter()
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        }
+
+        public void ConvertFile(string inputFile, string outputFile = null)
+        {
+            //Replace empties with zeros in columns 5 and 6
+
+            var list = new List<CdmCols>();
+
+            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            {
+                IExcelDataReader reader;
+
+                if (Path.GetExtension(inputFile).ToLower().Contains("csv"))
+                {
+                    reader = ExcelReaderFactory.CreateCsvReader(stream);
+                }
+                else
+                {
+                    reader = ExcelReaderFactory.CreateReader(stream);
+                }
+
+                using (reader)
+                {
+                    // Choose one of either 1 or 2:
+                    // 1. Use the reader methods
+
+                    while (reader.Read())
+                    {
+
+                        var value = reader.GetValue(0)?.ToString();
+
+                        if (string.IsNullOrEmpty(value))
+                        {
+                            continue;
+                        }
+                        var row = new CdmCols();
+
+                        row.Col0 = reader.GetValue(0)?.ToString().Replace("\n", "");
+
+                        row.Col1 = reader.GetValue(1)?.ToString().Replace("\n", "");
+
+                        row.Col2 = reader.GetValue(2)?.ToString().Replace("\n", "");
+
+                        row.Col3 = reader.GetValue(3)?.ToString().Replace("\n", "");
+
+                        row.Col4 = reader.GetValue(4)?.ToString().Replace("\n", "");
+
+                        row.Col5 = reader.GetValue(5)?.ToString().Replace("\n", "");
+
+                        row.Col6 = reader.GetValue(6)?.ToString().Replace("\n", "");
+
+                        row.Col7 = reader.GetValue(7)?.ToString().Replace("\n", "");
+
+                        row.Col8 = reader.GetValue(8)?.ToString().Replace("\n", "");
+
+                        row.Col9 = reader.GetValue(9)?.ToString().Replace("\n", "");
+
+                        row.Col10 = reader.GetValue(10)?.ToString().Replace("\n", "");
+
+                        row.Col11 = reader.GetValue(11)?.ToString().Replace("\n", "");
+
+                        row.Col12 = reader.GetValue(12)?.ToString().Replace("\n", "");
+
+                        if (string.IsNullOrEmpty(row.Col5))
+                        {
+                            row.Col5 = "0";
+                        }
+
+                        if (string.IsNullOrEmpty(row.Col6))
+                        {
+
+                            row.Col6 = "0";
+                        }
+
+                        list.Add(row);
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(outputFile))
+            {
+                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                Directory.CreateDirectory(outputFolder);
+
+                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+
+                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileName.Substring(fileName.Length - 14)}.csv");
+            }
+
+            WriteToFile(list, outputFile);
+        }
+
+        private void WriteToFile(List<CdmCols> rows, string outputFile)
+        {
+            using (var writer = new StreamWriter(outputFile))
+            {
+                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                {
+                    foreach (var row in rows)
+                    {
+                        csv.WriteRecord(row);
+                        csv.NextRecord();
+                    }
+                }
+            }
+        }
+    }
+
+    public class CdmCols
+    {
+        public string Col0 { get; set; }
+        public string Col1 { get; set; }
+        public string Col2 { get; set; }
+        public string Col3 { get; set; }
+        public string Col4 { get; set; }
+        public string Col5 { get; set; }
+        public string Col6 { get; set; }
+        public string Col7 { get; set; }
+        public string Col8 { get; set; }
+        public string Col9 { get; set; }
+        public string Col10 { get; set; }
+        public string Col11 { get; set; }
+        public string Col12 { get; set; }
+
+    }
+}

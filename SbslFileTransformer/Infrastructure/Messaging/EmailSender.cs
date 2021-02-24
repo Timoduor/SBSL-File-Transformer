@@ -41,7 +41,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
                     {
                         Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port")?.Value),
                         UserName = configurations.FirstOrDefault(c => c.Key == "UserName")?.Value,
-                        Password = encryptionManager.Decrypt(configurations.FirstOrDefault(c => c.Key == "Password")?.Value),
+                        Password = encryptionManager.Decrypt(configurations.FirstOrDefault(c => c.Key == "Password")?.Value ?? "#"),
                         EmailAddress = configurations.FirstOrDefault(c => c.Key == "EmailAddress")?.Value,
                         SmtpServer = configurations.FirstOrDefault(c => c.Key == "SmtpServer")?.Value,
                         Name = configurations.FirstOrDefault(c => c.Key == "Name")?.Value,
@@ -61,7 +61,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
         {
             if (recipients == null || !recipients.Any())
             {
-                recipients = _emailConfig.Recipients.Split(',', '\n', '\r');
+                recipients = _emailConfig.Recipients.Split(new[] { ',', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
             }
 
             var message = new Message(recipients, subject, content, filePaths);
@@ -126,7 +126,8 @@ namespace SbslFileTransformer.Infrastructure.Messaging
 
                     foreach (var email in mailMessage.Item2.To)
                     {
-                        message.To.Add(email.Address);
+                        if(!string.IsNullOrEmpty(email.Address))
+                            message.To.Add(email.Address);
                     }
 
                     if (mailMessage.Item2.FilePaths != null)
