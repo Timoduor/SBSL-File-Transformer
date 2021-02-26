@@ -19,7 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         {
             //Replace empties with zeros in columns 5 and 6
 
-            var list = new List<CdmCols>();
+            var list = new List<MPesaCols>();
 
             using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
@@ -48,7 +48,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         {
                             continue;
                         }
-                        var row = new CdmCols();
+                        var row = new MPesaCols();
 
                         row.Col0 = reader.GetValue(0)?.ToString().Replace("\n", "");
 
@@ -105,7 +105,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             WriteToFile(list, outputFile);
         }
 
-        private void WriteToFile(List<CdmCols> rows, string outputFile)
+        private void WriteToFile(List<MPesaCols> rows, string outputFile)
         {
             using (var writer = new StreamWriter(outputFile))
             {
@@ -121,7 +121,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         }
     }
 
-    public class CdmCols
+    public class MPesaCols
     {
         public string Col0 { get; set; }
         public string Col1 { get; set; }

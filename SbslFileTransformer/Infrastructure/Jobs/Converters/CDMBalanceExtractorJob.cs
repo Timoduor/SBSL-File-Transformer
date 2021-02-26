@@ -7,6 +7,7 @@ using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -14,15 +15,15 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class MpesaBalanceExtractorJob : IHostedService
+    public class CDMBalanceExtractorJob : IHostedService
     {
-        private ILogger<MpesaBalanceExtractorJob> _logger;
+        private ILogger<CDMBalanceExtractorJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
         private static SemaphoreSlim _semaphore;
         Timer _timer;
 
-        public MpesaBalanceExtractorJob(ILogger<MpesaBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public CDMBalanceExtractorJob(ILogger<CDMBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -35,18 +36,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await MpesaFileBalanceExtractor(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await CDMFileBalanceExtractor(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task MpesaFileBalanceExtractor()
+        private async Task CDMFileBalanceExtractor()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running MPesa Balance Extractor job");
+                _logger.LogInformation("Running CDM Balance Extractor job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -69,11 +70,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")));
 
-                    var mpesaConverter = new MpesaBalanceExtractor();
+                    var mpesaConverter = new CDMBalanceExtractor();
+
+                    mpesaConverter.ServiceScopeFactory = _serviceScopeFactory;
 
                     foreach (var file in files)
                     {
-                        if (file.ToLower().Contains("mpesa"))
+                        if (file.ToLower().Contains("cdm") || file.ToLower().Contains("bal") || (file.ToLower().Contains("cash") && file.ToLower().Contains("deposit") && file.ToLower().Contains("machine")))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -83,15 +86,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 {
                                     var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
 
-                                    var rootFolder = isProd ? prodFolder : sbFolder;
+                                    var rootFolder =  isProd ? prodFolder : sbFolder;
 
-                                    mpesaConverter.ConvertFile(file, rootFolder);
+                                    await mpesaConverter.ConvertFile(file, rootFolder);
                                 }
                                 catch (Exception ex)
                                 {
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting MPesa Balance files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting CDM Balance files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
 
                                 fileToProcess.Converted = true;

@@ -7,6 +7,7 @@ using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -14,15 +15,15 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class MpesaBalanceExtractorJob : IHostedService
+    public class AirtelBalanceExtractorJob : IHostedService
     {
-        private ILogger<MpesaBalanceExtractorJob> _logger;
+        private ILogger<AirtelBalanceExtractorJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
         private static SemaphoreSlim _semaphore;
         Timer _timer;
 
-        public MpesaBalanceExtractorJob(ILogger<MpesaBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public AirtelBalanceExtractorJob(ILogger<AirtelBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -35,12 +36,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await MpesaFileBalanceExtractor(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await AirtelFileBalanceExtractor(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task MpesaFileBalanceExtractor()
+        private async Task AirtelFileBalanceExtractor()
         {
             try
             {
@@ -69,11 +70,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")));
 
-                    var mpesaConverter = new MpesaBalanceExtractor();
+                    var mpesaConverter = new AirtelBalanceExtractor();
 
                     foreach (var file in files)
                     {
-                        if (file.ToLower().Contains("mpesa"))
+                        if (file.ToLower().Contains("airtel"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 

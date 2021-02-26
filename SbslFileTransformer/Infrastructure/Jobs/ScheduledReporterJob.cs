@@ -120,7 +120,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                             var emails = GetEmails(key.Key);
 
                                             //ONLY SEND EMAILS IF FILE HAS 1 OR MORE RECORDS
-                                            await _emailSender.SendMessage(emails, config.EmailHeader, config.EmailBody + Environment.NewLine + $"{key.Key} Days overdue", false,
+                                            await _emailSender.SendMessage(emails, config.EmailHeader + $" Report ID: { report.ReportId }",
+                                                config.EmailBody + Environment.NewLine + $"{ key.Key } Days overdue", false,
                                                 filePaths: new string[] { results.Item1, key.Value });
 
                                             await Task.Delay(7000);
@@ -129,8 +130,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                     else
                                     {
                                         await _emailSender.SendMessage(GetEmails(3), config.EmailHeader,
-                                            config.EmailBody,
-                                            filePaths: new string[] { results.Item1 });
+                                            config.EmailBody, filePaths: new string[] { results.Item1 });
 
                                         await Task.Delay(7000);
                                     }

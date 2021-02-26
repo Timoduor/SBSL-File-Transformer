@@ -24,12 +24,12 @@ namespace SbslFileTransformer.Converters
 
                 if (string.IsNullOrEmpty(outputFile))
                 {
-                    var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Converted");
+                    var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                     Directory.CreateDirectory(outputFolder);
 
                     var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                    outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileName}.xlsx");
+                    outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.xlsx");
                 }
 
                 package.SaveAs(new FileInfo(outputFile));
