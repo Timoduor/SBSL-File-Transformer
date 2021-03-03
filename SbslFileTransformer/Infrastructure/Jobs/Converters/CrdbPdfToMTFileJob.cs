@@ -32,7 +32,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting PDF To MT File Converter Job");
+            _logger.LogInformation("Starting CRDB PDF To MT File Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
@@ -47,7 +47,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running PDF To MT File converter job");
+                _logger.LogInformation("Running CRDB PDF To MT File converter job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -97,7 +97,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 {
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting CDM files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting CRDB files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
 
                                 fileToProcess.Converted = true;

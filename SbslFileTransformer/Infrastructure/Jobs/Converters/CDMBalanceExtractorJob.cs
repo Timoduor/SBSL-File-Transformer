@@ -73,6 +73,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     var mpesaConverter = new CDMBalanceExtractor();
 
                     mpesaConverter.ServiceScopeFactory = _serviceScopeFactory;
+                    mpesaConverter.Entity = Entity;
 
                     foreach (var file in files)
                     {
@@ -86,7 +87,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 {
                                     var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
 
-                                    var rootFolder =  isProd ? prodFolder : sbFolder;
+                                    var rootFolder = isProd ? prodFolder : sbFolder;
 
                                     await mpesaConverter.ConvertFile(file, rootFolder);
                                 }
@@ -96,12 +97,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                     await EmailHelpers.SendEmails(dbContext, "Problem Converting CDM Balance files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
+                                finally
+                                {
+                                    fileToProcess.Converted = true;
 
-                                fileToProcess.Converted = true;
+                                    dbContext.Update(fileToProcess);
 
-                                dbContext.Update(fileToProcess);
-
-                                await dbContext.SaveChangesAsync();
+                                    await dbContext.SaveChangesAsync();
+                                }
                             }
                         }
                     }

@@ -16,7 +16,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
     public class CDMBalanceExtractor
     {
 
-
+        public string Entity { get; set; }
         public IServiceScopeFactory ServiceScopeFactory { get; set; }
 
         public CDMBalanceExtractor()
@@ -114,9 +114,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     var account = success ? result.ToString() : row.Account;
 
-                    toAppend.Append($"IMKE\t{account}\tNostros\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t\t{row.AmountMC}\tKES\n");
+                    toAppend.Append($"{Entity}\t{account}\tCDM\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t\t{row.AmountMC}\t{GetAccountCurrency(row.Account)}\n");
 
-                    toAppendGL.Append($"IMKE\t{account}\tNostros\t\t\t\t\t\t\t\t{GetAccountName(row.Account, lookUp)}\tNostros\tA\tAsset\tTRUE\tTRUE\t\tKES\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t{row.AmountGL}\n");
+                    toAppendGL.Append($"{Entity}\t{account}\tCDM\t\t\t\t\t\t\t\t{GetAccountName(row.Account, lookUp)}\tCDM\tA\tAsset\tTRUE\tTRUE\t\t{GetAccountCurrency(row.Account)}\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t{row.AmountGL}\n");
                 }
 
                 //write multicurr file
@@ -136,6 +136,23 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 }
 
             }
+        }
+
+        private string GetAccountCurrency(string account)
+        {
+            string currency = "KES";
+
+            using (var scope = ServiceScopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                var curr = dbContext.Accounts.FirstOrDefault(a => a.Number == account).Currency;
+
+                currency = string.IsNullOrEmpty(curr) ? currency : curr;
+            }
+
+            return currency;
+
         }
 
         private string GetAccountName(string accountNumber, Dictionary<string, string> dict)

@@ -92,6 +92,11 @@ namespace SbslFileTransformer.Converters
 
                 var outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_{Entity}.txt");
 
+                if (filePath.ToLower().Contains("bnr"))
+                {
+                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_BNR_{Entity}.txt");
+                }
+
                 if (!File.Exists(outputPath))
                     await File.WriteAllTextAsync(outputPath, output.ToString());
 

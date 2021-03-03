@@ -2,28 +2,29 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SbslFileTransformer.Converters;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class AirtelBalanceExtractorJob : IHostedService
+    public class SelcomBalanceExtractorJob : IHostedService
     {
-        private ILogger<AirtelBalanceExtractorJob> _logger;
+        private ILogger<MpesaBalanceExtractorJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
         private static SemaphoreSlim _semaphore;
         Timer _timer;
 
-        public AirtelBalanceExtractorJob(ILogger<AirtelBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public SelcomBalanceExtractorJob(ILogger<MpesaBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -32,22 +33,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting Airtel Balance Extractor Job");
+            _logger.LogInformation("Starting Selcom Balance Extractor Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await AirtelFileBalanceExtractor(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await SelcomFileBalanceExtractor(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task AirtelFileBalanceExtractor()
+        private async Task SelcomFileBalanceExtractor()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running Airtel Balance Extractor job");
+                _logger.LogInformation("Running Selcom Balance Extractor job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -66,15 +67,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv") || f.ToLower().EndsWith(".xlsb")).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv") || f.ToLower().EndsWith(".xlsb")));
 
-                    var mpesaConverter = new AirtelBalanceExtractor();
+                    var mpesaConverter = new SelcomBalanceExtractor();
 
                     foreach (var file in files)
                     {
-                        if (file.ToLower().Contains("airtel"))
+                        if (file.ToLower().Contains("selcom"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -92,7 +93,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 {
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting MPesa Balance files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting Selcom Balance files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
                                 finally
                                 {

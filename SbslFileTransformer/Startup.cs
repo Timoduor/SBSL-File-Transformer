@@ -70,11 +70,13 @@ namespace SbslFileTransformer
             services.AddHostedService<EpinConverterJob>();
             services.AddHostedService<EP75ConverterJob>();
             services.AddHostedService<CrdbPdfToMTFileJob>();
+            services.AddHostedService<DtbPdfToMTFileJob>();
             services.AddHostedService<BnrConverterJob>();
             services.AddHostedService<MpesaBalanceExtractorJob>();
             services.AddHostedService<MpesaB2CnC2BConverterJob>();
             services.AddHostedService<CDMBalanceExtractorJob>();
             services.AddHostedService<AirtelBalanceExtractorJob>();
+            services.AddHostedService<SelcomBalanceExtractorJob>();
 
             services.AddHostedService<CamtToMultiCurrJob>();
 

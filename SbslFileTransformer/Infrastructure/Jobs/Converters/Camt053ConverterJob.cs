@@ -88,14 +88,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 catch (Exception ex)
                                 {
                                     _logger.LogError(ex, ex.Message);
-                                    await EmailHelpers.SendEmails(dbContext, "Error in CAMT file conversion" ,$"Problem with XML file {file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Error in CAMT file conversion", $"Problem with XML file {file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
+                                finally
+                                {
+                                    fileToProcess.Converted = true;
 
-                                fileToProcess.Converted = true;
+                                    dbContext.Update(fileToProcess);
 
-                                dbContext.Update(fileToProcess);
-
-                                await dbContext.SaveChangesAsync();
+                                    await dbContext.SaveChangesAsync();
+                                }
                             }
                         }
                     }

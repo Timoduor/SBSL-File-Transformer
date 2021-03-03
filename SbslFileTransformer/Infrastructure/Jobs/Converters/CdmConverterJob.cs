@@ -95,18 +95,20 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                         cdmConverter.ConvertFile(file);
                                     }
                                 }
-                                catch(Exception ex)
+                                catch (Exception ex)
                                 {
                                     _logger.LogError(ex, ex.Message);
 
                                     await EmailHelpers.SendEmails(dbContext, "Problem Converting CDM files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
+                                finally
+                                {
+                                    fileToProcess.Converted = true;
 
-                                fileToProcess.Converted = true;
+                                    dbContext.Update(fileToProcess);
 
-                                dbContext.Update(fileToProcess);
-
-                                await dbContext.SaveChangesAsync();
+                                    await dbContext.SaveChangesAsync();
+                                }
 
                             }
                         }

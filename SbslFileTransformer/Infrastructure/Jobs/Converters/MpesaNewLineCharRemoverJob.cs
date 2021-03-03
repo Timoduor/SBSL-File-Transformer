@@ -91,12 +91,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                     await EmailHelpers.SendEmails(dbContext, "Problem Converting mpesa C2B file", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
+                                finally
+                                {
+                                    fileToProcess.Converted = true;
 
-                                fileToProcess.Converted = true;
+                                    dbContext.Update(fileToProcess);
 
-                                dbContext.Update(fileToProcess);
-
-                                await dbContext.SaveChangesAsync();
+                                    await dbContext.SaveChangesAsync();
+                                }
 
                             }
                         }

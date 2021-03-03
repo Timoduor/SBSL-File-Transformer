@@ -219,8 +219,14 @@ namespace SbslFileTransformer.Converters
                 outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.csv");
             }
 
-
             WriteToFile(list, outputFile);
+
+            GenerateMultiCurr(list);
+        }
+
+        private void GenerateMultiCurr(List<ExcelCols> list)
+        {
+            throw new NotImplementedException();
         }
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)
