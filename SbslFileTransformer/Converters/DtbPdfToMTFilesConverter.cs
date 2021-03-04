@@ -20,104 +20,90 @@ namespace SbslFileTransformer.Converters
             string bankAcc = string.Empty;
             string currency = string.Empty;
             var transactions = new List<ExtractedTableCRDB>();
-            bool isNewTableLine = true;
-            double closingBal = 0;
 
-            ExtractedTableCRDB extractedTableLine = null;
+            bool needsBookBalance = false;
 
-            bool areTableValues = false;
+            ExtractedTableCRDB extractedTableLine = new ExtractedTableCRDB();
 
             foreach (var line in text.Split('\n', '\r'))
             {
-                if (line.Contains("Posting Date"))
+                if (Regex.IsMatch(line.Trim(), @"\d{2}-[A-Z]{1}[a-z]{2}-\d{4} \d{2}-[A-Z]{1}[a-z]{2}-\d{4}") && !line.Contains("Opening Balance") || needsBookBalance)
                 {
-                    areTableValues = true;
-                }
+                    var parts = line.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-                //FOR CRDB
-                if (line.ToLower().Contains("account:"))
-                {
-                    bankAcc = line.Split(":")[1].Trim();
-                    continue;
-                }
+                    var len = parts.Length;
 
-                if (line.ToLower().Contains("available balance"))
-                {
-                    currency = line.Split(' ')[3].Trim();
-                    continue;
-                }
-
-                if (line.ToLower().Contains("cleared balance"))
-                {
-                    closingBal = Convert.ToDouble(line.Split(' ')[8]);
-                }
-
-                if (areTableValues && Regex.IsMatch(line.Trim(), @"^\d{2}\.\d{2}\.\d{4}$") && isNewTableLine)
-                {
-                    extractedTableLine = new ExtractedTableCRDB();
-                    transactions.Add(extractedTableLine);//-----------------------------------------===================
-                    extractedTableLine.PostingDate = line.Trim();
-                    continue;
-                }
-
-                if (areTableValues && Regex.IsMatch(line.Trim(), @"^\d{2}\:\d{2}\:\d{2}$") && isNewTableLine)
-                {
-                    extractedTableLine.PostingDate += " " + line.Trim();
-                    isNewTableLine = false;
-                    continue;
-                }
-
-                if (areTableValues && line.ToLower().Contains("ref:"))
-                {
-                    var split = line.Split(':');
-                    extractedTableLine.Ref = split[1].Trim();
-
-                    if (2 < split.Length)
+                    if (len < 5 && !needsBookBalance)
                     {
-                        extractedTableLine.Ref += split[2].Trim();
+                        needsBookBalance = true;
+
+                        extractedTableLine = new ExtractedTableCRDB();
+
+                        extractedTableLine.PostingDate = DateTime.ParseExact(parts[0], "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                        extractedTableLine.ValueDate = DateTime.ParseExact(parts[1], "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                        extractedTableLine.Details = parts[2] + parts[3];
+
+                        continue;
                     }
+                    else if(!needsBookBalance)
+                    {
+                        extractedTableLine = new ExtractedTableCRDB();
+
+                        extractedTableLine.PostingDate = DateTime.ParseExact(parts[0], "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                        extractedTableLine.ValueDate = DateTime.ParseExact(parts[1], "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                        extractedTableLine.Details = parts[2] + parts[3];
+                        extractedTableLine.Debit = parts[len - 3];
+                        extractedTableLine.Credit = parts[len - 2];
+                        extractedTableLine.BookBalance = parts[len - 1];
+                        extractedTableLine.Ref = parts[len - 4] + parts[len - 5];
+
+
+                        transactions.Add(extractedTableLine);
+
+                        continue;
+                    }
+
+                    if (Regex.IsMatch(line.Trim(), @"\d{1,2}[\,\.]{1}\d{1,2}") && needsBookBalance)
+                    {
+                        extractedTableLine.Debit = parts[2];
+                        extractedTableLine.Credit = parts[3];
+                        extractedTableLine.BookBalance = parts[4];
+                        extractedTableLine.Ref = parts[0] + parts[1];
+
+                        needsBookBalance = false;
+
+                        transactions.Add(extractedTableLine);
+
+                        continue;
+                    }
+
+
                     continue;
                 }
 
-                if (areTableValues && !line.Contains("Posting Date") && !line.ToLower().Contains("ref:") && !Regex.IsMatch(line.Trim(), @"^\d{2}\.\d{2}\.\d{4}$")
-                    && !Regex.IsMatch(line.Trim(), @"^\d{2}\:\d{2}\:\d{2}$") && !Regex.IsMatch(line.Trim(), @"\d{1,3}(,\d{3})*(\.\d+)?"))
+                if(line.Contains("Account No.:"))
                 {
-                    extractedTableLine.Details += line.Trim();
+                    bankAcc = line.Split(':')[1].Trim();
                     continue;
                 }
 
-                if (areTableValues && Regex.IsMatch(line.Trim(), @"^\d{2}\.\d{2}\.\d{4}$") && !isNewTableLine)
+                if (line.Contains("Currency:"))
                 {
-                    extractedTableLine.ValueDate += line.Trim();
+                    currency = line.Split(':')[1].Trim();
                     continue;
-                }
-
-                if (areTableValues && Regex.IsMatch(line.Trim(), @"^\d{2}\:\d{2}\:\d{2}$") && !isNewTableLine)
-                {
-                    extractedTableLine.ValueDate += " " + line.Trim();
-                    isNewTableLine = true;
-                    continue;
-                }
-
-                if (areTableValues && Regex.IsMatch(line.Trim(), @"\d{1,3}(,\d{3})*\.\d{2}?$"))
-                {
-                    var numbers = line.Trim().Split(' ');
-                    extractedTableLine.Debit = numbers[0];
-                    extractedTableLine.Credit = numbers[1];
-                    extractedTableLine.BookBalance = numbers[2];
-
-                    isNewTableLine = true;
                 }
             }
 
+            double closingBal = Convert.ToDouble(transactions.Last().BookBalance);
+
             StringBuilder lines = new StringBuilder();
 
-            if(transactions.Count == 0)
+            if (transactions.Count == 0)
             {
                 throw new Exception($"No transactions found in file {inputFile}");
             }
 
-            var balDate = DateTime.ParseExact(transactions.First().ValueDate, "dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+            var balDate = transactions.First().ValueDate;
 
             lines.AppendLine(":20:" + "1");
             lines.AppendLine(":25:" + bankAcc);
@@ -126,7 +112,7 @@ namespace SbslFileTransformer.Converters
 
             foreach (var record in transactions)
             {
-                var valDate = DateTime.ParseExact(record.ValueDate, "dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                var valDate = record.ValueDate;
                 var valDateStr = valDate.ToString("yyMMdd");
                 var valDateStr2 = valDate.ToString("MMdd");
 
@@ -140,7 +126,7 @@ namespace SbslFileTransformer.Converters
                 {
                     dOrC = "C";
                 }
-                else if(amountD > 0)
+                else if (amountD > 0)
                 {
                     useC = false;
                     dOrC = "D";
@@ -169,7 +155,7 @@ namespace SbslFileTransformer.Converters
                 outputFile = Path.Combine(outputFile, $"{DateTime.Now:yyyyMMdd}{new string(fileName.TakeLast(10).ToArray())}.txt");
             }
 
-            File.WriteAllText(outputFile,lines.ToString());
+            File.WriteAllText(outputFile, lines.ToString());
         }
 
 
@@ -202,10 +188,10 @@ namespace SbslFileTransformer.Converters
 
         public class ExtractedTableCRDB
         {
-            public string PostingDate { get; set; }
+            public DateTime PostingDate { get; set; }
             public string Details { get; set; }
             public string Ref { get; set; }
-            public string ValueDate { get; set; }
+            public DateTime ValueDate { get; set; }
             public string Debit { get; set; }
             public string Credit { get; set; }
             public string BookBalance { get; set; }

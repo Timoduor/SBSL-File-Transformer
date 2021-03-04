@@ -328,18 +328,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                     //Account = lastAccountNo,
                                     Amount = reader.GetValue(4)?.ToString(),
                                     Entity = reader.GetValue(1)?.ToString(),
-                                    //ActiveCertStatus = reader.GetValue(14)?.ToString(),
-                                    //FunctionalArea = reader.GetValue(13)?.ToString(),
+                                    ActiveCertStatus = reader.GetValue(14)?.ToString(),
+                                    FunctionalArea = reader.GetValue(13)?.ToString(),
                                     //ItemId = Convert.ToInt32(reader.GetValue(15)?.ToString()),
-                                    //ItemSide = reader.GetValue(8)?.ToString(),
-                                    //ItemSubType = reader.GetValue(5)?.ToString(),
+                                    ItemSide = reader.GetValue(8)?.ToString(),
+                                    ItemSubType = reader.GetValue(5)?.ToString(),
 
-                                    //Reference1 = reader.GetValue(10)?.ToString(),
-                                    //Reference2 = reader.GetValue(11)?.ToString(),
-                                    //Reference3 = reader.GetValue(12)?.ToString(),
-                                    //TheyBalance = reader.GetValue(7)?.ToString(),
-                                    //TransNarrative = reader.GetValue(9)?.ToString(),
-                                    //WeBalance = reader.GetValue(6)?.ToString(),
+                                    Reference1 = reader.GetValue(10)?.ToString(),
+                                    Reference2 = reader.GetValue(11)?.ToString(),
+                                    Reference3 = reader.GetValue(12)?.ToString(),
+                                    TheyBalance = reader.GetValue(7)?.ToString(),
+                                    TransNarrative = reader.GetValue(9)?.ToString(),
+                                    WeBalance = reader.GetValue(6)?.ToString(),
                                 };
 
                                 openItems.Add(openItem);
@@ -584,17 +584,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         public DateTime PostedDate { get; set; }
         public int DaysOverdue { get; set; }
         public string Amount { get; set; }
-        //public string ItemSubType { get; set; }
-        //public string WeBalance { get; set; }
-        //public string TheyBalance { get; set; }
-        //public string ItemSide { get; set; }
-        //public string TransNarrative { get; set; }
-        //public string Reference1 { get; set; }
-        //public string Reference2 { get; set; }
-        //public string Reference3 { get; set; }
-        //public string FunctionalArea { get; set; }
-        //public string ActiveCertStatus { get; set; }
-        //public string ItemId { get; set; }
+        public string ItemSubType { get; set; }
+        public string WeBalance { get; set; }
+        public string TheyBalance { get; set; }
+        public string ItemSide { get; set; }
+        public string TransNarrative { get; set; }
+        public string Reference1 { get; set; }
+        public string Reference2 { get; set; }
+        public string Reference3 { get; set; }
+        public string FunctionalArea { get; set; }
+        public string ActiveCertStatus { get; set; }
+        public string ItemId { get; set; }
     }
 
     public class ReportModel

@@ -96,6 +96,14 @@ namespace SbslFileTransformer.Converters
                 {
                     outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_BNR_{Entity}.txt");
                 }
+                if (filePath.ToLower().Contains("b2w"))
+                {
+                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_B2W_{Entity}.txt");
+                }
+                if (filePath.ToLower().Contains("selcom"))
+                {
+                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_SELCOM_{Entity}.txt");
+                }
 
                 if (!File.Exists(outputPath))
                     await File.WriteAllTextAsync(outputPath, output.ToString());

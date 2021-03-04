@@ -1,4 +1,5 @@
 ﻿using ExcelDataReader;
+using OfficeOpenXml;
 using SbslFileTransformer.Infrastructure.Helpers;
 using System;
 using System.Collections.Generic;
@@ -20,64 +21,53 @@ namespace SbslFileTransformer.Converters
         {
             var list = new List<SelcomBalCols>();
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (var package = new ExcelPackage(new FileInfo(inputFile)))
             {
-                IExcelDataReader reader;
+                var sheet = package.Workbook.Worksheets.First();
 
-                if (Path.GetExtension(inputFile).ToLower().Contains("csv"))
-                {
-                    reader = ExcelReaderFactory.CreateCsvReader(stream);
-                }
-                else if (Path.GetExtension(inputFile).ToLower().Contains("xlsx") || Path.GetExtension(inputFile).ToLower().Contains("xlsb"))
-                {
-                    reader = ExcelReaderFactory.CreateOpenXmlReader(stream);
-                }
-                else//xls
-                {
-                    reader = ExcelReaderFactory.CreateBinaryReader(stream);
-                }
+                var table = sheet.Tables.First();
 
-                using (reader)
-                {
-                    // Choose one of either 1 or 2:
-                    // 1. Use the reader methods
+                ExcelCellAddress start = table.Address.Start;
+                ExcelCellAddress end = table.Address.End;
 
-                    while (reader.Read())
+                for (int row = start.Row; row <= end.Row; ++row)
+                {
+                    ExcelRange range = sheet.Cells[row, start.Column, row, end.Column];
+
+                    var value = sheet.Cells[row, 0, row, 0]?.ToString();
+
+                    if (string.IsNullOrEmpty(value))
                     {
-
-                        var value = reader.GetValue(0)?.ToString();
-
-                        if (string.IsNullOrEmpty(value))
-                        {
-                            continue;
-                        }
-                        var row = new SelcomBalCols();
-
-                        if (DateTime.TryParseExact(reader.GetValue(0)?.ToString(), "M/dd/yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime resultDate))
-                        {
-                            row.Date = resultDate;
-                        }
-                        else if (DateTime.TryParseExact(reader.GetValue(0)?.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
-                        {
-                            row.Date = result;
-                        }
-                        else
-                        {
-                            continue;
-                        }
-
-                        string amount = string.IsNullOrEmpty(reader.GetValue(9)?.ToString()) ? "0" : reader.GetValue(9)?.ToString();
-
-                        row.Amount = row.CBal = Convert.ToDouble(amount);
-
-                        row.TransType = reader.GetValue(2)?.ToString();
-
-                        row.Account = GetAccountNumber(inputFile);
-
-                        list.Add(row);
+                        continue;
                     }
+                    var selcomRow = new SelcomBalCols();
+
+                    if (DateTime.TryParseExact(sheet.Cells[row, 0]?.ToString(), "M/dd/yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime resultDate))
+                    {
+                        selcomRow.Date = resultDate;
+                    }
+                    else if (DateTime.TryParseExact(sheet.Cells[row, 0]?.ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
+                    {
+                        selcomRow.Date = result;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    string amount = string.IsNullOrEmpty(sheet.Cells[row, 9]?.ToString()) ? "0" : sheet.Cells[row, 9]?.ToString();
+
+                    selcomRow.Amount = selcomRow.CBal = Convert.ToDouble(amount);
+
+                    selcomRow.TransType = sheet.Cells[row, 2]?.ToString();
+
+                    selcomRow.Account = GetAccountNumber(inputFile);
+
+                    list.Add(selcomRow);
                 }
+
             }
+
             if (list.Count > 0)
             {
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
@@ -86,7 +76,7 @@ namespace SbslFileTransformer.Converters
 
                 var outputFile = Path.Combine(outputFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_SelcomTZ.txt");
 
-                var lastRow = list.FirstOrDefault(c => c.Date == list.Max(r => r.Date) && (c.TransType.ToUpper() == "DEBIT" || c.TransType.ToUpper() == "CREDIT"));
+                var lastRow = list.FirstOrDefault(c => c.Date == list.Max(r => r.Date) && (c.TransType.ToUpper() == "DEBIT" || c.TransType.ToUpper() == "CREDIT" || c.TransType.ToUpper() == "CHARGE"));
 
                 string toAppend = $"IMTZ\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.Date):MM/dd/yyyy}\t\t\t\t{lastRow.CBal}\tTZS\n";
 

@@ -67,7 +67,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                 foreach (var file in files)
                 {
-                    if ((file.ToLower().Contains("nostro_balance".ToLower()) || file.ToLower().Contains("bnr_balance".ToLower())) && Path.GetExtension(file.ToLower()) != ".txt")
+                    if ((file.ToLower().Contains("nostro_balance".ToLower()) || file.ToLower().Contains("bnr_balance".ToLower())
+                        || file.ToLower().Contains("b2w_balance".ToLower()) || file.ToLower().Contains("selcom_balance".ToLower()))
+                        && Path.GetExtension(file.ToLower()) != ".txt")
                     {
                         try
                         {

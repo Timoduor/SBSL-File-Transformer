@@ -55,6 +55,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         {
                             row.BalDate = resultDate;
                         }
+                        if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
+                        {
+                            row.BalDate = result;
+                        }
                         else
                         {
                             continue;
@@ -80,7 +84,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 var lastRow = list.FirstOrDefault(c => c.BalDate == list.Max(r => r.BalDate));
 
-                string toAppend = $"IMKE\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.BalDate):MM/dd/yyyy}\t\t\t\t{lastRow.Amount}\tKES\n";
+                string toAppend = $"IMKE\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.BalDate):MM/dd/yyyy}\t\t\t\t{-lastRow.Amount}\tKES\n";
 
                 if (!string.IsNullOrEmpty(toAppend))
                 {
