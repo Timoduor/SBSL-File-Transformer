@@ -99,7 +99,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileName.Substring(fileName.Length - 14)}.csv");
+                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ","")}.csv");
             }
 
             WriteToFile(list, outputFile);
