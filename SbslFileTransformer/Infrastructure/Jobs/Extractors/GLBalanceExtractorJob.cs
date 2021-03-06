@@ -68,14 +68,23 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                 foreach (var file in files)
                 {
                     if ((file.ToLower().Contains("nostro_balance".ToLower()) || file.ToLower().Contains("bnr_balance".ToLower())
-                        || file.ToLower().Contains("b2w_balance".ToLower()) || file.ToLower().Contains("selcom_balance".ToLower()))
+                        || file.ToLower().Contains("b2w_balance".ToLower()) || file.ToLower().Contains("selcom_balance".ToLower())
+                        || file.ToLower().Contains("mb_balance".ToLower()))
                         && Path.GetExtension(file.ToLower()) != ".txt")
                     {
                         try
                         {
-                            await converter.Execute(file);
+                            if (file.ToLower().Contains("mb_balance".ToLower()) || file.ToLower().Contains("selcom_balance".ToLower())
+                                || file.ToLower().Contains("b2w_balance".ToLower()))
+                            {
+                                await converter.Execute(file, "Mobile banking");
+                            }
+                            else
+                            {
+                                await converter.Execute(file);
+                            }
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             _logger.LogError(ex, ex.Message);
                         }

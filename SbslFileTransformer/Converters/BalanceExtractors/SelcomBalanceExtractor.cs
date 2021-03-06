@@ -1,5 +1,4 @@
-﻿using ExcelDataReader;
-using OfficeOpenXml;
+﻿using OfficeOpenXml;
 using SbslFileTransformer.Infrastructure.Helpers;
 using System;
 using System.Collections.Generic;
@@ -65,7 +64,6 @@ namespace SbslFileTransformer.Converters
 
                     list.Add(selcomRow);
                 }
-
             }
 
             if (list.Count > 0)
@@ -76,14 +74,49 @@ namespace SbslFileTransformer.Converters
 
                 var outputFile = Path.Combine(outputFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_SelcomTZ.txt");
 
-                var lastRow = list.FirstOrDefault(c => c.Date == list.Max(r => r.Date) && (c.TransType.ToUpper() == "DEBIT" || c.TransType.ToUpper() == "CREDIT" || c.TransType.ToUpper() == "CHARGE"));
+                var lastRow = list.LastOrDefault(c => c.Date == list.Max(r => r.Date) && (c.TransType.ToUpper() == "DEBIT" || c.TransType.ToUpper() == "CREDIT" || c.TransType.ToUpper() == "CHARGE"));
 
-                string toAppend = $"IMTZ\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.Date):MM/dd/yyyy}\t\t\t\t{lastRow.CBal}\tTZS\n";
-
-                if (!string.IsNullOrEmpty(toAppend))
+                if (lastRow != null)
                 {
-                    File.WriteAllText(outputFile, toAppend);
+                    string toAppend = $"IMTZ\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.Date):MM/dd/yyyy}\t\t\t\t{lastRow.CBal}\tTZS\n";
+
+                    if (!string.IsNullOrEmpty(toAppend))
+                    {
+                        File.WriteAllText(outputFile, toAppend);
+                    }
                 }
+            }
+
+            ConvertToCsvFile(inputFile);
+        }
+
+        private void ConvertToCsvFile(string inputFile, string outputFile = null)
+        {
+            if (string.IsNullOrEmpty(outputFile))
+            {
+                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                Directory.CreateDirectory(outputFolder);
+
+                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+
+                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileName.Substring(fileName.Length - 14)}.csv");
+            }
+
+            using (var package = new ExcelPackage(new FileInfo(inputFile)))
+            {
+                var sheet = package.Workbook.Worksheets.First();
+
+                var table = sheet.Tables.First();
+
+                ExcelCellAddress start = table.Address.Start;
+                ExcelCellAddress end = table.Address.End;
+
+                ExcelRange range = sheet.Cells[start.Row, start.Column, end.Row, end.Column];
+
+                var outputFormat = new ExcelOutputTextFormat();
+
+                range.SaveToText(new FileInfo(outputFile), outputFormat);
+
             }
         }
 

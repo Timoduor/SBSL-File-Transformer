@@ -52,7 +52,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                         row.Col0 = reader.GetValue(0)?.ToString().Replace("\n", "");
 
-                        row.Col1 = reader.GetValue(1)?.ToString().Replace("\n", "");
+                        row.Col1 = reader.GetValue(1)?.ToString().Replace("\n", "").Replace("/","-");
 
                         row.Col2 = reader.GetValue(2)?.ToString().Replace("\n", "");
 

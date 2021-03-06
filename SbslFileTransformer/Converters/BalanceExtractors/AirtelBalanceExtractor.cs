@@ -75,7 +75,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 var outputFile = Path.Combine(outputFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_AirtelKE.txt");
 
-                var lastRow = list.FirstOrDefault(c => c.ReconDate == list.Max(r => r.ReconDate));
+                var lastRow = list.OrderByDescending(i => i.ReconDate).FirstOrDefault(c => c.ReconDate == list.Max(r => r.ReconDate));
 
                 string toAppend = $"IMKE\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.ReconDate):MM/dd/yyyy}\t\t\t\t{-lastRow.Amount}\tKES\n";
 

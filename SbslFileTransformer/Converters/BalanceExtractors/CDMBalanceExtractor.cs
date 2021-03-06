@@ -124,7 +124,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 if (!string.IsNullOrEmpty(text))
                 {
-                    File.WriteAllText(outputFile, text);
+                    await File.WriteAllTextAsync(outputFile, text);
                 }
 
                 //write gl_acc file
@@ -132,7 +132,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 if (!string.IsNullOrEmpty(text2))
                 {
-                    File.WriteAllText(outputFileGL, text2);
+                    await File.WriteAllTextAsync(outputFileGL, text2);
                 }
 
             }

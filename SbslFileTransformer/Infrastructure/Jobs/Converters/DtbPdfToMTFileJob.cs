@@ -18,12 +18,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
     public class DtbPdfToMTFileJob : IHostedService
     {
         private Timer _timer;
-        private ILogger<CrdbPdfToMTFileJob> _logger;
+        private ILogger<DtbPdfToMTFileJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
         static SemaphoreSlim _semaphore;
 
-        public DtbPdfToMTFileJob(ILogger<CrdbPdfToMTFileJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public DtbPdfToMTFileJob(ILogger<DtbPdfToMTFileJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;

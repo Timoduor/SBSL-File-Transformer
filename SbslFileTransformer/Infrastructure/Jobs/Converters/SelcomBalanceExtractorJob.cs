@@ -18,13 +18,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class SelcomBalanceExtractorJob : IHostedService
     {
-        private ILogger<MpesaBalanceExtractorJob> _logger;
+        private ILogger<SelcomBalanceExtractorJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
         private static SemaphoreSlim _semaphore;
         Timer _timer;
 
-        public SelcomBalanceExtractorJob(ILogger<MpesaBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public SelcomBalanceExtractorJob(ILogger<SelcomBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;

@@ -37,7 +37,7 @@ namespace SbslFileTransformer.Converters
             Entity = entity;
         }
 
-        public async Task<bool> Execute(string filePath)
+        public async Task<bool> Execute(string filePath, string functionalArea = "Nostros")
         {
             try
             {
@@ -81,7 +81,7 @@ namespace SbslFileTransformer.Converters
                             var DorC2 = csv.GetField<int>(6);
                             var closingBalance = csv.GetField<double>(7);
 
-                            string toAppend = $"{Entity}\t{accNo}\tNostros\t\t\t\t\t\t\t\t{GetAccountName(accNo, lookUp)}\tNostros\tA\tAsset\tTRUE\tTRUE\t\t{currency}\t{ContentHelpers.GetLastDayOfTheMonth(date2):MM/dd/yyyy}\t\t\t{-1 * DorC2 * closingBalance}\n";
+                            string toAppend = $"{Entity}\t{accNo}\t{functionalArea}\t\t\t\t\t\t\t\t{GetAccountName(accNo, lookUp)}\t{functionalArea}\tA\tAsset\tTRUE\tTRUE\t\t{currency}\t{ContentHelpers.GetLastDayOfTheMonth(date2):MM/dd/yyyy}\t\t\t{-1 * DorC2 * closingBalance}\n";
 
                             output.Append(toAppend);
                         }
@@ -103,6 +103,10 @@ namespace SbslFileTransformer.Converters
                 if (filePath.ToLower().Contains("selcom"))
                 {
                     outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_SELCOM_{Entity}.txt");
+                }
+                if (filePath.ToLower().Contains("mb"))
+                {
+                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_MB_{Entity}.txt");
                 }
 
                 if (!File.Exists(outputPath))

@@ -17,13 +17,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class MpesaB2CnC2BConverterJob : IHostedService
     {
-        private ILogger<MpesaBalanceExtractorJob> _logger;
+        private ILogger<MpesaB2CnC2BConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
         private static SemaphoreSlim _semaphore;
         Timer _timer;
 
-        public MpesaB2CnC2BConverterJob(ILogger<MpesaBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public MpesaB2CnC2BConverterJob(ILogger<MpesaB2CnC2BConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
