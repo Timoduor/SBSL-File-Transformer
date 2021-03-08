@@ -318,7 +318,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                         {
                             try
                             {
-                                int daysOverdue = Convert.ToInt32((DateTime.Now - postedDate).TotalDays);
+                                int daysOverdue = Convert.ToInt32((DateTime.Now - postedDate).TotalDays);//datetime.now should be max posted date
 
                                 var openItem = new OpenItem
                                 {

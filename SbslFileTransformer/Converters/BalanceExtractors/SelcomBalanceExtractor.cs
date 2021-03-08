@@ -40,7 +40,7 @@ namespace SbslFileTransformer.Converters
 
                 var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
-                var outputFile = Path.Combine(outputFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_B2W_TZ.txt");
+                var outputFile = Path.Combine(outputFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_MB_TZ.txt");
 
                 var lastRow = list.LastOrDefault(c => c.Date == list.Max(r => r.Date) && (c.TransType.ToUpper() == "DEBIT" || c.TransType.ToUpper() == "CREDIT" || c.TransType.ToUpper() == "CHARGE"));
 
@@ -180,11 +180,20 @@ namespace SbslFileTransformer.Converters
                 outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
-            Excel.Application app = new Excel.Application();
-            Excel.Workbook wb = app.Workbooks.Open(inputFile);
-            wb.SaveAs(outputFile, Excel.XlFileFormat.xlCSVWindows);
-            wb.Close(false);
-            app.Quit();
+            Excel.Application app = null;
+            Excel.Workbook wb = null;
+
+            try
+            {
+                app = new Excel.Application();
+                wb = app.Workbooks.Open(inputFile);
+                wb.SaveAs(outputFile, Excel.XlFileFormat.xlCSVWindows);
+            }
+            finally
+            {
+                wb.Close(false);
+                app.Quit();
+            }
         }
 
         private string GetAccountNumber(string inputFile)

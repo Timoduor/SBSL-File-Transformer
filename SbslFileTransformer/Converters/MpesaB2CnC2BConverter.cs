@@ -25,7 +25,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             {
                 IExcelDataReader reader;
 
-                if (Path.GetExtension(inputFile).ToLower().Contains("csv"))
+                if (Path.GetExtension(inputFile).ToLower().EndsWith(".csv"))
                 {
                     reader = ExcelReaderFactory.CreateCsvReader(stream);
                 }
@@ -50,31 +50,31 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         }
                         var row = new MPesaCols();
 
-                        row.Col0 = reader.GetValue(0)?.ToString().Replace("\n", "");
+                        row.Col0 = reader.GetValue(0)?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col1 = reader.GetValue(1)?.ToString().Replace("\n", "").Replace("/","-");
+                        row.Col1 = reader.GetValue(1)?.ToString().Replace("\n", "").Replace("\r","").Replace("/","-");
 
-                        row.Col2 = reader.GetValue(2)?.ToString().Replace("\n", "");
+                        row.Col2 = reader.GetValue(2)?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col3 = reader.GetValue(3)?.ToString().Replace("\n", "");
+                        row.Col3 = reader.GetValue(3)?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col4 = reader.GetValue(4)?.ToString().Replace("\n", "");
+                        row.Col4 = reader.GetValue(4)?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col5 = reader.GetValue(5)?.ToString().Replace("\n", "");
+                        row.Col5 = reader.GetValue(5)?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col6 = reader.GetValue(6)?.ToString().Replace("\n", "");
+                        row.Col6 = reader.GetValue(6)?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col7 = reader.GetValue(7)?.ToString().Replace("\n", "");
+                        row.Col7 = reader.GetValue(7)?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col8 = reader.GetValue(8)?.ToString().Replace("\n", "");
+                        row.Col8 = reader.GetValue(8)?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col9 = reader.GetValue(9)?.ToString().Replace("\n", "");
+                        row.Col9 = reader.GetValue(9)?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col10 = reader.GetValue(10)?.ToString().Replace("\n", "");
+                        row.Col10 = reader.GetValue(10)?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col11 = reader.GetValue(11)?.ToString().Replace("\n", "");
+                        row.Col11 = reader.GetValue(11)?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col12 = reader.GetValue(12)?.ToString().Replace("\n", "");
+                        row.Col12 = reader.GetValue(12)?.ToString().Replace("\n", "").Replace("\r", "");
 
                         if (string.IsNullOrEmpty(row.Col5))
                         {

@@ -20,6 +20,7 @@ namespace SbslFileTransformer.Converters
         public void ConvertFile(string inputFile, string outputFile = null)
         {
             var list = new List<ExcelCols>();
+
             using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
                 using (var reader = ExcelReaderFactory.CreateReader(stream))
@@ -95,7 +96,7 @@ namespace SbslFileTransformer.Converters
                             //logic to read child columns
 
                             //Reference
-                            row.Col0 = reader.GetValue(4)?.ToString().Replace("\n", " ");
+                            row.Col0 = reader.GetValue(4)?.ToString().Replace("\n", "");
 
                             //Codes colunm
                             row.Col1 = list.Last().Col1;
@@ -134,7 +135,7 @@ namespace SbslFileTransformer.Converters
                                     list.Last().Col15 = "MT102";
                                 }
                             }
-                            if (row.Col4 != null && row.Col4.StartsWith("1000026561"))
+                            if (row.Col4 != null && row.Col4.StartsWith("1240000") || row.Col4.StartsWith("3208000") || row.Col4.StartsWith("1000026561"))
                             {
                                 row.Col14 = "Debit";
                             }
@@ -147,7 +148,7 @@ namespace SbslFileTransformer.Converters
                         else
                         {
                             //logic for parent
-                            if (reader.GetValue(6) != null && reader.GetValue(6).ToString().Replace("\n", "").StartsWith("1000026561"))
+                            if (reader.GetValue(6) != null && reader.GetValue(6).ToString().Replace("\n", "").StartsWith("1240000") || reader.GetValue(6).ToString().Replace("\n", "").StartsWith("3208000") || reader.GetValue(6).ToString().Replace("\n", "").StartsWith("1000026561"))
                             {
                                 row.Col14 = "Debit";
                             }
@@ -157,7 +158,7 @@ namespace SbslFileTransformer.Converters
                             }
 
                             //Reference
-                            row.Col0 = reader.GetValue(0)?.ToString();
+                            row.Col0 = reader.GetValue(0)?.ToString().Replace("\n", "");
 
                             //Codes colunm
                             row.Col1 = code;
@@ -226,7 +227,7 @@ namespace SbslFileTransformer.Converters
 
         private void GenerateMultiCurr(List<ExcelCols> list)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException("Error generating Multicurr file for BNR");
         }
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)
