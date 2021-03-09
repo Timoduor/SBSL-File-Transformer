@@ -51,13 +51,25 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         }
                         var row = new MpesaBalCols();
 
-                        if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime resultDate))
+                        if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime resultDate))
                         {
                             row.BalDate = resultDate;
                         }
-                        if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
+                        else if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime resultDate2))
+                        {
+                            row.BalDate = resultDate2;
+                        }
+                        else if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
                         {
                             row.BalDate = result;
+                        }
+                        else if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result2))
+                        {
+                            row.BalDate = result2;
+                        }
+                        else if (DateTime.TryParse(reader.GetValue(1)?.ToString(), out DateTime result3))
+                        {
+                            row.BalDate = result3;
                         }
                         else
                         {
