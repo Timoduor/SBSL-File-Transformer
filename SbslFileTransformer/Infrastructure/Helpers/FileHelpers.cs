@@ -9,6 +9,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Renci.SshNet;
 
 namespace SbslFileTransformer.Infrastructure.Helpers
 {
@@ -25,7 +26,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
         static object _locker = new object();
 
         public static bool UploadFileToSftp(string filePath, string md5, bool isProduction, string relativePath,
-            string accountNo, string statementNo, string sequenceNo, IServiceScopeFactory serviceScopeFactory, ILogger logger)
+            string accountNo, string statementNo, string sequenceNo, IServiceScopeFactory serviceScopeFactory, ILogger logger, SftpClient client)
         {
             lock (_locker)
             {
@@ -52,7 +53,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
                         remotePath = Path.Combine(remotePath, relativePath.Replace('\\', '/'));
 
-                        if (sftpManager.UploadFile(filePath, remotePath))
+                        if (sftpManager.UploadFile(filePath, remotePath, client))
                         {
                             dbContext.UploadedFiles.Add(new SftpUploadedFile
                             {

@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Renci.SshNet;
 using SbslFileTransformer.Converters;
 using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
@@ -22,11 +24,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         private string Entity;
         List<Timer> _timers = new List<Timer>();
         private static SemaphoreSlim _semaphore;
+        EncryptionManager _encryptionManager;
 
-        public SftpIndependentJob(IServiceScopeFactory serviceScopeFactory, ILogger<SftpIndependentJob> logger)
+        public SftpIndependentJob(IServiceScopeFactory serviceScopeFactory, ILogger<SftpIndependentJob> logger, EncryptionManager encryptionManager)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
+            _encryptionManager = encryptionManager;
+
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -44,7 +49,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 if (config.IncludeProduction)
                 {
-                    var timerProd = new Timer(async ( state) => await RunFileCheckAndUpload(state, true, config.ProductionFolder), null, TimeSpan.Zero,
+                    var timerProd = new Timer(async (state) => await RunFileCheckAndUpload(state, true, config.ProductionFolder, config), null, TimeSpan.Zero,
                                                             TimeSpan.FromMinutes(prodTimeSpan));
 
                     _timers.Add(timerProd);
@@ -52,7 +57,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 if (config.IncludeSandbox)
                 {
-                    var timerSB = new Timer(async(state) => await RunFileCheckAndUpload(state, false, config.SandboxFolder), null, TimeSpan.Zero,
+                    var timerSB = new Timer(async (state) => await RunFileCheckAndUpload(state, false, config.SandboxFolder, config), null, TimeSpan.Zero,
                                                     TimeSpan.FromMinutes(sbTimeSpan));
 
                     _timers.Add(timerSB);
@@ -83,7 +88,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     Host = configurations.FirstOrDefault(c => c.Key == "Host")?.Value,
                     Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port")?.Value),
                     UserName = configurations.FirstOrDefault(c => c.Key == "UserName")?.Value,
-                    //Password = _encryptionManager.Decrypt(configurations.FirstOrDefault(c => c.Key == "Password")?.Value),
+                    Password = _encryptionManager.Decrypt(configurations.FirstOrDefault(c => c.Key == "Password")?.Value),
                     RecurseFolders = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "RecurseFolders")?.Value),
                     IncludeSandbox = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeSandbox")?.Value),
                     IncludeProduction = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value),
@@ -97,7 +102,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
         }
 
-        private async Task RunFileCheckAndUpload(object state, bool isProduction, string productionOrSandboxFolder)
+        private async Task RunFileCheckAndUpload(object state, bool isProduction, string productionOrSandboxFolder, SftpConfigModel config)
         {
             string fileToProcess = string.Empty;
 
@@ -109,26 +114,34 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 var path = state?.ToString();
 
-                if (string.IsNullOrEmpty(path) || !Directory.Exists(path) || !File.Exists(path))
+                using (var client = new SftpClient(config.Host, config.Port == 0 ? 22 : config.Port, config.UserName, config.Password))
                 {
-                    //do check for all folders/files
-                    var options = new EnumerationOptions
-                    {
-                        MatchCasing = MatchCasing.CaseInsensitive,
-                        MatchType = MatchType.Simple,
-                        RecurseSubdirectories = true
-                    };
+                    client.Connect();
 
-                    var files = Directory.GetFiles(productionOrSandboxFolder, "*.*", options);
-
-                    foreach (var file in files)
+                    if (string.IsNullOrEmpty(path) || !Directory.Exists(path) || !File.Exists(path))
                     {
-                        fileToProcess = ProcessFileAndUpload(isProduction, productionOrSandboxFolder, file);
+                        //do check for all folders/files
+                        var options = new EnumerationOptions
+                        {
+                            MatchCasing = MatchCasing.CaseInsensitive,
+                            MatchType = MatchType.Simple,
+                            RecurseSubdirectories = true
+                        };
+
+                        var files = Directory.GetFiles(productionOrSandboxFolder, "*.*", options);
+
+                        foreach (var file in files)
+                        {
+                            fileToProcess = ProcessFileAndUpload(isProduction, productionOrSandboxFolder, file, client);
+                        }
                     }
-                }
-                else
-                {
-                    fileToProcess = ProcessFileAndUpload(isProduction, productionOrSandboxFolder, path);
+                    else
+                    {
+                        fileToProcess = ProcessFileAndUpload(isProduction, productionOrSandboxFolder, path, client);
+                    }
+
+                    client.Disconnect();
+
                 }
 
                 _logger.LogInformation($"File check and upload ran successfully!");
@@ -143,7 +156,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
         }
 
-        private string ProcessFileAndUpload(bool isProduction, string productionOrSandboxFolder, string file)
+        private string ProcessFileAndUpload(bool isProduction, string productionOrSandboxFolder, string file, SftpClient client)
         {
             (string, string, string[]) newFileName = MTFileConverter.RenameMTFile(file, _logger);
 
@@ -161,12 +174,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 if (newFileName.Item3.Count() > 0)
                 {
                     FileHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction, Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), newFileName.Item2,
-                        newFileName.Item3[0], newFileName.Item3.Count() == 1 ? string.Empty : newFileName.Item3[1], _serviceScopeFactory, _logger);
+                        newFileName.Item3[0], newFileName.Item3.Count() == 1 ? string.Empty : newFileName.Item3[1], _serviceScopeFactory, _logger, client);
                 }
                 else
                 {
                     FileHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction,
-                        Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), string.Empty, string.Empty, string.Empty, _serviceScopeFactory, _logger);
+                        Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), string.Empty, string.Empty, string.Empty, _serviceScopeFactory, _logger, client);
                 }
             }
             catch (Exception ex)
@@ -187,5 +200,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
         }
 
+    }
+
+    public class SftpConfig
+    {
+        public string Host { get; set; }
+        public int Port { get; set; }
+        public string UserName { get; set; }
+        public string Password { get; set; }
     }
 }

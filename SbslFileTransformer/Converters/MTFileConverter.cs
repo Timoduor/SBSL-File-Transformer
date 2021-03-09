@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Renci.SshNet;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Helpers;
+using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
@@ -20,7 +22,7 @@ namespace SbslFileTransformer.Converters
     {
         private static object _locker = new object();
 
-        static readonly SemaphoreSlim SemaphoreExtractor = new SemaphoreSlim(1,1);
+        static readonly SemaphoreSlim SemaphoreExtractor = new SemaphoreSlim(1, 1);
         static readonly SemaphoreSlim SemaphoreValidator = new SemaphoreSlim(1, 1);
 
         public static (string, string, string[]) RenameMTFile(string originalFile, ILogger logger)
@@ -169,6 +171,16 @@ namespace SbslFileTransformer.Converters
 
                     var paths = notProcessed.Select(f => f.FilePath).ToList();
 
+                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
+
+                    var sftpConfig = new SftpConfig
+                    {
+                        Host = configurations.FirstOrDefault(c => c.Key == "Host")?.Value,
+                        Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port")?.Value),
+                        UserName = configurations.FirstOrDefault(c => c.Key == "UserName")?.Value,
+                        Password = encryptionManager.Decrypt(configurations.FirstOrDefault(c => c.Key == "Password")?.Value)
+                    };
+
                     if (paths.Count() > 0)
                     {
                         var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
@@ -183,22 +195,29 @@ namespace SbslFileTransformer.Converters
                         {
                             var md5 = encryptionManager.GetMd5(resultFile);
 
-                            if (FileHelpers.UploadFileToSftp(resultFile, md5, isProduction,
-                                Path.GetFileName(resultFile), null, null, null,
-                                serviceScopeFactory, logger))
+                            using (var client = new SftpClient(sftpConfig.Host, sftpConfig.Port == 0 ? 22 : sftpConfig.Port, sftpConfig.UserName, sftpConfig.Password))
                             {
-                                foreach (var file in notProcessed.OrderBy(f => f.UploadedDate))
+                                client.Connect();
+
+                                if (FileHelpers.UploadFileToSftp(resultFile, md5, isProduction,
+                                Path.GetFileName(resultFile), null, null, null,
+                                serviceScopeFactory, logger, client))
                                 {
-                                    if (filesInDirectoryToProcess.Contains(file.FilePath,
-                                        StringComparer.OrdinalIgnoreCase))
+                                    foreach (var file in notProcessed.OrderBy(f => f.UploadedDate))
                                     {
-                                        file.ProcessFor62F = true;
+                                        if (filesInDirectoryToProcess.Contains(file.FilePath,
+                                            StringComparer.OrdinalIgnoreCase))
+                                        {
+                                            file.ProcessFor62F = true;
+                                        }
                                     }
+
+                                    dbContext.UpdateRange(notProcessed);
+
+                                    await dbContext.SaveChangesAsync();
                                 }
 
-                                dbContext.UpdateRange(notProcessed);
-
-                                await dbContext.SaveChangesAsync();
+                                client.Disconnect();
                             }
                         }
                         logger.LogInformation($"Finished running balance file extractor on {paths.Count()} files");
