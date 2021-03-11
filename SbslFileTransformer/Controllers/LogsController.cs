@@ -24,7 +24,39 @@ namespace SbslFileTransformer.Controllers
             _dbContext = dbContext;
         }
 
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
+        {
+            try
+            {
+                var uploadedFiles = _dbContext.UploadedFiles.OrderByDescending(f => f.UploadedDate).Take(1000).ToList().OrderByDescending(f => f.UploadedDate);
+
+                return View(uploadedFiles);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return RedirectToAction("Index", "Home");
+            }
+        }
+
+        public async Task<IActionResult> Entries()
+        {
+            try
+            {
+                IOrderedEnumerable<SqliteLog> sqliteLogs = await GetSqliteLogs();
+
+                sqliteLogs = sqliteLogs ?? new List<SqliteLog>().OrderByDescending(l => l.Id);
+
+                return View(sqliteLogs);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return RedirectToAction("Index", "Home");
+            }
+        }
+
+        public IActionResult Files()
         {
             try
             {
@@ -34,16 +66,9 @@ namespace SbslFileTransformer.Controllers
                           files
                           .OrderByDescending(f => f.LastModified).Take(20);
 
-                IOrderedEnumerable<SqliteLog> sqliteLogs = await GetSqliteLogs();
+                var fileInfos = latestFiles.OrderByDescending(f => f.LastModified) ?? new List<IFileInfo>().OrderByDescending(f => f.LastModified);
 
-                var newLogs = new LogInfo
-                {
-                    FileInfos = latestFiles.OrderByDescending(f => f.LastModified) ?? new List<IFileInfo>().OrderByDescending(f => f.LastModified),
-                    SqliteLogs = sqliteLogs ?? new List<SqliteLog>().OrderByDescending(l => l.Id),
-                    UploadedFiles = _dbContext.UploadedFiles.OrderByDescending(f => f.UploadedDate).Take(1000).ToList().OrderByDescending(f => f.UploadedDate)
-                };
-
-                return View(newLogs);
+                return View(fileInfos);
             }
             catch (Exception ex)
             {
@@ -95,7 +120,8 @@ namespace SbslFileTransformer.Controllers
                         var properties = reader.GetString(3);
                         var exception = reader.GetString(4);
 
-                        logs.Add(new SqliteLog {
+                        logs.Add(new SqliteLog
+                        {
                             TimeStamp = timestamp,
                             Level = level,
                             RenderedMessage = renderedMessage,

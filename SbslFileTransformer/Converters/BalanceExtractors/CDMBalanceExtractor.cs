@@ -66,6 +66,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         {
                             row.ReconDate = resultDate;
                         }
+                        else if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out resultDate))
+                        {
+                            row.ReconDate = resultDate;
+                        }
                         else
                         {
                             continue;

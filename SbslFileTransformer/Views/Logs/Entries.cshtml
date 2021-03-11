@@ -1,4 +1,4 @@
-﻿@model IOrderedEnumerable<SftpUploadedFile>
+﻿@model IOrderedEnumerable<SbslFileTransformer.Models.SqliteLog>
 
 @{
     ViewData["Title"] = "Logs";
@@ -20,7 +20,7 @@
 
     <div class="card card-light small">
         <div class="card-header">
-            <strong>Uploaded Files</strong>
+            <strong>Log Entries</strong>
         </div>
         <div class="card-body">
             <div class="table-wrapper-scroll-y my-custom-scrollbar">
@@ -28,58 +28,40 @@
                     <thead class="thead-dark">
                         <tr>
                             <th>
-                                Name
+                                Time Stamp
                             </th>
                             <th>
-                                Uploaded Date
+                                Level
                             </th>
                             <th>
-                                Size
+                                Rendered Message
                             </th>
                             <th>
-                                Md5
+                                Properties
                             </th>
                             <th>
-                                Is Production
-                            </th>
-                            <th>
-                                File Path
-                            </th>
-                            <th>
-                                Sequence No
-                            </th>
-                            <th>
-                                Statement No
+                                Exception
                             </th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
-                            <tr class="@(item.IsProduction ? "bg-warning": "bg-light")">
-                                <td class="bg-">
-                                    @Html.DisplayFor(modelItem => item.Name)
+                            <tr class="@(item.Level == "Error" ? "bg-danger": item.Level == "Warning" ? "bg-warning" : "")">
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.TimeStamp)
                                 </td>
                                 <td>
-                                    @Html.DisplayFor(modelItem => item.UploadedDate)
+                                    @Html.DisplayFor(modelItem => item.Level)
                                 </td>
                                 <td>
-                                    @Html.DisplayFor(modelItem => item.Size)
+                                    @Html.DisplayFor(modelItem => item.RenderedMessage)
                                 </td>
                                 <td>
-                                    @Html.DisplayFor(modelItem => item.Md5)
+                                    @Html.DisplayFor(modelItem => item.Properties)
                                 </td>
                                 <td>
-                                    @Html.DisplayFor(modelItem => item.IsProduction)
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(modelItem => item.FilePath)
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(modelItem => item.MtSequenceNo)
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(modelItem => item.MtStatementNo)
+                                    @Html.DisplayFor(modelItem => item.Exception)
                                 </td>
                             </tr>
                         }
@@ -88,12 +70,4 @@
             </div>
         </div>
     </div>
-
 </div>
-
-@section Scripts
-{
-    <script>
-        $('.alert').alert();
-    </script>
-}
