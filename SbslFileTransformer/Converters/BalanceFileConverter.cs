@@ -100,7 +100,11 @@ namespace SbslFileTransformer.Converters
                 {
                     outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_B2W_{Entity}.txt");
                 }
-                if (filePath.ToLower().Contains("selcom"))
+                if (filePath.ToLower().Contains("w2b"))
+                {
+                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_W2B_{Entity}.txt");
+                }
+                if (filePath.ToLower().Contains("selcom") || filePath.ToLower().Contains("spenn"))
                 {
                     outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_SELCOM_{Entity}.txt");
                 }

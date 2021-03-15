@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Excel = Microsoft.Office.Interop.Excel;
 
@@ -114,12 +115,13 @@ namespace SbslFileTransformer.Converters
         {
             Excel.Application xlApp = null;
             Excel.Workbook xlWorkbook = null;
+            Excel.Worksheet sheet = null;
 
             try
             {
                 xlApp = new Excel.Application();
                 xlWorkbook = xlApp.Workbooks.Open(inputFile);
-                Excel.Worksheet sheet = (Excel.Worksheet)xlWorkbook.Sheets[1];
+                sheet = (Excel.Worksheet)xlWorkbook.Sheets[1];
                 Excel.Range xlRange = sheet.UsedRange;
 
                 int totalColumns = xlRange.Columns.Count;
@@ -163,6 +165,7 @@ namespace SbslFileTransformer.Converters
             }
             finally
             {
+                Marshal.ReleaseComObject(sheet);
                 xlWorkbook.Close();
                 xlApp.Quit();
             }
@@ -198,6 +201,9 @@ namespace SbslFileTransformer.Converters
 
         private string GetAccountNumber(string inputFile)
         {
+            if (inputFile.ToLower().Contains("w2b") && inputFile.ToLower().Contains("portal") && inputFile.ToLower().Contains("statement"))
+                return "30010326501012";
+
             if (inputFile.ToLower().Contains("b2w") && inputFile.ToLower().Contains("portal") && inputFile.ToLower().Contains("statement"))
                 return "30990326501010";
 

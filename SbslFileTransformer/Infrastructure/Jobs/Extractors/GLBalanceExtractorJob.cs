@@ -76,7 +76,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                         try
                         {
                             if (file.ToLower().Contains("mb_balance".ToLower()) || file.ToLower().Contains("selcom_balance".ToLower())
-                                || file.ToLower().Contains("b2w_balance".ToLower()))
+                                || file.ToLower().Contains("b2w_balance".ToLower()) || file.ToLower().Contains("w2b_balance".ToLower()))
                             {
                                 await converter.Execute(file, "Mobile banking");
                             }

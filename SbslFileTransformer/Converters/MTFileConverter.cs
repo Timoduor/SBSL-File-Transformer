@@ -178,7 +178,7 @@ namespace SbslFileTransformer.Converters
                         Host = configurations.FirstOrDefault(c => c.Key == "Host")?.Value,
                         Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port")?.Value),
                         UserName = configurations.FirstOrDefault(c => c.Key == "UserName")?.Value,
-                        Password = encryptionManager.Decrypt(configurations.FirstOrDefault(c => c.Key == "Password")?.Value)
+                        Password = configurations.FirstOrDefault(c => c.Key == "Password")?.Value
                     };
 
                     if (paths.Count() > 0)

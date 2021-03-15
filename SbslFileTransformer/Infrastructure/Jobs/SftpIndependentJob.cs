@@ -88,7 +88,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     Host = configurations.FirstOrDefault(c => c.Key == "Host")?.Value,
                     Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port")?.Value),
                     UserName = configurations.FirstOrDefault(c => c.Key == "UserName")?.Value,
-                    Password = _encryptionManager.Decrypt(configurations.FirstOrDefault(c => c.Key == "Password")?.Value),
+                    Password = configurations.FirstOrDefault(c => c.Key == "Password")?.Value,
                     RecurseFolders = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "RecurseFolders")?.Value),
                     IncludeSandbox = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeSandbox")?.Value),
                     IncludeProduction = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value),

@@ -343,7 +343,7 @@ namespace SbslFileTransformer.Controllers
                 {
                     ConfigType = ConfigurationType.Sftp,
                     Key = "Password",
-                    Value = _encryptionManager.Encrypt(config.Password),
+                    Value = config.Password,
                     Updated = DateTime.Now
                 };
 
