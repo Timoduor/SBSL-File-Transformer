@@ -75,7 +75,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     foreach (var file in files)
                     {
-                        if (file.ToLower().Contains("selcom") || file.ToLower().Contains("b2w") || file.ToLower().Contains("w2b") || file.ToLower().Contains("spenn"))
+                        if (file.ToLower().Contains("mb") && (file.ToLower().Contains("selcom") || file.ToLower().Contains("b2w")
+                            || file.ToLower().Contains("w2b") || file.ToLower().Contains("spenn")))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 

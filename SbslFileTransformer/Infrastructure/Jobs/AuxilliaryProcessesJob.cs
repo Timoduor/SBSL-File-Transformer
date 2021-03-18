@@ -68,7 +68,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 _logger.LogInformation("Running file Archive Job");
 
                 //do it only afternoons or at night
-                if ((DateTime.Now.Hour >= 19 && DateTime.Now.Hour <= 23) || (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 7))
+                if ((DateTime.Now.Hour >= 22 && DateTime.Now.Hour <= 23) || (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 4))
                 {
                     using (var scope = _serviceScopeFactory.CreateScope())
                     {
@@ -164,7 +164,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 _logger.LogInformation("Restarting SBSL Service");
 
                 //do it only at night
-                if (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 4)
+                if (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 3)
                 {
 #if (!DEBUG)
                     Helpers.FileHelpers.RestartService("SBSL ETL Service");

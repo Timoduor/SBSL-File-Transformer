@@ -94,14 +94,14 @@ namespace SbslFileTransformer.Converters
                 }
             }
 
+            if (transactions.Count == 0)
+            {
+                throw new Exception($"No transactions found in DTB PDF file {inputFile}");
+            }
+
             double closingBal = Convert.ToDouble(transactions.Last().BookBalance);
 
             StringBuilder lines = new StringBuilder();
-
-            if (transactions.Count == 0)
-            {
-                throw new Exception($"No transactions found in file {inputFile}");
-            }
 
             var balDate = transactions.First().ValueDate;
 
