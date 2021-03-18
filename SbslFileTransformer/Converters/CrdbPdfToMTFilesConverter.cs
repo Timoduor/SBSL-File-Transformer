@@ -100,7 +100,7 @@ namespace SbslFileTransformer.Converters
                     continue;
                 }
 
-                if (areTableValues && Regex.IsMatch(line.Trim(), @"\d{1,3}(,\d{3})*\.\d{2}?$"))
+                if (areTableValues && (Regex.IsMatch(line.Trim(), @"\d{1,3}(,\d{3})*\.\d{2}?$") || Regex.IsMatch(line.Trim(), @"\d{1,3}(,\d{3})$")))
                 {
                     var numbers = line.Trim().Split(' ');
                     extractedTableLine.Debit = numbers[0];
@@ -187,7 +187,7 @@ namespace SbslFileTransformer.Converters
 
                     var page = pdfDocument.GetPage(i);
 
-                    var text = PdfTextExtractor.GetTextFromPage(page, strategy);
+                     var text = PdfTextExtractor.GetTextFromPage(page, strategy);
 
                     content.Append(text);
                 }

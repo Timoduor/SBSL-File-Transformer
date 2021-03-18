@@ -70,7 +70,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                     if ((file.ToLower().Contains("nostro_balance".ToLower()) || file.ToLower().Contains("bnr_balance".ToLower())
                         || file.ToLower().Contains("bplus_balance".ToLower()) || file.ToLower().Contains("b2w_balance".ToLower())
                         || file.ToLower().Contains("selcom_balance".ToLower()) || file.ToLower().Contains("mb_balance".ToLower())
-                        || file.ToLower().Contains("_balance".ToLower()))
+                        || file.ToLower().Contains("_balance".ToLower()) || file.ToLower().Contains("w2b_balance".ToLower()))
                         && Path.GetExtension(file.ToLower()) != ".txt")
                     {
                         try
