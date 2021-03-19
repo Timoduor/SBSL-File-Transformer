@@ -54,7 +54,7 @@
                                     @Html.DisplayFor(modelItem => item.LastModified)
                                 </td>
                                 <td>
-                                    @Html.ActionLink("Download", "DownloadLogFile", new { name = item.Name }, new { @class = "btn btn-primary btn-sm" })
+                                    @Html.ActionLink("Download", "DownloadLogFile", new { name = item.Name }, new { @class = "btn btn-primary btn-sm", target="_blank" })
                                     @*@Html.ActionLink("Delete", "DeleteLogFile", new { name = item.Name }, new { @class = "btn btn-danger" })*@
                                 </td>
                             </tr>

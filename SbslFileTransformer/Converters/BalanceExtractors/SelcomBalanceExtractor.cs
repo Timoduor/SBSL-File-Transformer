@@ -1,6 +1,4 @@
-﻿
-using CsvHelper;
-using ExcelDataReader;
+﻿using CsvHelper;
 using HtmlAgilityPack;
 using SbslFileTransformer.Infrastructure.Helpers;
 using System;
@@ -8,9 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
-using Excel = Microsoft.Office.Interop.Excel;
 
 namespace SbslFileTransformer.Converters
 {
@@ -43,7 +39,7 @@ namespace SbslFileTransformer.Converters
 
                     GetHtmlW2BData(inputFile, list2);
 
-                    GenerateMultiCurr2(list2, inputFile, outputFolder);
+                    //GenerateMultiCurr2(list2, inputFile, outputFolder);
 
                     break;
             }
