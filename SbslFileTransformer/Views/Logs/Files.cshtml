@@ -8,7 +8,7 @@
     ViewData["Title"] = "Logs";
 }
 <div class="container">
-    
+
     @if (!string.IsNullOrEmpty(TempData["Message"]?.ToString()))
     {
         <div class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -21,7 +21,6 @@
 
     <partial name="_LogHeader" />
 
-    <br />
     <div class="card card-deck small">
         <div class="card-header">
             <strong>Log Files</strong>
