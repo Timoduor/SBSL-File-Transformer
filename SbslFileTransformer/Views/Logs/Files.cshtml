@@ -1,11 +1,14 @@
-﻿@model IOrderedEnumerable<Microsoft.Extensions.FileProviders.IFileInfo>
+﻿@using X.PagedList;
+@using X.PagedList.Mvc.Core;
+@using X.PagedList.Mvc.Core.Common;
+
+@model IPagedList<Microsoft.Extensions.FileProviders.IFileInfo>
 
 @{
     ViewData["Title"] = "Logs";
 }
 <div class="container">
-    <h6>Logs</h6>
-
+    
     @if (!string.IsNullOrEmpty(TempData["Message"]?.ToString()))
     {
         <div class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -54,13 +57,18 @@
                                     @Html.DisplayFor(modelItem => item.LastModified)
                                 </td>
                                 <td>
-                                    @Html.ActionLink("Download", "DownloadLogFile", new { name = item.Name }, new { @class = "btn btn-primary btn-sm", target="_blank" })
+                                    @Html.ActionLink("Download", "DownloadLogFile", new { name = item.Name }, new { @class = "btn btn-primary btn-sm", target = "_blank" })
                                     @*@Html.ActionLink("Delete", "DeleteLogFile", new { name = item.Name }, new { @class = "btn btn-danger" })*@
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
+                @Html.PagedListPager(Model, page => Url.Action("Files", new { page }),
+                                            new PagedListRenderOptions()
+                                            {
+                                                LiElementClasses = new List<string> { "btn", "btn-light mb-5" }
+                                            })
             </div>
         </div>
     </div>

@@ -63,6 +63,7 @@
     <PackageReference Include="Serilog.Sinks.SQLite" Version="5.0.0" />
     <PackageReference Include="SSH.NET" Version="2020.0.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0" />
+    <PackageReference Include="X.PagedList.Mvc.Core" Version="8.0.7" />
   </ItemGroup>
 
   <ItemGroup>

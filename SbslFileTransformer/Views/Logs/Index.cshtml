@@ -1,10 +1,13 @@
-﻿@model IOrderedEnumerable<SftpUploadedFile>
+﻿@using X.PagedList;
+@using X.PagedList.Mvc.Core;
+@using X.PagedList.Mvc.Core.Common;
+
+@model IPagedList<SftpUploadedFile>
 
 @{
     ViewData["Title"] = "Logs";
 }
 <div class="container">
-    <h6>Logs</h6>
 
     @if (!string.IsNullOrEmpty(TempData["Message"]?.ToString()))
     {
@@ -85,6 +88,11 @@
                         }
                     </tbody>
                 </table>
+                @Html.PagedListPager(Model, page => Url.Action("Index", new { page }),
+                                            new PagedListRenderOptions()
+                                            {
+                                                LiElementClasses = new List<string> { "btn", "btn-light mb-5" }
+                                            })
             </div>
         </div>
     </div>

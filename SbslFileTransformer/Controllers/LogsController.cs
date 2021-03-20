@@ -7,7 +7,8 @@ using SbslFileTransformer.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using X.PagedList;
+
 
 namespace SbslFileTransformer.Controllers
 {
@@ -24,13 +25,20 @@ namespace SbslFileTransformer.Controllers
             _dbContext = dbContext;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(int page = 1)
         {
             try
             {
-                var uploadedFiles = _dbContext.UploadedFiles.OrderByDescending(f => f.UploadedDate).Take(1000).ToList().OrderByDescending(f => f.UploadedDate);
+                int count = 0;
+                int itemsPerPage = 10;
 
-                return View(uploadedFiles);
+                var uploadedFiles = _dbContext.UploadedFiles.OrderByDescending(f => f.UploadedDate).Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToList().OrderByDescending(f => f.UploadedDate);
+
+                count = _dbContext.UploadedFiles.Count();
+
+                var pagedList = new StaticPagedList<SftpUploadedFile>(uploadedFiles, page, itemsPerPage, count);
+
+                return View(pagedList);
             }
             catch (Exception ex)
             {
@@ -39,15 +47,20 @@ namespace SbslFileTransformer.Controllers
             }
         }
 
-        public async Task<IActionResult> Entries()
+        public IActionResult Entries(int page = 1)
         {
             try
             {
-                IOrderedEnumerable<SqliteLog> sqliteLogs = await GetSqliteLogs();
+                int count = 0;
+                int itemsPerPage = 10;
+
+                IOrderedEnumerable<SqliteLog> sqliteLogs = GetSqliteLogs(page, itemsPerPage, out count);
 
                 sqliteLogs = sqliteLogs ?? new List<SqliteLog>().OrderByDescending(l => l.Id);
 
-                return View(sqliteLogs);
+                var pagedList = new StaticPagedList<SqliteLog>(sqliteLogs, page, itemsPerPage, count);
+
+                return View(pagedList);
             }
             catch (Exception ex)
             {
@@ -56,19 +69,20 @@ namespace SbslFileTransformer.Controllers
             }
         }
 
-        public IActionResult Files()
+        public IActionResult Files(int page = 1)
         {
             try
             {
-                var files = _fileProvider.GetDirectoryContents("logs");
+                int count = 0;
+                int itemsPerPage = 10;
 
-                var latestFiles =
-                          files
-                          .OrderByDescending(f => f.LastModified).Take(20);
+                var latestFiles = GetLogFiles(page, itemsPerPage, out count);
 
                 var fileInfos = latestFiles.OrderByDescending(f => f.LastModified) ?? new List<IFileInfo>().OrderByDescending(f => f.LastModified);
 
-                return View(fileInfos);
+                var pagedList = new StaticPagedList<IFileInfo>(fileInfos, page, itemsPerPage, count);
+
+                return View(pagedList);
             }
             catch (Exception ex)
             {
@@ -95,7 +109,19 @@ namespace SbslFileTransformer.Controllers
         }
 
 
-        private async Task<IOrderedEnumerable<SqliteLog>> GetSqliteLogs()
+        private IEnumerable<IFileInfo> GetLogFiles(int page, int itemsPerPage, out int totalCount)
+        {
+            var files = _fileProvider.GetDirectoryContents("logs");
+
+            var latestFiles = files
+                      .OrderByDescending(f => f.LastModified).Skip(itemsPerPage * (page - 1)).Take(itemsPerPage);
+
+            totalCount = files.Count();
+
+            return latestFiles;
+        }
+
+        private IOrderedEnumerable<SqliteLog> GetSqliteLogs(int page, int itemsPerPage, out int totalCount)
         {
             var logs = new List<SqliteLog>();
 #if DEBUG
@@ -108,11 +134,11 @@ namespace SbslFileTransformer.Controllers
 
                 var command = connection.CreateCommand();
 
-                command.CommandText = "SELECT \"TimeStamp\", \"Level\", RenderedMessage, Properties, \"Exception\", id FROM Logs ORDER BY \"Timestamp\" DESC LIMIT 1000";
+                command.CommandText = $@"SELECT ""TimeStamp"", ""Level"", RenderedMessage, Properties, ""Exception"", id FROM Logs ORDER BY ""Timestamp"" DESC LIMIT {itemsPerPage} OFFSET {(page - 1) * itemsPerPage}";
 
                 using (var reader = command.ExecuteReader())
                 {
-                    while (await reader.ReadAsync())
+                    while (reader.Read())
                     {
                         var timestamp = reader.GetString(0);
                         var level = reader.GetString(1);
@@ -130,6 +156,11 @@ namespace SbslFileTransformer.Controllers
                         });
                     }
                 }
+
+                var commandCount = connection.CreateCommand();
+                commandCount.CommandText = "SELECT COUNT(*) FROM Logs";
+
+                totalCount = Convert.ToInt32(commandCount.ExecuteScalar());
             }
 
             return logs.OrderByDescending(l => l.Id);
