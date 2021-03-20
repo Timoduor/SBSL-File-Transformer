@@ -4,13 +4,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using SbslFileTransformer.Infrastructure.Helpers;
 
 
 namespace SbslFileTransformer.Infrastructure.Jobs
@@ -166,7 +166,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 if (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 3)
                 {
 #if (!DEBUG)
-                    Helpers.FileHelpers.RestartService("SBSL ETL Service");
+                    FileHelpers.RestartService("SBSL ETL Service");
 #endif
                 }
             }

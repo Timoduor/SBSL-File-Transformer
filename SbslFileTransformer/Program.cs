@@ -18,13 +18,13 @@ namespace SbslFileTransformer
 
             Log.Logger = new LoggerConfiguration()
 #if DEBUG
-                .MinimumLevel.Information()
+                .MinimumLevel.Warning()
 #else
                 .MinimumLevel.Information()
 #endif
                 .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore"))
                 .Enrich.FromLogContext()
-                .WriteTo.SQLite("sbsletl_logs.db", retentionPeriod: TimeSpan.FromDays(14), rollOver:false)
+                .WriteTo.SQLite("sbsletl_logs.db", retentionPeriod: TimeSpan.FromDays(10), rollOver:false, maxDatabaseSize: 20480)
                 .WriteTo.Console()
                 .WriteTo.RollingFile(formatter, Path.Combine(Directory.GetCurrentDirectory(), "logs/{Date}-SBSLETL.log"),
                     fileSizeLimitBytes: 10485760)

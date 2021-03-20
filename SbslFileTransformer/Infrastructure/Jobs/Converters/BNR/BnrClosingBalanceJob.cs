@@ -2,13 +2,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters;
+using SbslFileTransformer.Converters.BNR;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -16,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class BnrConverterJob : IHostedService
+    public class BnrClosingBalanceJob : IHostedService
     {
         private ILogger<BnrConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
@@ -24,7 +23,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         private static SemaphoreSlim _semaphore;
         Timer _timer;
 
-        public BnrConverterJob(ILogger<BnrConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public BnrClosingBalanceJob(ILogger<BnrConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -33,7 +32,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting BNR Converter Job");
+            _logger.LogInformation("Starting BNR closing Balance Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
@@ -48,7 +47,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running BNR converter job");
+                _logger.LogInformation("Running BNR closing balance job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -71,7 +70,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.xls", options));
 
-                    var bnrConverter = new BnrConverter();
+                    var bnrConverter = new BnrClosingBalance();
 
                     foreach (var file in files)
                     {
@@ -89,7 +88,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 {
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting BNR files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Closing Balance BNR files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
                                 finally
                                 {

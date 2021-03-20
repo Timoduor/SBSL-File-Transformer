@@ -12,9 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Mail;
 using System.Net.Mime;
-using System.Text;
 using System.Threading.Tasks;
-using ContentDisposition = MimeKit.ContentDisposition;
 using ContentType = MimeKit.ContentType;
 
 namespace SbslFileTransformer.Infrastructure.Messaging

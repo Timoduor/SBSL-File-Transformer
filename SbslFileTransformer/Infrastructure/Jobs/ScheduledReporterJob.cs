@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
+using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
@@ -20,7 +21,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Infrastructure.Jobs
 {

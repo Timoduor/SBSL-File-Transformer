@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Renci.SshNet;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Sftp;
 using SbslFileTransformer.Models;
@@ -8,8 +10,6 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Renci.SshNet;
 
 namespace SbslFileTransformer.Infrastructure.Helpers
 {

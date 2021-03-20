@@ -56,7 +56,6 @@ namespace SbslFileTransformer
             services.AddTransient<EncryptionManager>();
             services.AddTransient<EmailSender>();
 
-
             services.AddHostedService<SftpIndependentJob>();
             services.AddHostedService<ScheduledReporterJob>();
             services.AddHostedService<MtBalanceExtractorJob>();
