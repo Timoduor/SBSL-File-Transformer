@@ -81,7 +81,9 @@ namespace SbslFileTransformer.Converters
                             var DorC2 = csv.GetField<int>(6);
                             var closingBalance = csv.GetField<double>(7);
 
-                            string toAppend = $"{Entity}\t{accNo}\t{functionalArea}\t\t\t\t\t\t\t\t{GetAccountName(accNo, lookUp)}\t{functionalArea}\tA\tAsset\tTRUE\tTRUE\t\t{currency}\t{ContentHelpers.GetLastDayOfTheMonth(date2):MM/dd/yyyy}\t\t\t{-1 * DorC2 * closingBalance}\n";
+                            var multiplyBy = accNo == "25049787002" || accNo == "25049787004" ? 1 : -1;
+
+                            string toAppend = $"{Entity}\t{accNo}\t{functionalArea}\t\t\t\t\t\t\t\t{GetAccountName(accNo, lookUp)}\t{functionalArea}\tA\tAsset\tTRUE\tTRUE\t\t{currency}\t{ContentHelpers.GetLastDayOfTheMonth(date2):MM/dd/yyyy}\t\t\t{multiplyBy * DorC2 * closingBalance}\n";
 
                             output.Append(toAppend);
                         }
@@ -112,7 +114,7 @@ namespace SbslFileTransformer.Converters
                 {
                     outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_FLOAT_{Entity}.txt");
                 }
-                if (filePath.ToLower().Contains("mb"))
+                if (filePath.ToLower().Contains("mb") || filePath.ToLower().Contains("mb_util"))
                 {
                     outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_MB_{Entity}.txt");
                 }

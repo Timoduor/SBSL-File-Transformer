@@ -91,6 +91,22 @@ namespace SbslFileTransformer.Controllers
             }
         }
 
+        public IActionResult Charts()
+        {
+            //To show GROUPED logs, processed reports and uploaded files
+            try
+            {
+
+
+                return View();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+            }
+            return RedirectToAction("Index", "Home");
+        }
+
         public IActionResult DownloadLogFile(string name)
         {
             try

@@ -23,7 +23,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
-        public async Task ConvertFile(string inputFile, string outputFolder)
+        public async Task ConvertFile(string inputFile, string outputFolder, string entity)
         {
             //Replace empties with zeros in columns 5 and 6
 
@@ -91,8 +91,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
-                var outputFile = Path.Combine(outputFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_cdmKE.txt");
-                var outputFileGL = Path.Combine(outputFolder, $"GLAccounts_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_cdmKE.txt");
+                var outputFile = Path.Combine(outputFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_cdm_{entity}.txt");
+                var outputFileGL = Path.Combine(outputFolder, $"GLAccounts_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_cdm_{entity}.txt");
 
                 Dictionary<string, string> lookUp = new Dictionary<string, string>();
 

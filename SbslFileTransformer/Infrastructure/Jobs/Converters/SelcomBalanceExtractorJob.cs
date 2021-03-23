@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class SelcomBalanceExtractorJob : IHostedService
+    public class SelcomBalanceExtractorJob : ConverterJobBase, IHostedService
     {
         private ILogger<SelcomBalanceExtractorJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;

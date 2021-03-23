@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class CamtToMultiCurrJob : IHostedService
+    public class CamtToMultiCurrJob : ConverterJobBase, IHostedService
     {
         private Timer _timer;
         private readonly ILogger<CamtToMultiCurrJob> _logger;

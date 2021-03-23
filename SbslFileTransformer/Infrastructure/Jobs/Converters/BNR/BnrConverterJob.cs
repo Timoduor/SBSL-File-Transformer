@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class BnrConverterJob : IHostedService
+    public class BnrConverterJob : ConverterJobBase, IHostedService
     {
         private ILogger<BnrConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
@@ -32,7 +32,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting BNR Converter Job");
+            _logger.LogInformation("Starting Statement BNR Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
@@ -47,7 +47,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running BNR converter job");
+                _logger.LogInformation("Running BNR Statement converter job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -70,11 +70,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.xls", options));
 
-                    var bnrConverter = new BnrConverter();
+                    var bnrConverter = new BnrStatementConverter(Entity, dbContext);
 
                     foreach (var file in files)
                     {
-                        if (file.ToLower().Contains("bnr"))
+                        if (file.ToLower().Contains("bnr") && file.ToLower().Contains("statements"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -82,7 +82,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             {
                                 try
                                 {
-                                    bnrConverter.ConvertFile(file);
+                                    var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
+
+                                    var rootFolder = isProd ? prodFolder : sbFolder;
+
+                                    bnrConverter.ConvertFile(file, rootFolder);
                                 }
                                 catch (Exception ex)
                                 {

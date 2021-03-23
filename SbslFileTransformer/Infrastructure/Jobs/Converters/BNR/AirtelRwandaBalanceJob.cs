@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SbslFileTransformer.Converters.BalanceExtractors;
 using SbslFileTransformer.Converters.BNR;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
@@ -15,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class BnrClosingBalanceJob : IHostedService
+    public class AirtelRwandaBalanceJob : ConverterJobBase, IHostedService
     {
         private ILogger<BnrConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
@@ -23,7 +24,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         private static SemaphoreSlim _semaphore;
         Timer _timer;
 
-        public BnrClosingBalanceJob(ILogger<BnrConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public AirtelRwandaBalanceJob(ILogger<BnrConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -70,7 +71,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.xls", options));
 
-                    var bnrConverter = new BnrClosingBalance();
+                    var bnrConverter = new AirtelRwandaBalanceExtractor();
 
                     foreach (var file in files)
                     {

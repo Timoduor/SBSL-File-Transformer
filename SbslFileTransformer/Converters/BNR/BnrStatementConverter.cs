@@ -1,5 +1,8 @@
 ﻿using CsvHelper;
 using ExcelDataReader;
+using SbslFileTransformer.Converters.BNR;
+using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -9,14 +12,20 @@ using System.Text;
 
 namespace SbslFileTransformer.Converters
 {
-    public class BnrConverter
+    public class BnrStatementConverter
     {
-        public BnrConverter()
+        private string _entity;
+        private ApplicationDbContext _dbContext;
+
+        public BnrStatementConverter(string Entity, ApplicationDbContext dbContext)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            _entity = Entity;
+            _dbContext = dbContext;
         }
 
-        public void ConvertFile(string inputFile, string outputFile = null)
+        public void ConvertFile(string inputFile, string rootFolder, string outputFile = null)
         {
             var list = new List<ExcelCols>();
 
@@ -209,24 +218,187 @@ namespace SbslFileTransformer.Converters
                 }
             }
 
+            var outputFolder = Path.GetDirectoryName(inputFile);
+
+            outputFolder = Path.Combine(Directory.GetParent(outputFolder).FullName, "Conv");
+
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                 Directory.CreateDirectory(outputFolder);
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.csv");
+                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileName.Substring(Math.Max(0, fileName.Length - 10))}_STAMT.csv");
             }
 
             WriteToFile(list, outputFile);
 
-            GenerateMultiCurr(list);
+            GetClosingBalanceMutliCurrNAdjustment(inputFile, rootFolder, outputFolder);
         }
 
-        private void GenerateMultiCurr(List<ExcelCols> list)
+        private void GetClosingBalanceMutliCurrNAdjustment(string inputFile, string rootFolder, string outputFolder)
         {
-            throw new NotImplementedException("Error generating Multicurr file for BNR");
+            var list = new List<ExcelCols>();
+
+            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            {
+                using (var reader = ExcelReaderFactory.CreateReader(stream))
+                {
+                    double closing = 0;
+                    double opening = 0;
+                    var row = new ExcelCols();
+                    while (reader.Read())
+                    {
+                        if (reader.GetValue(15)?.ToString().Contains("Closing Balance") ?? false)
+                        {
+                            var val = reader.GetValue(15).ToString().Split(' ')[3];
+
+                            closing = Convert.ToDouble(val);
+
+                            if (closing != 0)
+                            {
+                                row.Col3 = closing.ToString();
+                            }
+                        }
+
+                        if (reader.GetValue(9)?.ToString().Contains("Opening Balance") ?? false)
+                        {
+                            var val1 = reader.GetValue(9).ToString().Split(':')[1];
+
+                            opening = Convert.ToDouble(val1);
+                            if (opening != 0)
+                            {
+                                row.Col4 = opening.ToString();
+                            }
+                        }
+
+                        if (reader.GetValue(0)?.ToString().Contains("Account:") ?? false)
+                        {
+                            row.Col1 = reader.GetValue(0)?.ToString().Split(new[] { ':', '-' }, StringSplitOptions.RemoveEmptyEntries)[1];
+                        }
+                        if (reader.GetValue(7)?.ToString().StartsWith("Date From") ?? false)
+                        {
+                            var data = reader.GetValue(7)?.ToString();
+                            var lines = data.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+                            foreach (var line in lines)
+                            {
+                                if (line.StartsWith("Currency:"))
+                                {
+                                    string currency = line.Split(':')[1];
+
+                                    row.Col2 = currency.ToString();
+                                }
+                                else if (line.StartsWith("Date From"))
+                                {
+                                    var date = DateTime.ParseExact(line.Split(' ')[2], "dd-MM-yyyy", CultureInfo.InvariantCulture);
+                                    row.Col0 = date.ToString();
+                                }
+                            }
+                        }
+                    }
+                    //Difference between closing balance and opening balance
+                    row.Col5 = (Convert.ToDouble(row.Col3) - Convert.ToDouble(row.Col4)).ToString();
+                    list.Add(row);
+                }
+            }
+
+            GenerateAdjustment(list, inputFile, outputFolder);
+
+            //input = acc / amt / date
+            GenerateMultiCurr(list, inputFile, rootFolder);
+        }
+
+        private void GenerateAdjustment(List<ExcelCols> list, string inputFile, string outputFolder)
+        {
+            var countHeader = new CountHeader
+            {
+                Value_date = list.First().Col0,
+
+                Amount = list.First().Col5,
+
+                Remittance_info = "Adjust. clearing BNR for " + list.First().Col0
+
+            };
+
+            //RWF
+            if (list.First().Col5.Contains("-") && list.First().Col1.Contains("1240000"))
+            {
+                countHeader.Debit_account = "1240000";
+                countHeader.DR_CR = "Debit";
+                //EUR
+            }
+            else if (list.First().Col5.Contains("-") && list.First().Col1.Contains("1000026561"))
+            {
+                countHeader.Debit_account = "1000026561";
+                countHeader.DR_CR = "Debit";
+                //USD
+            }
+            else if (list.First().Col5.Contains("-") && list.First().Col1.Contains("3208000"))
+            {
+                countHeader.Debit_account = "3208000";
+                countHeader.DR_CR = "Debit";
+            }
+            //RWF
+            else if (list.First().Col5.Contains("") && list.First().Col1.Contains("1240000"))
+            {
+                countHeader.Credit_account = "1240000";
+                countHeader.DR_CR = "Credit";
+            }
+            //EUR
+            else if (list.First().Col5.Contains("") && list.First().Col1.Contains("1000026561"))
+            {
+                countHeader.Credit_account = "1000026561";
+                countHeader.DR_CR = "Credit";
+            }
+            //USD
+            else if (list.First().Col5.Contains("") && list.First().Col1.Contains("3208000"))
+            {
+                countHeader.Credit_account = "3208000";
+                countHeader.DR_CR = "Credit";
+            }
+
+            var fileName = Path.GetFileNameWithoutExtension(inputFile);
+
+            var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
+
+            WriteToFile(countHeader, Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_ADJSMT.csv"));
+        }
+
+        private void GenerateMultiCurr(List<ExcelCols> list, string inputFile, string outputFolder)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(inputFile);
+
+            var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
+
+            var outputFile = Path.Combine(outputFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_BNR_{_entity}.txt");
+
+            var toAppend = new StringBuilder();
+
+            var account = list.First().Col1;
+            DateTime date = Convert.ToDateTime(list.First().Col0);
+            var amount = list.First().Col3; //vs col5 diff
+            var currency = list.First().Col2;
+
+            toAppend.Append($"{_entity}\t{GetGLAccountNumber(account, _dbContext)}\tNostros\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
+
+            var text = toAppend.ToString();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                File.WriteAllText(outputFile, text);
+            }
+        }
+
+        private string GetGLAccountNumber(string accNo, ApplicationDbContext dbContext)
+        {
+            var account = (dbContext.Accounts.FirstOrDefault(a => a.Account.ToLower() == accNo.ToLower() || a.Account.ToLower().Contains(accNo.ToLower())))?.Number;
+
+            if (!string.IsNullOrEmpty(account))
+            {
+                return account;
+            }
+            return accNo;
         }
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)
@@ -241,6 +413,22 @@ namespace SbslFileTransformer.Converters
                         csv.WriteRecord(row);
                         csv.NextRecord();
                     }
+                }
+            }
+
+        }
+
+        private void WriteToFile(CountHeader rows, string outputFile)
+        {
+            using (var writer = new StreamWriter(outputFile))
+            {
+                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                {
+                    csv.WriteHeader<CountHeader>();
+                    csv.NextRecord();
+                    csv.WriteRecord(rows);
+
+
                 }
             }
 

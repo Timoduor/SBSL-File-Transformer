@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class CrdbPdfToMTFileJob : IHostedService
+    public class CrdbPdfToMTFileJob : ConverterJobBase, IHostedService
     {
         private Timer _timer;
         private ILogger<CrdbPdfToMTFileJob> _logger;

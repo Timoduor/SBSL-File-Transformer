@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class BnrAdjustmentJob : IHostedService
+    public class BnrSettlementConverterJob : ConverterJobBase, IHostedService
     {
         private ILogger<BnrConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
@@ -24,7 +24,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         private static SemaphoreSlim _semaphore;
         Timer _timer;
 
-        public BnrAdjustmentJob(ILogger<BnrConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public BnrSettlementConverterJob(ILogger<BnrConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -33,7 +33,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting BNR Adjustment Job");
+            _logger.LogInformation("Starting BNR Settlement Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
@@ -48,7 +48,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running BNR Adjustment job");
+                _logger.LogInformation("Running BNR Settlement converter job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -71,11 +71,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.xls", options));
 
-                    var bnrConverter = new BNRAdjustment();
+                    var bnrConverter = new SettlementConverter();
 
                     foreach (var file in files)
                     {
-                        if (file.ToLower().Contains("bnr"))
+                        if (file.ToLower().Contains("bnr") && file.ToLower().Contains("settlements"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -89,7 +89,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 {
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Adjusting BNR files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting BNR files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
                                 finally
                                 {

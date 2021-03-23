@@ -62,6 +62,11 @@ namespace SbslFileTransformer.Controllers
             return View(taskVM);
         }
 
+        public IActionResult Jobs()
+        {
+            return View();
+        }
+
         [HttpPost]
         public IActionResult RunPlugin(string plugin, string file)
         {

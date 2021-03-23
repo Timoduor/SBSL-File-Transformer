@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class EP75ConverterJob : IHostedService
+    public class EP75ConverterJob : ConverterJobBase, IHostedService
     {
         private ILogger<EP75ConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;

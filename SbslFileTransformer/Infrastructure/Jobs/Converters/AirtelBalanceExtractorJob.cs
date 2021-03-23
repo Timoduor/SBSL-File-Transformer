@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class AirtelBalanceExtractorJob : IHostedService
+    public class AirtelBalanceExtractorJob : ConverterJobBase, IHostedService
     {
         private ILogger<AirtelBalanceExtractorJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;

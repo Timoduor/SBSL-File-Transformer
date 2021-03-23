@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class MpesaB2CnC2BConverterJob : IHostedService
+    public class MpesaB2CnC2BConverterJob : ConverterJobBase, IHostedService
     {
         private ILogger<MpesaB2CnC2BConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;

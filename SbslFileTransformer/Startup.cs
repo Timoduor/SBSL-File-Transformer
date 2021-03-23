@@ -77,6 +77,10 @@ namespace SbslFileTransformer
             services.AddHostedService<AirtelBalanceExtractorJob>();
             services.AddHostedService<SelcomBalanceExtractorJob>();
 
+            services.AddHostedService<BnrSettlementConverterJob>();
+            services.AddHostedService<AirtelRwandaBalanceJob>();
+            services.AddHostedService<BillerUtilBalanceExtractorJob>();
+
             services.AddHostedService<CamtToMultiCurrJob>();
 
         }

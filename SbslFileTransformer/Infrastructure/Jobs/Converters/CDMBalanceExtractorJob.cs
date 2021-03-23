@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class CDMBalanceExtractorJob : IHostedService
+    public class CDMBalanceExtractorJob : ConverterJobBase, IHostedService
     {
         private ILogger<CDMBalanceExtractorJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
@@ -88,7 +88,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                     var rootFolder = isProd ? prodFolder : sbFolder;
 
-                                    await mpesaConverter.ConvertFile(file, rootFolder);
+                                    await mpesaConverter.ConvertFile(file, rootFolder, Entity);
                                 }
                                 catch (Exception ex)
                                 {

@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class CdmConverterJob : IHostedService
+    public class CdmConverterJob : ConverterJobBase, IHostedService
     {
         private Timer _timer;
         private ILogger<CdmConverterJob> _logger;

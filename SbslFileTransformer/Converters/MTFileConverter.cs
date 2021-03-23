@@ -236,7 +236,7 @@ namespace SbslFileTransformer.Converters
 
         private static async Task<string> ProcessFilesBalance(List<string> filesToProcess, string sandboxOrProdFolder, string entity, IServiceScopeFactory serviceScopeFactory)
         {
-            var outputPath = Path.Combine(sandboxOrProdFolder, $"MultiCurr_{DateTime.Now:yyyyMMdd_HHmmss}_{entity}.txt");
+            var outputPath = Path.Combine(sandboxOrProdFolder, $"MultiCurr_{DateTime.Now:yyyyMMdd_HHmmss}_MT_{entity}.txt");
 
             StringBuilder output = new StringBuilder();
             List<Balance> balances = new List<Balance>();

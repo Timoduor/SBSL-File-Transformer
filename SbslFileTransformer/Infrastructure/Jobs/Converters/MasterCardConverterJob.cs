@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class MasterCardConverterJob : IHostedService
+    public class MasterCardConverterJob : ConverterJobBase, IHostedService
     {
         private ILogger<MasterCardConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;

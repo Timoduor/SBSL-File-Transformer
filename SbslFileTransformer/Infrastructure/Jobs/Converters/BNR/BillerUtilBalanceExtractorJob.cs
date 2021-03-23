@@ -2,7 +2,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters.KenSwitch;
+using SbslFileTransformer.Converters;
+using SbslFileTransformer.Converters.BalanceExtractors;
+using SbslFileTransformer.Converters.BNR;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
@@ -15,15 +17,15 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class KenSwitchConverterJob : ConverterJobBase, IHostedService
+    public class BillerUtilBalanceExtractorJob : ConverterJobBase, IHostedService
     {
-        private Timer _timer;
+        private ILogger<BnrConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
-        ILogger<KenSwitchConverterJob> _logger;
         EmailSender _emailSender;
         private static SemaphoreSlim _semaphore;
+        Timer _timer;
 
-        public KenSwitchConverterJob(ILogger<KenSwitchConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public BillerUtilBalanceExtractorJob(ILogger<BnrConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -32,22 +34,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting KenSwitch Converter Job");
+            _logger.LogInformation("Starting BNR Adjustment Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await ConvertKenSwitchPdfs(), null, TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await ConvertBnrFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task ConvertKenSwitchPdfs()
+        private async Task ConvertBnrFile()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running KenSwitch converter job");
+                _logger.LogInformation("Running BNR Adjustment job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -66,15 +68,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.pdf", options).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.xls", options).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.pdf", options));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.xls", options));
 
-                    var converter = new KenSwitchConverter();
+                    var bnrConverter = new FDIBalanceExtractor();
 
                     foreach (var file in files)
                     {
-                        if (file.ToLower().Contains("kenswitch"))
+                        if (file.ToLower().Contains("bnr"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -82,13 +84,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             {
                                 try
                                 {
-                                    converter.ConverterKenSwitchFile(file);
+                                    bnrConverter.ConvertFile(file);
                                 }
                                 catch (Exception ex)
                                 {
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting KenSwitch files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Adjusting BNR files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
                                 finally
                                 {
@@ -102,6 +104,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         }
                     }
                 }
+
             }
             catch (Exception ex)
             {
@@ -113,11 +116,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             }
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
+        public Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Stopping KS converter job");
-
-            await _timer.DisposeAsync();
+            _semaphore.Dispose();
+            _timer.Dispose();
+            return Task.CompletedTask;
         }
     }
 }
