@@ -88,10 +88,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
 
             WriteToCommissionFile(list2, outputFile);
 
-            
             GenerateMultiCurr(list, inputFile, rootFolder);
-            
-
         }
 
         private void GenerateMultiCurr(List<ExcelCols> list, string inputFile, string rootFolder)
