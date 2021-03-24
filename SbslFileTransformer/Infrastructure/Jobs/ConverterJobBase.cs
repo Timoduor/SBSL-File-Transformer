@@ -1,6 +1,5 @@
 ﻿using SbslFileTransformer.Data;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace SbslFileTransformer.Infrastructure.Jobs
 {
