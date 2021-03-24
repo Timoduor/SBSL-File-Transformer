@@ -9,9 +9,9 @@ using System.Text;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class AirtelBalanceExtractor
+    public class AirtelKenyaBalanceExtractor
     {
-        public AirtelBalanceExtractor()
+        public AirtelKenyaBalanceExtractor()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }

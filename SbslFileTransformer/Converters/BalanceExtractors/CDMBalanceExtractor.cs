@@ -69,6 +69,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         {
                             row.ReconDate = resultDate;
                         }
+                        else if (DateTime.TryParse(reader.GetValue(1)?.ToString(), out resultDate))
+                        {
+                            row.ReconDate = resultDate;
+                        }
+                        else if (int.TryParse(reader.GetValue(1)?.ToString(), out var intRes))
+                        {
+                            if (intRes.FromExcelSerialDate(out resultDate))
+                            {
+                                row.ReconDate = resultDate;
+                            }
+                        }
                         else
                         {
                             continue;

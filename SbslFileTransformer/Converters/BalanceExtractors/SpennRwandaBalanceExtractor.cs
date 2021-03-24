@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Converters.BalanceExtractors
 {
-    public class AirtelRwandaBalanceExtractor
+    public class SpennRwandaBalanceExtractor
     {
         string _entity;
-        public AirtelRwandaBalanceExtractor(string entity)
+        public SpennRwandaBalanceExtractor(string entity)
         {
             _entity = entity;
 

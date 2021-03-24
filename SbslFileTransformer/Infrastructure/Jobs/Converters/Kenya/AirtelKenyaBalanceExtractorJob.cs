@@ -14,15 +14,15 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class CDMBalanceExtractorJob : ConverterJobBase, IHostedService
+    public class AirtelKenyaBalanceExtractorJob : ConverterJobBase, IHostedService
     {
-        private ILogger<CDMBalanceExtractorJob> _logger;
+        private ILogger<AirtelKenyaBalanceExtractorJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
         private static SemaphoreSlim _semaphore;
         Timer _timer;
 
-        public CDMBalanceExtractorJob(ILogger<CDMBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public AirtelKenyaBalanceExtractorJob(ILogger<AirtelKenyaBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -31,22 +31,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting MPesa Balance Extractor Job");
+            _logger.LogInformation("Starting Airtel Balance Extractor Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await CDMFileBalanceExtractor(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await AirtelFileBalanceExtractor(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task CDMFileBalanceExtractor()
+        private async Task AirtelFileBalanceExtractor()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running CDM Balance Extractor job");
+                _logger.LogInformation("Running Airtel Balance Extractor job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -65,18 +65,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv") || f.ToLower().EndsWith(".xlsx")).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv") || f.ToLower().EndsWith(".xlsx")));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")));
 
-                    var mpesaConverter = new CDMBalanceExtractor();
-
-                    mpesaConverter.ServiceScopeFactory = _serviceScopeFactory;
-                    mpesaConverter.Entity = Entity;
+                    var mpesaConverter = new AirtelKenyaBalanceExtractor();
 
                     foreach (var file in files)
                     {
-                        if ((file.ToLower().Contains("cdm") && file.ToLower().Contains("bal")) || (file.ToLower().Contains("cash") && file.ToLower().Contains("deposit") && file.ToLower().Contains("machine") && file.ToLower().Contains("bal")))
+                        if (file.ToLower().Contains("airtel") && file.ToLower().Contains("mobile") && file.ToLower().Contains("banking"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -88,13 +85,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                     var rootFolder = isProd ? prodFolder : sbFolder;
 
-                                    await mpesaConverter.ConvertFile(file, rootFolder, Entity);
+                                    mpesaConverter.ConvertFile(file, rootFolder);
                                 }
                                 catch (Exception ex)
                                 {
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting CDM Balance files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting Airtel Balance files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
                                 finally
                                 {

@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters.BalanceExtractors;
-using SbslFileTransformer.Converters.BNR;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
@@ -16,15 +15,15 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class AirtelRwandaBalanceJob : ConverterJobBase, IHostedService
+    public class SpennRwandaBalanceExtractorJob : ConverterJobBase, IHostedService
     {
-        private ILogger<BnrConverterJob> _logger;
+        private ILogger<AirtelKenyaBalanceExtractorJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
         private static SemaphoreSlim _semaphore;
         Timer _timer;
 
-        public AirtelRwandaBalanceJob(ILogger<BnrConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public SpennRwandaBalanceExtractorJob(ILogger<AirtelKenyaBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -33,22 +32,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting BNR closing Balance Job");
+            _logger.LogInformation("Starting Spenn RW Balance Extractor Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await ConvertBnrFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await AirtelFileBalanceExtractor(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task ConvertBnrFile()
+        private async Task AirtelFileBalanceExtractor()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running BNR closing balance job");
+                _logger.LogInformation("Running Spenn RW Balance Extractor job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -67,15 +66,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.xls", options).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.xls", options));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")));
 
-                    var bnrConverter = new AirtelRwandaBalanceExtractor();
+                    var mpesaConverter = new SpennRwandaBalanceExtractor(Entity);
 
                     foreach (var file in files)
                     {
-                        if (file.ToLower().Contains("bnr"))
+                        if (file.ToLower().Contains("spenn") && file.ToLower().Contains("mb") && file.ToLower().Contains("pp"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -83,13 +82,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             {
                                 try
                                 {
-                                    bnrConverter.ConvertFile(file);
+                                    var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
+
+                                    var rootFolder = isProd ? prodFolder : sbFolder;
+
+                                    mpesaConverter.ConvertFile(file, rootFolder);
                                 }
                                 catch (Exception ex)
                                 {
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Closing Balance BNR files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem extracting balance from files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
                                 finally
                                 {

@@ -79,6 +79,7 @@
 
   <ItemGroup>
     <Folder Include="Data\Migrations\" />
+    <Folder Include="Infrastructure\Jobs\NewFolder\" />
     <Folder Include="logs\" />
     <Folder Include="Migrations\" />
     <Folder Include="Resources\" />

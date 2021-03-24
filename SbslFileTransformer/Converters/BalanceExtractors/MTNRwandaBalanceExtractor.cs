@@ -8,18 +8,19 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Converters.BalanceExtractors
 {
-    public class AirtelRwandaBalanceExtractor
+    public class MTNRwandaBalanceExtractor
     {
         string _entity;
-        public AirtelRwandaBalanceExtractor(string entity)
+        public MTNRwandaBalanceExtractor(string entity)
         {
             _entity = entity;
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
+
         public void ConvertFile(string inputFile, string rootFolder)
         {
-            
+
         }
 
         private void GenerateMultiCurr(List<ExcelCols> list, string inputFile, string rootFolder)

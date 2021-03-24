@@ -74,12 +74,15 @@ namespace SbslFileTransformer
             services.AddHostedService<MpesaBalanceExtractorJob>();
             services.AddHostedService<MpesaB2CnC2BConverterJob>();
             services.AddHostedService<CDMBalanceExtractorJob>();
-            services.AddHostedService<AirtelBalanceExtractorJob>();
+            services.AddHostedService<AirtelKenyaBalanceExtractorJob>();
             services.AddHostedService<SelcomBalanceExtractorJob>();
-
             services.AddHostedService<BnrSettlementConverterJob>();
-            services.AddHostedService<AirtelRwandaBalanceJob>();
+
             services.AddHostedService<BillerUtilBalanceExtractorJob>();
+            services.AddHostedService<BillerUtilCleanerJob>();
+            services.AddHostedService<AirtelRwandaBalanceExtractorJob>();
+            services.AddHostedService<MTNRwandaBalanceExtractorJob>();
+            services.AddHostedService<SpennRwandaBalanceExtractorJob>();
 
             services.AddHostedService<CamtToMultiCurrJob>();
 

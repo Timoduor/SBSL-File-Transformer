@@ -228,7 +228,9 @@ namespace SbslFileTransformer.Converters
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileName.Substring(Math.Max(0, fileName.Length - 10))}_STAMT.csv");
+                var fileNameToUse = fileName.Substring(Math.Max(0, fileName.Length - 12)).Replace(" ","");
+
+                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileNameToUse}_STAMT.csv");
             }
 
             WriteToFile(list, outputFile);

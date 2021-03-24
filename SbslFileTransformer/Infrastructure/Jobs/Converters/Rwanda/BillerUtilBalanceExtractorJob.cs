@@ -34,7 +34,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting BNR Adjustment Job");
+            _logger.LogInformation("Starting Biller Util Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
@@ -49,7 +49,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running BNR Adjustment job");
+                _logger.LogInformation("Running BillerUtil Bal Extractor job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -68,15 +68,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.xls", options).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.csv", options).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.xls", options));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.csv", options));
 
-                    var bnrConverter = new FDIBalanceExtractor();
+                    var bnrConverter = new FDIBalanceExtractor(Entity);
 
                     foreach (var file in files)
                     {
-                        if (file.ToLower().Contains("bnr"))
+                        if (file.ToLower().Contains("fdi") && file.ToLower().Contains("portal") && file.ToLower().Contains("bal"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -84,13 +84,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             {
                                 try
                                 {
-                                    bnrConverter.ConvertFile(file);
+                                    var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
+
+                                    var rootFolder = isProd ? prodFolder : sbFolder;
+
+                                    bnrConverter.ConvertFile(file, rootFolder);
                                 }
                                 catch (Exception ex)
                                 {
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Adjusting BNR files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem extracting balance from files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
                                 finally
                                 {
