@@ -1,6 +1,8 @@
-﻿using SbslFileTransformer.Infrastructure.Helpers;
+﻿using ExcelDataReader;
+using SbslFileTransformer.Infrastructure.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -20,30 +22,70 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
 
         public void ConvertFile(string inputFile, string rootFolder)
         {
+            var list = new List<ExcelCols>();
 
+            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            {
+                using (var reader = ExcelReaderFactory.CreateCsvReader(stream))
+                {
+                    int count = 0;
+
+                    while (reader.Read())
+                    {
+                        var value = reader.GetValue(0)?.ToString();
+                        if (string.IsNullOrEmpty(value))
+                        {
+                            continue;
+                        }
+
+                        if (count == 0)
+                        {
+                            count++;
+                            continue;
+                        }
+
+                        var row = new ExcelCols();
+
+                        row.Col0 = reader.GetValue(0)?.ToString().Replace("'", "");
+
+                        row.Col1 = reader.GetValue(6)?.ToString();
+
+                        list.Add(row);
+                    }
+                }
+            }
+
+            GenerateMultiCurr(list.Last(), inputFile, rootFolder);
         }
 
-        private void GenerateMultiCurr(List<ExcelCols> list, string inputFile, string rootFolder)
+        private void GenerateMultiCurr(ExcelCols list, string inputFile, string rootFolder)
         {
             var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
             var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
-            var outputFile = Path.Combine(rootFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_FDI_{_entity}.txt");
+            var outputFile = Path.Combine(rootFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_MTN_{_entity}.txt");
 
             var toAppend = new StringBuilder();
 
-            DateTime date = Convert.ToDateTime(list.First().Col0);
-            var amount = list.First().Col3; //vs col5 diff
-            var currency = "RWF";
-
-            toAppend.Append($"{_entity}\t20100243506073\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
-
-            var text = toAppend.ToString();
-
-            if (!string.IsNullOrEmpty(text))
+            if (DateTime.TryParseExact(list.Col0, "M/dd/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) ||
+                DateTime.TryParseExact(list.Col0, "M/dd/yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out date))
             {
-                File.WriteAllText(outputFile, text);
+                var amount = list.Col1; //vs col5 diff
+                var currency = "RWF";
+
+                toAppend.Append($"{_entity}\t20100243506075\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
+
+                var text = toAppend.ToString();
+
+                if (!string.IsNullOrEmpty(text))
+                {
+                    File.WriteAllText(outputFile, text);
+                }
+            }
+            else
+            {
+                throw new Exception($"Unable to convert datetime value {list.Col0}");
             }
         }
 

@@ -74,7 +74,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     foreach (var file in files)
                     {
-                        if (file.ToLower().Contains("spenn") && file.ToLower().Contains("mb") && file.ToLower().Contains("pp"))
+                        if (file.ToLower().Contains("spenn") && file.ToLower().Contains("mb") && file.ToLower().Contains("pp") && file.ToLower().Contains("bal"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 

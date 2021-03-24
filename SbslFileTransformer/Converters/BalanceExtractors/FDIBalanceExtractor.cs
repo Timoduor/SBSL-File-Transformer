@@ -88,10 +88,9 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
 
             WriteToCommissionFile(list2, outputFile);
 
-            if (list.Count() > 0)
-            {
-                GenerateMultiCurr(list, inputFile, rootFolder);
-            }
+            
+            GenerateMultiCurr(list, inputFile, rootFolder);
+            
 
         }
 
