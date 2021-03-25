@@ -94,9 +94,17 @@ namespace SbslFileTransformer.Converters
 
                 var outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_{Entity}.txt");
 
+                if (filePath.ToLower().Contains("nostro"))
+                {
+                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_NOSTRO_{Entity}.txt");
+                }
                 if (filePath.ToLower().Contains("bnr"))
                 {
                     outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_BNR_{Entity}.txt");
+                }
+                if (filePath.ToLower().Contains("bplus"))
+                {
+                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_BPLUS_{Entity}.txt");
                 }
                 if (filePath.ToLower().Contains("b2w"))
                 {
@@ -114,10 +122,15 @@ namespace SbslFileTransformer.Converters
                 {
                     outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_FLOAT_{Entity}.txt");
                 }
-                if (filePath.ToLower().Contains("mb") || filePath.ToLower().Contains("mb_util"))
+                if (filePath.ToLower().Contains("mb"))
                 {
                     outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_MB_{Entity}.txt");
                 }
+                if (filePath.ToLower().Contains("util"))
+                {
+                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_UTIL_{Entity}.txt");
+                }
+
 
                 if (!File.Exists(outputPath))
                     await File.WriteAllTextAsync(outputPath, output.ToString());

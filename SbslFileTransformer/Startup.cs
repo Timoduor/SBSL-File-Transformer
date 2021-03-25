@@ -10,6 +10,7 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Infrastructure.Jobs.Converters;
+using SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya;
 using SbslFileTransformer.Infrastructure.Jobs.Extractors;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Infrastructure.Sftp;
@@ -83,6 +84,7 @@ namespace SbslFileTransformer
             services.AddHostedService<AirtelRwandaBalanceExtractorJob>();
             services.AddHostedService<MTNRwandaBalanceExtractorJob>();
             services.AddHostedService<SpennRwandaBalanceExtractorJob>();
+            services.AddHostedService<LipaNaMpesaC2BMerchantConverterJob>();
 
             services.AddHostedService<CamtToMultiCurrJob>();
 

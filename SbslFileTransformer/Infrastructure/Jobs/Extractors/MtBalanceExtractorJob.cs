@@ -43,6 +43,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
             {
                 var statementFolderProd = Path.Combine(config.ProductionFolder, @$"{config.Entity}\NOSTRO\STATEMENT");//TODO PUT IN CONFIG OR CHANGE FOR DIFFERENT COUNTRIES
 
+                if (!Directory.Exists(statementFolderProd))
+                {
+                    Directory.CreateDirectory(statementFolderProd);
+                }
+
                 //sync all folders every hours
                 var timerProduction = new Timer(async(state) => await MTFileConverter.RunMTBalanceExtractor(statementFolderProd, true, config.ProductionFolder, _serviceScopeFactory, _logger)
                     , null, TimeSpan.FromSeconds(new Random().Next(5, 30)), TimeSpan.FromMinutes(loopTime));
@@ -53,6 +58,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
             else //if (config.IncludeSandbox)
             {
                 var statementFolder = Path.Combine(config.SandboxFolder, @$"{config.Entity}\NOSTRO\STATEMENT");//TODO PUT IN CONFIG OR CHANGE FOR DIFFERENT COUNTRIES
+
+                if (!Directory.Exists(statementFolder))
+                {
+                    Directory.CreateDirectory(statementFolder);
+                }
 
                 var timerSandbox = new Timer(async(state) => await MTFileConverter.RunMTBalanceExtractor(statementFolder, false, config.SandboxFolder, _serviceScopeFactory, _logger)
                     , null, TimeSpan.FromSeconds(new Random().Next(5, 30)), TimeSpan.FromMinutes(loopTime));
