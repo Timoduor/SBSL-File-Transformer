@@ -106,6 +106,22 @@ namespace SbslFileTransformer.Converters
                 {
                     outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_BPLUS_{Entity}.txt");
                 }
+                if (filePath.ToLower().Contains("float"))
+                {
+                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_FLOAT_{Entity}.txt");
+                }
+                if (filePath.ToLower().Contains("float") && filePath.ToLower().Contains("spenn"))
+                {
+                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_SFLOAT_{Entity}.txt");
+                }
+                if (filePath.ToLower().Contains("selcom") && filePath.ToLower().Contains("spenn"))
+                {
+                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_SELCOM_{Entity}.txt");
+                }
+                if (filePath.ToLower().Contains("mb"))
+                {
+                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_MB_{Entity}.txt");
+                }
                 if (filePath.ToLower().Contains("b2w"))
                 {
                     outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_B2W_{Entity}.txt");
@@ -113,18 +129,6 @@ namespace SbslFileTransformer.Converters
                 if (filePath.ToLower().Contains("w2b"))
                 {
                     outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_W2B_{Entity}.txt");
-                }
-                if (filePath.ToLower().Contains("selcom") && filePath.ToLower().Contains("spenn"))
-                {
-                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_SELCOM_{Entity}.txt");
-                }
-                if (filePath.ToLower().Contains("float") && filePath.ToLower().Contains("spenn"))
-                {
-                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_FLOAT_{Entity}.txt");
-                }
-                if (filePath.ToLower().Contains("mb"))
-                {
-                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_MB_{Entity}.txt");
                 }
                 if (filePath.ToLower().Contains("util"))
                 {
