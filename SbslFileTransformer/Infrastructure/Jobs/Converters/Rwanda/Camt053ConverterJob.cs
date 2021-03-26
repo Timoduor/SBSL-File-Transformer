@@ -75,7 +75,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     foreach (var file in files)
                     {
                         //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
-                        if (file.ToLower().Contains("camt053"))
+                        if (file.ToLower().Contains("camt053") && file.ToLower().Contains("imrw"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 

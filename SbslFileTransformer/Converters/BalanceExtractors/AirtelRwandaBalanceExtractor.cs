@@ -66,7 +66,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
             var toAppend = new StringBuilder();
 
             DateTime date = Convert.ToDateTime(list.Col0);
-            var amount = list.Col3; //vs col5 diff
+            var amount = list.Col1; //vs col5 diff
             var currency = "RWF";
 
             toAppend.Append($"{_entity}\t20100243506065\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");

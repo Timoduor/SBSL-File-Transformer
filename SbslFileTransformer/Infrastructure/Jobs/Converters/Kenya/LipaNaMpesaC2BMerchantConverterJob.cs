@@ -75,7 +75,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     foreach (var file in files)
                     {
                         if ((file.ToLower().Contains("c2b") && file.ToLower().Contains("merchant") || (file.ToLower().Contains("lipa") && file.ToLower().Contains("mpesa")))
-                            && file.ToLower().Contains("mobile") && file.ToLower().Contains("banking"))
+                            && file.ToLower().Contains("mobile") && file.ToLower().Contains("banking") && file.ToLower().Contains("imke"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 

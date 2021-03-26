@@ -74,7 +74,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     foreach (var file in files)
                     {
-                        if (file.ToLower().Contains("bnr") && file.ToLower().Contains("settlements"))
+                        if (file.ToLower().Contains("bnr") && file.ToLower().Contains("imrw") && file.ToLower().Contains("settlements"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 

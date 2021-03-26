@@ -61,11 +61,11 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
 
             //logic for getting sum
 
-            double amount = list.Skip(1).Sum(r => Convert.ToDouble(r.Col2.ToString()));
+            double amount = list.Sum(r => Convert.ToDouble(r.Col2.ToString()));
 
             var sumrow = new ExcelCols
             {
-                Col0 = list.Skip(1).Select(r => r.Col0).FirstOrDefault(),
+                Col0 = list.Select(r => r.Col0).FirstOrDefault(),
 
                 Col1 = "Commission",
 
