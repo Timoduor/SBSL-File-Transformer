@@ -211,7 +211,11 @@ namespace SbslFileTransformer.Converters
 
                     selcomRow.TransType = row.SelectNodes("td")[2].InnerText;
 
-                    selcomRow.Amount = Convert.ToDouble(row.SelectNodes("td")[3].InnerText);
+                    string amountString2 = row.SelectNodes("td")[3].InnerText;
+
+                    string amount2 = string.IsNullOrEmpty(amountString2) ? "0" : amountString2;
+
+                    selcomRow.Amount = Convert.ToDouble(amount2);
 
                     selcomRow.UtilityType = row.SelectNodes("td")[4].InnerText;
 
@@ -221,7 +225,11 @@ namespace SbslFileTransformer.Converters
 
                     selcomRow.TransID = row.SelectNodes("td")[7].InnerText;
 
-                    selcomRow.OBal = Convert.ToDouble(row.SelectNodes("td")[8].InnerText);
+                    string amountString3 = row.SelectNodes("td")[8].InnerText;
+
+                    string amount3 = string.IsNullOrEmpty(amountString3) ? "0" : amountString3;
+
+                    selcomRow.OBal = Convert.ToDouble(amount3);
 
                     selcomRow.Account = GetAccountNumber(inputFile);
 
