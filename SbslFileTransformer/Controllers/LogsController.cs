@@ -6,6 +6,7 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using X.PagedList;
 
@@ -18,11 +19,14 @@ namespace SbslFileTransformer.Controllers
         private readonly ILogger<LogsController> _logger;
         private readonly IFileProvider _fileProvider;
         private readonly ApplicationDbContext _dbContext;
+        private readonly string _logsFolder;
         public LogsController(ILogger<LogsController> logger, IFileProvider fileProvider, ApplicationDbContext dbContext)
         {
             _fileProvider = fileProvider;
             _logger = logger;
             _dbContext = dbContext;
+
+            _logsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "SBSL_ETL", "logs");
         }
 
         public IActionResult Index(int page = 1)
@@ -78,9 +82,9 @@ namespace SbslFileTransformer.Controllers
 
                 var latestFiles = GetLogFiles(page, itemsPerPage, out count);
 
-                var fileInfos = latestFiles.OrderByDescending(f => f.LastModified) ?? new List<IFileInfo>().OrderByDescending(f => f.LastModified);
+                var fileInfos = latestFiles.OrderByDescending(f => f.LastWriteTime) ?? new List<FileInfo>().OrderByDescending(f => f.LastWriteTime);
 
-                var pagedList = new StaticPagedList<IFileInfo>(fileInfos, page, itemsPerPage, count);
+                var pagedList = new StaticPagedList<FileInfo>(fileInfos, page, itemsPerPage, count);
 
                 return View(pagedList);
             }
@@ -111,26 +115,45 @@ namespace SbslFileTransformer.Controllers
         {
             try
             {
-                var files = _fileProvider.GetDirectoryContents("logs");
+                var logPathFiles = Path.Combine(_logsFolder, "log_files");
+
+                var files = Directory.GetFiles(logPathFiles).Select(f => new FileInfo(f));
 
                 var file = files.FirstOrDefault(f => f.Name == name);
 
-                return File(file.CreateReadStream(), "text/plain");
+                var bytes = ReadAllBytes2(file.FullName);
+
+                return File(bytes, "text/plain");
+
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return RedirectToAction("Logs");
+                return RedirectToAction("Files");
+            }
+        }
+
+        private byte[] ReadAllBytes2(string filePath, FileAccess fileAccess = FileAccess.Read, FileShare shareMode = FileShare.ReadWrite)
+        {
+            using (var fs = new FileStream(filePath, FileMode.Open, fileAccess, shareMode))
+            {
+                using (var ms = new MemoryStream())
+                {
+                    fs.CopyTo(ms);
+                    return ms.ToArray();
+                }
             }
         }
 
 
-        private IEnumerable<IFileInfo> GetLogFiles(int page, int itemsPerPage, out int totalCount)
+        private IEnumerable<FileInfo> GetLogFiles(int page, int itemsPerPage, out int totalCount)
         {
-            var files = _fileProvider.GetDirectoryContents("logs");
+            var logPathFiles = Path.Combine(_logsFolder, "log_files");
+
+            var files = Directory.GetFiles(logPathFiles).Select(f => new FileInfo(f));
 
             var latestFiles = files
-                      .OrderByDescending(f => f.LastModified).Skip(itemsPerPage * (page - 1)).Take(itemsPerPage);
+                      .OrderByDescending(f => f.LastWriteTime).Skip(itemsPerPage * (page - 1)).Take(itemsPerPage);
 
             totalCount = files.Count();
 
@@ -143,7 +166,8 @@ namespace SbslFileTransformer.Controllers
 #if DEBUG
             using (var connection = new SqliteConnection(@"Data Source=bin\Debug\netcoreapp3.1\sbsletl_logs.db"))
 #else
-            using (var connection = new SqliteConnection("Data Source=sbsletl_logs.db"))
+            var logPathSqlite = Path.Combine(_logsFolder, "log_sqlite");
+            using (var connection = new SqliteConnection($"Data Source={Path.Combine(logPathSqlite, "sbsletl_logs.db")}"))
 #endif
             {
                 connection.Open();

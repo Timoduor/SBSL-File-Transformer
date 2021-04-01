@@ -2,7 +2,7 @@
 @using X.PagedList.Mvc.Core;
 @using X.PagedList.Mvc.Core.Common;
 
-@model IPagedList<Microsoft.Extensions.FileProviders.IFileInfo>
+@model IPagedList<System.IO.FileInfo>
 
 @{
     ViewData["Title"] = "Logs";
@@ -53,7 +53,7 @@
                                     @Html.DisplayFor(modelItem => item.Length)
                                 </td>
                                 <td>
-                                    @Html.DisplayFor(modelItem => item.LastModified)
+                                    @Html.DisplayFor(modelItem => item.LastWriteTime)
                                 </td>
                                 <td>
                                     @Html.ActionLink("Download", "DownloadLogFile", new { name = item.Name }, new { @class = "btn btn-primary btn-sm", target = "_blank" })

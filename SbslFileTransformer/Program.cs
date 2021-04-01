@@ -16,6 +16,10 @@ namespace SbslFileTransformer
             var formatter = new MessageTemplateTextFormatter(
                 "${Timestamp} [{Level}] {Message:l}{NewLine:l}{Exception:l}", CultureInfo.CurrentCulture);
 
+            var logsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "SBSL_ETL", "logs");
+            var logPathFiles = Path.Combine(logsFolder, "log_files");
+            var logPathSqlite = Path.Combine(logsFolder, "log_sqlite");
+
             Log.Logger = new LoggerConfiguration()
 #if DEBUG
                 .MinimumLevel.Information()
@@ -24,9 +28,9 @@ namespace SbslFileTransformer
 #endif
                 .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore"))
                 .Enrich.FromLogContext()
-                .WriteTo.SQLite("sbsletl_logs.db", retentionPeriod: TimeSpan.FromDays(10), rollOver:false, maxDatabaseSize: 20480)
+                .WriteTo.SQLite(Path.Combine(logPathSqlite, "sbsletl_logs.db"), retentionPeriod: TimeSpan.FromDays(10), rollOver:false, maxDatabaseSize: 20480)
                 .WriteTo.Console()
-                .WriteTo.RollingFile(formatter, Path.Combine(Directory.GetCurrentDirectory(), "logs/{Date}-SBSLETL.log"),
+                .WriteTo.RollingFile(formatter, Path.Combine(Directory.GetCurrentDirectory(), Path.Combine(logPathFiles, "{Date}-SBSLETL.log")),
                     fileSizeLimitBytes: 10485760)
                 .CreateLogger();
 

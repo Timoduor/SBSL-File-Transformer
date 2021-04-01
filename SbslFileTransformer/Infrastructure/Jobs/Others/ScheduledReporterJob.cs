@@ -103,6 +103,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                 $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{report.Name}." +
                                 (config.ExportType == "Excel" ? "xlsx" : config.ExportType));
 
+
+                            //send only to kenyan users
+                            if (report.Name.ToLower().Contains("kenya"))
+                            {
+                                //send it to kenyan emails
+                            }
+                            if (report.Name.ToLower().Contains("rwanda"))
+                            {
+
+                            }
+                            if (report.Name.ToLower().Contains("tanzania"))
+                            {
+
+                            }
+
+
                             try
                             {
 
