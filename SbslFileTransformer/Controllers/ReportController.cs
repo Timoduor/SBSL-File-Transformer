@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
@@ -59,6 +60,18 @@ namespace SbslFileTransformer.Controllers
 
         public IActionResult CreateGroup()
         {
+            ViewBag.Countries = new SelectList(Enum.GetValues(typeof(Country)).Cast<Country>().Select(v => new SelectListItem
+            {
+                Text = v.ToString(),
+                Value = ((int)v).ToString()
+            }).ToList(), "Value", "Text");
+
+            ViewBag.Sprints = new SelectList(Enum.GetValues(typeof(Sprint)).Cast<Sprint>().Select(v => new SelectListItem
+            {
+                Text = v.ToString(),
+                Value = ((int)v).ToString()
+            }).ToList(), "Value", "Text");
+
             return View();
         }
 
@@ -75,6 +88,18 @@ namespace SbslFileTransformer.Controllers
         public async Task<IActionResult> EditGroup(int id)
         {
             var group = await _dbContext.EmailGroups.FindAsync(id);
+
+            ViewBag.Countries = new SelectList(Enum.GetValues(typeof(Country)).Cast<Country>().Select(v => new SelectListItem
+            {
+                Text = v.ToString(),
+                Value = ((int)v).ToString()
+            }).ToList(), "Value", "Text");
+
+            ViewBag.Sprints = new SelectList(Enum.GetValues(typeof(Sprint)).Cast<Sprint>().Select(v => new SelectListItem
+            {
+                Text = v.ToString(),
+                Value = ((int)v).ToString()
+            }).ToList(), "Value", "Text");
 
             return View(group);
         }

@@ -61,18 +61,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 var config = GetConfiguration();
 
-                //FOR TEST PURPOSES ONLY
-                //{
-                //    var testResults = ProcessReportFile(@"C:\Users\Yida\Downloads\KE Nostro Open Items Daily Report.xlsx");
-
-                //    foreach (var key in testResults.Item2)
-                //    {
-                //        //key is the overdue days used to select the email groups
-                //        var emails = GetEmails(key.Key);
-
-                //        await _emailSender.SendMessage(emails, $"Overdue recons by {key.Key} days or more", $"This is an auto-generated report for reconciliations overdue by {key.Key} days or more", filePaths: new string[] { testResults.Item1, key.Value });
-                //    }
-                //}
                 _logger.LogInformation($"Fetching tokens for {config.UserNamesAndPasswords.Count} users");
 
                 var tokens = await GetLoginTokens(config);
@@ -90,6 +78,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     {
                         var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
+                        var emailGroups = dbContext.EmailGroups.Where(g => g.IsActive).ToList();
+
                         foreach (var report in allReports)
                         {
                             if (dbContext.ProcessedReports.Any(r => r.ReportId == report.ReportId))
@@ -103,28 +93,58 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                 $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{report.Name}." +
                                 (config.ExportType == "Excel" ? "xlsx" : config.ExportType));
 
+                            int[] daysRange = default;
+                            Country country = Country.Kenya;
+                            Sprint sprint = Sprint.Nostro;
 
-                            //send only to kenyan users
+                            //SET COUNTRY
+                            //Kenya
                             if (report.Name.ToLower().Contains("kenya"))
                             {
-                                //send it to kenyan emails
+                                country = Country.Kenya;
                             }
+                            //Rwanda
                             if (report.Name.ToLower().Contains("rwanda"))
                             {
-
+                                country = Country.Rwanda;
                             }
+                            //Tanzania
                             if (report.Name.ToLower().Contains("tanzania"))
                             {
-
+                                country = Country.Tanzania;
                             }
 
+                            //SET SPRINT
+
+                            //Nostros
+                            if (report.Name.ToLower().Contains("nostros"))
+                            {
+                                sprint = Sprint.Nostro;
+                            }
+                            //Mobile banking
+                            if(report.Name.ToLower().Contains("mobile") && report.Name.ToLower().Contains("banking"))
+                            {
+                                sprint = Sprint.Mobile_Banking;
+                            }
+                            //Cards
+                            if (report.Name.ToLower().Contains("cards"))
+                            {
+                                sprint = Sprint.Cards;
+                            }
+                            //Suspense
+                            if (report.Name.ToLower().Contains("suspense"))
+                            {
+                                sprint = Sprint.Suspense;
+                            }
+
+                            //get email groups
+                            GetEmailGroups(emailGroups, out daysRange, country, sprint);
 
                             try
                             {
-
                                 if (await DownloadReport(report.ReportId, config, reportPath, token))
                                 {
-                                    var results = await ProcessReportFile(reportPath);
+                                    var results = await ProcessReportFile(reportPath, daysRange);
 
                                     _logger.LogInformation($"Sending emails for report {report.Name} with ID {report.ReportId}");
 
@@ -133,7 +153,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                         foreach (var key in results.Item2)
                                         {
                                             //key is the overdue days used to select the email groups
-                                            var emails = GetEmails(key.Key);
+                                            var emails = GetEmails(key.Key, country, sprint);
 
                                             //ONLY SEND EMAILS IF FILE HAS 1 OR MORE RECORDS
                                             await _emailSender.SendMessage(emails, config.EmailHeader + $" Report ID: { report.ReportId }",
@@ -145,7 +165,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                     }
                                     else
                                     {
-                                        await _emailSender.SendMessage(GetEmails(3), config.EmailHeader,
+                                        await _emailSender.SendMessage(GetEmails(daysRange[0], country, sprint), config.EmailHeader,
                                             config.EmailBody, filePaths: new string[] { results.Item1 });
 
                                         await Task.Delay(7000);
@@ -156,7 +176,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                     _logger.LogInformation($"Finished processing report {report.Name} with ID {report.ReportId}");
                                 }
                             }
-                            catch(Exception ex)
+                            catch (Exception ex)
                             {
                                 _logger.LogError(ex, ex.Message);
                             }
@@ -172,6 +192,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 _semaphore.Release();
             }
+        }
+
+        private static void GetEmailGroups(List<EmailGroup> emailGroups, out int[] daysRange, Country country, Sprint sprint)
+        {
+            var groups = emailGroups.Where(g => g.Country == country && g.Sprint == sprint);
+
+            daysRange = groups.OrderBy(g => g.AgeAlertDuration).Select(g => g.AgeAlertDuration).ToArray();
         }
 
         private async Task SaveToDb(ReportModel report, ApplicationDbContext dbContext, ReportConfigModel config)
@@ -280,7 +307,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             return reports;
         }
 
-        private IEnumerable<string> GetEmails(int key)
+        private IEnumerable<string> GetEmails(int duration, Country country, Sprint sprint)
         {
             var emails = new List<string>();
 
@@ -288,7 +315,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                var groups = dbContext.EmailGroups.Where(g => g.AgeAlertDuration == key && g.IsActive);
+                var groups = dbContext.EmailGroups.Where(g => g.AgeAlertDuration == duration && g.Country == country && g.Sprint == sprint && g.IsActive);
 
                 var groupEmails = groups.ToList().Select(g => g.Emails);
 
@@ -306,7 +333,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         /// </summary>
         /// <param name="savedFile"></param>
         /// <returns>List of key: email group name and value: list of files to send to them</returns>
-        private async Task<(string, Dictionary<int, string>)> ProcessReportFile(string inputFile)
+        private async Task<(string, Dictionary<int, string>)> ProcessReportFile(string inputFile, int[] daysRange)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -369,29 +396,45 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 }
             }
 
-            var olderThan3days = openItems.Where(i => i.DaysOverdue >= 3 && i.DaysOverdue < 5);
-            var olderThan5days = openItems.Where(i => i.DaysOverdue >= 5 && i.DaysOverdue < 7);
-            var olderThan7days = openItems.Where(i => i.DaysOverdue >= 7 && i.DaysOverdue < 30);
-            var olderThan30days = openItems.Where(i => i.DaysOverdue >= 30);
+            for (int i = 0; i < daysRange.Length; i++)
+            {
+                List<OpenItem> items;
 
-            if (olderThan3days.Any())
-            {
-                daysRecordsPairs.Add(3, olderThan3days.ToList());
-            }
-            if (olderThan5days.Any())
-            {
-                daysRecordsPairs.Add(5, olderThan5days.ToList());
-            }
-            if (olderThan7days.Any())
-            {
-                daysRecordsPairs.Add(7, olderThan7days.ToList());
-            }
-            if (olderThan30days.Any())
-            {
-                daysRecordsPairs.Add(30, olderThan30days.ToList());
+                if (i + 1 < daysRange.Length)
+                {
+                    items = openItems.Where(it => it.DaysOverdue >= daysRange[i] && it.DaysOverdue < daysRange[i + 1]).ToList();
+                }
+                else
+                {
+                    items = openItems.Where(it => it.DaysOverdue >= daysRange[i]).ToList();
+                }
+
+                daysRecordsPairs.Add(daysRange[i], items);
             }
 
-            var agingExcel = await CreateModifiedAgingExcel(inputFile);
+            //var olderThan3days = openItems.Where(i => i.DaysOverdue >= 3 && i.DaysOverdue < 5);
+            //var olderThan5days = openItems.Where(i => i.DaysOverdue >= 5 && i.DaysOverdue < 7);
+            //var olderThan7days = openItems.Where(i => i.DaysOverdue >= 7 && i.DaysOverdue < 30);
+            //var olderThan30days = openItems.Where(i => i.DaysOverdue >= 30);
+
+            //if (olderThan3days.Any())
+            //{
+            //    daysRecordsPairs.Add(3, olderThan3days.ToList());
+            //}
+            //if (olderThan5days.Any())
+            //{
+            //    daysRecordsPairs.Add(5, olderThan5days.ToList());
+            //}
+            //if (olderThan7days.Any())
+            //{
+            //    daysRecordsPairs.Add(7, olderThan7days.ToList());
+            //}
+            //if (olderThan30days.Any())
+            //{
+            //    daysRecordsPairs.Add(30, olderThan30days.ToList());
+            //}
+
+            var agingExcel = await CreateModifiedAgingExcel(inputFile, daysRange);
 
             if (daysRecordsPairs.Any())
             {
@@ -403,7 +446,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
         }
 
-        private async Task<string> CreateModifiedAgingExcel(string inputFile)
+        private async Task<string> CreateModifiedAgingExcel(string inputFile, int[] daysRange)
         {
             var inputFileName = Path.GetFileName(inputFile);
 
@@ -453,17 +496,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                         sheet.Cells[$"E{i}"].Style.Numberformat.Format = "0";
 
 
-                        if (diff >= 3 && diff <= 5)
+                        if (daysRange.Length >= 2 && diff >= daysRange[0] && diff <= daysRange[1])
                         {
                             sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.GreenYellow);
                         }
 
-                        if (diff > 5 && diff <= 7)
+                        if (daysRange.Length >= 3 && diff > daysRange[1] && diff <= daysRange[2])
                         {
                             sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.RosyBrown);
                         }
 
-                        if (diff > 7 && diff <= 30)
+                        if (daysRange.Length >= 4 && diff > daysRange[2] && diff <= daysRange[3])
                         {
                             sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Yellow);
                         }

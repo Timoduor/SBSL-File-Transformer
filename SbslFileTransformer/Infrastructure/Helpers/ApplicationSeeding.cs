@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
 using System;
@@ -15,6 +16,9 @@ namespace SbslFileTransformer.Infrastructure.Helpers
             var dbContext = serviceProvider.GetRequiredService<ApplicationDbContext>();
 
             logger.LogInformation("Creating Database tables...");
+
+            //this must always be called before EnsureCreated which bypasses it
+            dbContext.Database.Migrate();
 
             await dbContext.Database.EnsureCreatedAsync();
         }
