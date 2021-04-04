@@ -208,7 +208,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 Format = config.ExportType,
                 ReportId = report.ReportId,
                 Name = report.Name,
-                ProcessedDate = DateTime.Now
+                ProcessedDate = DateTime.Now,
+                Creator = report.Creator,
+                EndTime = report.EndTime,
+                StartTime = report.StartTime,
+                Message = report.Message,
+                Notes = report.Notes,
+                Status = report.Status,
+                UserToken = report.UserToken
             });
 
             await dbContext.SaveChangesAsync();

@@ -2,10 +2,13 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Models;
+using SbslFileTransformer.Models.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using X.PagedList;
@@ -100,9 +103,17 @@ namespace SbslFileTransformer.Controllers
             //To show GROUPED logs, processed reports and uploaded files
             try
             {
+                var filesMaxDate = _dbContext.UploadedFiles.Select(d => d.UploadedDate).Max();
 
+                var files = _dbContext.UploadedFiles.ToList().Where(f => f.UploadedDate > filesMaxDate.AddDays(-7)).GroupBy(f => f.UploadedDate.Date).ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
 
-                return View();
+                var logs = GetLast7DaysSqliteLogs(-7).GroupBy(l => l.Date.Date).ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
+
+                var reportsMaxDate = _dbContext.ProcessedReports.Select(d => d.ProcessedDate).Max();
+
+                var reports = _dbContext.ProcessedReports.ToList().Where(r => r.ProcessedDate > reportsMaxDate.AddDays(-7)).GroupBy(r => r.ProcessedDate.Date).ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count()); ;
+
+                return View(new ChartObjects { UploadedFiles = files, Logs = logs, Reports = reports });
             }
             catch (Exception ex)
             {
@@ -206,6 +217,45 @@ namespace SbslFileTransformer.Controllers
             return logs.OrderByDescending(l => l.Id);
         }
 
+        private IEnumerable<SqliteLog> GetLast7DaysSqliteLogs(int days)
+        {
+            var logs = new List<SqliteLog>();
+#if DEBUG
+            using (var connection = new SqliteConnection(@"Data Source=bin\Debug\netcoreapp3.1\sbsletl_logs.db"))
+#else
+            var logPathSqlite = Path.Combine(_logsFolder, "log_sqlite");
+            using (var connection = new SqliteConnection($"Data Source={Path.Combine(logPathSqlite, "sbsletl_logs.db")}"))
+#endif
+            {
+                connection.Open();
 
+                var commandMaxDate = connection.CreateCommand();
+                commandMaxDate.CommandText = @"SELECT ""Timestamp"" FROM Logs ORDER BY ""Timestamp"" DESC LIMIT 1";
+
+                var maxDate = DateTime.ParseExact(commandMaxDate.ExecuteScalar().ToString(), "yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
+
+                var command = connection.CreateCommand();
+
+                command.CommandText = $@"select ""Timestamp"", ""Level"" from logs where ""Timestamp"" > ""{maxDate.AddDays(days).ToString("yyyy-MM-dd")}""";
+
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var timestamp = reader.GetString(0);
+                        var level = reader.GetString(1);
+
+                        logs.Add(new SqliteLog
+                        {
+                            TimeStamp = timestamp,
+                            Level = level,
+                            Date = DateTime.ParseExact(timestamp, "yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture)
+                        });
+                    }
+                }
+            }
+
+            return logs;
+        }
     }
 }

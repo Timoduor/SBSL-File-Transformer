@@ -9,6 +9,7 @@ using SbslFileTransformer.Models.Enums;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using X.PagedList;
 
 namespace SbslFileTransformer.Controllers
 {
@@ -125,6 +126,28 @@ namespace SbslFileTransformer.Controllers
             await _dbContext.SaveChangesAsync();
 
             return RedirectToAction("EmailGroups");
+        }
+
+        public async Task<IActionResult> Processed(int page = 1)
+        {
+            try
+            {
+                int count = 0;
+                int itemsPerPage = 10;
+
+                var uploadedFiles = _dbContext.ProcessedReports.OrderByDescending(f => f.ProcessedDate).Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToList().OrderByDescending(f => f.ProcessedDate);
+
+                count = _dbContext.ProcessedReports.Count();
+
+                var pagedList = new StaticPagedList<ProcessedReport>(uploadedFiles, page, itemsPerPage, count);
+
+                return View(pagedList);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return RedirectToAction("Index", "Home");
+            }
         }
 
         private async Task UpdateReportConfig(ReportConfigModel config)

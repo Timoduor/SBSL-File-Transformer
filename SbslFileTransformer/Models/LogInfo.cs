@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.FileProviders;
+using System;
 using System.Linq;
 
 namespace SbslFileTransformer.Models
@@ -18,5 +19,6 @@ namespace SbslFileTransformer.Models
         public string Exception { get; set; }
         public string RenderedMessage { get; set; }
         public string Properties { get; set; }
+        public DateTime Date { get; set; }
     }
 }
