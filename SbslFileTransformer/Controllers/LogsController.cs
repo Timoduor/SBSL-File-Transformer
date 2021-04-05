@@ -105,13 +105,13 @@ namespace SbslFileTransformer.Controllers
             {
                 var filesMaxDate = _dbContext.UploadedFiles.Select(d => d.UploadedDate).Max();
 
-                var files = _dbContext.UploadedFiles.ToList().Where(f => f.UploadedDate > filesMaxDate.AddDays(-7)).GroupBy(f => f.UploadedDate.Date).ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
+                var files = _dbContext.UploadedFiles.ToList().Where(f => f.UploadedDate > filesMaxDate.AddDays(-7)).GroupBy(f => f.UploadedDate.Date).OrderByDescending(g => g.Key).ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
 
-                var logs = GetLast7DaysSqliteLogs(-7).GroupBy(l => l.Date.Date).ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
+                var logs = GetLast7DaysSqliteLogs(-7).GroupBy(l => l.Date.Date).OrderByDescending(g => g.Key).ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
 
                 var reportsMaxDate = _dbContext.ProcessedReports.Select(d => d.ProcessedDate).Max();
 
-                var reports = _dbContext.ProcessedReports.ToList().Where(r => r.ProcessedDate > reportsMaxDate.AddDays(-7)).GroupBy(r => r.ProcessedDate.Date).ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count()); ;
+                var reports = _dbContext.ProcessedReports.ToList().Where(r => r.ProcessedDate > reportsMaxDate.AddDays(-7)).GroupBy(r => r.ProcessedDate.Date).OrderByDescending(g => g.Key).ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
 
                 return View(new ChartObjects { UploadedFiles = files, Logs = logs, Reports = reports });
             }
