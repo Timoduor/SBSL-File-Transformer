@@ -137,7 +137,7 @@ namespace SbslFileTransformer.Controllers
 
                 var uploadedFiles = _dbContext.ProcessedReports.OrderByDescending(f => f.ProcessedDate).Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToList().OrderByDescending(f => f.ProcessedDate);
 
-                count = _dbContext.ProcessedReports.Count();
+                count = await _dbContext.ProcessedReports.CountAsync();
 
                 var pagedList = new StaticPagedList<ProcessedReport>(uploadedFiles, page, itemsPerPage, count);
 

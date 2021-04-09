@@ -67,7 +67,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
             var toAppend = new StringBuilder();
 
             if (DateTime.TryParseExact(list.Col0, "M/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) ||
-                DateTime.TryParseExact(list.Col0, "dd-MMM-yy", CultureInfo.InvariantCulture, DateTimeStyles.None, out date))
+                DateTime.TryParseExact(list.Col0, "d-MMM-yy", CultureInfo.InvariantCulture, DateTimeStyles.None, out date))
             {
                 var amount = list.Col1; //vs col5 diff
                 var currency = "RWF";
