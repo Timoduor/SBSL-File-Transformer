@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters.BalanceExtractors;
+using SbslFileTransformer.Converters.BalanceExtractors.Rwanda;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
@@ -15,15 +16,15 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class BillerUtilCleanerJob : ConverterJobBase, IHostedService
+    public class MTNPushPullRwandaBalanceExtractorJob : ConverterJobBase, IHostedService
     {
-        private ILogger<BillerUtilCleanerJob> _logger;
+        private ILogger<MTNPushPullRwandaBalanceExtractorJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
         private static SemaphoreSlim _semaphore;
         Timer _timer;
 
-        public BillerUtilCleanerJob(ILogger<BillerUtilCleanerJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public MTNPushPullRwandaBalanceExtractorJob(ILogger<MTNPushPullRwandaBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -32,22 +33,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting Biller Util Cleaner Job");
+            _logger.LogInformation("Starting MTN PUSH PULL RW Balance Extractor Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await ConvertBnrFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await AirtelFileBalanceExtractor(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task ConvertBnrFile()
+        private async Task AirtelFileBalanceExtractor()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running Biller Util Cleaner job");
+                _logger.LogInformation("Running MTN PUSH PULL RW Balance Extractor job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -66,15 +67,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.csv", options).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.csv", options));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")));
 
-                    var bnrConverter = new FDICleaner();
+                    var mpesaConverter = new MtnPushPullBalanceExtractor(Entity);
 
                     foreach (var file in files)
                     {
-                        if (file.ToLower().Contains("fdi") && file.ToLower().Contains("imrw") && file.ToLower().Contains("portal") && !file.ToLower().Contains("bal") && !file.ToLower().Contains("conv"))
+                        if (file.ToLower().Contains("mb") && file.ToLower().Contains("imrw") && file.ToLower().Contains("mtn_pushpull") && file.ToLower().Contains("bal") && file.ToLower().Contains("portal"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -82,13 +83,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             {
                                 try
                                 {
-                                    bnrConverter.ConvertFile(file);
+                                    var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
+
+                                    var rootFolder = isProd ? prodFolder : sbFolder;
+
+                                    mpesaConverter.ConvertFile(file, rootFolder);
                                 }
                                 catch (Exception ex)
                                 {
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem cleaning files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem extracting PUSH PULL balance from files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
                                 finally
                                 {

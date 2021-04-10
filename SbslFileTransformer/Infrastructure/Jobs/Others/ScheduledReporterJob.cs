@@ -122,7 +122,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                 sprint = Sprint.Nostro;
                             }
                             //Mobile banking
-                            if(report.Name.ToLower().Contains("abc"))
+                            if(report.Name.ToLower().Contains("abc") || report.Name.ToLower().Contains("mb"))
                             {
                                 sprint = Sprint.Mobile_Banking;
                             }

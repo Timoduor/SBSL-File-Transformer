@@ -17,13 +17,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class MTNRwandaBalanceExtractorJob : ConverterJobBase, IHostedService
     {
-        private ILogger<AirtelKenyaBalanceExtractorJob> _logger;
+        private ILogger<MTNRwandaBalanceExtractorJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
         private static SemaphoreSlim _semaphore;
         Timer _timer;
 
-        public MTNRwandaBalanceExtractorJob(ILogger<AirtelKenyaBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public MTNRwandaBalanceExtractorJob(ILogger<MTNRwandaBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
