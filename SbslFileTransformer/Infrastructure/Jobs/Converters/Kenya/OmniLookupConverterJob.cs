@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SbslFileTransformer.Converters.Kenya;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
@@ -12,17 +13,17 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters
+namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
-    public class MpesaB2CnC2BConverterJob : ConverterJobBase, IHostedService
+    public class OmniLookupConverterJob : ConverterJobBase, IHostedService
     {
-        private ILogger<MpesaB2CnC2BConverterJob> _logger;
+        private ILogger<OmniLookupConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
         private static SemaphoreSlim _semaphore;
         Timer _timer;
 
-        public MpesaB2CnC2BConverterJob(ILogger<MpesaB2CnC2BConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public OmniLookupConverterJob(ILogger<OmniLookupConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -31,22 +32,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting MPesa B2C Converter Job");
+            _logger.LogInformation("Starting Omni Lookup Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await ConvertMpesaB2CnC2BFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await OmniLookupJobConverter(), null, TimeSpan.FromSeconds(new Random().Next(15, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task ConvertMpesaB2CnC2BFile()
+        private async Task OmniLookupJobConverter()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running MPesa B2C n C2B converter job");
+                _logger.LogInformation("Running Omni Lookup Converter job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -65,16 +66,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls") || f.ToLower().EndsWith(".csv")).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls")).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls") || f.ToLower().EndsWith(".csv")));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls")));
 
-                    var mpesaConverter = new MpesaB2CnC2BConverter();
+                    var mpesaConverter = new OmniLookupConverter();
 
                     foreach (var file in files)
                     {
-                        if (((file.ToLower().Contains("mpesa") && file.ToLower().Contains("imke") && !file.ToLower().Contains("lookup") && !file.ToLower().Contains("lipa") && !file.ToLower().Contains("merchant"))
-                            || file.ToLower().Contains("bank to till b2c") || file.ToLower().Contains("banktotillb2c")) && !file.Contains("Conv"))
+                        if (file.ToLower().Contains("mobile") && file.ToLower().Contains("banking") && !file.ToLower().Contains("conv")
+                            && file.ToLower().Contains("imke") && file.ToLower().Contains("omni") && file.ToLower().Contains("lookup"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -88,7 +89,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 {
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting MPesa B2C or C2B files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting Omni Lookup files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
                                 finally
                                 {

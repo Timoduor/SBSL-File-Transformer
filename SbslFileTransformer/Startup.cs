@@ -89,6 +89,9 @@ namespace SbslFileTransformer
             services.AddHostedService<SpennRwandaBalanceExtractorJob>();
             services.AddHostedService<LipaNaMpesaC2BMerchantConverterJob>();
             services.AddHostedService<MTNPushPullRwandaBalanceExtractorJob>();
+            services.AddHostedService<DailyElmaOmniConverterJob>();
+            services.AddHostedService<WeeklyMonthlyElmaOmniConverterJob>();
+            services.AddHostedService<OmniLookupConverterJob>();
 
             services.AddHostedService<CamtToMultiCurrJob>();
 

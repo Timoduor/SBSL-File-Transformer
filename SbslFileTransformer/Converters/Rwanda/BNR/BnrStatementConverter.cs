@@ -109,7 +109,7 @@ namespace SbslFileTransformer.Converters
                             //Codes colunm
                             row.Col1 = list.Last().Col1;
                             //Value Date
-                            row.Col2 = list.Last().Col2;
+                            row.Col2 = list.Last().Col2.Replace("/","-");
 
                             row.Col3 = list.Last().Col3;
                             //Debit account
@@ -172,7 +172,7 @@ namespace SbslFileTransformer.Converters
                             row.Col1 = code;
 
                             //Value Date
-                            row.Col2 = reader.GetValue(4)?.ToString();
+                            row.Col2 = reader.GetValue(4)?.ToString().Replace("/","-");
 
                             //Type
                             row.Col3 = reader.GetValue(5)?.ToString();
@@ -315,7 +315,7 @@ namespace SbslFileTransformer.Converters
         {
             var countHeader = new CountHeader
             {
-                Value_date = list.First().Col0,
+                Value_date = list.First().Col0.Replace("/","-"),
 
                 Amount = list.First().Col5,
 
@@ -363,6 +363,8 @@ namespace SbslFileTransformer.Converters
             var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
             var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
+
+            countHeader.Amount = countHeader.Amount.TrimStart('-');
 
             WriteToFile(countHeader, Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_ADJSMT.csv"));
         }
@@ -456,5 +458,8 @@ namespace SbslFileTransformer.Converters
         public string Col14 { get; set; }
         public string Col15 { get; set; }
         public string Col16 { get; set; }
+        public string Col17 { get; set; }
+        public string Col18 { get; set; }
+        public string Col19 { get; set; }
     }
 }

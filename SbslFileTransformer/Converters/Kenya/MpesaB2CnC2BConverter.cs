@@ -76,12 +76,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                         row.Col12 = reader.GetValue(12)?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        if (string.IsNullOrEmpty(row.Col5))
+                        if (string.IsNullOrEmpty(row.Col5?.Trim()))
                         {
                             row.Col5 = "0";
                         }
 
-                        if (string.IsNullOrEmpty(row.Col6))
+                        if (string.IsNullOrEmpty(row.Col6?.Trim()))
                         {
 
                             row.Col6 = "0";
@@ -95,6 +95,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             if (string.IsNullOrEmpty(outputFile))
             {
                 var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+
                 Directory.CreateDirectory(outputFolder);
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);

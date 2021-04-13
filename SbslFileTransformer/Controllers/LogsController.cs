@@ -20,12 +20,10 @@ namespace SbslFileTransformer.Controllers
     public class LogsController : Controller
     {
         private readonly ILogger<LogsController> _logger;
-        private readonly IFileProvider _fileProvider;
         private readonly ApplicationDbContext _dbContext;
         private readonly string _logsFolder;
-        public LogsController(ILogger<LogsController> logger, IFileProvider fileProvider, ApplicationDbContext dbContext)
+        public LogsController(ILogger<LogsController> logger, ApplicationDbContext dbContext)
         {
-            _fileProvider = fileProvider;
             _logger = logger;
             _dbContext = dbContext;
 
@@ -109,7 +107,12 @@ namespace SbslFileTransformer.Controllers
 
                 var logs = GetLast7DaysSqliteLogs(-7).GroupBy(l => l.Date.Date).OrderByDescending(g => g.Key).ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
 
-                var reportsMaxDate = _dbContext.ProcessedReports.Select(d => d.ProcessedDate).Max();
+                var reportsMaxDate = DateTime.Now;
+
+                if (_dbContext.ProcessedReports.Any())
+                {
+                    reportsMaxDate = _dbContext.ProcessedReports.Select(d => d.ProcessedDate).Max();
+                }
 
                 var reports = _dbContext.ProcessedReports.ToList().Where(r => r.ProcessedDate > reportsMaxDate.AddDays(-7)).GroupBy(r => r.ProcessedDate.Date).OrderByDescending(g => g.Key).ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
 
