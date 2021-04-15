@@ -73,8 +73,9 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Rwanda
             {
                 var amount = list.Col1; //vs col5 diff
                 var currency = "RWF";
+                var account = "20100243506064";
 
-                toAppend.Append($"{_entity}\t20100243506064\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
+                toAppend.Append($"{_entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
 
                 var text = toAppend.ToString();
 

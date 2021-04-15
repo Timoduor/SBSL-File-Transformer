@@ -13,6 +13,7 @@ using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Infrastructure.Jobs.Converters;
 using SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya;
+using SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania;
 using SbslFileTransformer.Infrastructure.Jobs.Extractors;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Infrastructure.Sftp;
@@ -81,7 +82,7 @@ namespace SbslFileTransformer
             services.AddHostedService<AirtelKenyaBalanceExtractorJob>();
             services.AddHostedService<SelcomBalanceExtractorJob>();
             services.AddHostedService<BnrSettlementConverterJob>();
-
+            //SPRINT 2
             services.AddHostedService<BillerUtilBalanceExtractorJob>();
             services.AddHostedService<BillerUtilCleanerJob>();
             services.AddHostedService<AirtelRwandaBalanceExtractorJob>();
@@ -92,6 +93,8 @@ namespace SbslFileTransformer
             services.AddHostedService<DailyElmaOmniConverterJob>();
             services.AddHostedService<WeeklyMonthlyElmaOmniConverterJob>();
             services.AddHostedService<OmniLookupConverterJob>();
+            //SPRINT 3
+            services.AddHostedService<SuspenseBalanceExtractorJob>();
 
             services.AddHostedService<CamtToMultiCurrJob>();
 

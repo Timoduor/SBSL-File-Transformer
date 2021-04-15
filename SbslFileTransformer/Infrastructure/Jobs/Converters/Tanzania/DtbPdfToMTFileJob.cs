@@ -32,6 +32,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Starting DTB PDF To MT File Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 

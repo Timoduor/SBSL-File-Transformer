@@ -10,7 +10,7 @@ namespace SbslFileTransformer.Models.Enums
         Nostro,
         Mobile_Banking,
         Suspense,
-        Cash_Deposit_Machines,
+        Others,
         Cards
     }
 }

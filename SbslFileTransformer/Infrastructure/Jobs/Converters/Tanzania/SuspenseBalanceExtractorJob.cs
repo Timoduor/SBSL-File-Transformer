@@ -2,28 +2,29 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters.Kenya;
+using SbslFileTransformer.Converters.Tanzania;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
+namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 {
-    public class WeeklyMonthlyElmaOmniConverterJob : ConverterJobBase, IHostedService
+    public class SuspenseBalanceExtractorJob : ConverterJobBase, IHostedService
     {
-        private ILogger<WeeklyMonthlyElmaOmniConverterJob> _logger;
+        private Timer _timer;
+        private ILogger<SuspenseBalanceExtractorJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
-        private static SemaphoreSlim _semaphore;
-        Timer _timer;
+        static SemaphoreSlim _semaphore;
 
-        public WeeklyMonthlyElmaOmniConverterJob(ILogger<WeeklyMonthlyElmaOmniConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public SuspenseBalanceExtractorJob(ILogger<SuspenseBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -32,22 +33,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting Weekly Monthly Elma Omni Settlement Job");
-
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await WeeklyElmaConverter(), null, TimeSpan.FromSeconds(new Random().Next(15, 60)), TimeSpan.FromMinutes(10));
+            _logger.LogInformation("Starting Suspense Balance Extractor job");
+
+            _timer = new Timer(async state => await GenerateMultiCurrFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task WeeklyElmaConverter()
+        private async Task GenerateMultiCurrFile()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running Weekly Monthly Elma Omni Settlement job");
+                _logger.LogInformation("Running Suspense Balance Extractor job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -63,19 +64,20 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
+                    bool isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value);
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls")).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.xls", options).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls")));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.xls", options));
 
-                    var mpesaConverter = new WeeklyMonthlyElmaOmniSettlementConverter();
+                    var pdfConverter = new SuspenseBalanceExtractor(Entity);
 
                     foreach (var file in files)
                     {
-                        if (file.ToLower().Contains("utilities") && !file.ToLower().Contains("daily")
-                            && file.ToLower().Contains("imke") && (file.ToLower().Contains("elma")  || file.ToLower().Contains("omni")))
+                        //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
+                        if (file.ToLower().Contains("suspense") && file.ToLower().Contains("imtz"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -83,13 +85,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                             {
                                 try
                                 {
-                                    mpesaConverter.ConvertFile(file);
+                                    pdfConverter.ConvertFile(file, );
                                 }
                                 catch (Exception ex)
                                 {
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting Weekly Monthly Elma Omni Settlement files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem running Suspense Balance Extractor files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
                                 finally
                                 {
@@ -99,11 +101,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                                     await dbContext.SaveChangesAsync();
                                 }
+
                             }
                         }
                     }
                 }
-
             }
             catch (Exception ex)
             {
@@ -114,15 +116,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                 _semaphore.Release();
             }
         }
-
-
-
-        public Task StopAsync(CancellationToken cancellationToken)
+        public async Task StopAsync(CancellationToken cancellationToken)
         {
-            _semaphore.Dispose();
-            _timer.Dispose();
-            return Task.CompletedTask;
+            await _timer.DisposeAsync();
         }
-
     }
 }

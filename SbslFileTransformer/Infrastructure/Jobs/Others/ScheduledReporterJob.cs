@@ -137,6 +137,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                 sprint = Sprint.Suspense;
                             }
 
+                            if (report.Name.ToLower().Contains("others"))
+                            {
+                                sprint = Sprint.Others;
+                            }
+
                             //get email groups
                             GetEmailGroups(emailGroups, out daysRange, country, sprint);
 

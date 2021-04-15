@@ -71,8 +71,9 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
             {
                 var amount = list.Col1; //vs col5 diff
                 var currency = "RWF";
+                var account = "25049787002";
 
-                toAppend.Append($"{_entity}\t25049787002\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
+                toAppend.Append($"{_entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
 
                 var text = toAppend.ToString();
 
