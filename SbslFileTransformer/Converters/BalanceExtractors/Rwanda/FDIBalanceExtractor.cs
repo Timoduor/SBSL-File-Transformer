@@ -83,7 +83,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
                 var fileNameToUse = fileName.Substring(Math.Max(0, fileName.Length - 10)).Replace(" ", "");
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileNameToUse}_COMM.csv");
+                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{fileNameToUse}_COMM.csv");
             }
 
             WriteToCommissionFile(list2, outputFile);

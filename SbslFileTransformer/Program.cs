@@ -32,26 +32,39 @@ namespace SbslFileTransformer
 
         private static void AddLogging()
         {
-            var formatter = new MessageTemplateTextFormatter(
-                            "${Timestamp} [{Level}] {Message:l}{NewLine:l}{Exception:l}", CultureInfo.CurrentCulture);
-
             var logsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "SBSL_ETL", "logs");
             var logPathFiles = Path.Combine(logsFolder, "log_files");
             var logPathSqlite = Path.Combine(logsFolder, "log_sqlite");
 
-            Log.Logger = new LoggerConfiguration()
+            try
+            {
+                var formatter = new MessageTemplateTextFormatter(
+                                "${Timestamp} [{Level}] {Message:l}{NewLine:l}{Exception:l}", CultureInfo.CurrentCulture);
+
+                Log.Logger = new LoggerConfiguration()
 #if DEBUG
                 .MinimumLevel.Information()
 #else
                 .MinimumLevel.Information()
 #endif
                 .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore"))
-                .Enrich.FromLogContext()
-                .WriteTo.SQLite(Path.Combine(logPathSqlite, "sbsletl_logs.db"), retentionPeriod: TimeSpan.FromDays(10), rollOver: false, maxDatabaseSize: 20480)
-                .WriteTo.Console()
-                .WriteTo.RollingFile(formatter, Path.Combine(Directory.GetCurrentDirectory(), Path.Combine(logPathFiles, "{Date}-SBSLETL.log")),
-                    fileSizeLimitBytes: 10485760)
-                .CreateLogger();
+                    .Enrich.FromLogContext()
+                    .WriteTo.SQLite(Path.Combine(logPathSqlite, "sbsletl_logs.db"), retentionPeriod: TimeSpan.FromDays(10), rollOver: false, maxDatabaseSize: 20480)
+                    .WriteTo.Console()
+                    .WriteTo.RollingFile(formatter, Path.Combine(Directory.GetCurrentDirectory(), Path.Combine(logPathFiles, "{Date}-SBSLETL.log")),
+                        fileSizeLimitBytes: 10485760)
+                    .CreateLogger();
+            }
+            catch (Exception ex)
+            {
+                Directory.CreateDirectory(Path.Combine(logPathSqlite, "Old"));
+                //move corrupt sqlite log file to old files
+                File.Move(Path.Combine(logPathSqlite, "sbsletl_logs.db"), Path.Combine(logPathSqlite, "Old", $"sbsletl_logs_{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}.db"));
+                //log the incident
+                File.AppendAllText(Path.Combine(logPathSqlite, "SQLite Problems.txt"), $"Sqlite Log file Delete due to corruption {DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}\n\n");
+                //restart the service
+                Environment.Exit(1);
+            }
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

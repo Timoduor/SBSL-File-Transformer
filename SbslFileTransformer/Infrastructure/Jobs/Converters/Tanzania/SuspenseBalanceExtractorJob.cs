@@ -64,7 +64,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
-                    bool isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value);
+                    bool isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
@@ -85,7 +85,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                             {
                                 try
                                 {
-                                    pdfConverter.ConvertFile(file, );
+                                    var rootFolder = isProd ? prodFolder : sbFolder;
+
+                                    pdfConverter.ConvertFile(file, rootFolder);
                                 }
                                 catch (Exception ex)
                                 {

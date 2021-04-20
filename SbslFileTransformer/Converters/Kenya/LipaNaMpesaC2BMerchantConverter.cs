@@ -100,7 +100,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.txt");
+                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_C2B_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.txt");
             }
 
             WriteToFile(list, outputFile);

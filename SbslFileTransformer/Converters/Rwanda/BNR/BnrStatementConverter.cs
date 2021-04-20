@@ -230,7 +230,7 @@ namespace SbslFileTransformer.Converters
 
                 var fileNameToUse = fileName.Substring(Math.Max(0, fileName.Length - 12)).Replace(" ","");
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileNameToUse}_STAMT.csv");
+                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm}_{fileNameToUse}_STAMT.csv");
             }
 
             WriteToFile(list, outputFile);
@@ -294,7 +294,7 @@ namespace SbslFileTransformer.Converters
                                 else if (line.StartsWith("Date From"))
                                 {
                                     var date = DateTime.ParseExact(line.Split(' ')[2], "dd-MM-yyyy", CultureInfo.InvariantCulture);
-                                    row.Col0 = date.ToString();
+                                    row.Col0 = date.ToString("dd-MM-yyyy");
                                 }
                             }
                         }
@@ -366,7 +366,7 @@ namespace SbslFileTransformer.Converters
 
             countHeader.Amount = countHeader.Amount.TrimStart('-');
 
-            WriteToFile(countHeader, Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_ADJSMT.csv"));
+            WriteToFile(countHeader, Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm}_{fileNameToAppend}_ADJSMT.csv"));
         }
 
         private void GenerateMultiCurr(List<ExcelCols> list, string inputFile, string outputFolder)

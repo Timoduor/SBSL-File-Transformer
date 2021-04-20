@@ -49,7 +49,7 @@ namespace SbslFileTransformer.Converters
 
                 var name = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd}_{name.Substring(Math.Max(0, name.Length - 10))}.csv");
+                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MC_{name.Substring(Math.Max(0, name.Length - 10))}.csv");
             }
 
 

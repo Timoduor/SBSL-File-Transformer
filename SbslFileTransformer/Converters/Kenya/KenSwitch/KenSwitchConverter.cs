@@ -201,7 +201,7 @@ namespace SbslFileTransformer.Converters.KenSwitch
 
             var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-            WriteToFile(outputLines, Path.Combine(outputFolder, $"{DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss")}_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.csv"));
+            WriteToFile(outputLines, Path.Combine(outputFolder, $"{DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss")}_KS_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.csv"));
 
             Thread.Sleep(1000);
         }
