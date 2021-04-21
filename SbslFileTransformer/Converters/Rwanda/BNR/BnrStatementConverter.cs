@@ -28,7 +28,6 @@ namespace SbslFileTransformer.Converters
         public void ConvertFile(string inputFile, string rootFolder, string outputFile = null)
         {
             var list = new List<ExcelCols>();
-
             using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
                 using (var reader = ExcelReaderFactory.CreateReader(stream))
@@ -40,6 +39,8 @@ namespace SbslFileTransformer.Converters
                     string DR_CR = "DR_CR";
 
                     string Type_id = "Type_id";
+
+                    string Title = "";
 
                     int countHeader = 0;
 
@@ -55,6 +56,20 @@ namespace SbslFileTransformer.Converters
                         }
 
                         var value = reader.GetValue(4)?.ToString();
+
+                        //Logic for title
+                        if (reader.GetValue(3) != null)
+                        {
+                            string rec = reader.GetValue(3).ToString();
+                            if (rec.StartsWith("Debit transactions"))
+                            {
+                                Title = "Debit";
+                            }
+                            else if (rec.StartsWith("Credit transactions"))
+                            {
+                                Title = "Credit";
+                            }
+                        }
 
                         if (string.IsNullOrEmpty(value))
                         {
@@ -98,6 +113,9 @@ namespace SbslFileTransformer.Converters
                         {
                             row.Col15 = "MT103";
                         }
+
+
+                        //logic for child node
                         //the value at index 0 is null for the child row hence the check
                         if (reader.GetValue(19)?.ToString() == "Active" || reader.GetValue(19)?.ToString() == "Rejected")
                         {
@@ -109,7 +127,7 @@ namespace SbslFileTransformer.Converters
                             //Codes colunm
                             row.Col1 = list.Last().Col1;
                             //Value Date
-                            row.Col2 = list.Last().Col2.Replace("/","-");
+                            row.Col2 = list.Last().Col2;
 
                             row.Col3 = list.Last().Col3;
                             //Debit account
@@ -130,10 +148,10 @@ namespace SbslFileTransformer.Converters
                             row.Col11 = list.Last().Col11;
                             //Modification time
                             row.Col12 = list.Last().Col12;
-
                             //(Active) Status of subdirectory
                             row.Col13 = reader.GetValue(19)?.ToString();
-
+                            //DR_CR
+                            row.Col14 = Title;
                             //method for the bulk colunm
                             if (string.IsNullOrEmpty(list.Last().Col13?.ToLower()))
                             {
@@ -143,27 +161,21 @@ namespace SbslFileTransformer.Converters
                                     list.Last().Col15 = "MT102";
                                 }
                             }
-                            if (row.Col4 != null && row.Col4.StartsWith("1240000") || row.Col4.StartsWith("3208000") || row.Col4.StartsWith("1000026561"))
-                            {
-                                row.Col14 = "Debit";
-                            }
-                            else
-                            {
-                                row.Col14 = "Credit";
-                            }
                             list.Add(row);
                         }
+
                         else
                         {
                             //logic for parent
-                            if (reader.GetValue(6) != null && reader.GetValue(6).ToString().Replace("\n", "").StartsWith("1240000") || reader.GetValue(6).ToString().Replace("\n", "").StartsWith("3208000") || reader.GetValue(6).ToString().Replace("\n", "").StartsWith("1000026561"))
-                            {
-                                row.Col14 = "Debit";
-                            }
-                            else
-                            {
-                                row.Col14 = "Credit";
-                            }
+
+                            //if (reader.GetValue(6) != null && reader.GetValue(6).ToString().Replace("\n", "").StartsWith("1240000") || reader.GetValue(6).ToString().Replace("\n", "").StartsWith("3208000") || reader.GetValue(6).ToString().Replace("\n", "").StartsWith("1000026561"))
+                            //{
+                            //    row.Col14 = "Debit";
+                            //}
+                            //else
+                            //{
+                            //    row.Col14 = "Credit";
+                            //}
 
                             //Reference
                             row.Col0 = reader.GetValue(0)?.ToString().Replace("\n", "");
@@ -172,7 +184,7 @@ namespace SbslFileTransformer.Converters
                             row.Col1 = code;
 
                             //Value Date
-                            row.Col2 = reader.GetValue(4)?.ToString().Replace("/","-");
+                            row.Col2 = reader.GetValue(4)?.ToString();
 
                             //Type
                             row.Col3 = reader.GetValue(5)?.ToString();
@@ -203,6 +215,8 @@ namespace SbslFileTransformer.Converters
 
                             //Modification Time
                             row.Col12 = reader.GetValue(18)?.ToString();
+                            //DR_CR
+                            row.Col14 = Title;
 
                             if (countHeader == 0)
                             {
@@ -380,7 +394,13 @@ namespace SbslFileTransformer.Converters
             var toAppend = new StringBuilder();
 
             var account = list.First().Col1;
-            DateTime date = Convert.ToDateTime(list.First().Col0);
+
+            DateTime date = default;
+
+            if(!DateTime.TryParseExact(list.First().Col0, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out date))
+            {
+                throw new Exception("Failed to convert provided datetime");
+            }
             var amount = list.First().Col3; //vs col5 diff
             var currency = list.First().Col2;
 
@@ -461,5 +481,7 @@ namespace SbslFileTransformer.Converters
         public string Col17 { get; set; }
         public string Col18 { get; set; }
         public string Col19 { get; set; }
+        public string Col21 { get; set; }
+        public string Col20 { get; set; }
     }
 }

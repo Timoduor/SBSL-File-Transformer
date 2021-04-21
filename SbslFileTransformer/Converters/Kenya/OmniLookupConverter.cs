@@ -33,42 +33,40 @@ namespace SbslFileTransformer.Converters.Kenya
                         }
                         var row = new ExcelCols();
 
-                        //date
-                        row.Col0 = reader.GetValue(1)?.ToString().Replace("\n", "");
-
-                        row.Col1 = reader.GetValue(3)?.ToString();
-
-                        row.Col2 = reader.GetValue(4)?.ToString();
-
-                        row.Col3 = reader.GetValue(6)?.ToString().Replace("\n", "");
-
-                        row.Col4 = reader.GetValue(7)?.ToString().Replace("\n", "");
-
-                        row.Col5 = reader.GetValue(8)?.ToString();
-
-                        row.Col6 = reader.GetValue(9)?.ToString();
-
-                        row.Col7 = reader.GetValue(10)?.ToString();
-
-                        row.Col8 = reader.GetValue(11)?.ToString();
-
-                        row.Col9 = reader.GetValue(12)?.ToString();
-
-                        row.Col10 = reader.GetValue(13)?.ToString() + reader.GetValue(14)?.ToString() + reader.GetValue(15)?.ToString();
-
-                        //Entered time
-                        row.Col11 = reader.GetValue(16)?.ToString();
-
-                        //Approved time
-                        row.Col12 = reader.GetValue(17)?.ToString();
-
-                        row.Col13 = reader.GetValue(18)?.ToString();
-
-                        row.Col14 = reader.GetValue(19)?.ToString();
-
-                        row.Col15 = reader.GetValue(20)?.ToString();
-
-                        row.Col16 = reader.GetValue(21)?.ToString();
+                        //Date
+                        row.Col1 = reader.GetValue(1)?.ToString().Replace("\n", "");
+                        //Channel ID
+                        row.Col3 = reader.GetValue(3)?.ToString().Replace("\n", "");
+                        //Tran Ref No
+                        row.Col4 = reader.GetValue(4)?.ToString().Replace("\n", "");
+                        //Account No
+                        row.Col6 = reader.GetValue(6)?.ToString().Replace("\n", "");
+                        //Name
+                        row.Col7 = reader.GetValue(7)?.ToString().Replace("\n", "");
+                        //Currency
+                        row.Col8 = reader.GetValue(8)?.ToString().Replace("\n", "");
+                        //Debit Amount
+                        row.Col9 = reader.GetValue(9)?.ToString().Replace("\n", "");
+                        //Charge Amt
+                        row.Col10 = reader.GetValue(10)?.ToString().Replace("\n", "");
+                        //Network ID
+                        row.Col11 = reader.GetValue(11)?.ToString().Replace("\n", "");
+                        //Mobile No
+                        row.Col12 = reader.GetValue(12)?.ToString().Replace("\n", "");
+                        //Entered ID
+                        row.Col13 = reader.GetValue(13)?.ToString().Replace("\n", "");
+                        //Entered Time
+                        row.Col16 = reader.GetValue(16)?.ToString().Replace("\n", "");
+                        //Approved Time
+                        row.Col17 = reader.GetValue(17)?.ToString().Replace("\n", "");
+                        //Status
+                        row.Col18 = reader.GetValue(18)?.ToString().Replace("\n", "");
+                        //Bank ID
+                        row.Col19 = reader.GetValue(19)?.ToString().Replace("\n", "");
+                        //Merchant
+                        row.Col20 = reader.GetValue(20)?.ToString().Replace("\n", "");
+                        //Mobile Ref No
+                        row.Col21 = reader.GetValue(21)?.ToString().Replace("\n", "");
 
                         list.Add(row);
                     }
