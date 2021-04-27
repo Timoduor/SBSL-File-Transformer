@@ -1,21 +1,26 @@
 ﻿using CsvHelper;
 using ExcelDataReader;
+using SbslFileTransformer.Infrastructure.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class MpesaB2CnC2BConverter
     {
-        public MpesaB2CnC2BConverter()
+        string _entity;
+        public MpesaB2CnC2BConverter(string entity)
         {
+            _entity = entity;
+
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
-        public void ConvertFile(string inputFile, string outputFile = null)
+        public void ConvertFile(string inputFile, string rootFolder, string outputFile = null)
         {
             //Replace empties with zeros in columns 5 and 6
 
@@ -52,7 +57,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                         row.Col0 = reader.GetValue(0)?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col1 = reader.GetValue(1)?.ToString().Replace("\n", "").Replace("\r","").Replace("/","-");
+                        row.Col1 = reader.GetValue(1)?.ToString().Replace("\n", "").Replace("\r", "").Replace("/", "-");
 
                         row.Col2 = reader.GetValue(2)?.ToString().Replace("\n", "").Replace("\r", "");
 
@@ -100,11 +105,60 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm}_B2C_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ","")}.csv");
+                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm}_B2C_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
             WriteToFile(list, outputFile);
+
+            if (inputFile.ToLower().Contains("mmf"))
+            {
+                GenerateMultiCurr(list.Skip(6).First(), inputFile, rootFolder);
+            }
         }
+
+
+
+        private void GenerateMultiCurr(MPesaCols item, string inputFile, string rootFolder)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(inputFile);
+
+            var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
+
+            var outputFile = Path.Combine(rootFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd_mm_ss}_{fileNameToAppend}_MMF_{_entity}.txt");
+
+            var toAppend = new StringBuilder();
+
+            if(!DateTime.TryParseExact(item.Col1, "d-M-yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
+            {
+                throw new Exception("Unable to parse datetime!");
+            }
+
+            var amount = item.Col7; //vs col5 diff
+            var currency = "KES";
+
+            string account = "19990126507010"; //payment
+
+            if (inputFile.ToLower().Contains("omni"))
+            {
+                account = "19990126505016";
+            }
+
+            if (inputFile.ToLower().Contains("elma"))
+            {
+                account = "19990126505009";
+            }
+
+            toAppend.Append($"{_entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
+
+            var text = toAppend.ToString();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                File.WriteAllText(outputFile, text);
+            }
+
+        }
+
 
         private void WriteToFile(List<MPesaCols> rows, string outputFile)
         {

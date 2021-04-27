@@ -8,6 +8,7 @@ using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -15,15 +16,14 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
-    public class WeeklyMonthlyElmaOmniConverterJob : ConverterJobBase, IHostedService
+    public class MoneyGramConverterJob : ConverterJobBase, IHostedService
     {
-        private ILogger<WeeklyMonthlyElmaOmniConverterJob> _logger;
+        private ILogger<MoneyGramConverterJob> _logger;
         IServiceScopeFactory _serviceScopeFactory;
         EmailSender _emailSender;
         private static SemaphoreSlim _semaphore;
         Timer _timer;
-
-        public WeeklyMonthlyElmaOmniConverterJob(ILogger<WeeklyMonthlyElmaOmniConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public MoneyGramConverterJob(ILogger<MoneyGramConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -32,22 +32,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting Weekly Monthly Elma Omni Settlement Job");
+            _logger.LogInformation("Starting MoneyGram Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await WeeklyElmaConverter(), null, TimeSpan.FromSeconds(new Random().Next(15, 60)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await MoneyGramConverter(), null, TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task WeeklyElmaConverter()
+        private async Task MoneyGramConverter()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running Weekly Monthly Elma Omni Settlement job");
+                _logger.LogInformation("Running Lipa Na Mpesa C2B Merchant Converter job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -66,16 +66,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls")).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls")));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")));
 
-                    var mpesaConverter = new WeeklyMonthlyElmaOmniSettlementConverter();
+                    var mpesaConverter = new MoneyGramConverter();
 
                     foreach (var file in files)
                     {
-                        if (file.ToLower().Contains("utilities") && !file.ToLower().Contains("daily") && !file.Contains("Conv")
-                            && file.ToLower().Contains("imke") && (file.ToLower().Contains("elma")  || file.ToLower().Contains("omni")))
+                        //SPECIFY FOLDER and file extension above
+                        if (file.ToLower().Contains("moneygram") && file.ToLower().Contains("imke") && !file.Contains("Conv"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -83,13 +83,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                             {
                                 try
                                 {
-                                    mpesaConverter.ConvertFile(file);
+                                    var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
+
+                                    var rootFolder = isProd ? prodFolder : sbFolder;
+
+                                    mpesaConverter.ConvertFile(file, rootFolder);
                                 }
                                 catch (Exception ex)
                                 {
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting Weekly Monthly Elma Omni Settlement files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting  Lipa Na Mpesa C2B Merchant files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
                                 finally
                                 {
@@ -115,14 +119,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             }
         }
 
-
-
         public Task StopAsync(CancellationToken cancellationToken)
         {
             _semaphore.Dispose();
             _timer.Dispose();
             return Task.CompletedTask;
         }
-
     }
 }

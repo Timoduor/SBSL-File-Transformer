@@ -62,7 +62,7 @@ namespace SbslFileTransformer.Converters.Tanzania
 
             DateTime date = Convert.ToDateTime(list.Col0);
             var amount = list.Col1; //vs col5 diff
-            var currency = "RWF";
+            var currency = "TZS";
             var account = "20100243506065";
 
             toAppend.Append($"{_entity}\t{account}\tSuspense\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");

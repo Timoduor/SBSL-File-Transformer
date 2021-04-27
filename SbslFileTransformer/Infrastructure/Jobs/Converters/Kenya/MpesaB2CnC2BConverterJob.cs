@@ -69,12 +69,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls") || f.ToLower().EndsWith(".csv")));
 
-                    var mpesaConverter = new MpesaB2CnC2BConverter();
+                    var mpesaConverter = new MpesaB2CnC2BConverter(Entity);
 
                     foreach (var file in files)
                     {
-                        if (((file.ToLower().Contains("mpesa") && file.ToLower().Contains("imke") && !file.ToLower().Contains("lookup") && !file.ToLower().Contains("lipa") && !file.ToLower().Contains("merchant"))
-                            || file.ToLower().Contains("bank to till b2c") || file.ToLower().Contains("banktotillb2c")) && !file.Contains("Conv"))
+                        if (((file.ToLower().Contains("mpesa") && !file.ToLower().Contains("lookup") && !file.ToLower().Contains("lipa") && !file.ToLower().Contains("merchant"))
+                            || file.ToLower().Contains("bank to till b2c") || file.ToLower().Contains("banktotillb2c") ||
+                            (file.ToLower().Contains("mmf") && (file.ToLower().Contains("elma_paybill") || file.ToLower().Contains("omni_paybill") || file.ToLower().Contains("pyt_serv_paybill"))))
+                             && file.ToLower().Contains("imke") && !file.Contains("Conv"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -82,7 +84,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             {
                                 try
                                 {
-                                    mpesaConverter.ConvertFile(file);
+                                    var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
+
+                                    var rootFolder = isProd ? prodFolder : sbFolder;
+
+                                    mpesaConverter.ConvertFile(file, rootFolder);
                                 }
                                 catch (Exception ex)
                                 {
