@@ -4,6 +4,7 @@ using Serilog;
 using Serilog.Filters;
 using Serilog.Formatting.Display;
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 
@@ -36,6 +37,9 @@ namespace SbslFileTransformer
             var logPathFiles = Path.Combine(logsFolder, "log_files");
             var logPathSqlite = Path.Combine(logsFolder, "log_sqlite");
 
+            Directory.CreateDirectory(logPathFiles);
+            Directory.CreateDirectory(logPathSqlite);
+
             try
             {
                 var formatter = new MessageTemplateTextFormatter(
@@ -63,6 +67,10 @@ namespace SbslFileTransformer
                 //log the incident
                 File.AppendAllText(Path.Combine(logPathSqlite, "SQLite Problems.txt"), $"Sqlite Log file Delete due to corruption {DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}\n\n");
                 //restart the service
+                var eventLog = new EventLog();
+                eventLog.Source = "SBSL ETL Service";
+                eventLog.WriteEntry($"SBSL ETL Service Startup Log - {ex.Message}", EventLogEntryType.Error);
+
                 Environment.Exit(1);
             }
         }

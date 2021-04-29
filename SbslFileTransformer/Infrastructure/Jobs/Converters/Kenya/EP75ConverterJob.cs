@@ -74,7 +74,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     foreach (var file in files)
                     {
-                        if (file.ToLower().Contains("ep75") && file.ToLower().Contains("imke"))
+                        if (file.ToLower().Contains("ep75") && file.ToLower().Contains("imke") && file.ToLower().Contains("cards"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -86,6 +86,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 catch (Exception ex)
                                 {
+                                    fileToProcess.Failed = true;
+
                                     _logger.LogError(ex, ex.Message);
 
                                     await EmailHelpers.SendEmails(dbContext, "Problem Converting EP75 files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
@@ -93,6 +95,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 finally
                                 {
                                     fileToProcess.Converted = true;
+
+                                    fileToProcess.ConvertedBy = nameof(EP75Converter);
 
                                     dbContext.Update(fileToProcess);
 

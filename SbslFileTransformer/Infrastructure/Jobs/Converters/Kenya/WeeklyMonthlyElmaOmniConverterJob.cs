@@ -87,6 +87,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 }
                                 catch (Exception ex)
                                 {
+                                    fileToProcess.Failed = true;
+
                                     _logger.LogError(ex, ex.Message);
 
                                     await EmailHelpers.SendEmails(dbContext, "Problem Converting Weekly Monthly Elma Omni Settlement files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
@@ -94,6 +96,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 finally
                                 {
                                     fileToProcess.Converted = true;
+
+                                    fileToProcess.ConvertedBy = nameof(WeeklyMonthlyElmaOmniSettlementConverter);
 
                                     dbContext.Update(fileToProcess);
 

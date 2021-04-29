@@ -95,11 +95,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 {
                                     _logger.LogError(ex, ex.Message);
 
+                                    fileToProcess.Failed = true;
+
                                     await EmailHelpers.SendEmails(dbContext, "Problem Converting CDM Balance files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
                                 finally
                                 {
                                     fileToProcess.Converted = true;
+
+                                    fileToProcess.ConvertedBy = nameof(CDMBalanceExtractor);
 
                                     dbContext.Update(fileToProcess);
 

@@ -92,6 +92,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 catch (Exception ex)
                                 {
+                                    fileToProcess.Failed = true;
+
                                     _logger.LogError(ex, ex.Message);
 
                                     await EmailHelpers.SendEmails(dbContext, "Problem Converting MPesa B2C or C2B files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
@@ -99,6 +101,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 finally
                                 {
                                     fileToProcess.Converted = true;
+
+                                    fileToProcess.ConvertedBy = nameof(MpesaB2CnC2BConverter);
 
                                     dbContext.Update(fileToProcess);
 

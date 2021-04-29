@@ -87,12 +87,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 catch (Exception ex)
                                 {
+                                    fileToProcess.Failed = true;
+
                                     _logger.LogError(ex, ex.Message);
+
                                     await EmailHelpers.SendEmails(dbContext, "Error in CAMT file conversion", $"Problem with XML file {file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
                                 finally
                                 {
-                                    fileToProcess.Converted = true;
+                                    //fileToProcess.Converted = true;
+
+                                    fileToProcess.ConvertedBy = nameof(Camt053Converter);
 
                                     dbContext.Update(fileToProcess);
 

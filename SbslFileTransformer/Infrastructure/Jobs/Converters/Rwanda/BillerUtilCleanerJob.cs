@@ -86,6 +86,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 catch (Exception ex)
                                 {
+                                    fileToProcess.Failed = true;
+
                                     _logger.LogError(ex, ex.Message);
 
                                     await EmailHelpers.SendEmails(dbContext, "Problem cleaning files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
@@ -93,6 +95,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 finally
                                 {
                                     fileToProcess.Converted = true;
+
+                                    fileToProcess.ConvertedBy = nameof(FDICleaner);
 
                                     dbContext.Update(fileToProcess);
 

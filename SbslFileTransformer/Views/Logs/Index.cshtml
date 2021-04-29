@@ -49,11 +49,21 @@
                                 File Path
                             </th>
                             <th>
+                                Converted By
+                            </th>
+                            <th>
+                                Conversion Failed
+                            </th>
+                            <th>
+                                Processed
+                            </th>
+                            <th>
                                 Sequence No
                             </th>
                             <th>
                                 Statement No
                             </th>
+
                         </tr>
                     </thead>
                     <tbody>
@@ -77,6 +87,15 @@
                                 </td>
                                 <td>
                                     @Html.DisplayFor(modelItem => item.FilePath)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.ConvertedBy)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Failed)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Converted)
                                 </td>
                                 <td>
                                     @Html.DisplayFor(modelItem => item.MtSequenceNo)
