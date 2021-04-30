@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using SbslFileTransformer.Infrastructure.ServiceManager;
 using Serilog;
 using Serilog.Filters;
 using Serilog.Formatting.Display;
@@ -7,6 +8,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.ServiceProcess;
 
 namespace SbslFileTransformer
 {
@@ -20,6 +22,8 @@ namespace SbslFileTransformer
             {
                 Log.Information("Starting up");
                 CreateHostBuilder(args).Build().Run();
+
+                //ChangeServiceStartParams();
             }
             catch (Exception ex)
             {
@@ -29,6 +33,14 @@ namespace SbslFileTransformer
             {
                 Log.CloseAndFlush();
             }
+        }
+
+        private static void ChangeServiceStartParams()
+        {
+            LocalServiceHelper.ChangeRevoveryOption("SBSL ETL Service",
+                    ServiceRecoveryOptionHelper.RecoverAction.Restart,
+                    ServiceRecoveryOptionHelper.RecoverAction.Restart,
+                    ServiceRecoveryOptionHelper.RecoverAction.None);
         }
 
         private static void AddLogging()

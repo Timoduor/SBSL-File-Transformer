@@ -131,7 +131,7 @@ namespace SbslFileTransformer
                     pattern: "{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapRazorPages();
             });
-
+                        
             ApplicationSeeding.CreateDatabase(serviceProvider, logger).Wait();
         }
     }
