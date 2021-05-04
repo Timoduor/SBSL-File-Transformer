@@ -81,7 +81,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
                 Directory.CreateDirectory(outputFolder);
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
-                var fileNameToUse = fileName.Substring(Math.Max(0, fileName.Length - 10)).Replace(" ", "");
+                var fileNameToUse = fileName.Replace(" ", "").Substring(Math.Max(0, fileName.Length - 10));
 
                 outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{fileNameToUse}_COMM.csv");
             }

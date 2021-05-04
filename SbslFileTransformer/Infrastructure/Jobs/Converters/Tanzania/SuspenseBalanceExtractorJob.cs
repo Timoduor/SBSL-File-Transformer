@@ -8,7 +8,6 @@ using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -76,8 +75,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 
                     foreach (var file in files)
                     {
-                        //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
-                        if (file.ToLower().Contains("suspense") && file.ToLower().Contains("imtz"))
+                        if (file.ToLower().Contains("clearing_suspense") && file.ToLower().Contains("imtz") && file.ToLower().Contains("tachbalances"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 

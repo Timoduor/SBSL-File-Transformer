@@ -133,7 +133,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 throw new Exception("Unable to parse datetime!");
             }
 
-            var amount = item.Col7; //vs col5 diff
+            var amount = (Convert.ToDouble(item.Col7) * -1).ToString("N2"); //vs col5 diff
             var currency = "KES";
 
             string account = "19990126507010"; //payment

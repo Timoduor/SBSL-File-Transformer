@@ -8,7 +8,6 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.ServiceProcess;
 
 namespace SbslFileTransformer
 {
@@ -22,8 +21,6 @@ namespace SbslFileTransformer
             {
                 Log.Information("Starting up");
                 CreateHostBuilder(args).Build().Run();
-
-                //ChangeServiceStartParams();
             }
             catch (Exception ex)
             {
@@ -37,10 +34,17 @@ namespace SbslFileTransformer
 
         private static void ChangeServiceStartParams()
         {
-            LocalServiceHelper.ChangeRevoveryOption("SBSL ETL Service",
-                    ServiceRecoveryOptionHelper.RecoverAction.Restart,
-                    ServiceRecoveryOptionHelper.RecoverAction.Restart,
-                    ServiceRecoveryOptionHelper.RecoverAction.None);
+            try
+            {
+                LocalServiceHelper.ChangeRevoveryOption("SBSL ETL Service",
+                        ServiceRecoveryOptionHelper.RecoverAction.Restart,
+                        ServiceRecoveryOptionHelper.RecoverAction.Restart,
+                        ServiceRecoveryOptionHelper.RecoverAction.None);
+            }
+            catch(Exception ex)
+            {
+                Log.Error(ex, "Problem setting service to restart automatically!");
+            }
         }
 
         private static void AddLogging()
@@ -70,6 +74,8 @@ namespace SbslFileTransformer
                     .WriteTo.RollingFile(formatter, Path.Combine(Directory.GetCurrentDirectory(), Path.Combine(logPathFiles, "{Date}-SBSLETL.log")),
                         fileSizeLimitBytes: 10485760)
                     .CreateLogger();
+
+                ChangeServiceStartParams();
             }
             catch (Exception ex)
             {

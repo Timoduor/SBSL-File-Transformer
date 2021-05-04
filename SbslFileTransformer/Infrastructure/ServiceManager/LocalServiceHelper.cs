@@ -21,13 +21,36 @@ namespace SbslFileTransformer.Infrastructure.ServiceManager
             {
                 // Open the service control manager
                 var scmHndl = ServiceRecoveryOptionHelper.OpenSCManager(null, null, ScManagerAllAccess);
-                if (scmHndl.ToInt32() <= 0)
+
+                long checkValue = default;
+
+                if (Environment.Is64BitProcess)
+                {
+                    checkValue = scmHndl.ToInt64();
+                }
+                else
+                {
+                    checkValue = scmHndl.ToInt32();
+                }
+
+                if (checkValue <= 0)
                     return;
 
                 // Open the service
                 var svcHndl = ServiceRecoveryOptionHelper.OpenService(scmHndl, serviceName, ServiceAllAccess);
 
-                if (svcHndl.ToInt32() <= 0)
+                long checkValue2 = default;
+
+                if (Environment.Is64BitProcess)
+                {
+                    checkValue2 = svcHndl.ToInt64();
+                }
+                else
+                {
+                    checkValue2 = svcHndl.ToInt32();
+                }
+
+                if (checkValue2 <= 0)
                     return;
 
                 var failureActions = new ArrayList
@@ -65,7 +88,7 @@ namespace SbslFileTransformer.Infrastructure.ServiceManager
                         dwResetPeriod = 0,
                         lpCommand = null,
                         lpRebootMsg = null,
-                        lpsaActions = new IntPtr(tmpBuf.ToInt32())
+                        lpsaActions = new IntPtr(Environment.Is64BitProcess ? tmpBuf.ToInt64() : tmpBuf.ToInt32())
                     };
 
                 // Call the ChangeServiceFailureActions() abstraction of ChangeServiceConfig2()
@@ -87,9 +110,9 @@ namespace SbslFileTransformer.Infrastructure.ServiceManager
                     Marshal.FreeHGlobal(tmpBuf);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw new Exception("Unable to set service recovery options");
+                throw new Exception("Unable to set service recovery options " + ex);
             }
         }
     }
