@@ -46,9 +46,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var networkFolder = (await dbContext.Configurations.FirstOrDefaultAsync(b => b.ConfigType == Models.Enums.ConfigurationType.Setting && b.Key == "NetworkFolder")).Value;
+                    var networkFolder = (await dbContext.Configurations.FirstOrDefaultAsync(b => b.ConfigType == Models.Enums.ConfigurationType.Setting && b.Key == "NetworkFolder"))?.Value;
 
-                    var localFolder = (await dbContext.Configurations.FirstOrDefaultAsync(b => b.ConfigType == Models.Enums.ConfigurationType.Setting && b.Key == "LocalFolder")).Value;
+                    var localFolder = (await dbContext.Configurations.FirstOrDefaultAsync(b => b.ConfigType == Models.Enums.ConfigurationType.Setting && b.Key == "LocalFolder"))?.Value;
+
+                    if(string.IsNullOrEmpty(networkFolder) || string.IsNullOrEmpty(localFolder))
+                    {
+                        return;
+                    }
 
                     if (Directory.Exists(localFolder) && Directory.Exists(networkFolder))
                     {
