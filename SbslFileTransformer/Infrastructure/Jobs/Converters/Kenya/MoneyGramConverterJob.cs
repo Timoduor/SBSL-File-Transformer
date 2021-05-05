@@ -68,7 +68,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                     foreach (var file in files)
                     {
-                        //SPECIFY FOLDER and file extension above
+
+                        //SPECIFY FOLDER and file extension above PENDING
+
                         if (file.ToLower().Contains("moneygram") && file.ToLower().Contains("imke") && !file.Contains("Conv"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());

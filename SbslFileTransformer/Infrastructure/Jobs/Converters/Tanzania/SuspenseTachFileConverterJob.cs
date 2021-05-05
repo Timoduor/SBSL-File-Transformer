@@ -8,6 +8,7 @@ using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -15,9 +16,9 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 {
-    public class SuspenseBalanceExtractorJob : ConverterJobBase<SuspenseBalanceExtractorJob>, IHostedService
+    public class SuspenseTachFileConverterJob : ConverterJobBase<SuspenseTachFileConverterJob>, IHostedService
     {
-        public SuspenseBalanceExtractorJob(ILogger<SuspenseBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public SuspenseTachFileConverterJob(ILogger<SuspenseTachFileConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -26,22 +27,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Starting Suspense TACH Converter Job");
+
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _logger.LogInformation("Starting Suspense Balance Extractor job");
-
-            _timer = new Timer(async state => await GenerateMultiCurrFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await ConvertTachFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task GenerateMultiCurrFile()
+        private async Task ConvertTachFile()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running Suspense Balance Extractor job");
+                _logger.LogInformation("Running Suspense TACH file converter job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -57,19 +58,21 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
-                    bool isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.xls", options).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.xls", options));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")));
 
-                    var pdfConverter = new SuspenseBalanceExtractor(Entity);
+                    var mpesaConverter = new SuspenseTachFileConverter();
 
                     foreach (var file in files)
                     {
-                        if (file.ToLower().Contains("clearing_suspense") && file.ToLower().Contains("imtz") && file.ToLower().Contains("tachbalances"))
+
+                        //PATH IS STILL PENDING
+
+                        if (file.ToLower().Contains("imtz") && file.ToLower().Contains("tach") && !file.Contains("Conv") && !file.ToLower().Contains("balance"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -77,9 +80,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                             {
                                 try
                                 {
-                                    var rootFolder = isProd ? prodFolder : sbFolder;
-
-                                    pdfConverter.ConvertFile(file, rootFolder);
+                                    mpesaConverter.ConvertFile(file);
                                 }
                                 catch (Exception ex)
                                 {
@@ -87,23 +88,23 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem running Suspense Balance Extractor files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting TACH files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
                                 finally
                                 {
                                     fileToProcess.Converted = true;
 
-                                    fileToProcess.ConvertedBy = nameof(SuspenseBalanceExtractor);
+                                    fileToProcess.ConvertedBy = nameof(SuspenseTachFileConverter);
 
                                     dbContext.Update(fileToProcess);
 
                                     await dbContext.SaveChangesAsync();
                                 }
-
                             }
                         }
                     }
                 }
+
             }
             catch (Exception ex)
             {
@@ -114,9 +115,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                 _semaphore.Release();
             }
         }
-        public async Task StopAsync(CancellationToken cancellationToken)
+
+        public Task StopAsync(CancellationToken cancellationToken)
         {
-            await _timer.DisposeAsync();
+            _semaphore.Dispose();
+            _timer.Dispose();
+            return Task.CompletedTask;
         }
     }
 }

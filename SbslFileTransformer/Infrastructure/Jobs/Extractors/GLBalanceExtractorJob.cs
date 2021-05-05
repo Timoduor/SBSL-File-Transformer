@@ -70,6 +70,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                                 file.ToLower().Contains("util_balance".ToLower()) || file.ToLower().Contains("mb_balance".ToLower())
                                 || file.ToLower().Contains("selcom_balance".ToLower()) || file.ToLower().Contains("float_balance".ToLower())
                                 || file.ToLower().Contains("b2w_balance".ToLower()) || file.ToLower().Contains("w2b_balance".ToLower())
+                                || file.ToLower().Contains("clearing_balance")
                                 )
                             {
                                 await converter.Execute(file, "Mobile banking");
@@ -77,6 +78,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                             else if (file.ToLower().Contains("sus_balance"))
                             {
                                 await converter.Execute(file, "Branch Suspense");
+                            }
+                            else if (file.ToLower().Contains("clearing_balance"))
+                            {
+                                await converter.Execute(file, "Clearing");
                             }
                             else
                             {

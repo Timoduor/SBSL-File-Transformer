@@ -134,7 +134,14 @@ namespace SbslFileTransformer.Converters
                 {
                     outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_UTIL_{Entity}.txt");
                 }
-
+                if (filePath.ToLower().Contains("clearing"))
+                {
+                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_CLEAR_{Entity}.txt");
+                }
+                if (filePath.ToLower().Contains("sus") || filePath.ToLower().Contains("suspense"))
+                {
+                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_SUS_{Entity}.txt");
+                }
 
                 if (!File.Exists(outputPath))
                     await File.WriteAllTextAsync(outputPath, output.ToString());

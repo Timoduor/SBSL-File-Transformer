@@ -2,12 +2,13 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters.Tanzania;
+using SbslFileTransformer.Converters.BalanceExtractors.Tanzania;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -15,9 +16,9 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 {
-    public class SuspenseBalanceExtractorJob : ConverterJobBase<SuspenseBalanceExtractorJob>, IHostedService
+    public class SpennControlBalanceExtractorJob : ConverterJobBase<SpennControlBalanceExtractorJob>, IHostedService
     {
-        public SuspenseBalanceExtractorJob(ILogger<SuspenseBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public SpennControlBalanceExtractorJob(ILogger<SpennControlBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -28,7 +29,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
         {
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _logger.LogInformation("Starting Suspense Balance Extractor job");
+            _logger.LogInformation("Starting Spenn Control Balance Extractor job");
 
             _timer = new Timer(async state => await GenerateMultiCurrFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
 
@@ -41,7 +42,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running Suspense Balance Extractor job");
+                _logger.LogInformation("Running Spenn Control Balance Extractor job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -61,15 +62,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.xls", options).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.txt", options).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.xls", options));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.txt", options));
 
-                    var pdfConverter = new SuspenseBalanceExtractor(Entity);
+                    var pdfConverter = new SpennControlExtractor();
 
                     foreach (var file in files)
                     {
-                        if (file.ToLower().Contains("clearing_suspense") && file.ToLower().Contains("imtz") && file.ToLower().Contains("tachbalances"))
+                        if (file.ToLower().Contains("spenn") && file.ToLower().Contains("control") && file.ToLower().Contains("balance")
+                            && file.ToLower().Contains("portal") && file.ToLower().Contains("imtz"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -87,13 +89,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem running Suspense Balance Extractor files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem running  Spenn Control Balance Extractor files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
                                 finally
                                 {
                                     fileToProcess.Converted = true;
 
-                                    fileToProcess.ConvertedBy = nameof(SuspenseBalanceExtractor);
+                                    fileToProcess.ConvertedBy = nameof(SpennControlExtractor);
 
                                     dbContext.Update(fileToProcess);
 
@@ -114,6 +116,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                 _semaphore.Release();
             }
         }
+
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             await _timer.DisposeAsync();
