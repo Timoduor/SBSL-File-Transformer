@@ -1,6 +1,4 @@
-﻿using SbslFileTransformer.Infrastructure.Jobs;
-
-namespace SbslFileTransformer.Models
+﻿namespace SbslFileTransformer.Models
 {
     public class Job
     {
