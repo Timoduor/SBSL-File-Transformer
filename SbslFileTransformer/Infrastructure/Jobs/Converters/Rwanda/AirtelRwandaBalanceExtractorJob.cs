@@ -15,15 +15,10 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class AirtelRwandaBalanceExtractorJob : ConverterJobBase, IHostedService
+    public class AirtelRwandaBalanceExtractorJob : ConverterJobBase<AirtelRwandaBalanceExtractorJob>, IHostedService
     {
-        private ILogger<AirtelKenyaBalanceExtractorJob> _logger;
-        IServiceScopeFactory _serviceScopeFactory;
-        EmailSender _emailSender;
-        private static SemaphoreSlim _semaphore;
-        Timer _timer;
 
-        public AirtelRwandaBalanceExtractorJob(ILogger<AirtelKenyaBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public AirtelRwandaBalanceExtractorJob(ILogger<AirtelRwandaBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;

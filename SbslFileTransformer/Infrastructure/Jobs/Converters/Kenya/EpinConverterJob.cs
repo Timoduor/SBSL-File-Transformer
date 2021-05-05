@@ -15,13 +15,8 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class EpinConverterJob : ConverterJobBase, IHostedService
+    public class EpinConverterJob : ConverterJobBase<EpinConverterJob>, IHostedService
     {
-        private ILogger<EpinConverterJob> _logger;
-        IServiceScopeFactory _serviceScopeFactory;
-        EmailSender _emailSender;
-        private static SemaphoreSlim _semaphore;
-        Timer _timer;
 
         public EpinConverterJob(ILogger<EpinConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

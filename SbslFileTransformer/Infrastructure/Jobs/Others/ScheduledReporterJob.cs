@@ -24,14 +24,8 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs
 {
-    public class ScheduledReporterJob : IHostedService
+    public class ScheduledReporterJob : ConverterJobBase<ScheduledReporterJob>, IHostedService
     {
-        private readonly ILogger<ScheduledReporterJob> _logger;
-        private readonly EmailSender _emailSender;
-        private readonly IServiceScopeFactory _serviceScopeFactory;
-        private Timer _timer;
-        private static SemaphoreSlim _semaphore;
-
         public ScheduledReporterJob(ILogger<ScheduledReporterJob> logger, EmailSender emailSender, IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;

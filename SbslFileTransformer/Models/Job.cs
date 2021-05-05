@@ -2,7 +2,7 @@
 
 namespace SbslFileTransformer.Models
 {
-    public class Job : ConverterJobBase
+    public class Job
     {
         public int Id { get; set; }
         public string JobName { get; set; }

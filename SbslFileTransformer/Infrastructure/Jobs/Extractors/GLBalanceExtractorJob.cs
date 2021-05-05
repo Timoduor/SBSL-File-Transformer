@@ -12,13 +12,8 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 {
-    public class GLBalanceExtractorJob : IHostedService
+    public class GLBalanceExtractorJob : ConverterJobBase<GLBalanceExtractorJob>, IHostedService
     {
-        private Timer _timer;
-        private ILogger<GLBalanceExtractorJob> _logger;
-        private IServiceScopeFactory _serviceScopeFactory;
-        static SemaphoreSlim _semaphore;
-
         public GLBalanceExtractorJob(IServiceScopeFactory serviceScopeFactory, ILogger<GLBalanceExtractorJob> logger)
         {
             _serviceScopeFactory = serviceScopeFactory;

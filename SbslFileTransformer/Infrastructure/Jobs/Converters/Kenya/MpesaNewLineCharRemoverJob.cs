@@ -15,13 +15,8 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class MpesaNewLineCharRemoverJob : ConverterJobBase, IHostedService
+    public class MpesaNewLineCharRemoverJob : ConverterJobBase<MpesaNewLineCharRemoverJob>, IHostedService
     {
-        Timer _timer;
-        ILogger<MpesaNewLineCharRemoverJob> _logger;
-        IServiceScopeFactory _serviceScopeFactory;
-        private static SemaphoreSlim _semaphore;
-        EmailSender _emailSender;
 
         public MpesaNewLineCharRemoverJob(ILogger<MpesaNewLineCharRemoverJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

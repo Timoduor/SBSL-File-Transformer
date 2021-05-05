@@ -14,14 +14,8 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class CDMBalanceExtractorJob : ConverterJobBase, IHostedService
+    public class CDMBalanceExtractorJob : ConverterJobBase<CDMBalanceExtractorJob>, IHostedService
     {
-        private ILogger<CDMBalanceExtractorJob> _logger;
-        IServiceScopeFactory _serviceScopeFactory;
-        EmailSender _emailSender;
-        private static SemaphoreSlim _semaphore;
-        Timer _timer;
-
         public CDMBalanceExtractorJob(ILogger<CDMBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;

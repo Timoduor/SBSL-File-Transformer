@@ -14,14 +14,8 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class MpesaBalanceExtractorJob : ConverterJobBase, IHostedService
+    public class MpesaBalanceExtractorJob : ConverterJobBase<MpesaBalanceExtractorJob>, IHostedService
     {
-        private ILogger<MpesaBalanceExtractorJob> _logger;
-        IServiceScopeFactory _serviceScopeFactory;
-        EmailSender _emailSender;
-        private static SemaphoreSlim _semaphore;
-        Timer _timer;
-
         public MpesaBalanceExtractorJob(ILogger<MpesaBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;

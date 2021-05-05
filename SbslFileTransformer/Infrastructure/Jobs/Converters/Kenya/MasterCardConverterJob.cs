@@ -15,13 +15,8 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class MasterCardConverterJob : ConverterJobBase, IHostedService
+    public class MasterCardConverterJob : ConverterJobBase<MasterCardConverterJob>, IHostedService
     {
-        private ILogger<MasterCardConverterJob> _logger;
-        IServiceScopeFactory _serviceScopeFactory;
-        EmailSender _emailSender;
-        private static SemaphoreSlim _semaphore;
-        Timer _timer;
 
         public MasterCardConverterJob(ILogger<MasterCardConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

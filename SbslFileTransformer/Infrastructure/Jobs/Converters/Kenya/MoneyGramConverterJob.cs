@@ -16,13 +16,8 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
-    public class MoneyGramConverterJob : ConverterJobBase, IHostedService
+    public class MoneyGramConverterJob : ConverterJobBase<MoneyGramConverterJob>, IHostedService
     {
-        private ILogger<MoneyGramConverterJob> _logger;
-        IServiceScopeFactory _serviceScopeFactory;
-        EmailSender _emailSender;
-        private static SemaphoreSlim _semaphore;
-        Timer _timer;
         public MoneyGramConverterJob(ILogger<MoneyGramConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;

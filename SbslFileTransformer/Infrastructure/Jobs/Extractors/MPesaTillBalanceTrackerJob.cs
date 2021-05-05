@@ -12,13 +12,8 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 {
-    public class MPesaTillBalanceTrackerJob : ConverterJobBase, IHostedService
+    public class MPesaTillBalanceTrackerJob : ConverterJobBase<MPesaTillBalanceTrackerJob>, IHostedService
     {
-        private Timer _timer;
-        private ILogger<MPesaTillBalanceTrackerJob> _logger;
-        private IServiceScopeFactory _serviceScopeFactory;
-        static SemaphoreSlim _semaphore;
-
         public MPesaTillBalanceTrackerJob(IServiceScopeFactory serviceScopeFactory, ILogger<MPesaTillBalanceTrackerJob> logger)
         {
             _serviceScopeFactory = serviceScopeFactory;

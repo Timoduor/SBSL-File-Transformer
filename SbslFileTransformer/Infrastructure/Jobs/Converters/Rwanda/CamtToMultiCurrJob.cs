@@ -14,14 +14,8 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class CamtToMultiCurrJob : ConverterJobBase, IHostedService
+    public class CamtToMultiCurrJob : ConverterJobBase<CamtToMultiCurrJob>, IHostedService
     {
-        private Timer _timer;
-        private readonly ILogger<CamtToMultiCurrJob> _logger;
-        readonly IServiceScopeFactory _serviceScopeFactory;
-        readonly EmailSender _emailSender;
-        private static SemaphoreSlim _semaphore;
-
         public CamtToMultiCurrJob(ILogger<CamtToMultiCurrJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;

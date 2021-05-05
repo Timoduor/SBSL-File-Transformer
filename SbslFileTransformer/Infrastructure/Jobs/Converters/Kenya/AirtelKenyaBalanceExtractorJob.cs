@@ -14,13 +14,8 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class AirtelKenyaBalanceExtractorJob : ConverterJobBase, IHostedService
+    public class AirtelKenyaBalanceExtractorJob : ConverterJobBase<AirtelKenyaBalanceExtractorJob>, IHostedService
     {
-        private ILogger<AirtelKenyaBalanceExtractorJob> _logger;
-        IServiceScopeFactory _serviceScopeFactory;
-        EmailSender _emailSender;
-        private static SemaphoreSlim _semaphore;
-        Timer _timer;
 
         public AirtelKenyaBalanceExtractorJob(ILogger<AirtelKenyaBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

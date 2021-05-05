@@ -15,13 +15,8 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class MTNRwandaBalanceExtractorJob : ConverterJobBase, IHostedService
+    public class MTNRwandaBalanceExtractorJob : ConverterJobBase<MTNRwandaBalanceExtractorJob>, IHostedService
     {
-        private ILogger<MTNRwandaBalanceExtractorJob> _logger;
-        IServiceScopeFactory _serviceScopeFactory;
-        EmailSender _emailSender;
-        private static SemaphoreSlim _semaphore;
-        Timer _timer;
 
         public MTNRwandaBalanceExtractorJob(ILogger<MTNRwandaBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

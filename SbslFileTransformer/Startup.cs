@@ -61,12 +61,13 @@ namespace SbslFileTransformer
             services.AddTransient<SftpManager>();
             services.AddTransient<EncryptionManager>();
             services.AddTransient<EmailSender>();
-
+            //SPRINT 1
             services.AddHostedService<SftpIndependentJob>();
             services.AddHostedService<ScheduledReporterJob>();
             services.AddHostedService<MtBalanceExtractorJob>();
             services.AddHostedService<AuxilliaryProcessesJob>();
             services.AddHostedService<GLBalanceExtractorJob>();
+            //SPRINT2
             services.AddHostedService<Camt053ConverterJob>();
             services.AddHostedService<CdmConverterJob>();
             services.AddHostedService<KenSwitchConverterJob>();
@@ -83,7 +84,7 @@ namespace SbslFileTransformer
             services.AddHostedService<AirtelKenyaBalanceExtractorJob>();
             services.AddHostedService<SelcomBalanceExtractorJob>();
             services.AddHostedService<BnrSettlementConverterJob>();
-            //SPRINT 2
+            //SPRINT 2-2
             services.AddHostedService<BillerUtilBalanceExtractorJob>();
             services.AddHostedService<BillerUtilCleanerJob>();
             services.AddHostedService<AirtelRwandaBalanceExtractorJob>();
@@ -94,10 +95,12 @@ namespace SbslFileTransformer
             services.AddHostedService<DailyElmaOmniConverterJob>();
             services.AddHostedService<WeeklyMonthlyElmaOmniConverterJob>();
             services.AddHostedService<OmniLookupConverterJob>();
+            services.AddHostedService<CamtToMultiCurrJob>();
+
             //SPRINT 3
             services.AddHostedService<SuspenseBalanceExtractorJob>();
+            services.AddHostedService<MoneyGramConverterJob>();
 
-            services.AddHostedService<CamtToMultiCurrJob>();
             services.AddHostedService<FileNetworkCopyJob>();
 
         }

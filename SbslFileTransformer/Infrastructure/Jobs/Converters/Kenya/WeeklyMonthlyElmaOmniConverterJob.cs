@@ -15,14 +15,8 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
-    public class WeeklyMonthlyElmaOmniConverterJob : ConverterJobBase, IHostedService
+    public class WeeklyMonthlyElmaOmniConverterJob : ConverterJobBase<WeeklyMonthlyElmaOmniConverterJob>, IHostedService
     {
-        private ILogger<WeeklyMonthlyElmaOmniConverterJob> _logger;
-        IServiceScopeFactory _serviceScopeFactory;
-        EmailSender _emailSender;
-        private static SemaphoreSlim _semaphore;
-        Timer _timer;
-
         public WeeklyMonthlyElmaOmniConverterJob(ILogger<WeeklyMonthlyElmaOmniConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;

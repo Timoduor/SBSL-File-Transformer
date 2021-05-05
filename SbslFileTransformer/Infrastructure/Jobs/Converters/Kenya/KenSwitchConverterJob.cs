@@ -15,13 +15,8 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class KenSwitchConverterJob : ConverterJobBase, IHostedService
+    public class KenSwitchConverterJob : ConverterJobBase<KenSwitchConverterJob>, IHostedService
     {
-        private Timer _timer;
-        IServiceScopeFactory _serviceScopeFactory;
-        ILogger<KenSwitchConverterJob> _logger;
-        EmailSender _emailSender;
-        private static SemaphoreSlim _semaphore;
 
         public KenSwitchConverterJob(ILogger<KenSwitchConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

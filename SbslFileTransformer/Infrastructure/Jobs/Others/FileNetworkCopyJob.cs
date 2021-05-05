@@ -10,13 +10,8 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Others
 {
-    public class FileNetworkCopyJob : IHostedService
+    public class FileNetworkCopyJob : ConverterJobBase<FileNetworkCopyJob>, IHostedService
     {
-        ILogger<FileNetworkCopyJob> _logger;
-        private readonly IServiceScopeFactory _serviceScopeFactory;
-        private static SemaphoreSlim _semaphore;
-        private static Timer _timer;
-
         public FileNetworkCopyJob(ILogger<FileNetworkCopyJob> logger, IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;

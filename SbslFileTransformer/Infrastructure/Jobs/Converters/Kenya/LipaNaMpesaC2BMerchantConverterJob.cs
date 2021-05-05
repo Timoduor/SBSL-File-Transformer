@@ -16,13 +16,8 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
-    public class LipaNaMpesaC2BMerchantConverterJob : ConverterJobBase, IHostedService
+    public class LipaNaMpesaC2BMerchantConverterJob : ConverterJobBase<LipaNaMpesaC2BMerchantConverterJob>, IHostedService
     {
-        private ILogger<LipaNaMpesaC2BMerchantConverterJob> _logger;
-        IServiceScopeFactory _serviceScopeFactory;
-        EmailSender _emailSender;
-        private static SemaphoreSlim _semaphore;
-        Timer _timer;
         public LipaNaMpesaC2BMerchantConverterJob(ILogger<LipaNaMpesaC2BMerchantConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
