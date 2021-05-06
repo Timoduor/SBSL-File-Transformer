@@ -2,7 +2,7 @@
 -- Host:                         127.0.0.1
 -- Server version:               10.5.8-MariaDB - mariadb.org binary distribution
 -- Server OS:                    Win64
--- HeidiSQL Version:             11.2.0.6213
+-- HeidiSQL Version:             11.2.0.6253
 -- --------------------------------------------------------
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -289,47 +289,48 @@ CREATE TABLE IF NOT EXISTS `configurations` (
   `Value` longtext NOT NULL,
   `Updated` datetime(6) NOT NULL,
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=47 DEFAULT CHARSET=utf8mb4;
 
--- Dumping data for table fileetl.configurations: ~36 rows (approximately)
+-- Dumping data for table fileetl.configurations: ~37 rows (approximately)
 /*!40000 ALTER TABLE `configurations` DISABLE KEYS */;
 REPLACE INTO `configurations` (`Id`, `ConfigType`, `Key`, `Value`, `Updated`) VALUES
 	(1, 0, 'Host', '192.168.56.1', '2021-02-08 14:41:49.401544'),
 	(2, 0, 'UserName', 'tester', '2021-02-08 14:41:49.572194'),
-	(3, 0, 'Password', 'CfDJ8BlPOZxdEtdFr4xSv4zQn4RArd0KQygz0CldWkUh-hZXC5iiBe6QbU301GMONSj0bk60veKNP4Xys3K5E2mU7m4cbdoD0_X2S4gvPo2AIQ_uA85HnmNgua729X3FPI0Snw', '2021-02-08 14:41:49.591734'),
+	(3, 0, 'Password', 'password', '2021-02-08 14:41:49.591734'),
 	(4, 0, 'Port', '22', '2021-02-08 14:41:49.606792'),
 	(5, 0, 'ProductionFolder', 'C:\\Users\\Yida\\Downloads\\jobrunner\\940', '2021-02-08 14:41:49.622513'),
 	(6, 0, 'IncludeProduction', 'True', '2021-02-08 14:41:49.635587'),
 	(7, 0, 'SandboxFolder', 'C:\\Users\\Yida\\Downloads\\jobrunner\\950', '2021-02-08 14:41:49.646879'),
 	(8, 0, 'IncludeSandbox', 'False', '2021-02-08 14:41:49.656925'),
-	(9, 0, 'ProductionTimeSpanCheck', '5', '2020-12-06 22:55:41.177992'),
+	(9, 0, 'ProductionTimeSpanCheck', '3', '2021-04-28 07:17:57.699520'),
 	(10, 0, 'SandboxTimeSpanCheck', '5', '2020-12-06 22:56:06.439877'),
 	(11, 1, 'ServiceName', 'SBSL ETL Service', '2020-12-09 22:21:42.850588'),
-	(12, 2, 'Name', 'SBSL Support Team', '2021-02-10 13:26:22.885220'),
-	(15, 2, 'Port', '2500', '2021-02-10 13:26:22.875780'),
-	(16, 2, 'SmtpServer', 'localhost', '2021-02-10 13:26:22.895820'),
-	(18, 2, 'Recipients', 'bryson@sbsl.co.ke', '2021-02-10 13:26:22.915037'),
-	(19, 4, 'Entity', 'IMKE', '2020-12-22 21:21:44.552901'),
-	(20, 2, 'UseSsl', 'False', '2021-02-10 13:26:22.856206'),
-	(21, 2, 'UserName', 'support@sbsl.co.ke', '2021-02-10 13:26:22.669945'),
-	(22, 2, 'Password', 'CfDJ8BlPOZxdEtdFr4xSv4zQn4T46dVBJuRev2JSRg7xr13d0xzf9S1YUrbqlH4vGiHqlujBvB8_gFGa2sVD0CrO54d7elJCsypCMUsPHT1hXeZyFJBRE2OiMlYleaN9hBFyFmYge5N32YQ3y4ppUnVL0xU', '2021-02-10 13:26:22.841652'),
-	(23, 2, 'EmailAddress', 'support@sbsl.co.ke', '2021-02-10 13:26:22.905589'),
+	(12, 2, 'Name', 'SBSL Support Team', '2021-04-07 12:03:48.987063'),
+	(15, 2, 'Port', '2500', '2021-04-07 12:03:48.972431'),
+	(16, 2, 'SmtpServer', 'localhost', '2021-04-07 12:03:49.000835'),
+	(18, 2, 'Recipients', 'bryson@sbsl.co.ke, kellen@sbsl.co.ke', '2021-04-07 12:03:49.026060'),
+	(19, 4, 'Entity', 'IMTZ', '2020-12-22 21:21:44.552901'),
+	(20, 2, 'UseSsl', 'False', '2021-04-07 12:03:48.946868'),
+	(21, 2, 'UserName', 'support@sbsl.co.ke', '2021-04-07 12:03:48.782250'),
+	(22, 2, 'Password', 'CfDJ8PNFZTHWEe1ClYjRbfPzggcxY3TwnWFGyV6F_-wnwQTZceSyjXjtqPzK2m7A2TueR_Wt3C0iuHJ1VODJO8m3PKqdLt33G4hgFa83GWvo0KCNGvM1-wGRGcAWbL5rTevgZQ', '2021-04-07 12:03:48.925568'),
+	(23, 2, 'EmailAddress', 'support@sbsl.co.ke', '2021-04-07 12:03:49.012622'),
 	(24, 3, 'EmailHeader', 'Report on Outstanding Reconciliations', '2021-01-02 12:02:11.715439'),
 	(25, 5, 'SBSL_00', 'f40624e13d3b230847de22036faf918b--', '2020-12-09 23:09:40.449049'),
 	(27, 3, 'ClientId', 'imbank', '2020-12-09 23:09:40.449049'),
 	(28, 3, 'ClientSecret', 'NNlkX>;<%q[\\', '2020-12-09 23:09:40.449049'),
 	(29, 3, 'Scope', 'ReportsAPI instance_0C9B27C5-0EA5-43CF-BFA3-C9AAD16C2BCF', '2020-12-09 23:09:40.449049'),
 	(30, 3, 'ExportType', 'Excel', '2020-12-09 23:09:40.449049'),
-	(31, 3, 'TokenUrl', 'https://eu1.api.blacklinessss.com/authorize/connect/token', '2020-12-09 23:09:40.449049'),
-	(32, 3, 'BaseUrl', 'api.blacklinessss.com/api', '2020-12-09 23:09:40.449049'),
+	(31, 3, 'TokenUrl', 'https://eu1.api.blackline.com/authorize/connect/token', '2020-12-09 23:09:40.449049'),
+	(32, 3, 'BaseUrl', 'api.blackline.com/api', '2020-12-09 23:09:40.449049'),
 	(33, 3, 'EnvironmentUrl', 'eu1', '2020-12-09 23:09:40.449049'),
 	(34, 0, 'BackUpFolder', 'C:\\Users\\Yida\\Downloads\\jobrunner\\BackUp', '2020-12-09 23:09:40.622601'),
 	(35, 4, 'BackUpAllFilesPeriod', '9', '2020-12-09 23:09:40.449049'),
-	(36, 2, 'UseDefaultCredentials', 'True', '2021-02-10 13:26:22.865857'),
+	(36, 2, 'UseDefaultCredentials', 'True', '2021-04-07 12:03:48.960086'),
 	(37, 5, 'Jamlick.maina', '7cff7572fcc196134f896b45c5961c2e---', '2021-02-01 10:22:32.000000'),
 	(38, 5, 'EstherNW', 'ca57333763d57e7a12ca3f59c0c30ab3---', '2021-02-01 10:22:56.000000'),
 	(39, 4, 'PdfPassword', '001402498', '2021-02-08 14:18:36.000000'),
-	(40, 5, 'GenevieveNyirahabim0789', '3f140c4f6ee3fb0b1d7f5d9facfe689f---', '2021-02-21 12:24:04.000000');
+	(40, 5, 'GenevieveNyirahabim0789', '3f140c4f6ee3fb0b1d7f5d9facfe689f---', '2021-02-21 12:24:04.000000'),
+	(41, 5, 'System.Scheduler', '01467571fb472f33f635acd46377e0ce', '2021-04-06 15:17:52.000000');
 /*!40000 ALTER TABLE `configurations` ENABLE KEYS */;
 
 -- Dumping structure for table fileetl.emailgroups
@@ -342,17 +343,31 @@ CREATE TABLE IF NOT EXISTS `emailgroups` (
   `Account` longtext DEFAULT NULL,
   `Description` longtext DEFAULT NULL,
   `IsActive` tinyint(1) NOT NULL,
+  `Country` int(11) NOT NULL DEFAULT 0,
+  `Sprint` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4;
 
--- Dumping data for table fileetl.emailgroups: ~5 rows (approximately)
+-- Dumping data for table fileetl.emailgroups: ~17 rows (approximately)
 /*!40000 ALTER TABLE `emailgroups` DISABLE KEYS */;
-REPLACE INTO `emailgroups` (`Id`, `GroupName`, `Emails`, `AgeAlertDuration`, `Account`, `Description`, `IsActive`) VALUES
-	(1, 'Test Group', 'bryson@sbsl.co.ke', 7, NULL, 'This is for non ageing reports', 1),
-	(2, 'Test 2', 'bryson@sbsl.co.ke', 3, 'N/A', 'This is testing adding', 0),
-	(3, 'Test 2', 'bryson@sbsl.co.ke', 5, 'N/A', 'This is testing adding', 0),
-	(4, 'Test 2', 'bryson@sbsl.co.ke', 7, 'N/A', 'This is testing adding', 0),
-	(5, 'Test 2', 'bryson@sbsl.co.ke', 30, 'N/A', 'This is testing adding', 0);
+REPLACE INTO `emailgroups` (`Id`, `GroupName`, `Emails`, `AgeAlertDuration`, `Account`, `Description`, `IsActive`, `Country`, `Sprint`) VALUES
+	(1, 'Test Group', 'bryson@sbsl.co.ke,bryson@sbsl.co.ke,bryson@sbsl.co.ke,bryson@sbsl.co.ke,bryson@sbsl.co.ke,bryson@sbsl.co.ke,', 7, NULL, 'This is for non ageing reports', 0, 0, 0),
+	(2, 'Nostro_Kenya', 'bryson@sbsl.co.ke, kellen@sbsl.co.ke', 3, 'N/A', 'Nostro_Kenya', 1, 0, 0),
+	(3, 'Nostro_Kenya', 'bryson@sbsl.co.ke, kellen@sbsl.co.ke', 5, 'N/A', 'Nostro_Kenya', 1, 0, 0),
+	(4, 'Nostro_Kenya', 'bryson@sbsl.co.ke, kellen@sbsl.co.ke', 7, 'N/A', 'Nostro_Kenya', 1, 0, 0),
+	(5, 'Nostro_Kenya', 'bryson@sbsl.co.ke, kellen@sbsl.co.ke', 30, 'N/A', 'Nostro_Kenya', 1, 0, 0),
+	(7, 'MB_Kenya', 'bryson@sbsl.co.ke, kellen@sbsl.co.ke', 4, 'N/A', 'MB_Kenya', 1, 0, 1),
+	(8, 'MB_Kenya', 'bryson@sbsl.co.ke, kellen@sbsl.co.ke', 7, 'N/A', 'MB_Kenya', 1, 0, 1),
+	(9, 'MB_Kenya', 'bryson@sbsl.co.ke, kellen@sbsl.co.ke', 15, 'N/A', 'MB_Kenya', 1, 0, 1),
+	(10, 'MB_Kenya', 'bryson@sbsl.co.ke, kellen@sbsl.co.ke', 30, 'N/A', 'MB_Kenya', 1, 0, 1),
+	(11, 'MB_Rwanda', 'bryson@sbsl.co.ke, kellen@sbsl.co.ke', 2, 'N/A', 'MB_Rwanda', 1, 1, 1),
+	(12, 'MB_Rwanda', 'bryson@sbsl.co.ke, kellen@sbsl.co.ke', 5, 'N/A', 'MB_Rwanda', 1, 1, 1),
+	(13, 'MB_Rwanda', 'bryson@sbsl.co.ke, kellen@sbsl.co.ke', 10, 'N/A', 'MB_Rwanda', 1, 1, 1),
+	(14, 'MB_Rwanda', 'bryson@sbsl.co.ke, kellen@sbsl.co.ke', 30, 'N/A', 'MB_Rwanda', 1, 1, 1),
+	(15, 'Nostro_Rwanda', 'bryson@sbsl.co.ke, kellen@sbsl.co.ke', 3, 'N/A', 'Nostro_Rwanda', 1, 2, 0),
+	(16, 'Nostro_Rwanda', 'bryson@sbsl.co.ke, kellen@sbsl.co.ke', 5, 'N/A', 'Nostro_Rwanda', 1, 2, 0),
+	(17, 'Nostro_Rwanda', 'bryson@sbsl.co.ke, kellen@sbsl.co.ke', 7, 'N/A', 'Nostro_Rwanda', 1, 2, 0),
+	(18, 'Nostro_Rwanda', 'bryson@sbsl.co.ke, kellen@sbsl.co.ke', 30, 'N/A', 'Nostro_Rwanda', 1, 2, 0);
 /*!40000 ALTER TABLE `emailgroups` ENABLE KEYS */;
 
 -- Dumping structure for table fileetl.plugins
@@ -382,15 +397,75 @@ CREATE TABLE IF NOT EXISTS `processedreports` (
   `ProcessedDate` datetime(6) NOT NULL,
   `Name` longtext DEFAULT NULL,
   `Format` longtext DEFAULT NULL,
+  `Creator` longtext DEFAULT NULL,
+  `EndTime` longtext DEFAULT NULL,
+  `Message` longtext DEFAULT NULL,
+  `Notes` longtext DEFAULT NULL,
+  `StartTime` longtext DEFAULT NULL,
+  `Status` longtext DEFAULT NULL,
+  `UserToken` longtext DEFAULT NULL,
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB AUTO_INCREMENT=586 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=733 DEFAULT CHARSET=utf8mb4;
 
--- Dumping data for table fileetl.processedreports: ~3 rows (approximately)
+-- Dumping data for table fileetl.processedreports: ~56 rows (approximately)
 /*!40000 ALTER TABLE `processedreports` DISABLE KEYS */;
-REPLACE INTO `processedreports` (`Id`, `ReportId`, `ProcessedDate`, `Name`, `Format`) VALUES
-	(583, 2993574, '2021-03-03 17:25:44.718252', 'KE Nostro Open Items Daily Report', 'Excel'),
-	(584, 2993524, '2021-03-03 17:26:00.725416', 'KE Nostro Open Items Daily Report', 'Excel'),
-	(585, 2993522, '2021-03-03 17:26:18.758152', 'KE Nostro Open Items Daily Report', 'Excel');
+REPLACE INTO `processedreports` (`Id`, `ReportId`, `ProcessedDate`, `Name`, `Format`, `Creator`, `EndTime`, `Message`, `Notes`, `StartTime`, `Status`, `UserToken`) VALUES
+	(677, 3641685, '2021-04-07 14:20:07.497593', 'Rwanda_Nostro_BNR Open Items Daily Report', 'Excel', 'System Scheduler', '04/06/2021 07:56:44', '04/06/2021 07:56:44', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '04/06/2021 07:56:43', 'Complete', '3f7c88cff8f00c03d413002798c07130'),
+	(678, 3641684, '2021-04-07 14:21:03.783713', 'Rwanda_NOSTRO_BNR Balance Proofing', 'Excel', 'System Scheduler', '04/06/2021 07:56:39', '04/06/2021 07:56:39', 'Summary showing the status of each reconciliation, Unidentified Difference, and category totals.', '04/06/2021 07:56:37', 'Complete', '3f7c88cff8f00c03d413002798c07130'),
+	(679, 3641683, '2021-04-07 14:21:57.084267', 'RWANDA_ABC_SPENN CASHINOUT GROUP  OPEN ITEMS REPORT', 'Excel', 'System Scheduler', '04/06/2021 07:56:31', '04/06/2021 07:56:31', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '04/06/2021 07:56:29', 'Complete', '3f7c88cff8f00c03d413002798c07130'),
+	(680, 3641678, '2021-04-07 14:22:50.544422', 'RWANDA_ABC_MTN PUSH PULL OPEN ITEMS REPORT', 'Excel', 'System Scheduler', '04/06/2021 07:56:25', '04/06/2021 07:56:25', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '04/06/2021 07:56:23', 'Complete', '3f7c88cff8f00c03d413002798c07130'),
+	(681, 3641673, '2021-04-07 14:23:45.823239', 'Rwanda_ABC_Mobile Banking Balance Proofing Report', 'Excel', 'System Scheduler', '04/06/2021 07:56:04', '04/06/2021 07:56:04', 'Summary showing the status of each reconciliation, Unidentified Difference, and individual Supporting Items and their Item Class.', '04/06/2021 07:56:00', 'Complete', '3f7c88cff8f00c03d413002798c07130'),
+	(682, 3641670, '2021-04-07 14:24:39.531529', 'RWANDA_ABC_FDI UTILITIES OPEN ITEMS REPORT', 'Excel', 'System Scheduler', '04/06/2021 07:55:56', '04/06/2021 07:55:56', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '04/06/2021 07:55:54', 'Complete', '3f7c88cff8f00c03d413002798c07130'),
+	(683, 3641667, '2021-04-07 14:25:37.407188', 'RWANDA_ABC_CDM HQ Open Item Report', 'Excel', 'System Scheduler', '04/06/2021 07:55:49', '04/06/2021 07:55:49', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '04/06/2021 07:55:47', 'Complete', '3f7c88cff8f00c03d413002798c07130'),
+	(684, 3641665, '2021-04-07 14:26:34.293303', 'RWANDA_ABC_CDM CHIC Open Item Report', 'Excel', 'System Scheduler', '04/06/2021 07:55:42', '04/06/2021 07:55:42', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '04/06/2021 07:55:41', 'Complete', '3f7c88cff8f00c03d413002798c07130'),
+	(685, 3641664, '2021-04-07 14:27:34.184982', 'Rwanda_ABC_CDM Balance Proofing Report', 'Excel', 'System Scheduler', '04/06/2021 07:55:35', '04/06/2021 07:55:35', 'Summary showing the status of each reconciliation, Unidentified Difference, and individual Supporting Items and their Item Class.', '04/06/2021 07:55:33', 'Complete', '3f7c88cff8f00c03d413002798c07130'),
+	(686, 3641655, '2021-04-07 14:28:32.958918', 'Rwanda Nostro Open Items Daily Report', 'Excel', 'System Scheduler', '04/06/2021 07:55:21', '04/06/2021 07:55:21', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '04/06/2021 07:55:18', 'Complete', '3f7c88cff8f00c03d413002798c07130'),
+	(687, 3641654, '2021-04-07 14:36:29.773175', 'Rwanda Nostro Balance Proofing', 'Excel', 'System Scheduler', '04/06/2021 07:55:15', '04/06/2021 07:55:15', 'Summary showing the status of each reconciliation, Unidentified Difference, and category totals.', '04/06/2021 07:55:13', 'Complete', 'feb17eceec8e7e3f0e039cd44ab41fbb'),
+	(688, 3599319, '2021-04-07 14:36:59.407070', 'Rwanda Nostro Open Items Daily Report', 'Excel', 'System Scheduler', '03/30/2021 04:10:36', '03/30/2021 04:10:36', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '03/30/2021 04:10:34', 'Complete', 'feb17eceec8e7e3f0e039cd44ab41fbb'),
+	(689, 3597430, '2021-04-07 14:37:28.832049', 'User Role Assignment', 'Excel', 'System Scheduler', '03/30/2021 00:56:16', '03/30/2021 00:56:16', 'Certification Status By People - Summary report showing number of accounts by Person and Role in each reconciliation status (Prepared, Approved, Reviewed, Auto-Certified, Not Prepared) along with the number of Not Assigned. This report has a filter on Assignment Roles.', '03/30/2021 00:56:15', 'Complete', 'feb17eceec8e7e3f0e039cd44ab41fbb'),
+	(690, 3597414, '2021-04-07 14:37:58.629037', 'User Access', 'Excel', 'System Scheduler', '03/30/2021 00:55:16', '03/30/2021 00:55:16', 'User Access - List of users showing their current authorized Roles by module, Entity hierarchy and Team assignments with the date and user name of who made the last changes to the user\'s status.', '03/30/2021 00:55:14', 'Complete', 'feb17eceec8e7e3f0e039cd44ab41fbb'),
+	(691, 3597266, '2021-04-07 14:38:27.662790', 'RW CDM CHIC Open Item Report', 'Excel', 'System Scheduler', '03/30/2021 00:36:07', '03/30/2021 00:36:07', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '03/30/2021 00:36:06', 'Complete', 'feb17eceec8e7e3f0e039cd44ab41fbb'),
+	(692, 3583276, '2021-04-07 14:38:57.483472', 'Rwanda BNR Open Items Daily Report', 'Excel', 'System Scheduler', '03/26/2021 23:25:47', '03/26/2021 23:25:47', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '03/26/2021 23:25:46', 'Complete', 'feb17eceec8e7e3f0e039cd44ab41fbb'),
+	(693, 3583275, '2021-04-07 14:39:26.539216', 'Rwanda BNR Balance Proofing', 'Excel', 'System Scheduler', '03/26/2021 23:25:40', '03/26/2021 23:25:40', 'Summary showing the status of each reconciliation, Unidentified Difference, and category totals.', '03/26/2021 23:25:39', 'Complete', 'feb17eceec8e7e3f0e039cd44ab41fbb'),
+	(694, 3674878, '2021-04-10 14:57:51.098222', 'Kenya Utilities Balance Proofing Report', 'Excel', 'System Scheduler', '04/09/2021 05:01:53', '04/09/2021 05:01:53', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '04/09/2021 05:01:51', 'Complete', '4d98f352d6c6f1be5cd18c4165ffaf50'),
+	(695, 3663326, '2021-04-10 14:58:20.383359', 'Mpesa C2B Chango balance proofing report', 'Excel', 'System Scheduler', '04/08/2021 06:51:51', '04/08/2021 06:51:51', 'Summary showing the status of each reconciliation, Unidentified Difference, and individual Supporting Items and their Item Class.', '04/08/2021 06:51:48', 'Complete', '4d98f352d6c6f1be5cd18c4165ffaf50'),
+	(696, 3663321, '2021-04-10 15:00:29.933437', 'Mpesa B2C Chango balance proofing report', 'Excel', 'System Scheduler', '04/08/2021 06:51:45', '04/08/2021 06:51:45', 'Summary showing the status of each reconciliation, Unidentified Difference, and individual Supporting Items and their Item Class.', '04/08/2021 06:51:43', 'Complete', 'a52659655d1a78d391fd4942cb7ae4dd'),
+	(697, 3663086, '2021-04-10 15:01:02.569056', 'Mpesa C2B Chango balance proofing report', 'Excel', 'System Scheduler', '04/08/2021 06:36:02', '04/08/2021 06:36:02', 'Summary showing the status of each reconciliation, Unidentified Difference, and individual Supporting Items and their Item Class.', '04/08/2021 06:36:00', 'Complete', 'a52659655d1a78d391fd4942cb7ae4dd'),
+	(698, 3663045, '2021-04-10 15:01:33.959263', 'Mpesa B2C Chango balance proofing report', 'Excel', 'System Scheduler', '04/08/2021 06:34:03', '04/08/2021 06:34:03', 'Summary showing the status of each reconciliation, Unidentified Difference, and individual Supporting Items and their Item Class.', '04/08/2021 06:34:01', 'Complete', 'a52659655d1a78d391fd4942cb7ae4dd'),
+	(699, 3663018, '2021-04-10 15:02:07.484328', 'Mpesa B2C Chango balance proofing report', 'Excel', 'System Scheduler', '04/08/2021 06:32:08', '04/08/2021 06:32:08', 'Summary showing the status of each reconciliation, Unidentified Difference, and individual Supporting Items and their Item Class.', '04/08/2021 06:32:06', 'Complete', 'a52659655d1a78d391fd4942cb7ae4dd'),
+	(700, 3663016, '2021-04-10 15:02:38.887752', 'Mpesa C2B Chango balance proofing report', 'Excel', 'System Scheduler', '04/08/2021 06:32:02', '04/08/2021 06:32:02', 'Summary showing the status of each reconciliation, Unidentified Difference, and individual Supporting Items and their Item Class.', '04/08/2021 06:32:00', 'Complete', 'a52659655d1a78d391fd4942cb7ae4dd'),
+	(701, 3663010, '2021-04-10 15:03:10.504617', 'MPESA_C2B_CHANGO Open Items Daily Report', 'Excel', 'System Scheduler', '04/08/2021 06:31:50', '04/08/2021 06:31:50', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '04/08/2021 06:31:48', 'Complete', 'a52659655d1a78d391fd4942cb7ae4dd'),
+	(702, 3571453, '2021-04-10 15:03:43.271526', 'TZ Mobile Banking Balance Proofing', 'Excel', 'System Scheduler', '03/25/2021 05:07:16', '03/25/2021 05:07:16', 'Summary showing the status of each reconciliation, Unidentified Difference, and category totals.', '03/25/2021 05:07:14', 'Complete', 'a52659655d1a78d391fd4942cb7ae4dd'),
+	(703, 3565874, '2021-04-10 15:04:12.805203', 'Rwanda BNR Open Items Daily Report', 'Excel', 'System Scheduler', '03/24/2021 12:30:33', '03/24/2021 12:30:33', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '03/24/2021 12:30:31', 'Complete', 'a52659655d1a78d391fd4942cb7ae4dd'),
+	(704, 3546177, '2021-04-10 15:04:42.221946', 'Rwanda BNR Open Items Daily Report', 'Excel', 'System Scheduler', '03/22/2021 08:28:53', '03/22/2021 08:28:53', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '03/22/2021 08:28:51', 'Complete', 'a52659655d1a78d391fd4942cb7ae4dd'),
+	(705, 3494298, '2021-04-10 15:05:15.599613', 'KE Nostro Open Items Daily Report', 'Excel', 'System Scheduler', '03/17/2021 01:22:18', '03/17/2021 01:22:18', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '03/17/2021 01:22:15', 'Complete', 'a52659655d1a78d391fd4942cb7ae4dd'),
+	(706, 3494295, '2021-04-10 15:05:45.401263', 'KE Nostro Open Items Daily Report', 'Excel', 'System Scheduler', '03/17/2021 01:21:50', '03/17/2021 01:21:50', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '03/17/2021 01:21:48', 'Complete', 'a52659655d1a78d391fd4942cb7ae4dd'),
+	(707, 3342609, '2021-04-10 15:06:14.527690', 'Rwanda Nostro Balance Proofing', 'Excel', 'System Scheduler', '03/02/2021 00:51:45', '03/02/2021 00:51:45', 'Summary showing the status of each reconciliation, Unidentified Difference, and category totals.', '03/02/2021 00:51:43', 'Complete', 'a52659655d1a78d391fd4942cb7ae4dd'),
+	(708, 3342607, '2021-04-10 15:06:43.970420', 'Rwanda Nostro Open Items Daily Report', 'Excel', 'System Scheduler', '03/02/2021 00:50:38', '03/02/2021 00:50:38', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '03/02/2021 00:50:36', 'Complete', 'a52659655d1a78d391fd4942cb7ae4dd'),
+	(709, 3339174, '2021-04-10 15:07:13.217914', 'KE Global Nostro Balance Proofing', 'Excel', 'System Scheduler', '03/01/2021 11:13:25', '03/01/2021 11:13:25', 'Summary showing the status of each reconciliation, Unidentified Difference, and category totals.', '03/01/2021 11:13:23', 'Complete', 'a52659655d1a78d391fd4942cb7ae4dd'),
+	(710, 3337358, '2021-04-10 15:07:42.880841', 'KE Nostro Open Items Daily Report', 'Excel', 'System Scheduler', '03/01/2021 07:40:32', '03/01/2021 07:40:32', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '03/01/2021 07:40:30', 'Complete', 'a52659655d1a78d391fd4942cb7ae4dd'),
+	(711, 3337357, '2021-04-10 15:08:12.442143', 'KE Nostro Balance Proofing', 'Excel', 'System Scheduler', '03/01/2021 07:40:21', '03/01/2021 07:40:21', 'Summary showing the status of each reconciliation, Unidentified Difference, and category totals.', '03/01/2021 07:40:19', 'Complete', 'a52659655d1a78d391fd4942cb7ae4dd'),
+	(712, 3337354, '2021-04-10 15:08:41.622056', 'KE Global Nostro Balance Proofing', 'Excel', 'System Scheduler', '03/01/2021 07:40:09', '03/01/2021 07:40:09', 'Summary showing the status of each reconciliation, Unidentified Difference, and category totals.', '03/01/2021 07:40:07', 'Complete', 'a52659655d1a78d391fd4942cb7ae4dd'),
+	(713, 3327101, '2021-04-10 15:09:12.617114', 'Rwanda Nostro Balance Proofing', 'Excel', 'System Scheduler', '02/26/2021 12:53:02', '02/26/2021 12:53:02', 'Summary showing the status of each reconciliation, Unidentified Difference, and category totals.', '02/26/2021 12:53:00', 'Complete', 'a52659655d1a78d391fd4942cb7ae4dd'),
+	(714, 3327095, '2021-04-10 15:09:41.756214', 'KE Global Nostro Balance Proofing', 'Excel', 'System Scheduler', '02/26/2021 12:51:55', '02/26/2021 12:51:55', 'Summary showing the status of each reconciliation, Unidentified Difference, and category totals.', '02/26/2021 12:51:53', 'Complete', 'a52659655d1a78d391fd4942cb7ae4dd'),
+	(715, 3691971, '2021-04-12 16:32:53.107229', 'KE Utilities Finacle Data Source Status', 'Excel', 'System Scheduler', '04/12/2021 02:46:06', '04/12/2021 02:46:06', 'Use the Matching Data Source Template to create a report on matching data from a Data Source level. Select a Data Source to add the Data Source\'s columns to the Report Fields. Add fields to report on Data Source data and include properties of the Match Sets associated with the Data Source.', '04/12/2021 02:46:03', 'Complete', 'd9794b09fbc840cd656858494ea97433'),
+	(716, 3713095, '2021-04-13 22:17:26.705275', 'KE Utilities Finacle Data Source Status', 'Excel', 'System Scheduler', '04/13/2021 07:26:46', '04/13/2021 07:26:46', 'Use the Matching Data Source Template to create a report on matching data from a Data Source level. Select a Data Source to add the Data Source\'s columns to the Report Fields. Add fields to report on Data Source data and include properties of the Match Sets associated with the Data Source.', '04/13/2021 07:26:43', 'Complete', '54f9b71e9524633a0699fe269c677856'),
+	(717, 3712776, '2021-04-13 22:17:55.904576', 'Kenya Utilities Balance Proofing Report', 'Excel', 'System Scheduler', '04/13/2021 07:10:21', '04/13/2021 07:10:21', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '04/13/2021 07:10:16', 'Complete', '54f9b71e9524633a0699fe269c677856'),
+	(718, 3712773, '2021-04-13 22:18:30.413032', 'KE Utilities Finacle Data Source Status', 'Excel', 'System Scheduler', '04/13/2021 07:10:09', '04/13/2021 07:10:09', 'Use the Matching Data Source Template to create a report on matching data from a Data Source level. Select a Data Source to add the Data Source\'s columns to the Report Fields. Add fields to report on Data Source data and include properties of the Match Sets associated with the Data Source.', '04/13/2021 07:10:06', 'Complete', '54f9b71e9524633a0699fe269c677856'),
+	(719, 3709933, '2021-04-13 22:51:23.455696', 'KE Utilities Finacle Data Source Status', 'Excel', 'System Scheduler', '04/13/2021 04:23:07', '04/13/2021 04:23:07', 'Use the Matching Data Source Template to create a report on matching data from a Data Source level. Select a Data Source to add the Data Source\'s columns to the Report Fields. Add fields to report on Data Source data and include properties of the Match Sets associated with the Data Source.', '04/13/2021 04:23:04', 'Complete', '4a3db633d9e9d94e9f10c8efff17b579'),
+	(720, 3709700, '2021-04-13 22:51:56.975366', 'KE Utilities Finacle Data Source Status', 'Excel', 'System Scheduler', '04/13/2021 04:08:02', '04/13/2021 04:08:02', 'Use the Matching Data Source Template to create a report on matching data from a Data Source level. Select a Data Source to add the Data Source\'s columns to the Report Fields. Add fields to report on Data Source data and include properties of the Match Sets associated with the Data Source.', '04/13/2021 04:07:58', 'Complete', '4a3db633d9e9d94e9f10c8efff17b579'),
+	(721, 3709621, '2021-04-13 22:52:31.660386', 'KE Utilities Finacle Data Source Status', 'Excel', 'System Scheduler', '04/13/2021 04:03:48', '04/13/2021 04:03:48', 'Use the Matching Data Source Template to create a report on matching data from a Data Source level. Select a Data Source to add the Data Source\'s columns to the Report Fields. Add fields to report on Data Source data and include properties of the Match Sets associated with the Data Source.', '04/13/2021 04:03:45', 'Complete', '4a3db633d9e9d94e9f10c8efff17b579'),
+	(722, 3698261, '2021-04-13 22:54:21.964512', 'User Access', 'Excel', 'System Scheduler', '04/12/2021 08:13:15', '04/12/2021 08:13:15', 'User Access - List of users showing their current authorized Roles by module, Entity hierarchy and Team assignments with the date and user name of who made the last changes to the user\'s status.', '04/12/2021 08:13:13', 'Complete', '2e80cad2e5a4379b6e00984dcf60cd0d'),
+	(723, 3720648, '2021-04-14 11:22:17.337829', 'RWANDA_ABC_MTN PUSH PULL OPEN ITEMS REPORT', 'Excel', 'System Scheduler', '04/13/2021 23:24:03', '04/13/2021 23:24:03', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '04/13/2021 23:24:01', 'Complete', '9f6e0655ca9df90d1ae75021ec16ba09'),
+	(724, 3571515, '2021-04-14 11:22:50.557505', 'Tanzania Mobile Banking Open Items Daily Report', 'Excel', 'System Scheduler', '03/25/2021 05:13:23', '03/25/2021 05:13:23', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '03/25/2021 05:13:21', 'Complete', '9f6e0655ca9df90d1ae75021ec16ba09'),
+	(725, 3755514, '2021-04-16 14:09:38.030334', 'User Role Assignment', 'Excel', 'System Scheduler', '04/16/2021 00:02:48', '04/16/2021 00:02:48', 'Certification Status By People - Summary report showing number of accounts by Person and Role in each reconciliation status (Prepared, Approved, Reviewed, Auto-Certified, Not Prepared) along with the number of Not Assigned. This report has a filter on Assignment Roles.', '04/16/2021 00:02:45', 'Complete', '90f87b9cb0acd68c38039c7a94ab94c7'),
+	(726, 3755482, '2021-04-16 14:10:07.327007', 'User Access', 'Excel', 'System Scheduler', '04/16/2021 00:00:59', '04/16/2021 00:00:59', 'User Access - List of users showing their current authorized Roles by module, Entity hierarchy and Team assignments with the date and user name of who made the last changes to the user\'s status.', '04/16/2021 00:00:57', 'Complete', '90f87b9cb0acd68c38039c7a94ab94c7'),
+	(727, 3806376, '2021-04-21 12:53:25.102694', 'Rwanda Suspense Unmatched Report', 'Excel', 'System Scheduler', '04/21/2021 02:43:02', '04/21/2021 02:43:02', 'The Detailed Unmatched Transaction Aging report will provide the Aging Categories of a Data Source\'s transactions, based on the age calculated using the selected Transaction Date of a Data Source.', '04/21/2021 02:43:00', 'Complete', '55b64cfac2a2ffa733e0cc0fcf65fd3e'),
+	(728, 3796254, '2021-04-21 12:55:00.185910', 'Rwanda Suspense Unmatched Report', 'Excel', 'System Scheduler', '04/20/2021 07:31:40', '04/20/2021 07:31:40', 'The Detailed Unmatched Transaction Aging report will provide the Aging Categories of a Data Source\'s transactions, based on the age calculated using the selected Transaction Date of a Data Source.', '04/20/2021 07:31:38', 'Complete', '55b64cfac2a2ffa733e0cc0fcf65fd3e'),
+	(729, 3806798, '2021-04-21 15:02:13.647485', 'Rwanda Suspense Unmatched Report', 'Excel', 'System Scheduler', '04/21/2021 03:16:40', '04/21/2021 03:16:40', 'The Detailed Unmatched Transaction Aging report will provide the Aging Categories of a Data Source\'s transactions, based on the age calculated using the selected Transaction Date of a Data Source.', '04/21/2021 03:16:38', 'Complete', 'b344d353363713de5ab9bc077173a271'),
+	(730, 3811213, '2021-04-23 12:46:15.779222', 'KE MOBILE MONEY FLOAT OPEN ITEMS REPORT', 'Excel', 'System Scheduler', '04/21/2021 08:39:18', '04/21/2021 08:39:18', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '04/21/2021 08:39:16', 'Complete', '08ff8d36fd46a9290457911ea3ae3146'),
+	(731, 3810291, '2021-04-23 12:46:24.541886', 'KE_MOBILE MONEY FLOAT BALANCE PROOFING REPORT', 'Excel', 'System Scheduler', '04/21/2021 07:24:45', '04/21/2021 07:24:45', 'All Supporting Items for the specified period end date for all Item Classes (Required Adjustment, List Component, Timing Item).', '04/21/2021 07:24:43', 'Complete', '08ff8d36fd46a9290457911ea3ae3146'),
+	(732, 3912893, '2021-05-05 22:08:44.682720', 'Kenya Branch Suspense Balance Proofing', 'Excel', 'System Scheduler', '05/05/2021 09:13:51', '05/05/2021 09:13:51', 'Summary showing the status of each reconciliation, Unidentified Difference, and category totals.', '05/05/2021 09:13:48', 'Complete', '8369e16a9c6f9e2b3709a7975d0bf297');
 /*!40000 ALTER TABLE `processedreports` ENABLE KEYS */;
 
 -- Dumping structure for table fileetl.uploadedfiles
@@ -408,29 +483,26 @@ CREATE TABLE IF NOT EXISTS `uploadedfiles` (
   `MtSequenceNo` longtext DEFAULT NULL,
   `ProcessFor62F` tinyint(1) NOT NULL,
   `Converted` tinyint(1) NOT NULL,
+  `ConvertedBy` longtext DEFAULT NULL,
+  `Failed` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`Id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Dumping data for table fileetl.uploadedfiles: ~17 rows (approximately)
+-- Dumping data for table fileetl.uploadedfiles: ~12 rows (approximately)
 /*!40000 ALTER TABLE `uploadedfiles` DISABLE KEYS */;
-REPLACE INTO `uploadedfiles` (`Id`, `Name`, `Md5`, `UploadedDate`, `Size`, `IsProduction`, `FilePath`, `MtAccountNo`, `MtStatementNo`, `MtSequenceNo`, `ProcessFor62F`, `Converted`) VALUES
-	('08d8e084-01c1-4f4b-8b95-1715306dd46b', 'B2W Portal Statement - 19th - 21st Feb 2021.xlsb', '5c1b6194760255ac8acc08b25ac31969', '2021-03-06 12:41:24.242698', 59856, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\imtz\\MB\\selcom\\B2W Portal Statement - 19th - 21st Feb 2021.xlsb', '', '', '', 0, 1),
-	('08d8e084-0219-435e-8e94-416984038ba3', 'Spenn Selcom Transaction Portal Statement - 22nd Feb 2021.csv', '45ff1f4658152ad563a7304de496266d', '2021-03-06 12:41:24.842716', 1663, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\imtz\\MB\\selcom\\Spenn Selcom Transaction Portal Statement - 22nd Feb 2021.csv', '', '', '', 0, 1),
-	('08d8e1f1-fb79-42d7-8c77-0b042bf03796', 'MultiCurr_2021_03_06_21stFeb2021_SelcomTZ.txt', '72cba9571190bd0c99d1ad3ecbb9da16', '2021-03-08 08:21:09.498884', 84, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\MultiCurr_2021_03_06_21stFeb2021_SelcomTZ.txt', '', '', '', 0, 0),
-	('08d8e1f1-fbfa-47bb-8017-ea825b513398', 'MultiCurr_2021_03_06_22ndFeb2021_SelcomTZ.txt', 'e816e0d315a832111a6fd92aa6e8b389', '2021-03-08 08:21:10.377519', 82, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\MultiCurr_2021_03_06_22ndFeb2021_SelcomTZ.txt', '', '', '', 0, 0),
-	('08d8e1f1-fc5c-4d3a-8226-ea2c44086d14', '2021_03_06_21stFeb2021.csv', '12da79bc31e3425f72ddd1e0c6f54887', '2021-03-08 08:21:11.023422', 133031, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\imtz\\MB\\selcom\\Conv\\2021_03_06_21stFeb2021.csv', '', '', '', 0, 1),
-	('08d8e1f2-4f65-4657-808d-06194af31499', 'MultiCurr_2021_03_08_6_21stFeb2021_MB_TZ.txt', 'b6e0a318563aff0c85a8b6a6869c67dd', '2021-03-08 08:23:30.304321', 70, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\MultiCurr_2021_03_08_6_21stFeb2021_MB_TZ.txt', '', '', '', 0, 0),
-	('08d8e1f4-4ef0-4d6f-814a-5ebbe4d32c93', 'MultiCurr_2021_03_08_0210302085708_MpesaKE.txt', 'fe333074c986d586b19b09d25bed0c28', '2021-03-08 08:37:48.536270', 87, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\MultiCurr_2021_03_08_0210302085708_MpesaKE.txt', '', '', '', 0, 0),
-	('08d8e1f4-4f28-439f-853d-61209214fd0e', 'MultiCurr_2021_03_08_0210303101552_MpesaKE.txt', '6a7280481498f22622a18670c81b9e27', '2021-03-08 08:37:48.922320', 87, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\MultiCurr_2021_03_08_0210303101552_MpesaKE.txt', '', '', '', 0, 0),
-	('08d8e1f4-4f2f-4406-8962-34fa49aaa8b3', 'MultiCurr_2021_03_08_0210303163057_MpesaKE.txt', 'ad9d1f974f0b7c786cb3b20da59f5423', '2021-03-08 08:37:48.969075', 87, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\MultiCurr_2021_03_08_0210303163057_MpesaKE.txt', '', '', '', 0, 0),
-	('08d8e1f4-4f36-43a4-8862-afc661db21a1', 'MultiCurr_2021_03_08_0210304080240_MpesaKE.txt', 'bb00e59de46692769814476e83c64e72', '2021-03-08 08:37:49.014798', 86, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\MultiCurr_2021_03_08_0210304080240_MpesaKE.txt', '', '', '', 0, 0),
-	('08d8e1f4-4f3e-4c04-8d27-a0fc39206ec1', 'MultiCurr_2021_03_08_0210305092933_MpesaKE.txt', '4d96b98b5c9f384872fbd630d830d2a7', '2021-03-08 08:37:49.070669', 87, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\MultiCurr_2021_03_08_0210305092933_MpesaKE.txt', '', '', '', 0, 0),
-	('08d8e1f4-4f49-42c4-8ba4-c05df00667b6', 'ORG_517822_Utility Account_Completed_20210302085708.csv', '5cdfae57910002f1e3e1cd4870401e5b', '2021-03-08 08:37:49.138935', 146537, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\imke\\MOBILE_BANKING\\Mpesa B2C Elma\\ORG_517822_Utility Account_Completed_20210302085708.csv', '', '', '', 0, 1),
-	('08d8e1f4-4f57-42a5-827f-e84062b332b5', 'ORG_517822_Utility Account_Completed_20210303101552.csv', 'c318cb47f2db2c264f90b874335b52e1', '2021-03-08 08:37:49.230158', 83136, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\imke\\MOBILE_BANKING\\Mpesa B2C Elma\\ORG_517822_Utility Account_Completed_20210303101552.csv', '', '', '', 0, 1),
-	('08d8e1f4-4f6e-4940-8507-fda4722a550c', 'ORG_517822_Utility Account_Completed_20210303163057.csv', '9d97f8ca1ca67f96551809fba86b76d5', '2021-03-08 08:37:49.383724', 89414, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\imke\\MOBILE_BANKING\\Mpesa B2C Elma\\ORG_517822_Utility Account_Completed_20210303163057.csv', '', '', '', 0, 1),
-	('08d8e1f4-4faa-46ea-86b7-702dc2ce13fa', 'ORG_517822_Utility Account_Completed_20210304080240.csv', 'c86c1c8363edc0fb346e03fa09fd5334', '2021-03-08 08:37:49.775961', 35687, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\imke\\MOBILE_BANKING\\Mpesa B2C Elma\\ORG_517822_Utility Account_Completed_20210304080240.csv', '', '', '', 0, 1),
-	('08d8e1f4-4fbd-4656-8231-d33a0ebf07e8', 'ORG_517822_Utility Account_Completed_20210305092933.csv', 'b50d2ada2fdf7709d308058038113abd', '2021-03-08 08:37:49.900632', 64305, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\imke\\MOBILE_BANKING\\Mpesa B2C Elma\\ORG_517822_Utility Account_Completed_20210305092933.csv', '', '', '', 0, 1),
-	('08d8e1f4-4fc9-4ca4-85e3-3978892b3d65', 'ORG_517822_Utility Account_Completed_20210305103803.csv', 'cc2d2eb7c05a9116f4f1d781d3e7fa73', '2021-03-08 08:37:49.981873', 134476, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\imke\\MOBILE_BANKING\\Mpesa B2C Elma\\ORG_517822_Utility Account_Completed_20210305103803.csv', '', '', '', 0, 1);
+REPLACE INTO `uploadedfiles` (`Id`, `Name`, `Md5`, `UploadedDate`, `Size`, `IsProduction`, `FilePath`, `MtAccountNo`, `MtStatementNo`, `MtSequenceNo`, `ProcessFor62F`, `Converted`, `ConvertedBy`, `Failed`) VALUES
+	('08d90fb4-8ca2-43e3-8a3b-f232af8b4d06', 'TACHINN17_LCY.xls', 'c3a6d2bd97ca7b266da5c4e1bcf914de', '2021-05-05 13:57:17.727360', 59392, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\imtz\\CLEARING_SUSPENSE\\TACH\\TZS\\TACHINN17_LCY.xls', '', '', '', 0, 0, NULL, 0),
+	('08d90fb4-8cc6-45d2-839d-a4952e5f4297', 'TACHOUT17_LCY.xls', 'f708095cfd59911dae40c6541ee3ab6c', '2021-05-05 13:57:17.996974', 50176, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\imtz\\CLEARING_SUSPENSE\\TACH\\TZS\\TACHOUT17_LCY.xls', '', '', '', 0, 0, NULL, 0),
+	('08d90fb4-8cca-45b9-8968-bcaaf3db6f5d', 'TACH file - Inward code generation Bryson.csv', '7cdcb4bf8f8a5e1c18d18d21b81a776b', '2021-05-05 13:57:18.023638', 1401, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\imtz\\CLEARING_SUSPENSE\\TACH\\USD\\TACH file - Inward code generation Bryson.csv', '', '', '', 0, 1, 'SuspenseTachFileConverter', 0),
+	('08d90fb4-8cce-45bd-822d-907347e4ed8e', 'USD-NET.xls', '88116aedd3c2ac9909b89576987f70e0', '2021-05-05 13:57:18.049894', 26112, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\imtz\\CLEARING_SUSPENSE\\TACHBALANCES\\USD\\USD-NET.xls', '', '', '', 0, 1, 'SuspenseBalanceExtractor', 0),
+	('08d90fb4-8cd2-4801-8f9e-55eb1503b98c', 'usd18.xls', 'ea2cc6819ee23c658d10e1a44a2a13ef', '2021-05-05 13:57:18.077040', 8704, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\imtz\\CLEARING_SUSPENSE\\TACHBALANCES\\USD\\usd18.xls', '', '', '', 0, 1, 'SuspenseBalanceExtractor', 0),
+	('08d90fb4-8cd7-48bc-8db2-526c925c62ad', 'EndOfDayBalance_20210422.txt', '72ca827fac84d45f3212c823dcb80322', '2021-05-05 13:57:18.110089', 43, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\imtz\\MB\\SPENN\\CONTROL\\PORTAL\\BALANCE\\EndOfDayBalance_20210422.txt', '', '', '', 0, 1, 'SpennControlExtractor', 0),
+	('08d90fb4-f761-4138-8f09-205e4d4ec488', 'MultiCurr_2021_05_05_USD-NET_SUS_IMKE.txt', '346b507b49de3bfbd97bbcdc1ff46c6b', '2021-05-05 14:00:16.849728', 77, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\MultiCurr_2021_05_05_USD-NET_SUS_IMKE.txt', '', '', '', 0, 0, NULL, 0),
+	('08d90fb4-f765-46c2-8413-0959e534812c', 'MultiCurr_2021_05_05_usd18_SUS_IMKE.txt', '98cdfd3d3fd009c64ade2c3a30eb6eed', '2021-05-05 14:00:16.878421', 78, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\MultiCurr_2021_05_05_usd18_SUS_IMKE.txt', '', '', '', 0, 0, NULL, 0),
+	('08d90fb4-f773-40d0-84d7-38f878a7388c', '2021_05_05_13_57_27_TACH_erationBryson.csv', 'ecf24d4622fc56f802e13f173238a423', '2021-05-05 14:00:16.967730', 1469, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\imtz\\CLEARING_SUSPENSE\\TACH\\USD\\Conv\\2021_05_05_13_57_27_TACH_erationBryson.csv', '', '', '', 0, 0, NULL, 0),
+	('08d90ff9-1575-4d2c-83c8-193b06851ecd', 'FCYClearing_Balances_Finacle_04052021.csv', '4cc9d1e57fd01599f197babf301122e8', '2021-05-05 22:07:53.051998', 61, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\FCYClearing_Balances_Finacle_04052021.csv', '', '', '', 0, 0, NULL, 0),
+	('08d90ff9-15a0-446d-85ba-25d8ee269606', 'MultiCurr_2021_05_05_ance_20210422_SPEN_CTRL_TZ.txt', '458db080eed8e3242d3212a0a7090e2b', '2021-05-05 22:07:53.372402', 88, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\MultiCurr_2021_05_05_ance_20210422_SPEN_CTRL_TZ.txt', '', '', '', 0, 0, NULL, 0),
+	('08d90ff9-76d0-40f6-8ffe-0e025afaffc4', 'GLAccounts_20210504_CLEAR_IMKE.txt', '620fde7a447c031d5ad003f3489aec36', '2021-05-05 22:10:36.392138', 116, 1, 'C:\\Users\\Yida\\Downloads\\jobrunner\\940\\GLAccounts_20210504_CLEAR_IMKE.txt', '', '', '', 0, 0, NULL, 0);
 /*!40000 ALTER TABLE `uploadedfiles` ENABLE KEYS */;
 
 -- Dumping structure for table fileetl.__efmigrationshistory
@@ -441,10 +513,14 @@ CREATE TABLE IF NOT EXISTS `__efmigrationshistory` (
   PRIMARY KEY (`MigrationId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Dumping data for table fileetl.__efmigrationshistory: ~0 rows (approximately)
+-- Dumping data for table fileetl.__efmigrationshistory: ~3 rows (approximately)
 /*!40000 ALTER TABLE `__efmigrationshistory` DISABLE KEYS */;
 REPLACE INTO `__efmigrationshistory` (`MigrationId`, `ProductVersion`) VALUES
-	('20210118180133_Initialize Mysql', '3.1.10');
+	('20210118180133_Initialize Mysql', '3.1.10'),
+	('20210403173623_Reporting', '3.1.11'),
+	('20210403221733_Reporting', '3.1.11'),
+	('20210404115736_Report2', '3.1.11'),
+	('20210429102640_ConvertedBy', '3.1.11');
 /*!40000 ALTER TABLE `__efmigrationshistory` ENABLE KEYS */;
 
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

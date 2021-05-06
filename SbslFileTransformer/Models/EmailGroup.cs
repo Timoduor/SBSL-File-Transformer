@@ -11,6 +11,7 @@ namespace SbslFileTransformer.Models
         public string Account { get; set; }
         public Country Country { get; set; }
         public Sprint Sprint { get; set; }
+        public ReportCategory Category { get; set; }
         public string Description { get; set; }
         public bool IsActive { get; set; }
     }
