@@ -94,6 +94,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     IncludeProduction = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value),
                     ProductionFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value,
                     SandboxFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value,
+                    KeyFilesPath = configurations.FirstOrDefault(c => c.Key == "KeyFilesPath")?.Value,
                 };
 
                 prodTimeSpan = Convert.ToInt32(dbContext.Configurations.FirstOrDefault(c => c.Key == "ProductionTimeSpanCheck")?.Value);
@@ -114,7 +115,21 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 var path = state?.ToString();
 
-                using (var client = new SftpClient(config.Host, config.Port == 0 ? 22 : config.Port, config.UserName, config.Password))
+                ConnectionInfo connectionInfo = string.IsNullOrEmpty(config.Password)
+                    ?
+                    connectionInfo = new ConnectionInfo(config.Host, config.Port, config.UserName, new AuthenticationMethod[] { new NoneAuthenticationMethod(config.UserName) })
+                    :
+                    new ConnectionInfo(config.Host, config.Port, config.UserName, new PasswordAuthenticationMethod(config.UserName, config.Password));
+
+                if (!string.IsNullOrEmpty(config.KeyFilesPath))
+                {
+                    var keyFiles = Directory.GetFiles(config.KeyFilesPath).Select(f => new PrivateKeyFile(f)).ToArray();
+
+                    connectionInfo = new ConnectionInfo(config.Host, config.Port, config.UserName, new AuthenticationMethod[] { new PrivateKeyAuthenticationMethod(config.UserName, keyFiles) });
+                }
+
+                //using (var client = new SftpClient(config.Host, config.Port == 0 ? 22 : config.Port, config.UserName, config.Password))
+                using (var client = new SftpClient(connectionInfo))
                 {
                     client.Connect();
 
@@ -208,5 +223,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         public int Port { get; set; }
         public string UserName { get; set; }
         public string Password { get; set; }
+        public string KeyFilesPath { get; set; }
     }
 }
