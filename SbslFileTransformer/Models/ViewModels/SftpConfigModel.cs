@@ -18,5 +18,6 @@ namespace SbslFileTransformer.Models
         public string SandboxFolder { get; set; }
         public string ProductionFolder { get; set; }
         public string Entity { get; set; }
+        public string KeyFilesPath { get; set; }
     }
 }

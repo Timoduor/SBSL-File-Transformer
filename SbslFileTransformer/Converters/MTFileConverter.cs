@@ -178,7 +178,8 @@ namespace SbslFileTransformer.Converters
                         Host = configurations.FirstOrDefault(c => c.Key == "Host")?.Value,
                         Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port")?.Value),
                         UserName = configurations.FirstOrDefault(c => c.Key == "UserName")?.Value,
-                        Password = configurations.FirstOrDefault(c => c.Key == "Password")?.Value
+                        Password = configurations.FirstOrDefault(c => c.Key == "Password")?.Value,
+                        KeyFilesPath = configurations.FirstOrDefault(c => c.Key == "KeyFilesPath")?.Value,
                     };
 
                     if (paths.Count() > 0)
@@ -195,7 +196,21 @@ namespace SbslFileTransformer.Converters
                         {
                             var md5 = encryptionManager.GetMd5(resultFile);
 
-                            using (var client = new SftpClient(sftpConfig.Host, sftpConfig.Port == 0 ? 22 : sftpConfig.Port, sftpConfig.UserName, sftpConfig.Password))
+                            ConnectionInfo connectionInfo = string.IsNullOrEmpty(sftpConfig.Password?.Trim())
+                            ?
+                            connectionInfo = new ConnectionInfo(sftpConfig.Host, sftpConfig.Port, sftpConfig.UserName, new AuthenticationMethod[] { new NoneAuthenticationMethod(sftpConfig.UserName) })
+                            :
+                            new ConnectionInfo(sftpConfig.Host, sftpConfig.Port, sftpConfig.UserName, new PasswordAuthenticationMethod(sftpConfig.UserName, sftpConfig.Password));
+
+                            if (!string.IsNullOrEmpty(sftpConfig.KeyFilesPath?.Trim()))
+                            {
+                                var keyFiles = Directory.GetFiles(sftpConfig.KeyFilesPath).Select(f => new PrivateKeyFile(f)).ToArray();
+
+                                connectionInfo = new ConnectionInfo(sftpConfig.Host, sftpConfig.Port, sftpConfig.UserName, new AuthenticationMethod[] { new PrivateKeyAuthenticationMethod(sftpConfig.UserName, keyFiles) });
+                            }
+
+                            //using (var client = new SftpClient(sftpConfig.Host, sftpConfig.Port == 0 ? 22 : sftpConfig.Port, sftpConfig.UserName, sftpConfig.Password))
+                            using (var client = new SftpClient(connectionInfo))
                             {
                                 client.Connect();
 
