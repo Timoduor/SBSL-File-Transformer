@@ -196,13 +196,13 @@ namespace SbslFileTransformer.Converters
                         {
                             var md5 = encryptionManager.GetMd5(resultFile);
 
-                            ConnectionInfo connectionInfo = string.IsNullOrEmpty(sftpConfig.Password)
+                            ConnectionInfo connectionInfo = string.IsNullOrEmpty(sftpConfig.Password?.Trim())
                             ?
                             connectionInfo = new ConnectionInfo(sftpConfig.Host, sftpConfig.Port, sftpConfig.UserName, new AuthenticationMethod[] { new NoneAuthenticationMethod(sftpConfig.UserName) })
                             :
                             new ConnectionInfo(sftpConfig.Host, sftpConfig.Port, sftpConfig.UserName, new PasswordAuthenticationMethod(sftpConfig.UserName, sftpConfig.Password));
 
-                            if (!string.IsNullOrEmpty(sftpConfig.KeyFilesPath))
+                            if (!string.IsNullOrEmpty(sftpConfig.KeyFilesPath?.Trim()))
                             {
                                 var keyFiles = Directory.GetFiles(sftpConfig.KeyFilesPath).Select(f => new PrivateKeyFile(f)).ToArray();
 

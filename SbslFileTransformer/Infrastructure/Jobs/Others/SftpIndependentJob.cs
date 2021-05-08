@@ -115,13 +115,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 var path = state?.ToString();
 
-                ConnectionInfo connectionInfo = string.IsNullOrEmpty(config.Password)
+                ConnectionInfo connectionInfo = string.IsNullOrEmpty(config.Password?.Trim())
                     ?
                     connectionInfo = new ConnectionInfo(config.Host, config.Port, config.UserName, new AuthenticationMethod[] { new NoneAuthenticationMethod(config.UserName) })
                     :
                     new ConnectionInfo(config.Host, config.Port, config.UserName, new PasswordAuthenticationMethod(config.UserName, config.Password));
 
-                if (!string.IsNullOrEmpty(config.KeyFilesPath))
+                if (!string.IsNullOrEmpty(config.KeyFilesPath?.Trim()))
                 {
                     var keyFiles = Directory.GetFiles(config.KeyFilesPath).Select(f => new PrivateKeyFile(f)).ToArray();
 
