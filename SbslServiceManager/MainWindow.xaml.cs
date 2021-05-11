@@ -4,6 +4,7 @@ using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.ServiceProcess;
@@ -225,6 +226,11 @@ namespace SbslServiceManager
             {
                 ProgressMessage.Content = $"Service {serviceName} failed to restart Successfully";
             }
+        }
+
+        private void OpenWebApp_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start("cmd", "/c start http://localhost:5000");
         }
     }
 }
