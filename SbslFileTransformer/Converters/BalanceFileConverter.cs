@@ -83,6 +83,11 @@ namespace SbslFileTransformer.Converters
 
                             var multiplyBy = accNo == "25049787002" || accNo == "25049787004" || accNo == "20100243506064" ? 1 : -1;
 
+                            if (filePath.ToLower().Contains("sus_"))
+                            {
+                                multiplyBy = 1;
+                            }
+
                             string toAppend = $"{Entity}\t{accNo}\t{functionalArea}\t\t\t\t\t\t\t\t{GetAccountName(accNo, lookUp)}\t{functionalArea}\tA\tAsset\tTRUE\tTRUE\t\t{currency}\t{ContentHelpers.GetLastDayOfTheMonth(date2):MM/dd/yyyy}\t\t\t{multiplyBy * DorC2 * closingBalance}\n";
 
                             output.Append(toAppend);

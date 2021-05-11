@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.ServiceManager;
 using Serilog;
 using Serilog.Filters;
@@ -40,11 +41,38 @@ namespace SbslFileTransformer
                         ServiceRecoveryOptionHelper.RecoverAction.Restart,
                         ServiceRecoveryOptionHelper.RecoverAction.Restart,
                         ServiceRecoveryOptionHelper.RecoverAction.None);
+                //#if !DEBUG
+
+                RunServerManager();
+                //#endif
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Log.Error(ex, "Problem setting service to restart automatically!");
             }
+        }
+
+        private static void RunServerManager()
+        {
+            //var process = Path.Combine(Directory.GetCurrentDirectory(), "SbslServiceManager.exe");
+
+            //ProcessExtensions.StartProcessAsCurrentUser(process);
+
+
+            //string deskDir = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
+
+            //using (StreamWriter writer = new StreamWriter(deskDir + "\\" + linkName + ".url"))
+            //{
+            //    string app = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            //    writer.WriteLine("[InternetShortcut]");
+            //    writer.WriteLine("URL=file:///" + app);
+            //    writer.WriteLine("IconIndex=0");
+            //    string icon = app.Replace('\\', '/');
+            //    writer.WriteLine("IconFile=" + icon);
+            //}
+
+
+            //File.Copy("shortcut path...", Environment.GetFolderPath(Environment.SpecialFolder.Startup) + shorcutname);
         }
 
         private static void AddLogging()
