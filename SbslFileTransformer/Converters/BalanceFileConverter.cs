@@ -48,9 +48,15 @@ namespace SbslFileTransformer.Converters
 
                 Dictionary<string, string> lookUp = new Dictionary<string, string>();
 
+                List<string> exemptAccs = new List<string>();
+
+                exemptAccs.AddRange(new[] { "25049787002", "25049787004", "20100243506064" });
+
                 using (var scope = ServiceScopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                    exemptAccs.AddRange(dbContext.Configurations.Where(c => c.Key == "GLExemptAccounts").FirstOrDefault()?.Value.Split(","));
 
                     var pairs = dbContext.Accounts.Select(a => new { a.Number, a.Name });
 
@@ -81,9 +87,9 @@ namespace SbslFileTransformer.Converters
                             var DorC2 = csv.GetField<int>(6);
                             var closingBalance = csv.GetField<double>(7);
 
-                            var multiplyBy = accNo == "25049787002" || accNo == "25049787004" || accNo == "20100243506064" ? 1 : -1;
+                            var multiplyBy = exemptAccs.Contains(accNo) ? 1 : -1;
 
-                            if (filePath.ToLower().Contains("sus_"))
+                            if (filePath.ToLower().Contains("sus_bal"))
                             {
                                 multiplyBy = 1;
                             }
@@ -97,56 +103,7 @@ namespace SbslFileTransformer.Converters
                     reader.Close();
                 }
 
-                var outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_{Entity}.txt");
-
-                if (filePath.ToLower().Contains("nostro"))
-                {
-                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_NOSTRO_{Entity}.txt");
-                }
-                if (filePath.ToLower().Contains("bnr"))
-                {
-                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_BNR_{Entity}.txt");
-                }
-                if (filePath.ToLower().Contains("bplus"))
-                {
-                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_BPLUS_{Entity}.txt");
-                }
-                if (filePath.ToLower().Contains("float"))
-                {
-                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_FLOAT_{Entity}.txt");
-                }
-                if (filePath.ToLower().Contains("float") && filePath.ToLower().Contains("spenn"))
-                {
-                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_SFLOAT_{Entity}.txt");
-                }
-                if (filePath.ToLower().Contains("selcom") && filePath.ToLower().Contains("spenn"))
-                {
-                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_SELCOM_{Entity}.txt");
-                }
-                if (filePath.ToLower().Contains("mb"))
-                {
-                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_MB_{Entity}.txt");
-                }
-                if (filePath.ToLower().Contains("b2w"))
-                {
-                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_B2W_{Entity}.txt");
-                }
-                if (filePath.ToLower().Contains("w2b"))
-                {
-                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_W2B_{Entity}.txt");
-                }
-                if (filePath.ToLower().Contains("util"))
-                {
-                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_UTIL_{Entity}.txt");
-                }
-                if (filePath.ToLower().Contains("clearing"))
-                {
-                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_CLEAR_{Entity}.txt");
-                }
-                if (filePath.ToLower().Contains("sus") || filePath.ToLower().Contains("suspense"))
-                {
-                    outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_SUS_{Entity}.txt");
-                }
+                string outputPath = GetFileOutputName(filePath, fileDate);
 
                 if (!File.Exists(outputPath))
                     await File.WriteAllTextAsync(outputPath, output.ToString());
@@ -158,6 +115,62 @@ namespace SbslFileTransformer.Converters
                 Logger.LogError(ex, ex.Message);
                 return false;
             }
+        }
+
+        private string GetFileOutputName(string filePath, DateTime fileDate)
+        {
+            var outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_{Entity}.txt");
+
+            if (filePath.ToLower().Contains("nostro"))
+            {
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_NOSTRO_{Entity}.txt");
+            }
+            if (filePath.ToLower().Contains("bnr"))
+            {
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_BNR_{Entity}.txt");
+            }
+            if (filePath.ToLower().Contains("bplus"))
+            {
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_BPLUS_{Entity}.txt");
+            }
+            if (filePath.ToLower().Contains("float"))
+            {
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_FLOAT_{Entity}.txt");
+            }
+            if (filePath.ToLower().Contains("float") && filePath.ToLower().Contains("spenn"))
+            {
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_SFLOAT_{Entity}.txt");
+            }
+            if (filePath.ToLower().Contains("selcom") && filePath.ToLower().Contains("spenn"))
+            {
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_SELCOM_{Entity}.txt");
+            }
+            if (filePath.ToLower().Contains("mb"))
+            {
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_MB_{Entity}.txt");
+            }
+            if (filePath.ToLower().Contains("b2w"))
+            {
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_B2W_{Entity}.txt");
+            }
+            if (filePath.ToLower().Contains("w2b"))
+            {
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_W2B_{Entity}.txt");
+            }
+            if (filePath.ToLower().Contains("util"))
+            {
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_UTIL_{Entity}.txt");
+            }
+            if (filePath.ToLower().Contains("sus") || filePath.ToLower().Contains("suspense"))
+            {
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_SUS_{Entity}.txt");
+            }
+            if (filePath.ToLower().Contains("clearing"))
+            {
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_CLEAR_{Entity}.txt");
+            }
+
+            return outputPath;
         }
 
         private string GetAccountName(string accountNumber, Dictionary<string, string> dict)
