@@ -8,6 +8,7 @@
         Report,
         Setting,
         ReportUser,
-        ConversionFolder
+        ConversionFolder,
+        Account
     }
 }

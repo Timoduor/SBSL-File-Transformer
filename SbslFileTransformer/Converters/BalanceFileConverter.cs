@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
+using SbslFileTransformer.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -50,11 +51,15 @@ namespace SbslFileTransformer.Converters
 
                 List<string> exemptAccs = new List<string>();
 
-                exemptAccs.AddRange(new[] { "25049787002", "25049787004", "20100243506064" });
-
                 using (var scope = ServiceScopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                    if (!dbContext.Configurations.Any(c => c.Key == "GLExemptAccounts"))
+                    {
+                        dbContext.Configurations.Add(new Models.Configuration { ConfigType = ConfigurationType.Account, Key = "GLExemptAccounts", Value = "25049787002,25049787004,20100243506064" });
+                        await dbContext.SaveChangesAsync();
+                    }
 
                     exemptAccs.AddRange(dbContext.Configurations.Where(c => c.Key == "GLExemptAccounts").FirstOrDefault()?.Value.Split(","));
 
@@ -89,7 +94,7 @@ namespace SbslFileTransformer.Converters
 
                             var multiplyBy = exemptAccs.Contains(accNo) ? 1 : -1;
 
-                            if (filePath.ToLower().Contains("sus_bal"))
+                            if (filePath.ToLower().Contains("sus_bal") && Entity == "IMRW")
                             {
                                 multiplyBy = 1;
                             }
@@ -161,9 +166,13 @@ namespace SbslFileTransformer.Converters
             {
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_UTIL_{Entity}.txt");
             }
-            if (filePath.ToLower().Contains("sus") || filePath.ToLower().Contains("suspense"))
+            if (filePath.ToLower().Contains("br_sus"))
             {
-                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_SUS_{Entity}.txt");
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_BR_SUS_{Entity}.txt");
+            }
+            if (filePath.ToLower().Contains("fco_sus"))
+            {
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_FCO_SUS_{Entity}.txt");
             }
             if (filePath.ToLower().Contains("clearing"))
             {

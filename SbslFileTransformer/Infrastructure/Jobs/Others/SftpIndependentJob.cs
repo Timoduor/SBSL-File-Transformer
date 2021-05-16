@@ -207,7 +207,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Sftp Independent Job stopped");
+            _logger.LogInformation("SFTP Independent Job stopped");
 
             foreach (var timer in _timers)
             {

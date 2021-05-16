@@ -242,7 +242,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 var start = sheet.Dimension.Start;
                 var end = sheet.Dimension.End;
 
-                for (var i = start.Row + 6; i <= end.Row; i++)
+                for (var i = start.Row + 5; i <= end.Row; i++)
                 {
                     if (double.TryParse(sheet.Cells[$"E{i}"].Value.ToString(), out double result))
                     {

@@ -71,7 +71,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                     foreach (var file in files)
                     {
                         if (file.ToLower().Contains("spenn") && file.ToLower().Contains("control") && file.ToLower().Contains("balance")
-                            && file.ToLower().Contains("portal") && file.ToLower().Contains("imtz"))
+                            && file.ToLower().Contains("mb") && file.ToLower().Contains("imtz"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
