@@ -19,5 +19,6 @@ namespace SbslFileTransformer.Models
         public string ProductionFolder { get; set; }
         public string Entity { get; set; }
         public string KeyFilesPath { get; set; }
+        public bool UseUnicode { get; set; }
     }
 }

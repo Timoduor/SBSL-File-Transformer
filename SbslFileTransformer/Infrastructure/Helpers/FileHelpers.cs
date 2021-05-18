@@ -8,6 +8,7 @@ using SbslFileTransformer.Models;
 using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
@@ -47,11 +48,19 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                     {
                         var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
+                        //var useUnicode = Convert.ToBoolean(dbContext.Configurations.FirstOrDefault(u => u.ConfigType == Models.Enums.ConfigurationType.Sftp && u.Key == "UseUnicode"));
+
                         var sftpManager = scope.ServiceProvider.GetService<SftpManager>();
 
                         string remotePath = isProduction ? "/PROD/" : "/SB/";
 
                         remotePath = Path.Combine(remotePath, relativePath.Replace('\\', '/'));
+
+                        //if ipaddress integers use forward slashes uploading to local linux SFTP server
+                        //if(useUnicode)
+                        //{
+                        //    remotePath.Replace("/", "\\");
+                        //}
 
                         if (sftpManager.UploadFile(filePath, remotePath, client))
                         {

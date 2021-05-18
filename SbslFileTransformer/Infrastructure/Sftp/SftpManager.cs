@@ -88,6 +88,7 @@ namespace SbslFileTransformer.Infrastructure.Sftp
         {
             // Consistent forward slashes
             path = path.Replace(@"\", "/");
+
             foreach (string dir in path.Split('/'))
             {
                 // Ignoring leading/ending/multiple slashes
