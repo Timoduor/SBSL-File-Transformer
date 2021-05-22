@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Helpers
@@ -48,19 +49,21 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                     {
                         var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                        //var useUnicode = Convert.ToBoolean(dbContext.Configurations.FirstOrDefault(u => u.ConfigType == Models.Enums.ConfigurationType.Sftp && u.Key == "UseUnicode"));
+                        var useUnicode = Convert.ToBoolean(dbContext.Configurations.FirstOrDefault(u => u.ConfigType == Models.Enums.ConfigurationType.Sftp && u.Key == "UseUnicode").Value);
 
                         var sftpManager = scope.ServiceProvider.GetService<SftpManager>();
 
                         string remotePath = isProduction ? "/PROD/" : "/SB/";
 
-                        remotePath = Path.Combine(remotePath, relativePath.Replace('\\', '/'));
+                        //connecting to local cygwin SFTP server
+                        if (useUnicode)
+                        {
+                            remotePath = "/cygdrive/e/Recon_Files/Files" + remotePath;
 
-                        //if ipaddress integers use forward slashes uploading to local linux SFTP server
-                        //if(useUnicode)
-                        //{
-                        //    remotePath.Replace("/", "\\");
-                        //}
+                            client.ConnectionInfo.Encoding = Encoding.Unicode;
+                        }
+
+                        remotePath = Path.Combine(remotePath, relativePath.Replace('\\', '/'));
 
                         if (sftpManager.UploadFile(filePath, remotePath, client))
                         {

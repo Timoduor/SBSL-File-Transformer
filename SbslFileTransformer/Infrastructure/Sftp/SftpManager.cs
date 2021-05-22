@@ -36,13 +36,12 @@ namespace SbslFileTransformer.Infrastructure.Sftp
             };
         }
 
-        public IEnumerable<SftpFile> ListAllFiles(string remoteDirectory = ".")
+        public IEnumerable<SftpFile> ListAllFiles(SftpClient client, string remoteDirectory = ".")
         {
-            using var client = new SftpClient(_config.Host, _config.Port == 0 ? 22 : _config.Port, _config.UserName, _config.Password);
+            //using var client = new SftpClient(_config.Host, _config.Port == 0 ? 22 : _config.Port, _config.UserName, _config.Password);
 
             try
             {
-                client.Connect();
                 return client.ListDirectory(remoteDirectory);
             }
             catch (Exception exception)
@@ -68,7 +67,7 @@ namespace SbslFileTransformer.Infrastructure.Sftp
 
                     using (var s = File.OpenRead(localFilePath))
                     {
-                        client.UploadFile(s, remoteFilePath, true);
+                        client.UploadFile(s, remoteFilePath, true, Reponse);
                     }
 
                     _logger.LogInformation($"Finished uploading file [{localFilePath}] to [{remoteFilePath}]");
@@ -84,8 +83,15 @@ namespace SbslFileTransformer.Infrastructure.Sftp
             return false;
         }
 
+        private void Reponse(ulong obj)
+        {
+            _logger.LogInformation($"Response from server for upload is {obj}");
+        }
+
         public void CreateAllDirectories(SftpClient client, string path)
         {
+            client.ChangeDirectory("/");
+
             // Consistent forward slashes
             path = path.Replace(@"\", "/");
 

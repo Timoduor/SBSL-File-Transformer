@@ -97,7 +97,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     ProductionFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value,
                     SandboxFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value,
                     KeyFilesPath = configurations.FirstOrDefault(c => c.Key == "KeyFilesPath")?.Value,
-                    UseUnicode = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "UseUnicode").Value)
+                    UseUnicode = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "UseUnicode")?.Value ?? "False")
                 };
 
                 prodTimeSpan = Convert.ToInt32(dbContext.Configurations.FirstOrDefault(c => c.Key == "ProductionTimeSpanCheck")?.Value);
@@ -133,11 +133,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 if (config.UseUnicode)
                 {
-                    connectionInfo.Encoding = Encoding.Unicode;
+                    connectionInfo.Encoding = Encoding.UTF8;
                 }
 
-
-                //using (var client = new SftpClient(config.Host, config.Port == 0 ? 22 : config.Port, config.UserName, config.Password))
                 using (var client = new SftpClient(connectionInfo))
                 {
                     client.Connect();
