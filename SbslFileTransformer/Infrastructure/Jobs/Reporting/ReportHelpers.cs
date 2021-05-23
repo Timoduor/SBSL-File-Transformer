@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
+using OfficeOpenXml;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Helpers;
@@ -276,6 +277,38 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             }
 
             return reports;
+        }
+
+        /// <summary>
+        /// changes the balance value in the Tanzania clearing suspense balance proofing report (* -1)
+        /// </summary>
+        /// <param name="inputFile"></param>
+        /// <returns>Adjusted file path</returns>
+        private async Task<string> AdjustBalanceValue(string inputFile)
+        {
+            var inputFileName = Path.GetFileName(inputFile);
+
+            var outputFilePath = Path.Combine(await FileHelpers.GetTempPath(_serviceScopeFactory), "Adj_" + inputFileName);
+
+            using (var package = new ExcelPackage(new FileInfo(inputFile)))
+            {
+                var sheet = package.Workbook.Worksheets.First();
+
+                var start = sheet.Dimension.Start;
+                var end = sheet.Dimension.End;
+
+                for (var i = start.Row + 5; i <= end.Row; i++)
+                {
+                    if (double.TryParse(sheet.Cells[$"E{i}"].Value.ToString(), out double result))
+                    {
+                        sheet.Cells[$"E{i}"].Value = (-1 * result).ToString("N2");
+                    }
+                }
+
+                await package.SaveAsAsync(new FileInfo(outputFilePath));
+            }
+
+            return outputFilePath;
         }
 
     }
