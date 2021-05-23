@@ -10,7 +10,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create">
+        <form asp-action="Create" id="configUpdate">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <div class="form-group">
@@ -25,13 +25,15 @@
             </div>
             <div class="form-group">
                 <label asp-for="Value" class="control-label"></label>
-                <input asp-for="Value" class="form-control" value="@Model.Value" />
+                <textarea asp-for="Value" rows="5" cols="45" form="configUpdate"></textarea>
                 <span asp-validation-for="Value" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Update" class="btn btn-primary" />
             </div>
         </form>
+
+
     </div>
 </div>
 

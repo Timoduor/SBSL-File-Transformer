@@ -80,3 +80,6 @@ body {
     display: block;
 }
 
+form label {
+    font-weight: bold
+}

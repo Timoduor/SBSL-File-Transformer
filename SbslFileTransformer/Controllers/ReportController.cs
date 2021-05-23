@@ -73,6 +73,12 @@ namespace SbslFileTransformer.Controllers
                 Value = ((int)v).ToString()
             }).ToList(), "Value", "Text");
 
+            ViewBag.Categories = new SelectList(Enum.GetValues(typeof(ReportCategory)).Cast<ReportCategory>().Select(v => new SelectListItem
+            {
+                Text = v.ToString(),
+                Value = ((int)v).ToString()
+            }).ToList(), "Value", "Text");
+
             return View();
         }
 
@@ -101,6 +107,13 @@ namespace SbslFileTransformer.Controllers
                 Text = v.ToString(),
                 Value = ((int)v).ToString()
             }).ToList(), "Value", "Text");
+
+            ViewBag.Categories = new SelectList(Enum.GetValues(typeof(ReportCategory)).Cast<ReportCategory>().Select(v => new SelectListItem
+            {
+                Text = v.ToString(),
+                Value = ((int)v).ToString()
+            }).ToList(), "Value", "Text");
+
 
             return View(group);
         }

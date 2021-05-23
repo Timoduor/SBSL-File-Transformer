@@ -4,7 +4,10 @@
     ViewData["Title"] = "CreateGroup";
 }
 
-<h4>Create Group</h4>
+
+
+<h1>Create Group</h1>
+<h4>Email Group</h4>
 <hr />
 
 
@@ -23,15 +26,11 @@
                 <span asp-validation-for="AgeAlertDuration" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Emails" class="control-label"></label>
-                <textarea asp-for="Emails" class="form-control"></textarea>
+                <label asp-for="Emails" class="control-label">Emails (comma separated)</label>
+                <textarea asp-for="Emails" rows="6" class="form-control"></textarea>
                 <span asp-validation-for="Emails" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Country" class="control-label"></label>
-                <select asp-for="Country" asp-items="@ViewBag.Countries"><option>Please select one</option></select>
-                <span asp-validation-for="Country" class="text-danger"></span>
-            </div>
+
         </div>
         <div class="col-md-6">
             <div class="form-group">
@@ -45,9 +44,19 @@
                 </label>
             </div>
             <div class="form-group">
+                <label asp-for="Country" class="control-label"></label>
+                <select asp-for="Country" asp-items="@ViewBag.Countries"><option>Please select one</option></select>
+                <span asp-validation-for="Country" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <label asp-for="Sprint" class="control-label"></label>
                 <select asp-for="Sprint" asp-items="@ViewBag.Sprints"><option>Please select one</option></select>
                 <span asp-validation-for="Sprint" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Category" class="control-label"></label>
+                <select asp-for="Category" asp-items="@ViewBag.Categories" ><option>Please select one</option></select>
+                <span asp-validation-for="Category" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Description" class="control-label"></label>

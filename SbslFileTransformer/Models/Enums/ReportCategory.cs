@@ -7,6 +7,7 @@ namespace SbslFileTransformer.Models.Enums
 {
     public enum ReportCategory
     {
+        Default,
         Nostro
     }
 }

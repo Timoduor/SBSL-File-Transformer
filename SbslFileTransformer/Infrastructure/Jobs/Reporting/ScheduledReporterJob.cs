@@ -84,9 +84,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
                             var entity = dbContext.Configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
 
+                            //if category does not exist set it to default and ignore it in the select filters after
                             SetReportFilters(report, entity);
 
-                            //get email groups days categories
                             var daysRange = GetEmailGroupDays(emailGroups, report.Country, report.Sprint, report.Category);
 
                             await DownloadReportAndSendEmails(config, token, dbContext, report, reportPath, daysRange);
@@ -139,13 +139,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                         {
                             var outputFile = results.Item1;
 
+                            //change signage for Tz B.P. report
                             if (report.Name.ToLower().Contains("tanzania") && report.Name.ToLower().Contains("clearing")
                                                 && report.Name.ToLower().Contains("suspense") && report.Name.ToLower().Contains("proofing"))
                             {
                                 outputFile = await AdjustBalanceValue(results.Item1);
                             }
 
-                            await _emailSender.SendMessage(GetEmails(r, report.Country, report.Sprint), config.EmailHeader,
+                            await _emailSender.SendMessage(GetEmails(r, report.Country, report.Sprint, report.Category), config.EmailHeader,
                                                 config.EmailBody + Environment.NewLine +
                                                     $"Report Name {report.Name}" + Environment.NewLine +
                                                     //$"Report for {country} for {sprint}" + Environment.NewLine +
@@ -168,7 +169,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             }
         }
 
-        private IEnumerable<string> GetEmails(int duration, Country country, Sprint sprint)
+        private IEnumerable<string> GetEmails(int duration, Country country, Sprint sprint, ReportCategory category)
         {
             var emails = new List<string>();
 
@@ -176,7 +177,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             {
                 var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                var groups = dbContext.EmailGroups.Where(g => g.AgeAlertDuration == duration && g.Country == country && g.Sprint == sprint && g.IsActive);
+                var groups = dbContext.EmailGroups.Where(g => g.AgeAlertDuration == duration && g.Country == country && g.Sprint == sprint && g.Category == category && g.IsActive);
+
+                //no subcategories is provided
+                if(category == ReportCategory.Default)
+                {
+                    groups = dbContext.EmailGroups.Where(g => g.AgeAlertDuration == duration && g.Country == country && g.Sprint == sprint && g.IsActive);
+                }
 
                 var groupEmails = groups.ToList().Select(g => g.Emails);
 
@@ -193,7 +200,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
         {
             Country country = Country.Kenya;
             Sprint sprint = Sprint.Nostro;
-            ReportCategory category = ReportCategory.Nostro;
+            ReportCategory category = ReportCategory.Default;
 
             if (entity == "IMTZ")
             {

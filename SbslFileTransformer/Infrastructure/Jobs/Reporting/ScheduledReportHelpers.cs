@@ -145,9 +145,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
         /// <param name="country"></param>
         /// <param name="sprint"></param>
         /// <param name="category"></param>
-        public int[] GetEmailGroupDays(List<EmailGroup> emailGroups, Country country = Country.Kenya, Sprint sprint = Sprint.Nostro, ReportCategory category = ReportCategory.Nostro)
+        public int[] GetEmailGroupDays(List<EmailGroup> emailGroups, Country country = Country.Kenya, Sprint sprint = Sprint.Nostro, ReportCategory category = ReportCategory.Default)
         {
             var groups = emailGroups.Where(g => g.Country == country && g.Sprint == sprint && g.Category == category);
+
+            if(category == ReportCategory.Default)
+            {
+                groups = emailGroups.Where(g => g.Country == country && g.Sprint == sprint);
+            }
 
             var daysRange = groups.OrderBy(g => g.AgeAlertDuration).Select(g => g.AgeAlertDuration).ToArray();
 
@@ -163,6 +168,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                 var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
                 var groups = dbContext.EmailGroups.Where(g => g.AgeAlertDuration == duration && g.Country == country && g.Sprint == sprint && g.Category == category && g.IsActive);
+
+                if(category == ReportCategory.Default)
+                {
+                    groups = dbContext.EmailGroups.Where(g => g.AgeAlertDuration == duration && g.Country == country && g.Sprint == sprint && g.IsActive);
+                }
 
                 var groupEmails = groups.ToList().Select(g => g.Emails);
 
