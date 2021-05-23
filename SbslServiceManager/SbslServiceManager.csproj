@@ -1,0 +1,72 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>sbsl.ico</ApplicationIcon>
+    <Company>Strategic Business Solutions Ltd</Company>
+    <Product>SBSL ETL Service Manager</Product>
+    <Copyright>SBSL</Copyright>
+    <PackageProjectUrl>www.sbsl.co.ke</PackageProjectUrl>
+    <PackageIcon>sbsl.jpg</PackageIcon>
+    <Authors>Strategic Business Solutions Ltd</Authors>
+    <PackageId>SBSL ETL Service Manager</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Chrome_48px.png" />
+    <None Remove="Play_48px.png" />
+    <None Remove="Refresh_48px.png" />
+    <None Remove="sbsl.ico" />
+    <None Remove="sbsl.jpg" />
+    <None Remove="Select_48px.png" />
+    <None Remove="Shutdown_48px.png" />
+    <None Include="sbsl.jpg">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DotNetZip" Version="1.15.0" />
+    <PackageReference Include="Hardcodet.NotifyIcon.Wpf.NetCore" Version="1.0.18" />
+    <PackageReference Include="MahApps.Metro" Version="2.4.5" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.14" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.1.14" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.14" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.14" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Chrome_48px.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Play_48px.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Refresh_48px.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="sbsl.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="sbsl.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Select_48px.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Shutdown_48px.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings_2.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

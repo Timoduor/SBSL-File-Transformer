@@ -17,9 +17,9 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 {
-    public class ReportHelpers
+    public partial class ScheduledReporterJob
     {
-        public static ReportConfigModel GetConfiguration(IServiceScopeFactory serviceScopeFactory)
+        public ReportConfigModel GetConfiguration(IServiceScopeFactory serviceScopeFactory)
         {
             using (var scope = serviceScopeFactory.CreateScope())
             {
@@ -64,7 +64,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
         /// <param name="token"></param>
         /// <param name="logger"></param>
         /// <returns></returns>
-        public static async Task<bool> DownloadReport(long reportId, ReportConfigModel config, string savePath, string token, ILogger<ScheduledReporterJob> logger)
+        public async Task<bool> DownloadReport(long reportId, ReportConfigModel config, string savePath, string token, ILogger<ScheduledReporterJob> logger)
         {
             var reportToDownload = @$"https://{config.EnvironmentUrl}.{config.BaseUrl}/completedqueryrun/{reportId}/{config.ExportType}";
             try
@@ -103,7 +103,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
         /// </summary>
         /// <param name="SerialDate"></param>
         /// <returns></returns>
-        public static DateTime FromExcelSerialDate(int SerialDate)
+        public DateTime FromExcelSerialDate(int SerialDate)
         {
             if (SerialDate > 59) SerialDate -= 1; //Excel/Lotus 2/29/1900 bug
             return new DateTime(1899, 12, 31).AddDays(SerialDate);
@@ -114,7 +114,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
         /// <param name="items"></param>
         /// <param name="serviceScopeFactory"></param>
         /// <returns></returns>
-        public static async Task<Dictionary<int, string>> CreateCsvFile(Dictionary<int, List<OpenItem>> items, IServiceScopeFactory serviceScopeFactory)
+        public async Task<Dictionary<int, string>> CreateCsvFile(Dictionary<int, List<OpenItem>> items, IServiceScopeFactory serviceScopeFactory)
         {
             var dict = new Dictionary<int, string>();
 
@@ -144,7 +144,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
         /// <param name="country"></param>
         /// <param name="sprint"></param>
         /// <param name="category"></param>
-        public static int[] GetEmailGroupDays(List<EmailGroup> emailGroups, Country country = Country.Kenya, Sprint sprint = Sprint.Nostro, ReportCategory category = ReportCategory.Nostro)
+        public int[] GetEmailGroupDays(List<EmailGroup> emailGroups, Country country = Country.Kenya, Sprint sprint = Sprint.Nostro, ReportCategory category = ReportCategory.Nostro)
         {
             var groups = emailGroups.Where(g => g.Country == country && g.Sprint == sprint && g.Category == category);
 

@@ -16,6 +16,7 @@ using SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya;
 using SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania;
 using SbslFileTransformer.Infrastructure.Jobs.Extractors;
 using SbslFileTransformer.Infrastructure.Jobs.Others;
+using SbslFileTransformer.Infrastructure.Jobs.Reporting;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Infrastructure.Sftp;
 using Serilog;

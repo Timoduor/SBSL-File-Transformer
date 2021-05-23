@@ -29,7 +29,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Tanzania
                             bal.Date = result;
                         }
 
-                        bal.Amount = Convert.ToDouble(reader.GetValue(2)?.ToString());
+                        bal.Amount = Convert.ToDouble(reader.GetValue(2)?.ToString()) * -1;
 
                         bal.Account = "30990326501022";
                     }

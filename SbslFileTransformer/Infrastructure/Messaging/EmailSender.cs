@@ -35,11 +35,13 @@ namespace SbslFileTransformer.Infrastructure.Messaging
 
                     var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Email).ToList();
 
+                    var useDefaultCreds = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "UseDefaultCredentials" && c.ConfigType == ConfigurationType.Email)?.Value);
+
                     _emailConfig = new SmtpConfigModel
                     {
                         Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port")?.Value),
                         UserName = configurations.FirstOrDefault(c => c.Key == "UserName")?.Value,
-                        Password = encryptionManager.Decrypt(configurations.FirstOrDefault(c => c.Key == "Password")?.Value ?? "#"),
+                        Password = useDefaultCreds ? "" : encryptionManager.Decrypt(configurations.FirstOrDefault(c => c.Key == "Password")?.Value ?? "#"),
                         EmailAddress = configurations.FirstOrDefault(c => c.Key == "EmailAddress")?.Value,
                         SmtpServer = configurations.FirstOrDefault(c => c.Key == "SmtpServer")?.Value,
                         Name = configurations.FirstOrDefault(c => c.Key == "Name")?.Value,
