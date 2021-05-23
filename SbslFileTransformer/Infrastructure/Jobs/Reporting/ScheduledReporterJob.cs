@@ -139,6 +139,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                         {
                             var outputFile = results.Item1;
 
+                            if (report.Name.ToLower().Contains("tanzania") && report.Name.ToLower().Contains("clearing")
+                                                && report.Name.ToLower().Contains("suspense") && report.Name.ToLower().Contains("proofing"))
+                            {
+                                outputFile = await AdjustBalanceValue(results.Item1);
+                            }
+
                             await _emailSender.SendMessage(GetEmails(r, report.Country, report.Sprint), config.EmailHeader,
                                                 config.EmailBody + Environment.NewLine +
                                                     $"Report Name {report.Name}" + Environment.NewLine +
