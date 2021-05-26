@@ -62,6 +62,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                 foreach (var file in files)
                 {
+                    if(Entity == "IMKE" && (file.ToUpper().Contains("IMTZ") || file.ToUpper().Contains("IMRW")))
+                    {
+                        continue;
+                    }
+
                     if (file.ToLower().Contains("_balance".ToLower()) && Path.GetExtension(file.ToLower()) != ".txt")
                     {
                         try

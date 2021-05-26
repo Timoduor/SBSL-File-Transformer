@@ -60,9 +60,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls")).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls") || f.ToLower().EndsWith(".xlsx")).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls")));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls") || f.ToLower().EndsWith(".xlsx")));
 
                     var mpesaConverter = new DailyElmaOmniSettlementConverter();
 
