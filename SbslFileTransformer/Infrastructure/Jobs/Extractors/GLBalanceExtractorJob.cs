@@ -62,7 +62,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                 foreach (var file in files)
                 {
-                    if(Entity == "IMKE" && (file.ToUpper().Contains("IMTZ") || file.ToUpper().Contains("IMRW")))
+                    if((Entity == "IMKE" && !file.ToUpper().Contains("IMKE")) || (Entity == "IMKE" && (file.ToUpper().Contains("IMTZ") || file.ToUpper().Contains("IMRW"))))
                     {
                         continue;
                     }
@@ -73,7 +73,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                         {
                             if (
                                 file.ToLower().Contains("util_balance".ToLower()) || file.ToLower().Contains("mb_balance".ToLower())
-                                || file.ToLower().Contains("selcom_balance".ToLower()) || file.ToLower().Contains("float_balance".ToLower())
+                                || file.ToLower().Contains("selcom_balance".ToLower()) || file.ToLower().Contains("selcomdisb_balance") || file.ToLower().Contains("float_balance".ToLower())
                                 || file.ToLower().Contains("b2w_balance".ToLower()) || file.ToLower().Contains("w2b_balance".ToLower()))
                             {
                                 await converter.Execute(file, "Mobile banking");

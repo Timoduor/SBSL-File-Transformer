@@ -305,6 +305,21 @@ namespace SbslFileTransformer.Converters
             return ret;
         }
 
+        private class B2WSelcomBalCols
+        {
+            public DateTime Date { get; set; }
+            public string Terminal { get; set; }
+            public string TransType { get; set; }
+            public double Amount { get; set; }
+            public string UtilityType { get; set; }
+            public string UtilityReference { get; set; }
+            public string Reference { get; set; }
+            public string TransID { get; set; }
+            public double OBal { get; set; }
+            public double CBal { get; set; }
+            public string Account { get; set; }
+
+        }
     }
 
     public enum MBTypeTz
@@ -315,21 +330,7 @@ namespace SbslFileTransformer.Converters
     }
 
 
-    internal class B2WSelcomBalCols
-    {
-        public DateTime Date { get; set; }
-        public string Terminal { get; set; }
-        public string TransType { get; set; }
-        public double Amount { get; set; }
-        public string UtilityType { get; set; }
-        public string UtilityReference { get; set; }
-        public string Reference { get; set; }
-        public string TransID { get; set; }
-        public double OBal { get; set; }
-        public double CBal { get; set; }
-        public string Account { get; set; }
 
-    }
 
     public class W2BCols
     {

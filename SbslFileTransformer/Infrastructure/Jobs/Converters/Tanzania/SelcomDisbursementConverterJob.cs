@@ -2,23 +2,23 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters;
+using SbslFileTransformer.Converters.Tanzania;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters
+namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 {
-    public class SelcomBalanceExtractorJob : ConverterJobBase<SelcomBalanceExtractorJob>, IHostedService
+    public class SelcomDisbursementConverterJob : ConverterJobBase<SelcomDisbursementConverterJob>, IHostedService
     {
-        public SelcomBalanceExtractorJob(ILogger<SelcomBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public SelcomDisbursementConverterJob(ILogger<SelcomDisbursementConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -27,22 +27,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting Selcom Balance Extractor Job");
+            _logger.LogInformation("Starting Selcom Disbursement Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await SelcomFileBalanceExtractor(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await SelcomDisbFileConverter(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task SelcomFileBalanceExtractor()
+        private async Task SelcomDisbFileConverter()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running Selcom Balance Extractor job");
+                _logger.LogInformation("Running Selcom Disbursement Converter job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -61,16 +61,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where( f => f.ToLower().EndsWith(".xls")).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls")).ToList();
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls")));
 
-                    var mpesaConverter = new SelcomBalanceExtractor();
+                    var mpesaConverter = new SelcomDisbConverter();
 
                     foreach (var file in files)
                     {
                         if (file.ToLower().Contains("mb") && file.ToLower().Contains("imtz") && (file.ToLower().Contains("selcom") || file.ToLower().Contains("b2w")
-                            || file.ToLower().Contains("w2b") || file.ToLower().Contains("spenn")) && file.ToLower().Contains("balance"))
+                            || file.ToLower().Contains("w2b") || file.ToLower().Contains("spenn")) && !file.ToLower().Contains("balance"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -78,11 +78,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             {
                                 try
                                 {
-                                    var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
-
-                                    var rootFolder = isProd ? prodFolder : sbFolder;
-
-                                    mpesaConverter.ConvertFile(file, rootFolder);
+                                    mpesaConverter.ConvertFile(file);
                                 }
                                 catch (Exception ex)
                                 {

@@ -106,6 +106,7 @@ namespace SbslFileTransformer
             services.AddHostedService<MoneyGramConverterJob>();
             services.AddHostedService<SuspenseTachFileConverterJob>();
             services.AddHostedService<SpennControlBalanceExtractorJob>();
+            services.AddHostedService<SelcomDisbursementConverterJob>();
 
             services.AddHostedService<FileNetworkCopyJob>();
 
