@@ -150,7 +150,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                             RecurseSubdirectories = true
                         };
 
-                        var files = Directory.GetFiles(productionOrSandboxFolder,"*", options);
+                        var files = Directory.GetFiles(productionOrSandboxFolder, "*", options);
 
                         foreach (var file in files)
                         {
