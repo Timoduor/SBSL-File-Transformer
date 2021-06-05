@@ -94,7 +94,7 @@ namespace SbslFileTransformer.Converters
 
                             var multiplyBy = exemptAccs.Contains(accNo) ? 1 : -1;
 
-                            if (filePath.ToLower().Contains("sus_bal") && Entity == "IMRW")
+                            if (filePath.ToLower().Contains("_sus") && Entity == "IMRW")
                             {
                                 multiplyBy = 1;
                             }
@@ -177,6 +177,30 @@ namespace SbslFileTransformer.Converters
             if (filePath.ToLower().Contains("clearing"))
             {
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_CLEAR_{Entity}.txt");
+            }
+            if (filePath.ToLower().Contains("mg_balance"))
+            {
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_MG_{Entity}.txt");
+            }
+            if (filePath.ToLower().Contains("wu_balance"))
+            {
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_WU_{Entity}.txt");
+            }
+            if (filePath.ToLower().Contains("treasury_sus"))
+            {
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_TREASURY_{Entity}.txt");
+            }
+            if (filePath.ToLower().Contains("fin_sus"))
+            {
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_FIN_{Entity}.txt");
+            }
+            if (filePath.ToLower().Contains("cre_sus"))
+            {
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_CRE_{Entity}.txt");
+            }
+            if (filePath.ToLower().Contains("ops_sus"))
+            {
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath), $"GLAccounts_{fileDate:yyyyMMdd}_OPS_{Entity}.txt");
             }
 
             return outputPath;

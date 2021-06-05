@@ -15,9 +15,9 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
-    public class MoneyGramConverterJob : ConverterJobBase<MoneyGramConverterJob>, IHostedService
+    public class MoneyGramSettlementRWConverterJob : ConverterJobBase<MoneyGramSettlementRWConverterJob>, IHostedService
     {
-        public MoneyGramConverterJob(ILogger<MoneyGramConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public MoneyGramSettlementRWConverterJob(ILogger<MoneyGramSettlementRWConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -60,18 +60,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt")).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt")));
 
-                    var mpesaConverter = new MoneyGramConverter();
+                    var mpesaConverter = new MoneyGramSettlementRWConverter();
 
                     foreach (var file in files)
                     {
 
                         //SPECIFY FOLDER and file extension above PENDING
 
-                        if (file.ToLower().Contains("moneygram") && file.ToLower().Contains("imke") && !file.Contains("Conv"))
+                        if (file.ToLower().Contains("mg") && file.ToLower().Contains("settlement") && file.ToLower().Contains("imrw") && !file.Contains("Conv"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -97,7 +97,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 {
                                     fileToProcess.Converted = true;
 
-                                    fileToProcess.ConvertedBy = nameof(MoneyGramConverter);
+                                    fileToProcess.ConvertedBy = nameof(MoneyGramSettlementRWConverter);
 
                                     dbContext.Update(fileToProcess);
 

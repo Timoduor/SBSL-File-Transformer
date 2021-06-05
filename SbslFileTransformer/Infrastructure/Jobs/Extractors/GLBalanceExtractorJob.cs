@@ -62,12 +62,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                 foreach (var file in files)
                 {
-                    if((Entity == "IMKE" && !file.ToUpper().Contains("IMKE")) || (Entity == "IMKE" && (file.ToUpper().Contains("IMTZ") || file.ToUpper().Contains("IMRW"))))
+                    if ((Entity == "IMKE" && !file.ToUpper().Contains("IMKE")) || (Entity == "IMKE" && (file.ToUpper().Contains("IMTZ") || file.ToUpper().Contains("IMRW"))))
                     {
-                        continue;
+                        //continue;
                     }
 
-                    if (file.ToLower().Contains("_balance".ToLower()) && Path.GetExtension(file.ToLower()) != ".txt")
+                    if ((file.ToLower().Contains("_balance".ToLower()) || file.ToLower().Contains("_bal".ToLower())) && Path.GetExtension(file.ToLower()) != ".txt")
                     {
                         try
                         {
@@ -78,9 +78,33 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                             {
                                 await converter.Execute(file, "Mobile banking");
                             }
-                            else if (file.ToLower().Contains("sus_balance"))
+                            else if (file.ToLower().Contains("br_sus"))
                             {
                                 await converter.Execute(file, "Branch Suspense");
+                            }
+                            else if (file.ToLower().Contains("mg_sus"))
+                            {
+                                await converter.Execute(file, "Moneygram");
+                            }
+                            else if (file.ToLower().Contains("wu_sus"))
+                            {
+                                await converter.Execute(file, "Western Union");
+                            }
+                            else if (file.ToLower().Contains("treasury_sus"))
+                            {
+                                await converter.Execute(file, "Treasury");
+                            }
+                            else if (file.ToLower().Contains("ops_sus"))
+                            {
+                                await converter.Execute(file, "Operations");
+                            }
+                            else if (file.ToLower().Contains("cre_sus"))
+                            {
+                                await converter.Execute(file, "Credit");
+                            }
+                            else if (file.ToLower().Contains("fin_sus"))
+                            {
+                                await converter.Execute(file, "Finance");
                             }
                             else if (file.ToLower().Contains("clearing_balance"))
                             {

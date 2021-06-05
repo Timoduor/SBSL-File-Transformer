@@ -10,9 +10,9 @@ using System.Text;
 
 namespace SbslFileTransformer.Converters.Kenya
 {
-    public class MoneyGramConverter
+    public class MoneyGramActivityKEConverter
     {
-        public MoneyGramConverter()
+        public MoneyGramActivityKEConverter()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }

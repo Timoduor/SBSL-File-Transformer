@@ -103,10 +103,23 @@ namespace SbslFileTransformer
 
             //SPRINT 3
             services.AddHostedService<SuspenseBalanceExtractorJob>();
-            services.AddHostedService<MoneyGramConverterJob>();
+
             services.AddHostedService<SuspenseTachFileConverterJob>();
             services.AddHostedService<SpennControlBalanceExtractorJob>();
             services.AddHostedService<SelcomDisbursementConverterJob>();
+
+
+            //SPRINT 4
+            services.AddHostedService<WesternUnionSettlementKEConverterJob>();
+            services.AddHostedService<WesternUnionActivitiesKEConverterJob>();
+            services.AddHostedService<WesternUnionSettlementRWConverterJob>();
+            services.AddHostedService<WesternUnionActivitiesRWConverterJob>();
+            services.AddHostedService<MoneyGramActivityKEConverterJob>();
+            services.AddHostedService<MoneyGramSettlementKEConverterJob>();
+            services.AddHostedService<MoneyGramActivityRWConverterJob>();
+            services.AddHostedService<MoneyGramSettlementRWConverterJob>();
+            services.AddHostedService<AdviceCopeduRWConverterJob>();
+
 
             services.AddHostedService<FileNetworkCopyJob>();
 
