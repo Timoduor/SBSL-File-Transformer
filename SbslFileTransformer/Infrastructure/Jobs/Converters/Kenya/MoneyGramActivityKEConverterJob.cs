@@ -64,7 +64,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")));
 
-                    var mpesaConverter = new MoneyGramActivityKEConverter();
+                    var mpesaConverter = new MoneyGramActivityKEConverter(_logger);
 
                     foreach (var file in files)
                     {
@@ -79,11 +79,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                             {
                                 try
                                 {
-                                    var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
-
-                                    var rootFolder = isProd ? prodFolder : sbFolder;
-
-                                    mpesaConverter.ConvertFile(file, rootFolder);
+                                    mpesaConverter.ConvertFile(file);
                                 }
                                 catch (Exception ex)
                                 {

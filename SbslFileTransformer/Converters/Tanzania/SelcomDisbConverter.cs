@@ -54,11 +54,11 @@ namespace SbslFileTransformer.Converters.Tanzania
                         continue;
                     }
 
-                    string amountString = row.SelectNodes("td")[9].InnerText;
+                    //string amountString = row.SelectNodes("td")[9].InnerText;
 
-                    string amount = string.IsNullOrEmpty(amountString) ? "0" : amountString;
+                    //string amount = string.IsNullOrEmpty(amountString) ? "0" : amountString;
 
-                    selcomRow.CBal = Convert.ToDouble(amount);
+                    //selcomRow.CBal = Convert.ToDouble(amount);
 
                     selcomRow.Terminal = row.SelectNodes("td")[1].InnerText;
 
@@ -68,7 +68,7 @@ namespace SbslFileTransformer.Converters.Tanzania
 
                     string amount2 = string.IsNullOrEmpty(amountString2) ? "0" : amountString2;
 
-                    selcomRow.Amount = Convert.ToDouble(amount2);
+                    selcomRow.Amount = amount2;
 
                     selcomRow.UtilityType = row.SelectNodes("td")[4].InnerText;
 
@@ -82,7 +82,7 @@ namespace SbslFileTransformer.Converters.Tanzania
 
                     string amount3 = string.IsNullOrEmpty(amountString3) ? "0" : amountString3;
 
-                    selcomRow.OBal = Convert.ToDouble(amount3);
+                    selcomRow.OBal = amount3;
 
                     list.Add(selcomRow);
                 }
@@ -135,13 +135,13 @@ namespace SbslFileTransformer.Converters.Tanzania
             public DateTime Date { get; set; }
             public string Terminal { get; set; }
             public string TransType { get; set; }
-            public double Amount { get; set; }
+            public string Amount { get; set; }
             public string UtilityType { get; set; }
             public string UtilityReference { get; set; }
             public string Reference { get; set; }
             public string TransID { get; set; }
-            public double OBal { get; set; }
-            public double CBal { get; set; }
+            public string OBal { get; set; }
+            //public string CBal { get; set; }
 
         }
     }

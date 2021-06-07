@@ -1,6 +1,7 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
 using ExcelDataReader;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -10,10 +11,12 @@ using System.Text;
 
 namespace SbslFileTransformer.Converters.Kenya
 {
-    public class MoneyGramSettlementKEConverter
+    public class MoneyGramActivityKEConverter
     {
-        public MoneyGramSettlementKEConverter()
+        ILogger _logger;
+        public MoneyGramActivityKEConverter(ILogger logger)
         {
+            _logger = logger;
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
         public void ConvertFile(string inputFile, string outputFile = null)
@@ -116,10 +119,10 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.txt");
+                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
-            WriteToFile(list, outputFile);
+            WriteToFile(list3, outputFile);
         }
 
         private List<ExcelCols> ProduceSecondList(string inputFile)
@@ -219,15 +222,12 @@ namespace SbslFileTransformer.Converters.Kenya
             return combinedList;
         }
 
+
         private void WriteToFile(List<ExcelCols> rows, string outputFile)
         {
             using (var writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture)
-                {
-                    Delimiter = "\t",
-
-                }))
+                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
                     foreach (var row in rows)
                     {

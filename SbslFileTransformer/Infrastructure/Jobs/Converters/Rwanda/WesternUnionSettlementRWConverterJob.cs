@@ -65,7 +65,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*", options));
 
-                    var westernUnionConverter = new WesternUnionSettlementKEConverter();
+                    var westernUnionConverter = new WesternUnionSettlementRWConverter();
 
                     foreach (var file in files)
                     {
@@ -91,7 +91,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 {
                                     fileToProcess.Converted = true;
 
-                                    fileToProcess.ConvertedBy = nameof(WeeklyMonthlyElmaOmniSettlementConverter);
+                                    fileToProcess.ConvertedBy = nameof(WesternUnionSettlementRWConverter);
 
                                     dbContext.Update(fileToProcess);
 

@@ -254,7 +254,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.txt");
+                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
             WriteToFile(list, outputFile);
@@ -264,11 +264,7 @@ namespace SbslFileTransformer.Converters.Kenya
         {
             using (var writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture)
-                {
-                    Delimiter = "\t",
-
-                }))
+                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
                     foreach (var row in rows)
                     {
@@ -277,6 +273,7 @@ namespace SbslFileTransformer.Converters.Kenya
                     }
                 }
             }
+
         }
     }
 }

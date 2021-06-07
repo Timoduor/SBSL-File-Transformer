@@ -79,11 +79,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                             {
                                 try
                                 {
-                                    var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
-
-                                    var rootFolder = isProd ? prodFolder : sbFolder;
-
-                                    mpesaConverter.ConvertFile(file, rootFolder);
+                                    mpesaConverter.ConvertFile(file);
                                 }
                                 catch (Exception ex)
                                 {
