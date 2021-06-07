@@ -60,11 +60,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt")).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt")));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")));
 
-                    var mpesaConverter = new MoneyGramActivityRWConverter();
+                    var mpesaConverter = new MoneyGramActivityRWConverter(_logger);
 
                     foreach (var file in files)
                     {
@@ -79,11 +79,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                             {
                                 try
                                 {
-                                    var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
-
-                                    var rootFolder = isProd ? prodFolder : sbFolder;
-
-                                    mpesaConverter.ConvertFile(file, rootFolder);
+                                    mpesaConverter.ConvertFile(file);
                                 }
                                 catch (Exception ex)
                                 {

@@ -1,6 +1,7 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
 using ExcelDataReader;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -12,9 +13,12 @@ namespace SbslFileTransformer.Converters.Kenya
 {
     public class MoneyGramActivityRWConverter
     {
-        public MoneyGramActivityRWConverter()
+        ILogger _logger;
+        public MoneyGramActivityRWConverter(ILogger logger)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            _logger = logger;
         }
         public void ConvertFile(string inputFile, string outputFile = null)
         {
@@ -174,9 +178,9 @@ namespace SbslFileTransformer.Converters.Kenya
                             }
 
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
-
+                            _logger.LogError(ex, "Error with MG file for RW");
                         }
                         if (string.IsNullOrEmpty(row.Col2))
                         {
@@ -231,9 +235,9 @@ namespace SbslFileTransformer.Converters.Kenya
 
                     finalList.Add(rows);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-
+                    _logger.LogError(ex, "Error with MG file for RW");
                 }
 
             }
