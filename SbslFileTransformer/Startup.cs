@@ -119,6 +119,7 @@ namespace SbslFileTransformer
             services.AddHostedService<MoneyGramActivityRWConverterJob>();
             services.AddHostedService<MoneyGramSettlementRWConverterJob>();
             services.AddHostedService<AdviceCopeduRWConverterJob>();
+            services.AddHostedService<Mt300sKEConverterJob>();
 
 
             services.AddHostedService<FileNetworkCopyJob>();
