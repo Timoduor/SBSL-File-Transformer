@@ -50,74 +50,76 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                     Entity = dbContext.Configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
-                }
 
-                var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
+                    bool isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
 
-                var files = Directory.GetFiles(prodFolder, "*.csv", options).ToList();
+                    var options = new EnumerationOptions { RecurseSubdirectories = false, MatchCasing = MatchCasing.CaseInsensitive };
 
-                files.AddRange(Directory.GetFiles(sbFolder, "*.csv", options));
+                    var files = Directory.GetFiles(prodFolder, "*.csv", options).ToList();
 
-                var converter = new BalanceFileConverter(_logger, _serviceScopeFactory, Entity);
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.csv", options));
 
-                foreach (var file in files)
-                {
-                    if ((Entity == "IMKE" && !file.ToUpper().Contains("IMKE")) || (Entity == "IMKE" && (file.ToUpper().Contains("IMTZ") || file.ToUpper().Contains("IMRW"))))
+                    var converter = new BalanceFileConverter(_logger, _serviceScopeFactory, Entity);
+
+                    foreach (var file in files)
                     {
-                        //continue;
-                    }
-
-                    if ((file.ToLower().Contains("_balance".ToLower()) || file.ToLower().Contains("_bal".ToLower())) && Path.GetExtension(file.ToLower()) != ".txt")
-                    {
-                        try
+                        if (Entity == "IMKE" && !file.ToUpper().Contains("IMKE"))
                         {
-                            if (
-                                file.ToLower().Contains("util_balance".ToLower()) || file.ToLower().Contains("mb_balance".ToLower())
-                                || file.ToLower().Contains("selcom_balance".ToLower()) || file.ToLower().Contains("selcomdisb_balance") || file.ToLower().Contains("float_balance".ToLower())
-                                || file.ToLower().Contains("b2w_balance".ToLower()) || file.ToLower().Contains("w2b_balance".ToLower()))
-                            {
-                                await converter.Execute(file, "Mobile banking");
-                            }
-                            else if (file.ToLower().Contains("br_sus"))
-                            {
-                                await converter.Execute(file, "Branch Suspense");
-                            }
-                            else if (file.ToLower().Contains("mg_sus"))
-                            {
-                                await converter.Execute(file, "Moneygram");
-                            }
-                            else if (file.ToLower().Contains("wu_sus"))
-                            {
-                                await converter.Execute(file, "Western Union");
-                            }
-                            else if (file.ToLower().Contains("treasury_sus"))
-                            {
-                                await converter.Execute(file, "Treasury");
-                            }
-                            else if (file.ToLower().Contains("ops_sus"))
-                            {
-                                await converter.Execute(file, "Operations");
-                            }
-                            else if (file.ToLower().Contains("cre_sus"))
-                            {
-                                await converter.Execute(file, "Credit");
-                            }
-                            else if (file.ToLower().Contains("fin_sus"))
-                            {
-                                await converter.Execute(file, "Finance");
-                            }
-                            else if (file.ToLower().Contains("clearing_balance"))
-                            {
-                                await converter.Execute(file, "Clearing");
-                            }
-                            else
-                            {
-                                await converter.Execute(file);
-                            }
+                            continue;
                         }
-                        catch (Exception ex)
+
+                        if ((file.ToLower().Contains("_balance".ToLower()) || file.ToLower().Contains("_bal".ToLower())) && Path.GetExtension(file.ToLower()) != ".txt")
                         {
-                            _logger.LogError(ex, ex.Message);
+                            try
+                            {
+                                if (
+                                    file.ToLower().Contains("util_balance".ToLower()) || file.ToLower().Contains("mb_balance".ToLower())
+                                    || file.ToLower().Contains("selcom_balance".ToLower()) || file.ToLower().Contains("selcomdisb_balance") || file.ToLower().Contains("float_balance".ToLower())
+                                    || file.ToLower().Contains("b2w_balance".ToLower()) || file.ToLower().Contains("w2b_balance".ToLower()))
+                                {
+                                    await converter.Execute(file, "Mobile banking");
+                                }
+                                else if (file.ToLower().Contains("br_sus"))
+                                {
+                                    await converter.Execute(file, "Branch Suspense");
+                                }
+                                else if (file.ToLower().Contains("mg_sus"))
+                                {
+                                    await converter.Execute(file, "Moneygram");
+                                }
+                                else if (file.ToLower().Contains("wu_sus"))
+                                {
+                                    await converter.Execute(file, "Western Union");
+                                }
+                                else if (file.ToLower().Contains("treasury_sus"))
+                                {
+                                    await converter.Execute(file, "Treasury");
+                                }
+                                else if (file.ToLower().Contains("ops_sus"))
+                                {
+                                    await converter.Execute(file, "Operations");
+                                }
+                                else if (file.ToLower().Contains("cre_sus"))
+                                {
+                                    await converter.Execute(file, "Credit");
+                                }
+                                else if (file.ToLower().Contains("fin_sus"))
+                                {
+                                    await converter.Execute(file, "Finance");
+                                }
+                                else if (file.ToLower().Contains("clearing_balance"))
+                                {
+                                    await converter.Execute(file, "Clearing");
+                                }
+                                else
+                                {
+                                    await converter.Execute(file);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, ex.Message);
+                            }
                         }
                     }
                 }

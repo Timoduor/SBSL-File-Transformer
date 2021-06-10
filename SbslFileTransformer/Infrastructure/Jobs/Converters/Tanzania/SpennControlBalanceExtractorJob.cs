@@ -62,9 +62,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.txt", options).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.txt|*.csv", options).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.txt", options));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.txt|*.csv", options));
 
                     var pdfConverter = new SpennControlExtractor();
 

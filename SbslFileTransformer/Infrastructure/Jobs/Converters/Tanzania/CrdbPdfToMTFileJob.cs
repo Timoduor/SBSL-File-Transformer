@@ -90,16 +90,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 catch (Exception ex)
                                 {
+                                    fileToProcess.Failed = true;
+
                                     _logger.LogError(ex, ex.Message);
 
                                     await EmailHelpers.SendEmails(dbContext, "Problem Converting CRDB files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
+                                finally
+                                {
+                                    fileToProcess.Converted = true;
 
-                                fileToProcess.Converted = true;
+                                    fileToProcess.ConvertedBy = nameof(CrdbPdfToMTFilesConverter);
 
-                                dbContext.Update(fileToProcess);
+                                    dbContext.Update(fileToProcess);
 
-                                await dbContext.SaveChangesAsync();
+                                    await dbContext.SaveChangesAsync();
+                                }
 
                             }
                         }
