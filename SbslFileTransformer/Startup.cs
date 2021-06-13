@@ -107,6 +107,9 @@ namespace SbslFileTransformer
             services.AddHostedService<SuspenseTachFileConverterJob>();
             services.AddHostedService<SpennControlBalanceExtractorJob>();
 
+            services.AddHostedService<MT300ConverterJob>();
+            services.AddHostedService<MT320ConverterJob>();
+
             services.AddHostedService<FileNetworkCopyJob>();
 
         }
