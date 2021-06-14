@@ -5,7 +5,7 @@
         Nostro,
         Mobile_Banking,
         Suspense,
-        Others,
+        ABC,
         Cards
     }
 }

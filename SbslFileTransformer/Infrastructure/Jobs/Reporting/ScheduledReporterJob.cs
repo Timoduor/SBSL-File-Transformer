@@ -236,7 +236,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                 sprint = Sprint.Nostro;
             }
             //Mobile banking
-            if (report.Name.ToLower().Contains("abc") || report.Name.ToLower().Contains("mb"))
+            if (report.Name.ToLower().Contains("mb"))
             {
                 sprint = Sprint.Mobile_Banking;
             }
@@ -250,10 +250,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             {
                 sprint = Sprint.Suspense;
             }
-
-            if (report.Name.ToLower().Contains("others"))
+            //others
+            if (report.Name.ToLower().Contains("abc"))
             {
-                sprint = Sprint.Others;
+                sprint = Sprint.ABC;
+            }
+
+            //SET CATEGORY
+
+            foreach (int val in Enum.GetValues(typeof(ReportCategory)))
+            {
+                var checkVals = EnumHelpers.GetDescriptors((ReportCategory)val);
+
+                if(checkVals.All(x => report.Name.ToLower().Contains(x.ToLower())))
+                {
+                    category = (ReportCategory)val;
+                }
             }
 
             report.Category = category;

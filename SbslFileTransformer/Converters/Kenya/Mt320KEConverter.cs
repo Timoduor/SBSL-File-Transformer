@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Converters.Kenya
 {
-    public class Mt320Converter
+    public class Mt320KEConverter
     {
-        public Mt320Converter()
+        public Mt320KEConverter()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }

@@ -178,9 +178,9 @@ namespace SbslFileTransformer.Converters.Kenya
                             }
 
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
-                            _logger.LogError(ex, "Error with MG file for RW");
+
                         }
                         if (string.IsNullOrEmpty(row.Col2))
                         {
@@ -198,9 +198,14 @@ namespace SbslFileTransformer.Converters.Kenya
             double amntfinal = 0.022;
             foreach (var rows in list)
             {
+
                 try
                 {
-                    if (rows.Col1 == "COPEDU" || rows.Col1 == "GOSHEN")
+                    if (rows.Col6 == null)
+                    {
+                        continue;
+                    }
+                    if (rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN"))
                     {
                         //revenue
                         rows.Col20 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col19)) * rev2).ToString();
@@ -210,13 +215,14 @@ namespace SbslFileTransformer.Converters.Kenya
                         //revenue
                         rows.Col20 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col19)) * rev1).ToString();
                     }
-                    if (rows.Col6 == "SEN")
+
+                    if (rows.Col6.Contains("SEN"))
                     {
                         //amount final
-                        rows.Col21 = Math.Ceiling(Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col19) + Convert.ToDouble(rows.Col20) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
+                        rows.Col21 = Math.Floor(Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col19) + Convert.ToDouble(rows.Col20) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
                     }
 
-                    if (rows.Col6 == "REC" || rows.Col6 == "REF" || rows.Col1 == "COPEDU" || rows.Col1 == "GOSHEN" || rows.Col1 == "RIM LTD" || rows.Col1 == "EXTRACASH LTD")
+                    else if (rows.Col6.Contains("REC") || rows.Col6.Contains("REF") || rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN") || rows.Col1.Contains("RIM LTD"))
                     {
                         //amount final
                         //double rev3 = Convert.ToDouble(rows.Col12.ToString());
@@ -235,9 +241,9 @@ namespace SbslFileTransformer.Converters.Kenya
 
                     finalList.Add(rows);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    _logger.LogError(ex, "Error with MG file for RW");
+
                 }
 
             }

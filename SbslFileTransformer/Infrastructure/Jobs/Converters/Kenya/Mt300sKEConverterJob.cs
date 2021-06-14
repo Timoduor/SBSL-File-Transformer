@@ -65,16 +65,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt")));
 
-                    var mt300Converter = new Mt300Converter();
-                    var mt320Converter = new Mt320Converter();
+                    var mt300Converter = new Mt300KEConverter();
+                    var mt320Converter = new Mt320KEConverter();
 
                     foreach (var file in files)
                     {
 
                         //SPECIFY FOLDER and file extension above PENDING
 
-                        if ((file.ToLower().Contains("mt300_in") || file.ToLower().Contains("mt300_out") || file.ToLower().Contains("mt320_in") ||
-                            file.ToLower().Contains("mt320_out")) && file.ToLower().Contains("fx_confirmation") && file.ToLower().Contains("imke") && !file.Contains("Conv"))
+                        if ((file.ToLower().Contains("mt300") || file.ToLower().Contains("mt320")) 
+                            && file.ToLower().Contains("fx_statement") && file.ToLower().Contains("imke") && !file.Contains("Conv"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
