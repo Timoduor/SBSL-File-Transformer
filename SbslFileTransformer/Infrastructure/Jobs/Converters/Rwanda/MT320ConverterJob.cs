@@ -54,7 +54,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     Entity = dbContext.Configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
-                    sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
+                   sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
