@@ -122,6 +122,9 @@ namespace SbslFileTransformer
             services.AddHostedService<Mt300sKEConverterJob>();
 
 
+            services.AddHostedService<MT300ConverterJob>();
+            services.AddHostedService<MT320ConverterJob>();
+
             services.AddHostedService<FileNetworkCopyJob>();
 
         }
