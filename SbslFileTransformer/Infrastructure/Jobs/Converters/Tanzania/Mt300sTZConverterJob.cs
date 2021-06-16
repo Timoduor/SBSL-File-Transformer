@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters.BalanceExtractors.Tanzania;
+using SbslFileTransformer.Converters.Kenya;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
@@ -14,11 +14,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
+namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
-    public class SpennControlBalanceExtractorJob : ConverterJobBase<SpennControlBalanceExtractorJob>, IHostedService
+    public class Mt300sTZConverterJob : ConverterJobBase<Mt300sTZConverterJob>, IHostedService
     {
-        public SpennControlBalanceExtractorJob(ILogger<SpennControlBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public Mt300sTZConverterJob(ILogger<Mt300sTZConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -27,22 +27,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Starting MT300s Converter TZ Job");
+
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _logger.LogInformation("Starting Spenn Control Balance Extractor job");
-
-            _timer = new Timer(async state => await GenerateMultiCurrFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await MT300sConverter(), null, TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task GenerateMultiCurrFile()
+        private async Task MT300sConverter()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running Spenn Control Balance Extractor job");
+                _logger.LogInformation("Running MT300s Converter TZ job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -58,22 +58,23 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
-                    bool isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
 
                     var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.txt|*.csv", options).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt")).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.txt|*.csv", options));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt")));
 
-                    var pdfConverter = new SpennControlExtractor();
+                    var mt300Converter = new Mt300KEConverter();
+                    var mt320Converter = new Mt320KEConverter();
 
                     foreach (var file in files)
                     {
-                        if (((file.ToLower().Contains("spenn") && file.ToLower().Contains("control") && file.ToLower().Contains("balance"))
-                            || (file.ToLower().Contains("spenn") && file.ToLower().Contains("selcom") && file.ToLower().Contains("portal"))
-                             || (file.ToLower().Contains("b2w") && file.ToLower().Contains("portal")))
-                            && file.ToLower().Contains("mb") && file.ToLower().Contains("imtz"))
+
+                        //SPECIFY FOLDER and file extension above PENDING
+
+                        if ((file.ToLower().Contains("mt300") || file.ToLower().Contains("mt320"))
+                            && file.ToLower().Contains("fx_confirmations") && file.ToLower().Contains("imtz") && !file.Contains("Conv"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -81,9 +82,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                             {
                                 try
                                 {
-                                    var rootFolder = isProd ? prodFolder : sbFolder;
+                                    if (file.ToLower().Contains("mt300"))
+                                    {
+                                        mt300Converter.ConvertFile(file);
+                                    }
 
-                                    pdfConverter.ConvertFile(file, rootFolder);
+                                    if (file.ToLower().Contains("mt320"))
+                                    {
+                                        mt320Converter.ConvertFile(file);
+                                    }
                                 }
                                 catch (Exception ex)
                                 {
@@ -91,23 +98,23 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem running  Spenn Control Balance Extractor files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting  MT300s TZ files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
                                 finally
                                 {
                                     fileToProcess.Converted = true;
 
-                                    fileToProcess.ConvertedBy = nameof(SpennControlExtractor);
+                                    fileToProcess.ConvertedBy = nameof(Mt300sKEConverterJob);
 
                                     dbContext.Update(fileToProcess);
 
                                     await dbContext.SaveChangesAsync();
                                 }
-
                             }
                         }
                     }
                 }
+
             }
             catch (Exception ex)
             {
@@ -119,9 +126,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
             }
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
+        public Task StopAsync(CancellationToken cancellationToken)
         {
-            await _timer.DisposeAsync();
+            _semaphore.Dispose();
+            _timer.Dispose();
+            return Task.CompletedTask;
         }
     }
 }
