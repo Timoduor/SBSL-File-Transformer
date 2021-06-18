@@ -71,9 +71,11 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                 List<string> ld = GetRtgsDetails_MT320_15D(sDet);
 
 
+
                 seq15A.NewSequenceA = "";
                 seq15A.SenderRef15A = l.First(p => p.StartsWith("20:")).Split('|')[1].ToString();
-                seq15A.RelatedRef15A = l.First(p => p.StartsWith("21:")).Split('|')[1].ToString();
+                try { seq15A.RelatedRef15A = l.Any(p => p.StartsWith("21:")) ? l.First(p => p.StartsWith("21:")).Split('|')[1].ToString() : ""; } catch (Exception ex) { }
+
                 seq15A.TypeofOperation15A = l.Any(p => p.StartsWith("22A:")) ? l.First(p => p.StartsWith("22A:")).Split('|')[1].ToString() : "";
                 seq15A.ScopeofOperation15A = l.Any(p => p.StartsWith("94A:")) ? l.First(p => p.StartsWith("94A:")).Split('|')[1].ToString() : "";
                 seq15A.TypeofEvent15A = l.Any(p => p.StartsWith("22B:")) ? l.First(p => p.StartsWith("22B:")).Split('|')[1].ToString() : "";
@@ -91,7 +93,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                 seq15B.CurrencyPrincipalAmount15B = lb.Any(p => p.StartsWith("32B:")) ? lb.First(p => p.StartsWith("32B:")).Split('|')[1].ToString().Split(':')[1].Trim().Substring(0, 3) : "";
                 seq15B.PrincipalAmount15B = lb.Any(p => p.StartsWith("32B:")) ? lb.First(p => p.StartsWith("32B:")).Split('|')[2].ToString().Trim().Split(',')[1].Replace("#", "") == "" ? lb.First(p => p.StartsWith("32B:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')[0].Replace("#", "") : lb.First(p => p.StartsWith("32B:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')[0].Replace("#", "") + "." + lb.First(p => p.StartsWith("32B:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')[1].Replace("#", "") : "";
                 seq15B.CurrencyAmounttobeSettled15B = lb.Any(p => p.StartsWith("32H:")) ? lb.First(p => p.StartsWith("32H:")).Split('|')[1].ToString().Split(':')[1].Trim().Substring(0, 3) : "";
-                seq15B.AmounttobeSettledt15B = lb.Any(p => p.StartsWith("32B:")) ? lb.First(p => p.StartsWith("32B:")).Split('|')[2].ToString().Trim().Split(',')[1].Replace("#", "") == "" ? lb.First(p => p.StartsWith("32H:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')[0].Replace("#", "") : lb.First(p => p.StartsWith("32H:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')[0].Replace("#", "") + "." + lb.First(p => p.StartsWith("32H:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')[1].Replace("#", "") : "";
+                seq15B.AmounttobeSettledt15B = lb.Any(p => p.StartsWith("32H:")) ? lb.First(p => p.StartsWith("32H:")).Split('|')[2].ToString().Trim().Split(',')[1].Replace("#", "") == "" ? lb.First(p => p.StartsWith("32H:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')[0].Replace("#", "") : lb.First(p => p.StartsWith("32H:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')[0].Replace("#", "") + "." + lb.First(p => p.StartsWith("32H:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')[1].Replace("#", "") : "";
                 seq15B.NextInterestDueDate15B = lb.Any(p => p.StartsWith("30X:")) ? lb.First(p => p.StartsWith("30X:")).Split('|')[1].ToString() : "";
                 seq15B.CurrencyInterestAmount15B = lb.Any(p => p.StartsWith("34E:")) ? lb.First(p => p.StartsWith("34E:")).Split('|')[1].ToString().Split(':')[1].Trim().Substring(0, 3) : "";
                 seq15B.InterestAmount15B = lb.Any(p => p.StartsWith("34E:")) ? lb.First(p => p.StartsWith("34E:")).Split('|')[2].ToString().Trim().Split(',')[1].Replace("#", "") == "" ? lb.First(p => p.StartsWith("34E:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')[0].Replace("#", "") : lb.First(p => p.StartsWith("34E:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')[0].Replace("#", "") + "." + lb.First(p => p.StartsWith("34E:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')[1].Replace("#", "") : "";
@@ -119,6 +121,8 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                 scontent += "," + seq15B.NewSequenceB + "," + seq15B.PartyAsRole15B + "," + seq15B.TradeDate15B + "," + seq15B.ValueDate15B + "," + seq15B.MaturityDate15B + "," + seq15B.CurrencyPrincipalAmount15B + "," + seq15B.PrincipalAmount15B + "," + seq15B.CurrencyAmounttobeSettled15B + "," + seq15B.AmounttobeSettledt15B + "," + seq15B.NextInterestDueDate15B + "," + seq15B.CurrencyInterestAmount15B + "," + seq15B.InterestAmount15B + "," + seq15B.InterestRate15B + "," + seq15B.DayCountFraction15B + "," + seq15B.LastDayoftheFirstInterestPeriod15B + "," + seq15B.NumberofDays15B;
                 scontent += "," + seq15C.NewSequenceC + "," + seq15C.ReceivingAgent15C;
                 scontent += "," + seq15D.NewSequenceD + "," + seq15D.DeliveryAgent15D + "," + seq15D.ReceivingAgent15D + "," + seq15D.BeneficiaryInstitution15D;
+
+
                 WriteFile(outputFolder + "\\Converted_MT320_" + Path.GetFileNameWithoutExtension(file) + ".csv", scontent);
             }
         }
@@ -354,8 +358,29 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                 }
                 if (d[i].Contains("34E:"))
                 {
-                    l.Add(d[i].Trim() + "|" + d[i + 1].Trim() + "|" + d[i + 2].Trim());
+                    try
+                    {
+                        if (d[i + 1].Trim().Split(':')[1].Trim().Substring(0, 3) == "USD" || d[i + 1].Trim().Split(':')[1].Trim().Substring(0, 3) == "RWF" || d[i + 1].Trim().Split(':')[1].Trim().Substring(0, 3) == "GBP" || d[i + 1].Trim().Split(':')[1].Trim().Substring(0, 3) == "KES")
+                        {
+                            l.Add(d[i].Trim() + "|" + d[i + 1].Trim() + "|" + d[i + 2].Trim());
+                        }
+                        else
+                        {
+                            if (d[i + 2].Trim().Split(':')[1].Trim().Substring(0, 3) == "USD" || d[i + 2].Trim().Split(':')[1].Trim().Substring(0, 3) == "RWF" || d[i + 2].Trim().Split(':')[1].Trim().Substring(0, 3) == "GBP" || d[i + 2].Trim().Split(':')[1].Trim().Substring(0, 3) == "KES")
+                            {
+                                l.Add(d[i].Trim() + "|" + d[i + 2].Trim() + "|" + d[i + 3].Trim());
+                            }
+                        }
+                    }
 
+                    catch (Exception ex)
+                    {
+                        if (d[i + 2].Trim().Split(':')[1].Trim().Substring(0, 3) == "USD" || d[i + 2].Trim().Split(':')[1].Trim().Substring(0, 3) == "RWF" || d[i + 2].Trim().Split(':')[1].Trim().Substring(0, 3) == "GBP" || d[i + 2].Trim().Split(':')[1].Trim().Substring(0, 3) == "KES")
+                        {
+                            l.Add(d[i].Trim() + "|" + d[i + 2].Trim() + "|" + d[i + 3].Trim());
+                        }
+
+                    }
                 }
                 if (d[i].Contains("37G:"))
                 {
