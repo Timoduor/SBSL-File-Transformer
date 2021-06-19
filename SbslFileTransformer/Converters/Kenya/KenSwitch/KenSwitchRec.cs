@@ -16,10 +16,4 @@
         public string PartRev { get; set; }
         public string Amount { get; set; }
     }
-
-    public enum KenSwitchFileType
-    {
-        ATMActivity,
-        ClientDebitActivity
-    }
 }
