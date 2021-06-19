@@ -24,34 +24,32 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
         public void ConvertFile(string inputFile, string rootFolder, string outputFile = null)
         {
             var list = new List<ExcelCols>();
-
             using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
                 using (var reader = ExcelReaderFactory.CreateCsvReader(stream))
                 {
-                    var count = 0;
-
                     while (reader.Read())
                     {
                         var value = reader.GetValue(0)?.ToString();
-                        if (string.IsNullOrEmpty(value)) continue;
 
-                        if (count == 0)
+                        var value1 = reader.GetValue(3)?.ToString();
+
+                        if (value1.Contains("float"))
                         {
-                            count++;
                             continue;
                         }
+                        if (string.IsNullOrEmpty(value))
+                        {
+                            continue;
+                        }
+                        var row = new ExcelCols
+                        {
+                            Col0 = reader.GetValue(0)?.ToString().Replace("'", ""),
 
-                        var row = new ExcelCols();
-
-                        row.Col0 = reader.GetValue(0)?.ToString().Replace("'", "");
-
-                        row.Col2 = reader.GetValue(7)?.ToString();
-
-                        row.Col3 = (Convert.ToDouble(reader.GetValue(9)) + Convert.ToDouble(reader.GetValue(10)))
-                            .ToString();
+                            Col2 = reader.GetValue(7)?.ToString(),
 
 
+                        };
                         list.Add(row);
                     }
                 }
@@ -59,15 +57,16 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
 
             //logic for getting sum
 
-            var amount = list.Sum(r => Convert.ToDouble(r.Col2.ToString()));
+            double amount = list.Skip(1).Sum(r => Convert.ToDouble(r.Col2.ToString()));
 
             var sumrow = new ExcelCols
             {
-                Col0 = list.Select(r => r.Col0).FirstOrDefault(),
+                Col0 = list.Skip(1).Select(r => r.Col0).FirstOrDefault(),
 
                 Col1 = "Commission",
 
-                Col2 = amount.ToString()
+                Col2 = amount.ToString(),
+
             };
             var list2 = new List<ExcelCols>();
             list2.Add(sumrow);
