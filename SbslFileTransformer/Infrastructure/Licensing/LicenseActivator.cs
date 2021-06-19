@@ -1,18 +1,12 @@
-﻿using Licensing;
-using System;
+﻿using System;
 using System.IO;
 using System.Reflection;
+using Licensing;
 
 namespace SbslFileTransformer.Infrastructure.Licensing
 {
     internal class LicenseActivator : IDisposable
     {
-        public string AppName { get; set; }
-
-        public byte[] CertificatePublicKeyData { private get; set; }
-
-        public Type LicenseObjectType { get; set; }
-
         public LicenseActivator()
         {
             AppName = "SBSLETL";
@@ -21,12 +15,23 @@ namespace SbslFileTransformer.Infrastructure.Licensing
 
             //Read public key from assembly
             var assembly = Assembly.GetExecutingAssembly();
-            using (MemoryStream mem = new MemoryStream())
+            using (var mem = new MemoryStream())
             {
                 assembly.GetManifestResourceStream("SbslFileTransformer.LicenseVerify.cer")?.CopyTo(mem);
 
                 CertificatePublicKeyData = mem.ToArray();
             }
+        }
+
+        public string AppName { get; set; }
+
+        public byte[] CertificatePublicKeyData { private get; set; }
+
+        public Type LicenseObjectType { get; set; }
+
+        public void Dispose()
+        {
+            //throw new NotImplementedException();
         }
 
         public bool ValidateLicense(string licenseText, out string msg, out LicenseStatus licStatus)
@@ -39,7 +44,8 @@ namespace SbslFileTransformer.Infrastructure.Licensing
             }
 
             //Check the activation string
-            LicenseHandler.ParseLicenseFromBASE64String(LicenseObjectType, licenseText, CertificatePublicKeyData, out licStatus, out msg);
+            LicenseHandler.ParseLicenseFromBASE64String(LicenseObjectType, licenseText, CertificatePublicKeyData,
+                out licStatus, out msg);
 
             switch (licStatus)
             {
@@ -62,11 +68,6 @@ namespace SbslFileTransformer.Infrastructure.Licensing
         public string GenerateUID()
         {
             return LicenseHandler.GenerateUID(AppName);
-        }
-
-        public void Dispose()
-        {
-            //throw new NotImplementedException();
         }
     }
 }

@@ -1,8 +1,8 @@
-﻿using SbslFileTransformer.Infrastructure.Helpers;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Converters.Camt053
 {
@@ -10,13 +10,9 @@ namespace SbslFileTransformer.Converters.Camt053
     {
         public void ProcessCamtFile(string file, string outputFolder = null)
         {
-
             var xmlInputData = File.ReadAllText(file);
 
-            if (string.IsNullOrEmpty(outputFolder))
-            {
-                outputFolder = Path.GetDirectoryName(file);
-            }
+            if (string.IsNullOrEmpty(outputFolder)) outputFolder = Path.GetDirectoryName(file);
 
             var xDoc = XDocument.Load(new StringReader(xmlInputData));
 
@@ -61,7 +57,6 @@ namespace SbslFileTransformer.Converters.Camt053
                     Sum = doc.BkStmt.Stmt.TxsSummry?.TtlNtries?.Sum,
                     NbOfNtries = doc.BkStmt.Stmt.TxsSummry?.TtlNtries?.NbOfNtries,
                     AnyBIC = doc.BkStmt.Stmt.Account.Ownr.Id.OrgId.AnyBIC
-
                 };
                 records.Add(rec);
             }
@@ -92,7 +87,6 @@ namespace SbslFileTransformer.Converters.Camt053
 
             var camtBalanceFile = Path.Combine(outputBals, $"{Path.GetFileNameWithoutExtension(file)}.csv");
             SaveFiles.BalanceToCSV(balances, camtBalanceFile);
-
         }
     }
 }

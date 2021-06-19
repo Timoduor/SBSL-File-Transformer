@@ -1,19 +1,18 @@
-﻿using Microsoft.AspNetCore.DataProtection;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.IO;
 using System.Security.Cryptography;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.Logging;
 
 namespace SbslFileTransformer.Infrastructure.Encryption
 {
     public class EncryptionManager
     {
+        private static readonly object _locker = new object();
         private readonly IDataProtectionProvider _dataProtectionProvider;
         private readonly ILogger<EncryptionManager> _logger;
 
-        private readonly static object _locker = new object();
-
-        private string Purpose = "Encrypt SFTP Password";
+        private readonly string Purpose = "Encrypt SFTP Password";
 
         public EncryptionManager(IDataProtectionProvider dataProtectionProvider, ILogger<EncryptionManager> logger)
         {
@@ -26,7 +25,6 @@ namespace SbslFileTransformer.Infrastructure.Encryption
             //var configKey = configuration.GetSection("EnKey").Value;
 
             //Key = string.IsNullOrEmpty(configKey) ? "9a3230c9-191c-4d9d-b803-4bab3d96888a" : configKey;
-
         }
 
         public string Encrypt(string input = "")

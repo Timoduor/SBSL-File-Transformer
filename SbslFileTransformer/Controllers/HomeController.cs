@@ -1,12 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Infrastructure.Licensing.Attributes;
 using SbslFileTransformer.Models;
-using System;
-using System.Diagnostics;
-using System.Linq;
 
 namespace SbslFileTransformer.Controllers
 {
@@ -14,8 +14,8 @@ namespace SbslFileTransformer.Controllers
     [AllowAnonymous]
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
         private readonly IFileProvider _fileProvider;
+        private readonly ILogger<HomeController> _logger;
 
 
         public HomeController(ILogger<HomeController> logger, IFileProvider fileProvider)
@@ -36,9 +36,10 @@ namespace SbslFileTransformer.Controllers
             {
                 var file = _fileProvider.GetDirectoryContents("Content").FirstOrDefault(f => f.Name == "eula.docx");
 
-                return File(file.CreateReadStream(), "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+                return File(file.CreateReadStream(),
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
                 return RedirectToAction("Index");
@@ -49,7 +50,7 @@ namespace SbslFileTransformer.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(new ErrorViewModel {RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier});
         }
     }
 }

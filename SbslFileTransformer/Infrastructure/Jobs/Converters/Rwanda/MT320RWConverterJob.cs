@@ -1,4 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -7,17 +12,13 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class MT320RWConverterJob : ConverterJobBase<MT320RWConverterJob>, IHostedService
     {
-        public MT320RWConverterJob(ILogger<MT320RWConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public MT320RWConverterJob(ILogger<MT320RWConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
+            EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -30,10 +31,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await ConvertMT320File(), null, TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await ConvertMT320File(), null,
+                TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
+
+
+        public async Task StopAsync(CancellationToken cancellationToken)
+        {
+            await _timer.DisposeAsync();
+        }
+
         private async Task ConvertMT320File()
         {
             try
@@ -50,27 +59,30 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = await dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToListAsync();
+                    var configurations = await dbContext.Configurations
+                        .Where(c => c.ConfigType == ConfigurationType.Sftp).ToListAsync();
 
-                    Entity = dbContext.Configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
+                    Entity = dbContext.Configurations
+                        .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
-                   sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
+                    sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
 
-                    var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
+                    var options = new EnumerationOptions
+                        {RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive};
 
                     var files = Directory.GetFiles(prodFolder, "*.BKP", options).ToList();
-
 
 
                     var mt320Converter = new Mt320Converter();
 
                     foreach (var file in files)
-                    {
                         //FILE PATH SHOULD HAVE FOLDER NAME MT300 SOMEWHERE IN IT
                         if (file.ToLower().Contains("mt320") && file.ToLower().Contains("imrw"))
                         {
-                            var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
+                            var fileToProcess =
+                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
+                                    f.FilePath.ToLower() == file.ToLower());
 
                             try
                             {
@@ -82,9 +94,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                 _logger.LogError(ex, ex.Message);
 
-                                string archive = "";
+                                var archive = "";
 
-                                archive = Path.Combine(Path.GetDirectoryName(file) + "\\MT320", "FAILED", DateTime.Now.ToString("yyMMdd") + "\\RTGSMT320");
+                                archive = Path.Combine(Path.GetDirectoryName(file) + "\\MT320", "FAILED",
+                                    DateTime.Now.ToString("yyMMdd") + "\\RTGSMT320");
                                 if (!Directory.Exists(archive))
                                     Directory.CreateDirectory(archive);
 
@@ -93,20 +106,20 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 {
                                     File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".out");
                                     File.Delete(file);
-
                                 }
                                 catch (Exception xc)
                                 {
                                 }
-                                await EmailHelpers.SendEmails(dbContext, "Error in MT320 file conversion", $"Problem with  file {file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+
+                                await EmailHelpers.SendEmails(dbContext, "Error in MT320 file conversion",
+                                    $"Problem with  file {file} \n\n {ex.Message}", new[] {file}, _emailSender);
                             }
                             finally
                             {
+                                var archive = "";
 
-
-                                string archive = "";
-
-                                archive = Path.Combine(Path.GetDirectoryName(file) + "\\MT320", "ARCHIVE", DateTime.Now.ToString("yyMMdd") + "\\RTGSMT320");
+                                archive = Path.Combine(Path.GetDirectoryName(file) + "\\MT320", "ARCHIVE",
+                                    DateTime.Now.ToString("yyMMdd") + "\\RTGSMT320");
                                 if (!Directory.Exists(archive))
                                     Directory.CreateDirectory(archive);
 
@@ -115,15 +128,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 {
                                     File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".out");
                                     File.Delete(file);
-
                                 }
                                 catch (Exception xc)
                                 {
                                 }
                             }
-
                         }
-                    }
                 }
             }
             catch (Exception ex)
@@ -135,14 +145,5 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 _semaphore.Release();
             }
         }
-
-
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            await _timer.DisposeAsync();
-        }
-
     }
-
-
 }

@@ -1,25 +1,25 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using ExcelDataReader;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
+using Microsoft.Extensions.Logging;
 
 namespace SbslFileTransformer.Converters.Kenya
 {
     public class MoneyGramActivityRWConverter
     {
-        ILogger _logger;
+        private ILogger _logger;
+
         public MoneyGramActivityRWConverter(ILogger logger)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             _logger = logger;
         }
+
         public void ConvertFile(string inputFile, string outputFile = null)
         {
             var list = new List<ExcelCols>();
@@ -28,33 +28,33 @@ namespace SbslFileTransformer.Converters.Kenya
             {
                 using (var reader = ExcelReaderFactory.CreateReader(stream))
                 {
-                    int countHeader = 0;
+                    var countHeader = 0;
 
-                    int count = 0;
+                    var count = 0;
 
-                    double per = 0.18;
+                    var per = 0.18;
 
-                    double ch = 0.78;
+                    var ch = 0.78;
 
-                    string accountNo = "Account Number";
+                    var accountNo = "Account Number";
 
-                    string accountName = "Account Name";
+                    var accountName = "Account Name";
 
-                    string excise = "VAT";
+                    var excise = "VAT";
 
-                    string mk = "MK";
+                    var mk = "MK";
 
-                    string computedbaseamnt = "Computed Base Amount";
+                    var computedbaseamnt = "Computed Base Amount";
 
-                    string charge = "Charge";
+                    var charge = "Charge";
 
-                    string revenue = "Revenue";
+                    var revenue = "Revenue";
 
-                    string amountFinal = "Amount Final";
+                    var amountFinal = "Amount Final";
 
-                    string bankCode = "";
+                    var bankCode = "";
 
-                    string bankName = "";
+                    var bankName = "";
 
                     while (reader.Read())
                     {
@@ -68,9 +68,10 @@ namespace SbslFileTransformer.Converters.Kenya
                         {
                             continue;
                         }
-                        else if (value.Contains("Account Number"))
+
+                        if (value.Contains("Account Number"))
                         {
-                            string rec = reader.GetValue(6)?.ToString();
+                            var rec = reader.GetValue(6)?.ToString();
 
                             bankCode = rec.Split(' ')[0];
 
@@ -128,106 +129,86 @@ namespace SbslFileTransformer.Converters.Kenya
                             //fee amount
                             row.Col13 = reader.GetValue(26)?.ToString().Replace("\n", "");
                             //fx rev share amount
-                            row.Col14 = reader.GetValue(28)?.ToString().Replace("\n", "") + reader.GetValue(29)?.ToString().Replace("\n", "") + reader.GetValue(30)?.ToString().Replace("\n", "");
+                            row.Col14 = reader.GetValue(28)?.ToString().Replace("\n", "") +
+                                        reader.GetValue(29)?.ToString().Replace("\n", "") +
+                                        reader.GetValue(30)?.ToString().Replace("\n", "");
                             //commission amount
-                            row.Col15 = reader.GetValue(33)?.ToString().Replace("\n", "") + reader.GetValue(34)?.ToString().Replace("\n", "");
+                            row.Col15 = reader.GetValue(33)?.ToString().Replace("\n", "") +
+                                        reader.GetValue(34)?.ToString().Replace("\n", "");
                             //mk
                             if (reader.GetValue(35) != null)
-                            {
                                 row.Col16 = reader.GetValue(35)?.ToString().Replace("\n", "");
-                            }
                         }
+
                         countHeader++;
                         try
                         {
-                            double baseamnt = Convert.ToDouble(reader.GetValue(25));
-                            double feeamnt = Convert.ToDouble(reader.GetValue(26));
+                            var baseamnt = Convert.ToDouble(reader.GetValue(25));
+                            var feeamnt = Convert.ToDouble(reader.GetValue(26));
 
                             if (reader.GetValue(12) != null && reader.GetValue(12).ToString() == "SEN")
                             {
                                 row.Col17 = (feeamnt * per).ToString();
 
                                 //computed base amount
-                                row.Col18 = Math.Ceiling(baseamnt + feeamnt + (feeamnt * per)).ToString();
+                                row.Col18 = Math.Ceiling(baseamnt + feeamnt + feeamnt * per).ToString();
                                 //row.Col18 = Math.Round(baseamnt + feeamnt + (feeamnt * per),MidpointRounding.AwayFromZero).ToString();
                                 //row.Col18 = Math.Truncate(baseamnt + feeamnt + (feeamnt * per)).ToString();
                             }
+
                             if (reader.GetValue(12) != null && reader.GetValue(12).ToString() == "REC")
-                            {
                                 //computes base amount
                                 //row.Col18 = Math.Round(baseamnt,MidpointRounding.AwayFromZero).ToString();
                                 row.Col18 = Math.Truncate(baseamnt).ToString();
-                            }
                             if (reader.GetValue(12) != null && reader.GetValue(12).ToString() == "REF")
-                            {
                                 //row.Col18 = Math.Round(baseamnt,MidpointRounding.AwayFromZero).ToString();
                                 row.Col18 = Math.Truncate(baseamnt).ToString();
-                            }
                             if (reader.GetValue(35) != null && reader.GetValue(35).ToString() == "MK")
-                            {
                                 row.Col18 = reader.GetValue(33)?.ToString().Replace("\n", "");
-                            }
                             if (reader.GetValue(12) != null && reader.GetValue(12).ToString() == "REF")
-                            {
                                 row.Col18 = reader.GetValue(33)?.ToString().Replace("\n", "");
-                            }
                             if (reader.GetValue(12) != null && reader.GetValue(12).ToString() == "SEN")
-                            {
                                 //charge
                                 row.Col19 = (feeamnt * ch).ToString();
-                            }
-
                         }
                         catch (Exception)
                         {
+                        }
 
-                        }
-                        if (string.IsNullOrEmpty(row.Col2))
-                        {
-                            continue;
-                        }
+                        if (string.IsNullOrEmpty(row.Col2)) continue;
 
                         list.Add(row);
                     }
                 }
             }
+
             var finalList = new List<ExcelCols>();
             finalList.Add(list[0]);
-            double rev1 = 0.4;
-            double rev2 = 0.5;
-            double amntfinal = 0.022;
+            var rev1 = 0.4;
+            var rev2 = 0.5;
+            var amntfinal = 0.022;
             foreach (var rows in list)
-            {
-
                 try
                 {
-                    if (rows.Col6 == null)
-                    {
-                        continue;
-                    }
+                    if (rows.Col6 == null) continue;
                     if (rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN"))
-                    {
                         //revenue
                         rows.Col20 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col19)) * rev2).ToString();
-                    }
                     else
-                    {
                         //revenue
                         rows.Col20 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col19)) * rev1).ToString();
-                    }
 
                     if (rows.Col6.Contains("SEN"))
-                    {
                         //amount final
-                        rows.Col21 = Math.Floor(Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col19) + Convert.ToDouble(rows.Col20) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
-                    }
+                        rows.Col21 = Math.Floor(Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col19) +
+                                                Convert.ToDouble(rows.Col20) + Convert.ToDouble(rows.Col13) * amntfinal)
+                            .ToString();
 
-                    else if (rows.Col6.Contains("REC") || rows.Col6.Contains("REF") || rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN") || rows.Col1.Contains("RIM LTD"))
-                    {
+                    else if (rows.Col6.Contains("REC") || rows.Col6.Contains("REF") || rows.Col1.Contains("COPEDU") ||
+                             rows.Col1.Contains("GOSHEN") || rows.Col1.Contains("RIM LTD"))
                         //amount final
                         //double rev3 = Convert.ToDouble(rows.Col12.ToString());
                         rows.Col21 = Math.Floor(Convert.ToDouble(rows.Col12)).ToString();
-                    }
                     //if (rows.Col6 == "REC" || rows.Col1 == "COPEDU" || rows.Col1 == "GOSHEN" || rows.Col1 == "RIM LTD" || rows.Col1 == "EXTRACASH LTD" || rows.Col12 == "")
                     //{
                     //    //double rev3 = Convert.ToDouble(rows.Col12.ToString());
@@ -243,10 +224,7 @@ namespace SbslFileTransformer.Converters.Kenya
                 }
                 catch (Exception)
                 {
-
                 }
-
-            }
 
 
             if (string.IsNullOrEmpty(outputFile))
@@ -256,7 +234,8 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
             WriteToFile(list, outputFile);

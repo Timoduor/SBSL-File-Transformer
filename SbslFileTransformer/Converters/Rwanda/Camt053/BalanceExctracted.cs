@@ -7,7 +7,5 @@
         public string CdtDbtInd { get; set; }
         public string BalanceCd { get; set; }
         public string BalanceDate { get; set; }
-
-
     }
 }

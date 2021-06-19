@@ -1,12 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
+using SbslFileTransformer.Models.Enums;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Others
 {
@@ -24,7 +25,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
 
             _logger.LogInformation("Starting network file transfer job");
 
-            _timer = new Timer(async (state) => await CopyFilesToNetworkPath(), null, TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await CopyFilesToNetworkPath(), null,
+                TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(10));
+
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("Copy files to network folder service stopped!");
+
+            _timer.Dispose();
 
             return Task.CompletedTask;
         }
@@ -41,18 +52,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var networkFolder = (await dbContext.Configurations.FirstOrDefaultAsync(b => b.ConfigType == Models.Enums.ConfigurationType.Setting && b.Key == "NetworkFolder"))?.Value;
+                    var networkFolder = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
+                        b.ConfigType == ConfigurationType.Setting && b.Key == "NetworkFolder"))?.Value;
 
-                    var localFolder = (await dbContext.Configurations.FirstOrDefaultAsync(b => b.ConfigType == Models.Enums.ConfigurationType.Setting && b.Key == "LocalFolder"))?.Value;
+                    var localFolder = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
+                        b.ConfigType == ConfigurationType.Setting && b.Key == "LocalFolder"))?.Value;
 
-                    if(string.IsNullOrEmpty(networkFolder) || string.IsNullOrEmpty(localFolder))
-                    {
-                        return;
-                    }
+                    if (string.IsNullOrEmpty(networkFolder) || string.IsNullOrEmpty(localFolder)) return;
 
                     if (Directory.Exists(localFolder) && Directory.Exists(networkFolder))
                     {
-                        var enumOptions = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
+                        var enumOptions = new EnumerationOptions
+                            {RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive};
 
                         foreach (var file in Directory.GetFiles(localFolder, "*.*", enumOptions))
                         {
@@ -63,10 +74,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
                             {
                                 var directory = Path.GetDirectoryName(destination);
 
-                                if (!Directory.Exists(directory))
-                                {
-                                    Directory.CreateDirectory(directory);
-                                }
+                                if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
 
                                 File.Copy(file, destination, true);
                             }
@@ -76,9 +84,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
                     {
                         _logger.LogWarning("Missing or mis-configured local or network path!");
                     }
-
                 }
-
             }
             catch (Exception ex)
             {
@@ -88,15 +94,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
             {
                 _semaphore.Release();
             }
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogInformation("Copy files to network folder service stopped!");
-
-            _timer.Dispose();
-
-            return Task.CompletedTask;
         }
     }
 }

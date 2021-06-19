@@ -1,21 +1,21 @@
-﻿using CsvHelper;
-using ExcelDataReader;
-using SbslFileTransformer.Converters.BNR;
-using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
+using SbslFileTransformer.Converters.BNR;
+using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Converters
 {
     public class BnrStatementConverter
     {
-        private string _entity;
-        private ApplicationDbContext _dbContext;
+        private readonly ApplicationDbContext _dbContext;
+        private readonly string _entity;
 
         public BnrStatementConverter(string Entity, ApplicationDbContext dbContext)
         {
@@ -32,17 +32,17 @@ namespace SbslFileTransformer.Converters
             {
                 using (var reader = ExcelReaderFactory.CreateReader(stream))
                 {
-                    string code = "Codes";
+                    var code = "Codes";
 
-                    string status = "Status 2";
+                    var status = "Status 2";
 
-                    string DR_CR = "DR_CR";
+                    var DR_CR = "DR_CR";
 
-                    string Type_id = "Type_id";
+                    var Type_id = "Type_id";
 
-                    string Title = "";
+                    var Title = "";
 
-                    int countHeader = 0;
+                    var countHeader = 0;
 
                     while (reader.Read())
                     {
@@ -51,73 +51,49 @@ namespace SbslFileTransformer.Converters
                         var val = reader.GetValue(2)?.ToString();
 
                         if (val != null && reader.GetValue(2).ToString().StartsWith("Code"))
-                        {
                             code = reader.GetValue(2)?.ToString();
-                        }
 
                         var value = reader.GetValue(4)?.ToString();
 
                         //Logic for title
                         if (reader.GetValue(3) != null)
                         {
-                            string rec = reader.GetValue(3).ToString();
+                            var rec = reader.GetValue(3).ToString();
                             if (rec.StartsWith("Debit transactions"))
-                            {
                                 Title = "Debit";
-                            }
-                            else if (rec.StartsWith("Credit transactions"))
-                            {
-                                Title = "Credit";
-                            }
+                            else if (rec.StartsWith("Credit transactions")) Title = "Credit";
                         }
 
-                        if (string.IsNullOrEmpty(value))
-                        {
-                            continue;
-                        }
+                        if (string.IsNullOrEmpty(value)) continue;
 
                         if (code.Equals("Code - 032"))
-                        {
                             row.Col15 = "MT104";
-                        }
                         else if (code.Equals("Code - 012"))
-                        {
                             row.Col15 = "MT971";
-                        }
                         else if (code.Equals("Code - 011"))
-                        {
                             row.Col15 = "MT971";
-                        }
                         else if (reader.GetValue(5) != null &&
-                          !code.Equals("Code - 011") &&
-                          !code.Equals("Code - 012") &&
-                          reader.GetValue(5).ToString().Equals("pacs.009. 001.08"))
-                        {
+                                 !code.Equals("Code - 011") &&
+                                 !code.Equals("Code - 012") &&
+                                 reader.GetValue(5).ToString().Equals("pacs.009. 001.08"))
                             row.Col15 = "MT202";
-                        }
                         else if (reader.GetValue(19) != null &&
-                          !code.Equals("Code - 032") &&
-                          reader.GetValue(19)?.ToString() == "Active" ||
-                          reader.GetValue(19)?.ToString() == "Rejected")
-                        {
+                                 !code.Equals("Code - 032") &&
+                                 reader.GetValue(19)?.ToString() == "Active" ||
+                                 reader.GetValue(19)?.ToString() == "Rejected")
                             row.Col15 = "MT102";
-
-                        }
                         else if (row.Col3 != null && row.Col13 != null &&
-                           row.Col3.Contains("pacs.008. 001.08") &&
-                           row.Col13.Contains("Bulk"))
-                        {
+                                 row.Col3.Contains("pacs.008. 001.08") &&
+                                 row.Col13.Contains("Bulk"))
                             row.Col15 = "MT102";
-                        }
                         else
-                        {
                             row.Col15 = "MT103";
-                        }
 
 
                         //logic for child node
                         //the value at index 0 is null for the child row hence the check
-                        if (reader.GetValue(19)?.ToString() == "Active" || reader.GetValue(19)?.ToString() == "Rejected")
+                        if (reader.GetValue(19)?.ToString() == "Active" ||
+                            reader.GetValue(19)?.ToString() == "Rejected")
                         {
                             //logic to read child columns
 
@@ -133,15 +109,16 @@ namespace SbslFileTransformer.Converters
                             //Debit account
                             row.Col4 = list.Last().Col4;
                             //Odering customer
-                            row.Col5 = reader.GetValue(7)?.ToString() + reader.GetValue(10)?.ToString();
+                            row.Col5 = reader.GetValue(7) + reader.GetValue(10)?.ToString();
                             //Credit account
                             row.Col6 = list.Last().Col6;
 
-                            row.Col7 = reader.GetValue(13)?.ToString() + reader.GetValue(14)?.ToString();
+                            row.Col7 = reader.GetValue(13) + reader.GetValue(14)?.ToString();
 
                             row.Col8 = list.Last().Col8;
                             //Amount
-                            row.Col9 = reader.GetValue(18)?.ToString(); ;
+                            row.Col9 = reader.GetValue(18)?.ToString();
+                            ;
                             //Input time
                             row.Col10 = list.Last().Col10;
                             //Status
@@ -156,11 +133,9 @@ namespace SbslFileTransformer.Converters
                             if (string.IsNullOrEmpty(list.Last().Col13?.ToLower()))
                             {
                                 list.Last().Col13 = "Bulk";
-                                if (list.Last().Col3.Contains("pacs.008. 001.08"))
-                                {
-                                    list.Last().Col15 = "MT102";
-                                }
+                                if (list.Last().Col3.Contains("pacs.008. 001.08")) list.Last().Col15 = "MT102";
                             }
+
                             list.Add(row);
                         }
 
@@ -226,6 +201,7 @@ namespace SbslFileTransformer.Converters
 
                                 countHeader++;
                             }
+
                             list.Add(row);
                         }
                     }
@@ -242,7 +218,7 @@ namespace SbslFileTransformer.Converters
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                var fileNameToUse = fileName.Substring(Math.Max(0, fileName.Length - 12)).Replace(" ","");
+                var fileNameToUse = fileName.Substring(Math.Max(0, fileName.Length - 12)).Replace(" ", "");
 
                 outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm}_{fileNameToUse}_STAMT.csv");
             }
@@ -271,10 +247,7 @@ namespace SbslFileTransformer.Converters
 
                             closing = Convert.ToDouble(val);
 
-                            if (closing != 0)
-                            {
-                                row.Col3 = closing.ToString();
-                            }
+                            if (closing != 0) row.Col3 = closing.ToString();
                         }
 
                         if (reader.GetValue(9)?.ToString().Contains("Opening Balance") ?? false)
@@ -282,37 +255,33 @@ namespace SbslFileTransformer.Converters
                             var val1 = reader.GetValue(9).ToString().Split(':')[1];
 
                             opening = Convert.ToDouble(val1);
-                            if (opening != 0)
-                            {
-                                row.Col4 = opening.ToString();
-                            }
+                            if (opening != 0) row.Col4 = opening.ToString();
                         }
 
                         if (reader.GetValue(0)?.ToString().Contains("Account:") ?? false)
-                        {
-                            row.Col1 = reader.GetValue(0)?.ToString().Split(new[] { ':', '-' }, StringSplitOptions.RemoveEmptyEntries)[1];
-                        }
+                            row.Col1 = reader.GetValue(0)?.ToString()
+                                .Split(new[] {':', '-'}, StringSplitOptions.RemoveEmptyEntries)[1];
                         if (reader.GetValue(7)?.ToString().StartsWith("Date From") ?? false)
                         {
                             var data = reader.GetValue(7)?.ToString();
-                            var lines = data.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                            var lines = data.Split(new[] {'\n', '\r'}, StringSplitOptions.RemoveEmptyEntries);
 
                             foreach (var line in lines)
-                            {
                                 if (line.StartsWith("Currency:"))
                                 {
-                                    string currency = line.Split(':')[1];
+                                    var currency = line.Split(':')[1];
 
-                                    row.Col2 = currency.ToString();
+                                    row.Col2 = currency;
                                 }
                                 else if (line.StartsWith("Date From"))
                                 {
-                                    var date = DateTime.ParseExact(line.Split(' ')[2], "dd-MM-yyyy", CultureInfo.InvariantCulture);
+                                    var date = DateTime.ParseExact(line.Split(' ')[2], "dd-MM-yyyy",
+                                        CultureInfo.InvariantCulture);
                                     row.Col0 = date.ToString("dd-MM-yyyy");
                                 }
-                            }
                         }
                     }
+
                     //Difference between closing balance and opening balance
                     row.Col5 = (Convert.ToDouble(row.Col3) - Convert.ToDouble(row.Col4)).ToString();
                     list.Add(row);
@@ -329,12 +298,11 @@ namespace SbslFileTransformer.Converters
         {
             var countHeader = new CountHeader
             {
-                Value_date = list.First().Col0.Replace("/","-"),
+                Value_date = list.First().Col0.Replace("/", "-"),
 
                 Amount = list.First().Col5,
 
                 Remittance_info = "Adjust. clearing BNR for " + list.First().Col0
-
             };
 
             //RWF
@@ -380,7 +348,8 @@ namespace SbslFileTransformer.Converters
 
             countHeader.Amount = countHeader.Amount.TrimStart('-');
 
-            WriteToFile(countHeader, Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm}_{fileNameToAppend}_ADJSMT.csv"));
+            WriteToFile(countHeader,
+                Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm}_{fileNameToAppend}_ADJSMT.csv"));
         }
 
         private void GenerateMultiCurr(List<ExcelCols> list, string inputFile, string outputFolder)
@@ -389,7 +358,8 @@ namespace SbslFileTransformer.Converters
 
             var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
-            var outputFile = Path.Combine(outputFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_BNR_{_entity}.txt");
+            var outputFile = Path.Combine(outputFolder,
+                $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_BNR_{_entity}.txt");
 
             var toAppend = new StringBuilder();
 
@@ -397,31 +367,25 @@ namespace SbslFileTransformer.Converters
 
             DateTime date = default;
 
-            if(!DateTime.TryParseExact(list.First().Col0, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out date))
-            {
-                throw new Exception("Failed to convert provided datetime");
-            }
+            if (!DateTime.TryParseExact(list.First().Col0, "dd-MM-yyyy", CultureInfo.InvariantCulture,
+                DateTimeStyles.None, out date)) throw new Exception("Failed to convert provided datetime");
             var amount = list.First().Col3; //vs col5 diff
             var currency = list.First().Col2;
 
-            toAppend.Append($"{_entity}\t{GetGLAccountNumber(account, _dbContext)}\tNostros\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
+            toAppend.Append(
+                $"{_entity}\t{GetGLAccountNumber(account, _dbContext)}\tNostros\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
 
             var text = toAppend.ToString();
 
-            if (!string.IsNullOrEmpty(text))
-            {
-                File.WriteAllText(outputFile, text);
-            }
+            if (!string.IsNullOrEmpty(text)) File.WriteAllText(outputFile, text);
         }
 
         private string GetGLAccountNumber(string accNo, ApplicationDbContext dbContext)
         {
-            var account = (dbContext.Accounts.FirstOrDefault(a => a.Account.ToLower() == accNo.ToLower() || a.Account.ToLower().Contains(accNo.ToLower())))?.Number;
+            var account = dbContext.Accounts.FirstOrDefault(a =>
+                a.Account.ToLower() == accNo.ToLower() || a.Account.ToLower().Contains(accNo.ToLower()))?.Number;
 
-            if (!string.IsNullOrEmpty(account))
-            {
-                return account;
-            }
+            if (!string.IsNullOrEmpty(account)) return account;
             return accNo;
         }
 
@@ -431,7 +395,6 @@ namespace SbslFileTransformer.Converters
             {
                 using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-
                     foreach (var row in rows)
                     {
                         csv.WriteRecord(row);
@@ -439,7 +402,6 @@ namespace SbslFileTransformer.Converters
                     }
                 }
             }
-
         }
 
         private void WriteToFile(CountHeader rows, string outputFile)
@@ -451,11 +413,8 @@ namespace SbslFileTransformer.Converters
                     csv.WriteHeader<CountHeader>();
                     csv.NextRecord();
                     csv.WriteRecord(rows);
-
-
                 }
             }
-
         }
     }
 }

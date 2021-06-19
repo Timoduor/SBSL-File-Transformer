@@ -1,33 +1,35 @@
-﻿using Licensing;
+﻿using System.IO;
+using Licensing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using System.IO;
 
 namespace SbslFileTransformer.Infrastructure.Licensing.Attributes
 {
     /// <summary>
-    /// Feature that can be enabled disabled are All, Admin, POS and WinesAndBeers
+    ///     Feature that can be enabled disabled are All, Admin, POS and WinesAndBeers
     /// </summary>
     public class HandleLicenseAttribute : ActionFilterAttribute
     {
-        private string Feature { get; set; }
-
         public HandleLicenseAttribute(string feature)
         {
             Feature = feature;
         }
 
+        private string Feature { get; }
+
         /// <summary>
-        /// Checks license is not expired otherwise redirects to license entry page
+        ///     Checks license is not expired otherwise redirects to license entry page
         /// </summary>
         /// <param name="filterContext"></param>
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
             base.OnActionExecuting(filterContext);
 
-            var controllerExempted = filterContext.Controller.GetType().GetCustomAttributes(typeof(LicenseCheckExemptAttribute), false).Length > 0;
+            var controllerExempted = filterContext.Controller.GetType()
+                .GetCustomAttributes(typeof(LicenseCheckExemptAttribute), false).Length > 0;
 
-            var actionExempted = filterContext.ActionDescriptor.GetType().GetCustomAttributes(typeof(LicenseCheckExemptAttribute), false).Length > 0;
+            var actionExempted = filterContext.ActionDescriptor.GetType()
+                .GetCustomAttributes(typeof(LicenseCheckExemptAttribute), false).Length > 0;
 
             if (controllerExempted || actionExempted)
                 return;
@@ -38,39 +40,25 @@ namespace SbslFileTransformer.Infrastructure.Licensing.Attributes
             {
                 var licensePath = Path.Combine(Directory.GetCurrentDirectory());
 
-                if (licInfo.GetLicenseStatus(out string msg) != LicenseStatus.VALID || licInfo.License.DoExtraValidation(out string validationMsg) != LicenseStatus.VALID)
-                {
+                if (licInfo.GetLicenseStatus(out var msg) != LicenseStatus.VALID ||
+                    licInfo.License.DoExtraValidation(out var validationMsg) != LicenseStatus.VALID)
                     filterContext.Result = new RedirectResult("/License", false);
-                }
             }
 
             //check login feature is enabled
             if (Feature == "Login")
-            {
                 if (!licInfo.License.EnableLogin) //feature is disabled
-                {
                     filterContext.Result = new RedirectResult("/License/FeatureDisabled", false);
-                }
-            }
 
             //check config feature is enabled
             if (Feature == "Config")
-            {
                 if (!licInfo.License.EnableConfig) //feature is disabled
-                {
                     filterContext.Result = new RedirectResult("/License/FeatureDisabled", false);
-                }
-            }
 
             //Check update is enabled
             if (Feature == "Update")
-            {
                 if (!licInfo.License.EnableUpdate) //feature is disabled
-                {
                     filterContext.Result = new RedirectResult("/License/FeatureDisabled", false);
-                }
-            }
-
         }
     }
 }

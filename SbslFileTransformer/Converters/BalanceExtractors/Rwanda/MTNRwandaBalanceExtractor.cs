@@ -1,17 +1,18 @@
-﻿using ExcelDataReader;
-using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using ExcelDataReader;
+using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Converters.BalanceExtractors
 {
     public class MTNRwandaBalanceExtractor
     {
-        string _entity;
+        private readonly string _entity;
+
         public MTNRwandaBalanceExtractor(string entity)
         {
             _entity = entity;
@@ -27,15 +28,12 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
             {
                 using (var reader = ExcelReaderFactory.CreateCsvReader(stream))
                 {
-                    int count = 0;
+                    var count = 0;
 
                     while (reader.Read())
                     {
                         var value = reader.GetValue(0)?.ToString();
-                        if (string.IsNullOrEmpty(value))
-                        {
-                            continue;
-                        }
+                        if (string.IsNullOrEmpty(value)) continue;
 
                         if (count == 0)
                         {
@@ -63,31 +61,31 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
 
             var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
-            var outputFile = Path.Combine(rootFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_MTN_{_entity}.txt");
+            var outputFile = Path.Combine(rootFolder,
+                $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_MTN_{_entity}.txt");
 
             var toAppend = new StringBuilder();
 
-            if (DateTime.TryParseExact(list.Col0, "M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) ||
-                DateTime.TryParseExact(list.Col0, "M/d/yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out date))
+            if (DateTime.TryParseExact(list.Col0, "M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture,
+                    DateTimeStyles.None, out var date) ||
+                DateTime.TryParseExact(list.Col0, "M/d/yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None,
+                    out date))
             {
                 var amount = list.Col1; //vs col5 diff
                 var currency = "RWF";
                 var account = "20100243506075";
 
-                toAppend.Append($"{_entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
+                toAppend.Append(
+                    $"{_entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
 
                 var text = toAppend.ToString();
 
-                if (!string.IsNullOrEmpty(text))
-                {
-                    File.WriteAllText(outputFile, text);
-                }
+                if (!string.IsNullOrEmpty(text)) File.WriteAllText(outputFile, text);
             }
             else
             {
                 throw new Exception($"Unable to convert datetime value {list.Col0}");
             }
         }
-
     }
 }

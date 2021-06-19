@@ -1,12 +1,12 @@
-﻿using CsvHelper;
-using HtmlAgilityPack;
-using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CsvHelper;
+using HtmlAgilityPack;
+using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Converters
 {
@@ -45,7 +45,6 @@ namespace SbslFileTransformer.Converters
             }
 
 
-
             if (list.Count > 0 && GetMBType(inputFile) != MBTypeTz.W2B)
             {
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
@@ -54,22 +53,22 @@ namespace SbslFileTransformer.Converters
 
                 var toAppend2 = GetMBType(inputFile) == MBTypeTz.B2W ? "B2W" : "SPEN";
 
-                var outputFile = Path.Combine(outputFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_MB_{toAppend2}_TZ.txt");
+                var outputFile = Path.Combine(outputFolder,
+                    $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_MB_{toAppend2}_TZ.txt");
 
-                var lastRow = list.LastOrDefault(c => c.Date == list.Max(r => r.Date) && (c.TransType.ToUpper() == "DEBIT" || c.TransType.ToUpper() == "CREDIT" || c.TransType.ToUpper() == "CHARGE"));
+                var lastRow = list.LastOrDefault(c =>
+                    c.Date == list.Max(r => r.Date) && (c.TransType.ToUpper() == "DEBIT" ||
+                                                        c.TransType.ToUpper() == "CREDIT" ||
+                                                        c.TransType.ToUpper() == "CHARGE"));
 
                 if (lastRow != null)
                 {
-                    string toAppend = $"IMTZ\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.Date):MM/dd/yyyy}\t\t\t\t{lastRow.CBal}\tTZS\n";
+                    var toAppend =
+                        $"IMTZ\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.Date):MM/dd/yyyy}\t\t\t\t{lastRow.CBal}\tTZS\n";
 
-                    if (!string.IsNullOrEmpty(toAppend))
-                    {
-                        File.WriteAllText(outputFile, toAppend);
-                    }
+                    if (!string.IsNullOrEmpty(toAppend)) File.WriteAllText(outputFile, toAppend);
                 }
             }
-
-
         }
 
         private void GenerateMultiCurr2(List<W2BCols> list, string inputFile, string outputFolder)
@@ -80,36 +79,34 @@ namespace SbslFileTransformer.Converters
 
                 var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
-                var outputFile = Path.Combine(outputFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_MB_W2B_TZ.txt");
+                var outputFile = Path.Combine(outputFolder,
+                    $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_MB_W2B_TZ.txt");
 
                 var lastRow = list.LastOrDefault(c => c.Date == list.Max(r => r.Date));
 
                 if (lastRow != null)
                 {
-                    string toAppend = $"IMTZ\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.Date):MM/dd/yyyy}\t\t\t\t{lastRow.Amount}\tTZS\n";
+                    var toAppend =
+                        $"IMTZ\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.Date):MM/dd/yyyy}\t\t\t\t{lastRow.Amount}\tTZS\n";
 
-                    if (!string.IsNullOrEmpty(toAppend))
-                    {
-                        File.WriteAllText(outputFile, toAppend);
-                    }
+                    if (!string.IsNullOrEmpty(toAppend)) File.WriteAllText(outputFile, toAppend);
                 }
             }
-
         }
 
         private void GetHtmlW2BData(string inputFile, List<W2BCols> list)
         {
             var content = File.ReadAllText(inputFile);
 
-            HtmlDocument doc = new HtmlDocument();
+            var doc = new HtmlDocument();
 
             doc.LoadHtml(content);
 
-            foreach (HtmlNode table in doc.DocumentNode.SelectNodes("//table"))
+            foreach (var table in doc.DocumentNode.SelectNodes("//table"))
             {
-                int count = 0;
+                var count = 0;
 
-                foreach (HtmlNode row in table.SelectNodes("tr"))
+                foreach (var row in table.SelectNodes("tr"))
                 {
                     if (count <= 0)
                     {
@@ -121,22 +118,18 @@ namespace SbslFileTransformer.Converters
 
                     var dateString = row.SelectNodes("td")[0].InnerText;
 
-                    if (DateTime.TryParseExact(dateString, "M/dd/yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime resultDate))
-                    {
+                    if (DateTime.TryParseExact(dateString, "M/dd/yyyy HH:mm", CultureInfo.InvariantCulture,
+                        DateTimeStyles.None, out var resultDate))
                         selcomRow.Date = resultDate;
-                    }
-                    else if (DateTime.TryParseExact(dateString, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
-                    {
+                    else if (DateTime.TryParseExact(dateString, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture,
+                        DateTimeStyles.None, out var result))
                         selcomRow.Date = result;
-                    }
                     else
-                    {
                         continue;
-                    }
 
-                    string amountString = row.SelectNodes("td")[7].InnerText;
+                    var amountString = row.SelectNodes("td")[7].InnerText;
 
-                    string amount = string.IsNullOrEmpty(amountString) ? "0" : amountString;
+                    var amount = string.IsNullOrEmpty(amountString) ? "0" : amountString;
 
                     selcomRow.Amount = Convert.ToDouble(amount);
 
@@ -168,15 +161,15 @@ namespace SbslFileTransformer.Converters
         {
             var content = File.ReadAllText(inputFile);
 
-            HtmlDocument doc = new HtmlDocument();
+            var doc = new HtmlDocument();
 
             doc.LoadHtml(content);
 
-            foreach (HtmlNode table in doc.DocumentNode.SelectNodes("//table"))
+            foreach (var table in doc.DocumentNode.SelectNodes("//table"))
             {
-                int count = 0;
+                var count = 0;
 
-                foreach (HtmlNode row in table.SelectNodes("tr"))
+                foreach (var row in table.SelectNodes("tr"))
                 {
                     if (count <= 0)
                     {
@@ -188,22 +181,18 @@ namespace SbslFileTransformer.Converters
 
                     var dateString = row.SelectNodes("td")[0].InnerText;
 
-                    if (DateTime.TryParseExact(dateString, "M/dd/yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime resultDate))
-                    {
+                    if (DateTime.TryParseExact(dateString, "M/dd/yyyy HH:mm", CultureInfo.InvariantCulture,
+                        DateTimeStyles.None, out var resultDate))
                         selcomRow.Date = resultDate;
-                    }
-                    else if (DateTime.TryParseExact(dateString, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
-                    {
+                    else if (DateTime.TryParseExact(dateString, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture,
+                        DateTimeStyles.None, out var result))
                         selcomRow.Date = result;
-                    }
                     else
-                    {
                         continue;
-                    }
 
-                    string amountString = row.SelectNodes("td")[9].InnerText;
+                    var amountString = row.SelectNodes("td")[9].InnerText;
 
-                    string amount = string.IsNullOrEmpty(amountString) ? "0" : amountString;
+                    var amount = string.IsNullOrEmpty(amountString) ? "0" : amountString;
 
                     selcomRow.CBal = Convert.ToDouble(amount);
 
@@ -211,9 +200,9 @@ namespace SbslFileTransformer.Converters
 
                     selcomRow.TransType = row.SelectNodes("td")[2].InnerText;
 
-                    string amountString2 = row.SelectNodes("td")[3].InnerText;
+                    var amountString2 = row.SelectNodes("td")[3].InnerText;
 
-                    string amount2 = string.IsNullOrEmpty(amountString2) ? "0" : amountString2;
+                    var amount2 = string.IsNullOrEmpty(amountString2) ? "0" : amountString2;
 
                     selcomRow.Amount = Convert.ToDouble(amount2);
 
@@ -225,9 +214,9 @@ namespace SbslFileTransformer.Converters
 
                     selcomRow.TransID = row.SelectNodes("td")[7].InnerText;
 
-                    string amountString3 = row.SelectNodes("td")[8].InnerText;
+                    var amountString3 = row.SelectNodes("td")[8].InnerText;
 
-                    string amount3 = string.IsNullOrEmpty(amountString3) ? "0" : amountString3;
+                    var amount3 = string.IsNullOrEmpty(amountString3) ? "0" : amountString3;
 
                     selcomRow.OBal = Convert.ToDouble(amount3);
 
@@ -238,7 +227,6 @@ namespace SbslFileTransformer.Converters
             }
 
             ConvertToCsvFile(list, inputFile);
-
         }
 
         private void ConvertToCsvFile<T>(List<T> rows, string inputFile, string outputFile = null)
@@ -250,7 +238,8 @@ namespace SbslFileTransformer.Converters
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
 
@@ -318,7 +307,6 @@ namespace SbslFileTransformer.Converters
             public double OBal { get; set; }
             public double CBal { get; set; }
             public string Account { get; set; }
-
         }
     }
 
@@ -328,8 +316,6 @@ namespace SbslFileTransformer.Converters
         SELCOM,
         W2B
     }
-
-
 
 
     public class W2BCols

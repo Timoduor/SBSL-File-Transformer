@@ -1,12 +1,18 @@
-﻿using Licensing;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Xml.Serialization;
+using Licensing;
 
 namespace SbslFileTransformer.Infrastructure.Licensing
 {
     public class ETLLicense : LicenseEntity
     {
+        public ETLLicense()
+        {
+            //Initialize app name for the license
+            AppName = "SBSLETL";
+        }
+
         [DisplayName("Enable All")]
         [Category("License Options")]
         [XmlElement("EnableAll")]
@@ -32,12 +38,6 @@ namespace SbslFileTransformer.Infrastructure.Licensing
         [ShowInLicenseInfo(true, "Enable Update", ShowInLicenseInfoAttribute.FormatType.String)]
         public bool EnableUpdate { get; set; }
 
-        public ETLLicense()
-        {
-            //Initialize app name for the license
-            AppName = "SBSLETL";
-        }
-
         public override LicenseStatus DoExtraValidation(out string validationMsg)
         {
             LicenseStatus licStatus;
@@ -57,6 +57,7 @@ namespace SbslFileTransformer.Infrastructure.Licensing
                         validationMsg = "The license is NOT for this copy!";
                         licStatus = LicenseStatus.INVALID;
                     }
+
                     break;
 
                 case LicenseTypes.Volume:

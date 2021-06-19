@@ -1,4 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -7,18 +12,14 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
-    public class WesternUnionActivitiesRWConverterJob : ConverterJobBase<WesternUnionActivitiesRWConverterJob>, IHostedService
+    public class WesternUnionActivitiesRWConverterJob : ConverterJobBase<WesternUnionActivitiesRWConverterJob>,
+        IHostedService
     {
-        public WesternUnionActivitiesRWConverterJob(ILogger<WesternUnionActivitiesRWConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public WesternUnionActivitiesRWConverterJob(ILogger<WesternUnionActivitiesRWConverterJob> logger,
+            IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -31,8 +32,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await WesternUnionActivitiesConverter(), null, TimeSpan.FromSeconds(new Random().Next(15, 60)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await WesternUnionActivitiesConverter(), null,
+                TimeSpan.FromSeconds(new Random().Next(15, 60)), TimeSpan.FromMinutes(10));
 
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            _semaphore.Dispose();
+            _timer.Dispose();
             return Task.CompletedTask;
         }
 
@@ -52,14 +61,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
+                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
+                        .ToList();
 
-                    Entity = dbContext.Configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
+                    Entity = dbContext.Configurations
+                        .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
 
-                    var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
+                    var options = new EnumerationOptions
+                        {RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive};
 
                     var files = Directory.GetFiles(prodFolder, "*", options).ToList();
 
@@ -68,13 +80,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     var westernUnionConverter = new WesternUnionActivitiesRWConverter();
 
                     foreach (var file in files)
-                    {
-                        if (!file.Contains("Conv") && file.ToLower().Contains("imrw") && file.ToLower().Contains("wu") && file.ToLower().Contains("activity") && file.ToLower().Contains("portal"))
+                        if (!file.Contains("Conv") && file.ToLower().Contains("imrw") &&
+                            file.ToLower().Contains("wu") && file.ToLower().Contains("activity") &&
+                            file.ToLower().Contains("portal"))
                         {
-                            var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
+                            var fileToProcess =
+                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
+                                    f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
-                            {
                                 try
                                 {
                                     westernUnionConverter.ConvertFile(file);
@@ -85,7 +99,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting Western Union Activities RW files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext,
+                                        "Problem Converting Western Union Activities RW files",
+                                        $"{file} \n\n {ex.Message}", new[] {file}, _emailSender);
                                 }
                                 finally
                                 {
@@ -97,9 +113,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                                     await dbContext.SaveChangesAsync();
                                 }
-                            }
                         }
-                    }
                 }
             }
             catch (Exception ex)
@@ -110,13 +124,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             {
                 _semaphore.Release();
             }
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _semaphore.Dispose();
-            _timer.Dispose();
-            return Task.CompletedTask;
         }
     }
 }

@@ -1,10 +1,10 @@
-﻿using CsvHelper;
-using ExcelDataReader;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
 
 namespace SbslFileTransformer.Converters.Tanzania
 {
@@ -14,6 +14,7 @@ namespace SbslFileTransformer.Converters.Tanzania
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
+
         public void ConvertFile(string inputFile, string outputFile = null)
         {
             var list = new List<ExcelCols>();
@@ -23,13 +24,9 @@ namespace SbslFileTransformer.Converters.Tanzania
                 IExcelDataReader reader;
 
                 if (Path.GetExtension(inputFile).ToLower().EndsWith(".csv"))
-                {
                     reader = ExcelReaderFactory.CreateCsvReader(stream);
-                }
                 else
-                {
                     reader = ExcelReaderFactory.CreateReader(stream);
-                }
 
                 using (reader)
                 {
@@ -38,13 +35,9 @@ namespace SbslFileTransformer.Converters.Tanzania
 
                     while (reader.Read())
                     {
-
                         var value = reader.GetValue(0)?.ToString();
 
-                        if (string.IsNullOrEmpty(value))
-                        {
-                            continue;
-                        }
+                        if (string.IsNullOrEmpty(value)) continue;
                         var row = new ExcelCols();
 
                         row.Col0 = reader.GetValue(0)?.ToString();
@@ -76,16 +69,9 @@ namespace SbslFileTransformer.Converters.Tanzania
                         row.Col13 = "Inward/Outward";
 
 
-                        if (row.Col4?.Trim() == "IMBLTZTZ")
-                        {
-                            row.Col13 = "Outward";
-                        }
+                        if (row.Col4?.Trim() == "IMBLTZTZ") row.Col13 = "Outward";
 
-                        if (row.Col5?.Trim() == "IMBLTZTZ")
-                        {
-
-                            row.Col13 = "Inward";
-                        }
+                        if (row.Col5?.Trim() == "IMBLTZTZ") row.Col13 = "Inward";
 
                         list.Add(row);
                     }
@@ -100,7 +86,8 @@ namespace SbslFileTransformer.Converters.Tanzania
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_TACH_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_TACH_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
             WriteToFile(list, outputFile);

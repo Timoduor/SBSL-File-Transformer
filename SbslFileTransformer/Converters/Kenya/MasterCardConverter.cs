@@ -1,8 +1,8 @@
-﻿using CsvHelper;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using CsvHelper;
 
 namespace SbslFileTransformer.Converters
 {
@@ -16,10 +16,7 @@ namespace SbslFileTransformer.Converters
 
             foreach (var line in lines)
             {
-                if (!line.StartsWith("FREC") && !line.StartsWith("NREC"))
-                {
-                    continue;
-                }
+                if (!line.StartsWith("FREC") && !line.StartsWith("NREC")) continue;
 
                 var record = new MasterCardResult
                 {
@@ -49,7 +46,8 @@ namespace SbslFileTransformer.Converters
 
                 var name = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MC_{name.Substring(Math.Max(0, name.Length - 10))}.csv");
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MC_{name.Substring(Math.Max(0, name.Length - 10))}.csv");
             }
 
 
@@ -91,6 +89,5 @@ namespace SbslFileTransformer.Converters
         public string DorC2 { get; set; }
         public string Fees { get; set; }
         public string DorC3 { get; set; }
-
     }
 }

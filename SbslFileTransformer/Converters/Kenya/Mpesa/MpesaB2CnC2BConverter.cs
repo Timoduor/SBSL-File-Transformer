@@ -1,18 +1,19 @@
-﻿using CsvHelper;
-using ExcelDataReader;
-using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
+using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class MpesaB2CnC2BConverter
     {
-        string _entity;
+        private readonly string _entity;
+
         public MpesaB2CnC2BConverter(string entity)
         {
             _entity = entity;
@@ -31,13 +32,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 IExcelDataReader reader;
 
                 if (Path.GetExtension(inputFile).ToLower().EndsWith(".csv"))
-                {
                     reader = ExcelReaderFactory.CreateCsvReader(stream);
-                }
                 else
-                {
                     reader = ExcelReaderFactory.CreateReader(stream);
-                }
 
                 using (reader)
                 {
@@ -46,13 +43,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     while (reader.Read())
                     {
-
                         var value = reader.GetValue(0)?.ToString();
 
-                        if (string.IsNullOrEmpty(value))
-                        {
-                            continue;
-                        }
+                        if (string.IsNullOrEmpty(value)) continue;
                         var row = new MPesaCols();
 
                         row.Col0 = reader.GetValue(0)?.ToString().Replace("\n", "").Replace("\r", "");
@@ -81,16 +74,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                         row.Col12 = reader.GetValue(12)?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        if (string.IsNullOrEmpty(row.Col5?.Trim()))
-                        {
-                            row.Col5 = "0";
-                        }
+                        if (string.IsNullOrEmpty(row.Col5?.Trim())) row.Col5 = "0";
 
-                        if (string.IsNullOrEmpty(row.Col6?.Trim()))
-                        {
-
-                            row.Col6 = "0";
-                        }
+                        if (string.IsNullOrEmpty(row.Col6?.Trim())) row.Col6 = "0";
 
                         list.Add(row);
                     }
@@ -105,17 +91,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm}_B2C_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm}_B2C_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
             WriteToFile(list, outputFile);
 
-            if (inputFile.ToLower().Contains("mmf"))
-            {
-                GenerateMultiCurr(list.Skip(6).First(), inputFile, rootFolder);
-            }
+            if (inputFile.ToLower().Contains("mmf")) GenerateMultiCurr(list.Skip(6).First(), inputFile, rootFolder);
         }
-
 
 
         private void GenerateMultiCurr(MPesaCols item, string inputFile, string rootFolder)
@@ -124,39 +107,29 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
             var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
-            var outputFile = Path.Combine(rootFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd_mm_ss}_{fileNameToAppend}_MMF_{_entity}.txt");
+            var outputFile = Path.Combine(rootFolder,
+                $"MultiCurr_{DateTime.Now:yyyy_MM_dd_mm_ss}_{fileNameToAppend}_MMF_{_entity}.txt");
 
             var toAppend = new StringBuilder();
 
-            if(!DateTime.TryParseExact(item.Col1, "d-M-yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
-            {
-                throw new Exception("Unable to parse datetime!");
-            }
+            if (!DateTime.TryParseExact(item.Col1, "d-M-yyyy HH:mm:ss", CultureInfo.InvariantCulture,
+                DateTimeStyles.None, out var date)) throw new Exception("Unable to parse datetime!");
 
             var amount = (Convert.ToDouble(item.Col7) * -1).ToString("N2"); //vs col5 diff
             var currency = "KES";
 
-            string account = "19990126507010"; //payment
+            var account = "19990126507010"; //payment
 
-            if (inputFile.ToLower().Contains("omni"))
-            {
-                account = "19990126505016";
-            }
+            if (inputFile.ToLower().Contains("omni")) account = "19990126505016";
 
-            if (inputFile.ToLower().Contains("elma"))
-            {
-                account = "19990126505009";
-            }
+            if (inputFile.ToLower().Contains("elma")) account = "19990126505009";
 
-            toAppend.Append($"{_entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
+            toAppend.Append(
+                $"{_entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
 
             var text = toAppend.ToString();
 
-            if (!string.IsNullOrEmpty(text))
-            {
-                File.WriteAllText(outputFile, text);
-            }
-
+            if (!string.IsNullOrEmpty(text)) File.WriteAllText(outputFile, text);
         }
 
 
@@ -191,6 +164,5 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         public string Col10 { get; set; }
         public string Col11 { get; set; }
         public string Col12 { get; set; }
-
     }
 }

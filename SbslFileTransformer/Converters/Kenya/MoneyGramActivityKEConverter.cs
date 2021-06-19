@@ -1,24 +1,25 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using ExcelDataReader;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
+using Microsoft.Extensions.Logging;
 
 namespace SbslFileTransformer.Converters.Kenya
 {
     public class MoneyGramActivityKEConverter
     {
-        ILogger _logger;
+        private ILogger _logger;
+
         public MoneyGramActivityKEConverter(ILogger logger)
         {
             _logger = logger;
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
+
         public void ConvertFile(string inputFile, string outputFile = null)
         {
             var list = new List<ExcelCols>();
@@ -27,13 +28,13 @@ namespace SbslFileTransformer.Converters.Kenya
             {
                 using (var reader = ExcelReaderFactory.CreateReader(stream))
                 {
-                    int countHeader = 0;
+                    var countHeader = 0;
 
-                    double per = 0.2;
+                    var per = 0.2;
 
-                    string excise = "Excise duty";
+                    var excise = "Excise duty";
 
-                    string computedbaseamnt = "Computed Base Amount";
+                    var computedbaseamnt = "Computed Base Amount";
 
                     while (reader.Read())
                     {
@@ -41,10 +42,8 @@ namespace SbslFileTransformer.Converters.Kenya
 
                         var value = reader.GetValue(1)?.ToString();
 
-                        if (string.IsNullOrEmpty(value) || value.Contains("Account Number : ") || value.Contains("Settlement Currency : "))
-                        {
-                            continue;
-                        }
+                        if (string.IsNullOrEmpty(value) || value.Contains("Account Number : ") ||
+                            value.Contains("Settlement Currency : ")) continue;
 
                         //tran date
                         row.Col0 = reader.GetValue(1)?.ToString().Replace("\n", "");
@@ -71,9 +70,12 @@ namespace SbslFileTransformer.Converters.Kenya
                         //fee amount
                         row.Col11 = reader.GetValue(26)?.ToString().Replace("\n", "");
                         //fx rev share amount
-                        row.Col12 = reader.GetValue(28)?.ToString().Replace("\n", "") + reader.GetValue(29)?.ToString().Replace("\n", "") + reader.GetValue(30)?.ToString().Replace("\n", "");
+                        row.Col12 = reader.GetValue(28)?.ToString().Replace("\n", "") +
+                                    reader.GetValue(29)?.ToString().Replace("\n", "") +
+                                    reader.GetValue(30)?.ToString().Replace("\n", "");
                         //commission amount
-                        row.Col13 = reader.GetValue(33)?.ToString().Replace("\n", "") + reader.GetValue(34)?.ToString().Replace("\n", "");
+                        row.Col13 = reader.GetValue(33)?.ToString().Replace("\n", "") +
+                                    reader.GetValue(34)?.ToString().Replace("\n", "");
 
                         if (countHeader == 3)
                         {
@@ -85,22 +87,17 @@ namespace SbslFileTransformer.Converters.Kenya
 
                         try
                         {
-                            double baseamnt = Convert.ToDouble(reader.GetValue(25));
-                            double feeamnt = Convert.ToDouble(reader.GetValue(26));
+                            var baseamnt = Convert.ToDouble(reader.GetValue(25));
+                            var feeamnt = Convert.ToDouble(reader.GetValue(26));
 
-                            if (reader.GetValue(11) != null && reader.GetValue(12) != null && reader.GetValue(11).ToString() == "MT" && reader.GetValue(12).ToString() == "SEN")
-                            {
-                                row.Col15 = (baseamnt + feeamnt + (feeamnt * per)).ToString();
-                            }
+                            if (reader.GetValue(11) != null && reader.GetValue(12) != null &&
+                                reader.GetValue(11).ToString() == "MT" && reader.GetValue(12).ToString() == "SEN")
+                                row.Col15 = (baseamnt + feeamnt + feeamnt * per).ToString();
                             else
-                            {
                                 row.Col15 = reader.GetValue(25)?.ToString();
-                            }
-
                         }
                         catch (Exception)
                         {
-
                         }
 
                         list.Add(row);
@@ -119,7 +116,8 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
             WriteToFile(list3, outputFile);
@@ -133,29 +131,24 @@ namespace SbslFileTransformer.Converters.Kenya
             {
                 using (var reader = ExcelReaderFactory.CreateReader(stream))
                 {
-                    int countHeader1 = 0;
+                    var countHeader1 = 0;
 
-                    double per = 0.2;
+                    var per = 0.2;
 
                     while (reader.Read())
                     {
-                        string excise = "Excise duty";
+                        var excise = "Excise duty";
 
                         var row = new ExcelCols();
 
                         var value1 = reader.GetValue(1)?.ToString();
 
-                        if (string.IsNullOrEmpty(value1) || value1.Contains("Account Number : ") || value1.Contains("Settlement Currency : "))
-                        {
-                            continue;
-                        }
+                        if (string.IsNullOrEmpty(value1) || value1.Contains("Account Number : ") ||
+                            value1.Contains("Settlement Currency : ")) continue;
 
                         var value2 = reader.GetValue(12)?.ToString();
 
-                        if (string.IsNullOrEmpty(value2) || value2.Contains("REC"))
-                        {
-                            continue;
-                        }
+                        if (string.IsNullOrEmpty(value2) || value2.Contains("REC")) continue;
 
                         //tran date
                         row.Col0 = reader.GetValue(1)?.ToString().Replace("\n", "");
@@ -182,19 +175,21 @@ namespace SbslFileTransformer.Converters.Kenya
                         //fee amount
                         row.Col11 = reader.GetValue(26)?.ToString().Replace("\n", "");
                         //fx rev share amount
-                        row.Col12 = reader.GetValue(28)?.ToString().Replace("\n", "") + reader.GetValue(29)?.ToString().Replace("\n", "") + reader.GetValue(30)?.ToString().Replace("\n", "");
+                        row.Col12 = reader.GetValue(28)?.ToString().Replace("\n", "") +
+                                    reader.GetValue(29)?.ToString().Replace("\n", "") +
+                                    reader.GetValue(30)?.ToString().Replace("\n", "");
                         //commission amount
-                        row.Col13 = reader.GetValue(33)?.ToString().Replace("\n", "") + reader.GetValue(34)?.ToString().Replace("\n", "");
+                        row.Col13 = reader.GetValue(33)?.ToString().Replace("\n", "") +
+                                    reader.GetValue(34)?.ToString().Replace("\n", "");
 
                         //excise duty calculation (0.2% of amount)
                         try
                         {
-                            double cost = Convert.ToDouble(reader.GetValue(26));
+                            var cost = Convert.ToDouble(reader.GetValue(26));
                             row.Col14 = (cost * per).ToString("0.##");
                         }
                         catch (Exception)
                         {
-
                         }
 
                         row.Col15 = row.Col14;
@@ -212,6 +207,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
             return list3;
         }
+
         private List<ExcelCols> CombineTheTwoLists(List<ExcelCols> list, List<ExcelCols> list2)
         {
             var combinedList = new List<ExcelCols>();

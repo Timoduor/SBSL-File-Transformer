@@ -1,11 +1,11 @@
-﻿using ExcelDataReader;
-using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using ExcelDataReader;
+using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
@@ -27,13 +27,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 IExcelDataReader reader;
 
                 if (Path.GetExtension(inputFile).ToLower().Contains("csv"))
-                {
                     reader = ExcelReaderFactory.CreateCsvReader(stream);
-                }
                 else
-                {
                     reader = ExcelReaderFactory.CreateReader(stream);
-                }
 
                 using (reader)
                 {
@@ -42,41 +38,31 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     while (reader.Read())
                     {
-
                         var value = reader.GetValue(0)?.ToString();
 
-                        if (string.IsNullOrEmpty(value))
-                        {
-                            continue;
-                        }
+                        if (string.IsNullOrEmpty(value)) continue;
                         var row = new MpesaBalCols();
 
-                        if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime resultDate))
-                        {
+                        if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd-MM-yyyy HH:mm",
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out var resultDate))
                             row.BalDate = resultDate;
-                        }
-                        else if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime resultDate2))
-                        {
+                        else if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd-MM-yyyy HH:mm:ss",
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out var resultDate2))
                             row.BalDate = resultDate2;
-                        }
-                        else if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
-                        {
+                        else if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd/MM/yyyy HH:mm:ss",
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
                             row.BalDate = result;
-                        }
-                        else if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result2))
-                        {
+                        else if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd/MM/yyyy HH:mm",
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out var result2))
                             row.BalDate = result2;
-                        }
-                        else if (DateTime.TryParse(reader.GetValue(1)?.ToString(), out DateTime result3))
-                        {
+                        else if (DateTime.TryParse(reader.GetValue(1)?.ToString(), out var result3))
                             row.BalDate = result3;
-                        }
                         else
-                        {
                             continue;
-                        }
 
-                        string amount = string.IsNullOrEmpty(reader.GetValue(7)?.ToString()) ? "0" : reader.GetValue(7)?.ToString();
+                        var amount = string.IsNullOrEmpty(reader.GetValue(7)?.ToString())
+                            ? "0"
+                            : reader.GetValue(7)?.ToString();
 
                         row.Amount = Convert.ToDouble(amount);
 
@@ -93,38 +79,44 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
-                var outputFile = Path.Combine(outputFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_MpesaKE.txt");
+                var outputFile = Path.Combine(outputFolder,
+                    $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_MpesaKE.txt");
 
-                var lastRow = list.OrderByDescending(i => i.BalDate).FirstOrDefault(c => c.BalDate == list.Max(r => r.BalDate));
+                var lastRow = list.OrderByDescending(i => i.BalDate)
+                    .FirstOrDefault(c => c.BalDate == list.Max(r => r.BalDate));
 
-                string toAppend = $"IMKE\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.BalDate):MM/dd/yyyy}\t\t\t\t{-lastRow.Amount}\tKES\n";
+                var toAppend =
+                    $"IMKE\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.BalDate):MM/dd/yyyy}\t\t\t\t{-lastRow.Amount}\tKES\n";
 
-                if (!string.IsNullOrEmpty(toAppend))
-                {
-                    File.WriteAllText(outputFile, toAppend);
-                }
+                if (!string.IsNullOrEmpty(toAppend)) File.WriteAllText(outputFile, toAppend);
             }
         }
 
         /// check file path if it contains Mpesa C2B Chango    Mpesa B2C Elma      Mpesa B2C Chango      Mpesa C2B and specify account numbers
         private string GetAccountNumber(string inputFile)
         {
-            if(inputFile.ToLower().Contains("mpesa") && inputFile.ToLower().Contains("c2b") && inputFile.ToLower().Contains("chango"))
+            if (inputFile.ToLower().Contains("mpesa") && inputFile.ToLower().Contains("c2b") &&
+                inputFile.ToLower().Contains("chango"))
                 return "19990126512001";
 
-            if (inputFile.ToLower().Contains("mpesa") && inputFile.ToLower().Contains("b2c") && inputFile.ToLower().Contains("elma"))
+            if (inputFile.ToLower().Contains("mpesa") && inputFile.ToLower().Contains("b2c") &&
+                inputFile.ToLower().Contains("elma"))
                 return "19990126505010";
 
-            if (inputFile.ToLower().Contains("mpesa") && inputFile.ToLower().Contains("b2c") && inputFile.ToLower().Contains("chango"))
+            if (inputFile.ToLower().Contains("mpesa") && inputFile.ToLower().Contains("b2c") &&
+                inputFile.ToLower().Contains("chango"))
                 return "19990126512002";
 
-            if (inputFile.ToLower().Contains("mpesa") && inputFile.ToLower().Contains("c2b") && !inputFile.ToLower().Contains("chango"))
+            if (inputFile.ToLower().Contains("mpesa") && inputFile.ToLower().Contains("c2b") &&
+                !inputFile.ToLower().Contains("chango"))
                 return "19990126507009";
 
-            if (inputFile.ToLower().Contains("mpesa") && inputFile.ToLower().Contains("b2c") && inputFile.ToLower().Contains("omni"))
+            if (inputFile.ToLower().Contains("mpesa") && inputFile.ToLower().Contains("b2c") &&
+                inputFile.ToLower().Contains("omni"))
                 return "19990126505017";
 
-            if (inputFile.ToLower().Contains("mpesa") && inputFile.ToLower().Contains("to") && inputFile.ToLower().Contains("till"))
+            if (inputFile.ToLower().Contains("mpesa") && inputFile.ToLower().Contains("to") &&
+                inputFile.ToLower().Contains("till"))
                 return "19990126505064";
 
             return "";

@@ -1,24 +1,24 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using ExcelDataReader;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
+using Microsoft.Extensions.Logging;
 
 namespace SbslFileTransformer.Converters.Kenya
 {
     public class MoneyGramSettlementKEConverter
     {
-        ILogger _logger;
+        private ILogger _logger;
+
         public MoneyGramSettlementKEConverter(ILogger logger)
         {
             _logger = logger;
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
+
         public void ConvertFile(string inputFile, string outputFile = null)
         {
             var list = new List<ExcelCols>();
@@ -27,11 +27,11 @@ namespace SbslFileTransformer.Converters.Kenya
             {
                 using (var reader = ExcelReaderFactory.CreateReader(stream))
                 {
-                    int count = 0;
+                    var count = 0;
 
-                    string date = "Date";
+                    var date = "Date";
 
-                    int countHeader = 4;
+                    var countHeader = 4;
 
                     while (reader.Read())
                     {
@@ -41,10 +41,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
                         var value = reader.GetValue(1)?.ToString();
 
-                        if (string.IsNullOrEmpty(value))
-                        {
-                            continue;
-                        }
+                        if (string.IsNullOrEmpty(value)) continue;
 
                         if (count == 5)
                         {
@@ -54,26 +51,22 @@ namespace SbslFileTransformer.Converters.Kenya
 
                         var value2 = reader.GetValue(1)?.ToString();
 
-                        if (string.IsNullOrEmpty(value2) || value2.Contains("Net Total") || value2.Contains("Settlement Amount"))
-                        {
-                            continue;
-                        }
+                        if (string.IsNullOrEmpty(value2) || value2.Contains("Net Total") ||
+                            value2.Contains("Settlement Amount")) continue;
 
-                        if (countHeader <= count)
-                        {
-                            row.Col0 = date;
-
-                        }
+                        if (countHeader <= count) row.Col0 = date;
 
                         //row.Col0 = date;
 
                         row.Col1 = reader.GetValue(1)?.ToString().Replace("\n", "");
 
-                        row.Col2 = reader.GetValue(5)?.ToString().Replace("\n", "") + reader.GetValue(6)?.ToString().Replace("\n", "");
+                        row.Col2 = reader.GetValue(5)?.ToString().Replace("\n", "") +
+                                   reader.GetValue(6)?.ToString().Replace("\n", "");
 
                         row.Col3 = reader.GetValue(8)?.ToString().Replace("\n", "");
 
-                        row.Col4 = reader.GetValue(10)?.ToString().Replace("\n", ""); ;
+                        row.Col4 = reader.GetValue(10)?.ToString().Replace("\n", "");
+                        ;
 
                         row.Col5 = reader.GetValue(11)?.ToString().Replace("\n", "");
 
@@ -89,7 +82,6 @@ namespace SbslFileTransformer.Converters.Kenya
             }
 
 
-
             if (string.IsNullOrEmpty(outputFile))
             {
                 var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
@@ -97,7 +89,8 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
             WriteToFile(list, outputFile);

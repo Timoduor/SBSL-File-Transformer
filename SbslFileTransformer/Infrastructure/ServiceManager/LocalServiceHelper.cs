@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections;
 using System.Runtime.InteropServices;
 
@@ -14,8 +13,10 @@ namespace SbslFileTransformer.Infrastructure.ServiceManager
         private const int ErrorAccessDenied = 5;
 
 
-        public static void ChangeRevoveryOption(string serviceName, ServiceRecoveryOptionHelper.RecoverAction firstFailureAction,
-            ServiceRecoveryOptionHelper.RecoverAction secondFailureAction, ServiceRecoveryOptionHelper.RecoverAction thirdFailureAction)
+        public static void ChangeRevoveryOption(string serviceName,
+            ServiceRecoveryOptionHelper.RecoverAction firstFailureAction,
+            ServiceRecoveryOptionHelper.RecoverAction secondFailureAction,
+            ServiceRecoveryOptionHelper.RecoverAction thirdFailureAction)
         {
             try
             {
@@ -25,13 +26,9 @@ namespace SbslFileTransformer.Infrastructure.ServiceManager
                 long checkValue = default;
 
                 if (Environment.Is64BitProcess)
-                {
                     checkValue = scmHndl.ToInt64();
-                }
                 else
-                {
                     checkValue = scmHndl.ToInt32();
-                }
 
                 if (checkValue <= 0)
                     return;
@@ -42,13 +39,9 @@ namespace SbslFileTransformer.Infrastructure.ServiceManager
                 long checkValue2 = default;
 
                 if (Environment.Is64BitProcess)
-                {
                     checkValue2 = svcHndl.ToInt64();
-                }
                 else
-                {
                     checkValue2 = svcHndl.ToInt32();
-                }
 
                 if (checkValue2 <= 0)
                     return;
@@ -69,7 +62,7 @@ namespace SbslFileTransformer.Infrastructure.ServiceManager
 
                 foreach (FailureAction fa in failureActions)
                 {
-                    myActions[currInd] = (int)fa.Type;
+                    myActions[currInd] = (int) fa.Type;
                     myActions[++currInd] = fa.Delay;
                     currInd++;
                 }
@@ -100,11 +93,7 @@ namespace SbslFileTransformer.Infrastructure.ServiceManager
                 if (!result)
                 {
                     var err = ServiceRecoveryOptionHelper.GetLastError();
-                    if (err == ErrorAccessDenied)
-                    {
-                        throw new Exception("Access Denied while setting Failure Actions");
-
-                    }
+                    if (err == ErrorAccessDenied) throw new Exception("Access Denied while setting Failure Actions");
 
                     // Free the memory
                     Marshal.FreeHGlobal(tmpBuf);

@@ -1,11 +1,9 @@
-﻿using CsvHelper;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using CsvHelper;
 
 namespace SbslFileTransformer.Converters.Kenya
 {
@@ -22,77 +20,77 @@ namespace SbslFileTransformer.Converters.Kenya
 
             var lines = File.ReadAllLines(inputFile);
 
-            bool previousIs82A_1 = false;
+            var previousIs82A_1 = false;
 
-            bool previousIs87A_1 = false;
+            var previousIs87A_1 = false;
 
-            bool previousIs53A_1 = false;
+            var previousIs53A_1 = false;
 
-            bool previousIs53A_2 = false;
+            var previousIs53A_2 = false;
 
-            bool previousIs57A_1 = false;
+            var previousIs57A_1 = false;
 
-            bool previousIs57A_2 = false;
+            var previousIs57A_2 = false;
 
-            bool first57AProcessed = false;
+            var first57AProcessed = false;
 
-            bool first53AProcessed = false;
+            var first53AProcessed = false;
 
-            int countHeader = 0;
+            var countHeader = 0;
 
-            string senderA = "Party A - BIC";
+            var senderA = "Party A - BIC";
 
-            string recieverB = "Party B - BIC";
+            var recieverB = "Party B - BIC";
 
-            string newSequence15A = "New Sequence A";
+            var newSequence15A = "New Sequence A";
 
-            string newSequence15B = "New Sequence B";
+            var newSequence15B = "New Sequence B";
 
-            string newSequence15C = "New Sequence C";
+            var newSequence15C = "New Sequence C";
 
-            string newSequence15D = "New Sequence D";
+            var newSequence15D = "New Sequence D";
 
-            string senderRef = "Sender Reference";
+            var senderRef = "Sender Reference";
 
-            string typeOfEvent = "Type Of Event";
+            var typeOfEvent = "Type Of Event";
 
-            string typeOperation = "Type of operation";
+            var typeOperation = "Type of operation";
 
-            string commonRef = "Common Reference";
+            var commonRef = "Common Reference";
 
-            string partysARole = "Partys A role";
+            var partysARole = "Partys A role";
 
-            string tradeDate = "Trade date";
+            var tradeDate = "Trade date";
 
-            string valueDate = "Value date";
+            var valueDate = "Value date";
 
-            string contractNoPartyA = "Contract NO";
+            var contractNoPartyA = "Contract NO";
 
-            string dayCountFraction = "Day Count";
+            var dayCountFraction = "Day Count";
 
-            string currency32 = "Currency";
+            var currency32 = "Currency";
 
-            string principalAmount = "Principal Amount";
+            var principalAmount = "Principal Amount";
 
-            string currency34E = "Currency";
+            var currency34E = "Currency";
 
-            string interestAmt = "Interest Amount";
+            var interestAmt = "Interest Amount";
 
-            string deliveryAgent1 = "Delivery Agent 1 ";
+            var deliveryAgent1 = "Delivery Agent 1 ";
 
-            string recAgent1 = "Receiving Agent 1";
+            var recAgent1 = "Receiving Agent 1";
 
-            string deliveryAgent2 = "Delivery Agent 2 ";
+            var deliveryAgent2 = "Delivery Agent 2 ";
 
-            string recAgent2 = "Receiving Agent 2";
+            var recAgent2 = "Receiving Agent 2";
 
-            string interestRateDueDate = "Interest Date";
+            var interestRateDueDate = "Interest Date";
 
-            string interestRate = "Interest Rate";
+            var interestRate = "Interest Rate";
 
-            string scopeOfOperation = "Scope Of Operation";
+            var scopeOfOperation = "Scope Of Operation";
 
-            string maturityDate = "Maturity Date";
+            var maturityDate = "Maturity Date";
 
             var row = new ExcelCols();
 
@@ -165,104 +163,104 @@ namespace SbslFileTransformer.Converters.Kenya
                     if (value.StartsWith(":15A:"))
                     {
                         //new sequence
-                        row.Col0 = value.Split(':')[2].ToString().Replace("\n", "");
+                        row.Col0 = value.Split(':')[2].Replace("\n", "");
                     }
                     else if (value.StartsWith(":20:"))
                     {
                         //sender reference
-                        row.Col1 = value.Split(':')[2].ToString().Replace("\n", "");
+                        row.Col1 = value.Split(':')[2].Replace("\n", "");
                     }
                     else if (value.StartsWith(":22A:"))
                     {
-                        row.Col2 = value.Split(':')[2].ToString().Replace("\n", "");
+                        row.Col2 = value.Split(':')[2].Replace("\n", "");
                     }
                     else if (value.StartsWith(":94A:"))
                     {
-                        row.Col3 = value.Split(':')[2].ToString().Replace("\n", "");
+                        row.Col3 = value.Split(':')[2].Replace("\n", "");
                     }
                     else if (value.StartsWith(":22B:"))
                     {
-                        row.Col4 = value.Split(':')[2].ToString().Replace("\n", "");
+                        row.Col4 = value.Split(':')[2].Replace("\n", "");
                     }
                     else if (value.StartsWith(":22C:"))
                     {
-                        row.Col5 = value.Split(':')[2].ToString().Replace("\n", "");
+                        row.Col5 = value.Split(':')[2].Replace("\n", "");
                     }
                     else if (value.StartsWith(":21N:"))
                     {
-                        row.Col6 = value.Split(':')[2].ToString().Replace("\n", "");
+                        row.Col6 = value.Split(':')[2].Replace("\n", "");
                     }
                     //check change
                     else if (value.StartsWith(":82A:"))
                     {
                         previousIs82A_1 = true;
-                        row.Col7 = value.Split(':')[2].ToString().Replace("\n", "");
+                        row.Col7 = value.Split(':')[2].Replace("\n", "");
                         continue;
                     }
                     //check change
                     else if (value.StartsWith(":87A:"))
                     {
                         previousIs87A_1 = true;
-                        row.Col8 = value.Split(':')[2].ToString().Replace("\n", "");
+                        row.Col8 = value.Split(':')[2].Replace("\n", "");
                         continue;
                     }
                     else if (value.StartsWith(":15B:"))
                     {
-                        row.Col9 = value.Split(':')[2].ToString().Replace("\n", "");
+                        row.Col9 = value.Split(':')[2].Replace("\n", "");
                     }
                     else if (value.StartsWith(":17R:"))
                     {
-                        row.Col10 = value.Split(':')[2].ToString().Replace("\n", "");
+                        row.Col10 = value.Split(':')[2].Replace("\n", "");
                     }
                     else if (value.StartsWith(":30T:"))
                     {
-                        row.Col11 = value.Split(':')[2].ToString().Replace("\n", "");
+                        row.Col11 = value.Split(':')[2].Replace("\n", "");
                     }
                     else if (value.StartsWith(":30V:"))
                     {
-                        row.Col12 = value.Split(':')[2].ToString().Replace("\n", "");
+                        row.Col12 = value.Split(':')[2].Replace("\n", "");
                     }
                     else if (value.StartsWith(":30P:"))
                     {
-                        row.Col13 = value.Split(':')[2].ToString().Replace("\n", "");
+                        row.Col13 = value.Split(':')[2].Replace("\n", "");
                     }
                     //check change
                     else if (value.StartsWith(":32B:"))
                     {
                         //currency
-                        row.Col14 = value.Substring(5, 3).ToString();
+                        row.Col14 = value.Substring(5, 3);
                         //principal Amount
-                        row.Col15 = value.Substring(8).ToString().Replace(",", ".");
+                        row.Col15 = value.Substring(8).Replace(",", ".");
                     }
                     else if (value.StartsWith(":30X:"))
                     {
-                        row.Col16 = value.Split(':')[2].ToString().Replace(",", "").TrimEnd();
+                        row.Col16 = value.Split(':')[2].Replace(",", "").TrimEnd();
                     }
                     //check change
                     else if (value.StartsWith(":34E:"))
                     {
                         //currency
-                        row.Col17 = value.Substring(5, 3).ToString();
+                        row.Col17 = value.Substring(5, 3);
                         //principle amount
-                        row.Col18 = value.Substring(8).ToString().Replace(",", ".");
+                        row.Col18 = value.Substring(8).Replace(",", ".");
                     }
                     //check change
                     else if (value.StartsWith(":37G:"))
                     {
-                        row.Col19 = value.Split(':')[2].ToString().Replace(",", ".").TrimEnd();
+                        row.Col19 = value.Split(':')[2].Replace(",", ".").TrimEnd();
                     }
                     else if (value.StartsWith(":14D:"))
                     {
-                        row.Col20 = value.Split(':')[2].ToString().Replace(",", "").TrimEnd();
+                        row.Col20 = value.Split(':')[2].Replace(",", "").TrimEnd();
                     }
                     else if (value.StartsWith(":15C:"))
                     {
-                        row.Col21 = value.Split(':')[2].ToString().Replace("\n", "");
+                        row.Col21 = value.Split(':')[2].Replace("\n", "");
                     }
                     else if (value.StartsWith(":53A:") && !first53AProcessed)
                     {
                         previousIs53A_1 = true;
-                        row.Col22 = value.Split(':')[2].ToString().Replace(",", "").TrimEnd();
+                        row.Col22 = value.Split(':')[2].Replace(",", "").TrimEnd();
                         first53AProcessed = true;
                         continue;
                     }
@@ -270,25 +268,24 @@ namespace SbslFileTransformer.Converters.Kenya
                     else if (value.StartsWith(":57A:") && !first57AProcessed)
                     {
                         previousIs57A_1 = true;
-                        row.Col23 = value.Split(':')[2].ToString().Replace("\n", "");
+                        row.Col23 = value.Split(':')[2].Replace("\n", "");
                         first57AProcessed = true;
                         continue;
                     }
                     else if (value.StartsWith(":15D:"))
                     {
-                        row.Col24 = value.Split(':')[2].ToString().Replace(",", "").TrimEnd();
+                        row.Col24 = value.Split(':')[2].Replace(",", "").TrimEnd();
                     }
                     else if (value.StartsWith(":53A:") && first53AProcessed)
                     {
                         previousIs53A_2 = true;
-                        row.Col25 = value.Split(':')[2].ToString().Replace(",", "").TrimEnd();
+                        row.Col25 = value.Split(':')[2].Replace(",", "").TrimEnd();
                         continue;
-
                     }
                     else if (value.StartsWith(":57A:") && first57AProcessed)
                     {
                         previousIs57A_2 = true;
-                        row.Col26 = value.Split(':')[2].ToString().Replace("\n", "");
+                        row.Col26 = value.Split(':')[2].Replace("\n", "");
                         continue;
                     }
 
@@ -333,10 +330,7 @@ namespace SbslFileTransformer.Converters.Kenya
                 countHeader++;
             }
 
-            if (row != null)
-            {
-                list.Add(row);
-            }
+            if (row != null) list.Add(row);
 
             if (string.IsNullOrEmpty(outputFile))
             {
@@ -345,7 +339,8 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MT320_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MT320_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
             WriteToFile(list, outputFile);

@@ -20,6 +20,6 @@
     public enum KenSwitchFileType
     {
         ATMActivity,
-        ClientDebitActivity,
+        ClientDebitActivity
     }
 }

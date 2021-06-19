@@ -1,13 +1,13 @@
-﻿using iText.Kernel.Pdf;
-using iText.Kernel.Pdf.Canvas.Parser;
-using iText.Kernel.Pdf.Canvas.Parser.Listener;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using iText.Kernel.Pdf;
+using iText.Kernel.Pdf.Canvas.Parser;
+using iText.Kernel.Pdf.Canvas.Parser.Listener;
 
 namespace SbslFileTransformer.Converters
 {
@@ -17,17 +17,18 @@ namespace SbslFileTransformer.Converters
         {
             var text = GetTextFromPdf(inputFile, password);
 
-            string bankAcc = string.Empty;
-            string currency = string.Empty;
+            var bankAcc = string.Empty;
+            var currency = string.Empty;
             var transactions = new List<ExtractedTableCRDB>();
 
-            bool needsBookBalance = false;
+            var needsBookBalance = false;
 
-            ExtractedTableCRDB extractedTableLine = new ExtractedTableCRDB();
+            var extractedTableLine = new ExtractedTableCRDB();
 
             foreach (var line in text.Split('\n', '\r'))
             {
-                if (Regex.IsMatch(line.Trim(), @"\d{2}-[A-Z]{1}[a-z]{2}-\d{4} \d{2}-[A-Z]{1}[a-z]{2}-\d{4}") && !line.Contains("Opening Balance") || needsBookBalance)
+                if (Regex.IsMatch(line.Trim(), @"\d{2}-[A-Z]{1}[a-z]{2}-\d{4} \d{2}-[A-Z]{1}[a-z]{2}-\d{4}") &&
+                    !line.Contains("Opening Balance") || needsBookBalance)
                 {
                     var parts = line.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
@@ -39,18 +40,23 @@ namespace SbslFileTransformer.Converters
 
                         extractedTableLine = new ExtractedTableCRDB();
 
-                        extractedTableLine.PostingDate = DateTime.ParseExact(parts[0], "dd-MMM-yyyy", CultureInfo.InvariantCulture);
-                        extractedTableLine.ValueDate = DateTime.ParseExact(parts[1], "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                        extractedTableLine.PostingDate =
+                            DateTime.ParseExact(parts[0], "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                        extractedTableLine.ValueDate =
+                            DateTime.ParseExact(parts[1], "dd-MMM-yyyy", CultureInfo.InvariantCulture);
                         extractedTableLine.Details = parts[2] + parts[3];
 
                         continue;
                     }
-                    else if(!needsBookBalance)
+
+                    if (!needsBookBalance)
                     {
                         extractedTableLine = new ExtractedTableCRDB();
 
-                        extractedTableLine.PostingDate = DateTime.ParseExact(parts[0], "dd-MMM-yyyy", CultureInfo.InvariantCulture);
-                        extractedTableLine.ValueDate = DateTime.ParseExact(parts[1], "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                        extractedTableLine.PostingDate =
+                            DateTime.ParseExact(parts[0], "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                        extractedTableLine.ValueDate =
+                            DateTime.ParseExact(parts[1], "dd-MMM-yyyy", CultureInfo.InvariantCulture);
                         extractedTableLine.Details = parts[2] + parts[3];
                         extractedTableLine.Debit = parts[len - 3];
                         extractedTableLine.Credit = parts[len - 2];
@@ -73,35 +79,26 @@ namespace SbslFileTransformer.Converters
                         needsBookBalance = false;
 
                         transactions.Add(extractedTableLine);
-
-                        continue;
                     }
 
 
                     continue;
                 }
 
-                if(line.Contains("Account No.:"))
+                if (line.Contains("Account No.:"))
                 {
                     bankAcc = line.Split(':')[1].Trim();
                     continue;
                 }
 
-                if (line.Contains("Currency:"))
-                {
-                    currency = line.Split(':')[1].Trim();
-                    continue;
-                }
+                if (line.Contains("Currency:")) currency = line.Split(':')[1].Trim();
             }
 
-            if (transactions.Count == 0)
-            {
-                throw new Exception($"No transactions found in DTB PDF file {inputFile}");
-            }
+            if (transactions.Count == 0) throw new Exception($"No transactions found in DTB PDF file {inputFile}");
 
-            double closingBal = Convert.ToDouble(transactions.Last().BookBalance);
+            var closingBal = Convert.ToDouble(transactions.Last().BookBalance);
 
-            StringBuilder lines = new StringBuilder();
+            var lines = new StringBuilder();
 
             var balDate = transactions.First().ValueDate;
 
@@ -116,12 +113,12 @@ namespace SbslFileTransformer.Converters
                 var valDateStr = valDate.ToString("yyMMdd");
                 var valDateStr2 = valDate.ToString("MMdd");
 
-                string dOrC = "C";
+                var dOrC = "C";
 
-                double amountC = Convert.ToDouble(record.Credit);
-                double amountD = Convert.ToDouble(record.Debit);
+                var amountC = Convert.ToDouble(record.Credit);
+                var amountD = Convert.ToDouble(record.Debit);
 
-                bool useC = true;
+                var useC = true;
                 if (amountC > 0)
                 {
                     dOrC = "C";
@@ -139,7 +136,8 @@ namespace SbslFileTransformer.Converters
                 lines.AppendLine($":61:{c61}  {record.Details?.Trim()}");
             }
 
-            lines.AppendLine(":62F:" + $@"C{balDate:yyMMdd}{currency}{closingBal.ToString("N2").Replace(",", "").Replace(".", ",")}");
+            lines.AppendLine(":62F:" +
+                             $@"C{balDate:yyMMdd}{currency}{closingBal.ToString("N2").Replace(",", "").Replace(".", ",")}");
 
             var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
@@ -148,11 +146,13 @@ namespace SbslFileTransformer.Converters
                 var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                 Directory.CreateDirectory(outputFolder);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyyMMdd}_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.txt");
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyyMMdd}_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.txt");
             }
             else
             {
-                outputFile = Path.Combine(outputFile, $"{DateTime.Now:yyyyMMdd}{new string(fileName.TakeLast(10).ToArray())}.txt");
+                outputFile = Path.Combine(outputFile,
+                    $"{DateTime.Now:yyyyMMdd}{new string(fileName.TakeLast(10).ToArray())}.txt");
             }
 
             File.WriteAllText(outputFile, lines.ToString());
@@ -165,13 +165,13 @@ namespace SbslFileTransformer.Converters
 
             var readProps = new ReaderProperties().SetPassword(Encoding.Default.GetBytes(password));
 
-            using (PdfReader reader = new PdfReader(path, readProps))
+            using (var reader = new PdfReader(path, readProps))
             {
                 var pdfDocument = new PdfDocument(reader);
 
                 var pages = pdfDocument.GetNumberOfPages();
 
-                for (int i = 1; i <= pages; i++)
+                for (var i = 1; i <= pages; i++)
                 {
                     var strategy = new SimpleTextExtractionStrategy();
 

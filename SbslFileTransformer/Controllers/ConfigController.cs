@@ -1,4 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SbslFileTransformer.Data;
@@ -7,10 +11,6 @@ using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Controllers
 {
@@ -18,10 +18,11 @@ namespace SbslFileTransformer.Controllers
     public class ConfigController : Controller
     {
         private readonly ApplicationDbContext _dbContext;
-        private readonly EncryptionManager _encryptionManager;
         private readonly EmailSender _emailSender;
+        private readonly EncryptionManager _encryptionManager;
 
-        public ConfigController(ApplicationDbContext dbContext, EncryptionManager encryptionManager, EmailSender emailSender)
+        public ConfigController(ApplicationDbContext dbContext, EncryptionManager encryptionManager,
+            EmailSender emailSender)
         {
             _dbContext = dbContext;
             _encryptionManager = encryptionManager;
@@ -30,9 +31,11 @@ namespace SbslFileTransformer.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var configs = await _dbContext.Configurations.Where(c => c.Key != "Password").OrderBy(c => c.ConfigType).ToListAsync();
+            var configs = await _dbContext.Configurations.Where(c => c.Key != "Password").OrderBy(c => c.ConfigType)
+                .ToListAsync();
 
-            ViewBag.ServiceName = configs.FirstOrDefault(c => c.Key == "ServiceName" && c.ConfigType == ConfigurationType.Service).Value;
+            ViewBag.ServiceName = configs
+                .FirstOrDefault(c => c.Key == "ServiceName" && c.ConfigType == ConfigurationType.Service).Value;
 
             return View(configs);
         }
@@ -41,7 +44,8 @@ namespace SbslFileTransformer.Controllers
         public IActionResult RestartService(string serviceName)
         {
             if (string.IsNullOrEmpty(serviceName))
-                serviceName = _dbContext.Configurations.First(c => c.Key == "ServiceName" && c.ConfigType == ConfigurationType.Service).Value;
+                serviceName = _dbContext.Configurations
+                    .First(c => c.Key == "ServiceName" && c.ConfigType == ConfigurationType.Service).Value;
 
             if (string.IsNullOrEmpty(serviceName))
                 serviceName = "SBSL ETL Service";
@@ -53,24 +57,28 @@ namespace SbslFileTransformer.Controllers
 
         public IActionResult Create()
         {
-            ViewBag.ConfigTypes = new SelectList(Enum.GetValues(typeof(ConfigurationType)).Cast<ConfigurationType>().Select(v => new SelectListItem
-            {
-                Text = v.ToString(),
-                Value = ((int)v).ToString()
-            }).ToList(), "Value", "Text");
+            ViewBag.ConfigTypes = new SelectList(Enum.GetValues(typeof(ConfigurationType)).Cast<ConfigurationType>()
+                .Select(v => new SelectListItem
+                {
+                    Text = v.ToString(),
+                    Value = ((int) v).ToString()
+                }).ToList(), "Value", "Text");
 
             return View();
         }
 
         public IActionResult Update(int configType, string key)
         {
-            var config = _dbContext.Configurations.FirstOrDefault(c => c.ConfigType == (ConfigurationType)configType && c.Key == key);
+            var config =
+                _dbContext.Configurations.FirstOrDefault(c =>
+                    c.ConfigType == (ConfigurationType) configType && c.Key == key);
 
-            ViewBag.ConfigTypes = new SelectList(Enum.GetValues(typeof(ConfigurationType)).Cast<ConfigurationType>().Select(v => new SelectListItem
-            {
-                Text = v.ToString(),
-                Value = ((int)v).ToString()
-            }).ToList(), "Value", "Text", configType);
+            ViewBag.ConfigTypes = new SelectList(Enum.GetValues(typeof(ConfigurationType)).Cast<ConfigurationType>()
+                .Select(v => new SelectListItem
+                {
+                    Text = v.ToString(),
+                    Value = ((int) v).ToString()
+                }).ToList(), "Value", "Text", configType);
 
             return View(config);
         }
@@ -88,25 +96,31 @@ namespace SbslFileTransformer.Controllers
         }
 
 
-
         public async Task<IActionResult> Sftp()
         {
-            var configurations = await _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToListAsync();
+            var configurations = await _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
+                .ToListAsync();
 
             if (configurations.Count >= 8)
             {
-
                 var config = new SftpConfigModel
                 {
-                    Host = configurations.FirstOrDefault(c => c.Key == "Host" && c.ConfigType == ConfigurationType.Sftp)?.Value,
-                    Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port" && c.ConfigType == ConfigurationType.Sftp)?.Value),
-                    UserName = configurations.FirstOrDefault(c => c.Key == "UserName" && c.ConfigType == ConfigurationType.Sftp)?.Value,
+                    Host = configurations.FirstOrDefault(c => c.Key == "Host" && c.ConfigType == ConfigurationType.Sftp)
+                        ?.Value,
+                    Port = Convert.ToInt32(configurations
+                        .FirstOrDefault(c => c.Key == "Port" && c.ConfigType == ConfigurationType.Sftp)?.Value),
+                    UserName = configurations
+                        .FirstOrDefault(c => c.Key == "UserName" && c.ConfigType == ConfigurationType.Sftp)?.Value,
                     //Password = configurations.FirstOrDefault(c => c.Key == "Password")?.Value,
                     RecurseFolders = true,
-                    IncludeSandbox = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeSandbox" && c.ConfigType == ConfigurationType.Sftp)?.Value),
-                    IncludeProduction = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction" && c.ConfigType == ConfigurationType.Sftp)?.Value),
-                    ProductionFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder" && c.ConfigType == ConfigurationType.Sftp)?.Value,
-                    SandboxFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder" && c.ConfigType == ConfigurationType.Sftp)?.Value,
+                    IncludeSandbox = Convert.ToBoolean(configurations.FirstOrDefault(c =>
+                        c.Key == "IncludeSandbox" && c.ConfigType == ConfigurationType.Sftp)?.Value),
+                    IncludeProduction = Convert.ToBoolean(configurations.FirstOrDefault(c =>
+                        c.Key == "IncludeProduction" && c.ConfigType == ConfigurationType.Sftp)?.Value),
+                    ProductionFolder = configurations.FirstOrDefault(c =>
+                        c.Key == "ProductionFolder" && c.ConfigType == ConfigurationType.Sftp)?.Value,
+                    SandboxFolder = configurations
+                        .FirstOrDefault(c => c.Key == "SandboxFolder" && c.ConfigType == ConfigurationType.Sftp)?.Value
                 };
 
                 return View(config);
@@ -117,22 +131,30 @@ namespace SbslFileTransformer.Controllers
 
         public async Task<IActionResult> Smtp()
         {
-            var configurations = await _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Email).ToListAsync();
+            var configurations = await _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Email)
+                .ToListAsync();
 
             if (configurations.Count >= 5)
             {
-
                 var config = new SmtpConfigModel
                 {
-                    EmailAddress = configurations.FirstOrDefault(c => c.Key == "EmailAddress" && c.ConfigType == ConfigurationType.Email)?.Value,
-                    Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port" && c.ConfigType == ConfigurationType.Email)?.Value),
-                    UserName = configurations.FirstOrDefault(c => c.Key == "UserName" && c.ConfigType == ConfigurationType.Email)?.Value,
+                    EmailAddress = configurations
+                        .FirstOrDefault(c => c.Key == "EmailAddress" && c.ConfigType == ConfigurationType.Email)?.Value,
+                    Port = Convert.ToInt32(configurations
+                        .FirstOrDefault(c => c.Key == "Port" && c.ConfigType == ConfigurationType.Email)?.Value),
+                    UserName = configurations
+                        .FirstOrDefault(c => c.Key == "UserName" && c.ConfigType == ConfigurationType.Email)?.Value,
                     //Password = configurations.FirstOrDefault(c => c.Key == "Password")?.Value,
-                    SmtpServer = configurations.FirstOrDefault(c => c.Key == "SmtpServer" && c.ConfigType == ConfigurationType.Email)?.Value,
-                    Name = configurations.FirstOrDefault(c => c.Key == "Name" && c.ConfigType == ConfigurationType.Email)?.Value,
-                    Recipients = configurations.FirstOrDefault(c => c.Key == "Recipients" && c.ConfigType == ConfigurationType.Email)?.Value,
-                    UseSsl = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "UseSsl" && c.ConfigType == ConfigurationType.Email)?.Value),
-                    UseDefaultCredentials = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "UseDefaultCredentials" && c.ConfigType == ConfigurationType.Email)?.Value),
+                    SmtpServer = configurations
+                        .FirstOrDefault(c => c.Key == "SmtpServer" && c.ConfigType == ConfigurationType.Email)?.Value,
+                    Name = configurations
+                        .FirstOrDefault(c => c.Key == "Name" && c.ConfigType == ConfigurationType.Email)?.Value,
+                    Recipients = configurations
+                        .FirstOrDefault(c => c.Key == "Recipients" && c.ConfigType == ConfigurationType.Email)?.Value,
+                    UseSsl = Convert.ToBoolean(configurations
+                        .FirstOrDefault(c => c.Key == "UseSsl" && c.ConfigType == ConfigurationType.Email)?.Value),
+                    UseDefaultCredentials = Convert.ToBoolean(configurations.FirstOrDefault(c =>
+                        c.Key == "UseDefaultCredentials" && c.ConfigType == ConfigurationType.Email)?.Value)
                 };
 
                 return View(config);
@@ -159,21 +181,22 @@ namespace SbslFileTransformer.Controllers
 
         public async Task<IActionResult> SendTestEmail()
         {
-            var testFiles = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory), "*.*", new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive }).Take(2).ToList();
+            var testFiles = Directory
+                .GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory), "*.*",
+                    new EnumerationOptions {RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive})
+                .Take(2).ToList();
 
-            for (int i = 0; i < testFiles.Count; i++)
+            for (var i = 0; i < testFiles.Count; i++)
             {
                 var newFileName = Path.ChangeExtension(testFiles[i], ".txt");
 
-                if (!System.IO.File.Exists(newFileName))
-                {
-                    System.IO.File.Copy(testFiles[i], newFileName);
-                }
+                if (!System.IO.File.Exists(newFileName)) System.IO.File.Copy(testFiles[i], newFileName);
 
                 testFiles[i] = Path.ChangeExtension(testFiles[i], ".txt");
             }
 
-            await _emailSender.SendMessage(null, "Test Email from Windows Box", "This is to confirm that the windows box can send emails with attachments", false, testFiles);
+            await _emailSender.SendMessage(null, "Test Email from Windows Box",
+                "This is to confirm that the windows box can send emails with attachments", false, testFiles);
 
             return RedirectToAction("Smtp");
         }
@@ -256,7 +279,7 @@ namespace SbslFileTransformer.Controllers
                 {
                     ConfigType = ConfigurationType.Email,
                     Key = "Name",
-                    Value = config.Name.ToString(),
+                    Value = config.Name,
                     Updated = DateTime.Now
                 };
 
@@ -270,7 +293,7 @@ namespace SbslFileTransformer.Controllers
                 {
                     ConfigType = ConfigurationType.Email,
                     Key = "SmtpServer",
-                    Value = config.SmtpServer.ToString(),
+                    Value = config.SmtpServer,
                     Updated = DateTime.Now
                 };
 
@@ -284,7 +307,7 @@ namespace SbslFileTransformer.Controllers
                 {
                     ConfigType = ConfigurationType.Email,
                     Key = "EmailAddress",
-                    Value = config.EmailAddress.ToString(),
+                    Value = config.EmailAddress,
                     Updated = DateTime.Now
                 };
 
@@ -298,7 +321,7 @@ namespace SbslFileTransformer.Controllers
                 {
                     ConfigType = ConfigurationType.Email,
                     Key = "Recipients",
-                    Value = config.Recipients.ToString(),
+                    Value = config.Recipients,
                     Updated = DateTime.Now
                 };
 
@@ -409,14 +432,12 @@ namespace SbslFileTransformer.Controllers
 
                 await CreateOrUpdate(config2);
             }
-
-
         }
 
         private async Task CreateOrUpdate(Configuration config)
         {
-
-            var existing = await _dbContext.Configurations.FirstOrDefaultAsync(c => c.Key.ToLower() == config.Key.ToLower() && c.ConfigType == config.ConfigType);
+            var existing = await _dbContext.Configurations.FirstOrDefaultAsync(c =>
+                c.Key.ToLower() == config.Key.ToLower() && c.ConfigType == config.ConfigType);
 
             if (existing != null)
             {

@@ -1,16 +1,15 @@
-﻿using CsvHelper;
-using ExcelDataReader;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
 
 namespace SbslFileTransformer.Converters.CDM
 {
     public class CdmFileConverter
     {
-
         public CdmFileConverter()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -32,9 +31,7 @@ namespace SbslFileTransformer.Converters.CDM
                         var testValue = reader.GetValue(5)?.ToString();
 
                         if (string.IsNullOrEmpty(testValue) || testValue.ToLower().Contains("Account".ToLower()))
-                        {
                             continue;
-                        }
 
                         var row = new CdmCols
                         {
@@ -59,7 +56,7 @@ namespace SbslFileTransformer.Converters.CDM
                             //TXN REF
                             Col33 = reader.GetValue(36)?.ToString(),
                             //DATE
-                            Col40 = reader.GetValue(42)?.ToString(),
+                            Col40 = reader.GetValue(42)?.ToString()
                         };
 
                         list.Add(row);
@@ -74,7 +71,8 @@ namespace SbslFileTransformer.Converters.CDM
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{fileName.Substring(Math.Max(0, fileName.Length - 10))}_IMKE.csv");
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{fileName.Substring(Math.Max(0, fileName.Length - 10))}_IMKE.csv");
             }
 
             WriteToFile(list, outputFile);
@@ -99,24 +97,34 @@ namespace SbslFileTransformer.Converters.CDM
         {
             //ID
             public string Col2 { get; set; }
+
             //ACC
             public string Col4 { get; set; }
+
             //CODE
             public string Col9 { get; set; }
+
             //NAME
             public string Col12 { get; set; }
+
             //COMMENT
             public string Col17 { get; set; }
+
             //CODE2
             public string Col21 { get; set; }
+
             //STATUS
             public string Col23 { get; set; }
+
             //CURRENCY
             public string Col25 { get; set; }
+
             //AMOUNT
             public string Col28 { get; set; }
+
             //TXN REF
             public string Col33 { get; set; }
+
             //DATE
             public string Col40 { get; set; }
         }

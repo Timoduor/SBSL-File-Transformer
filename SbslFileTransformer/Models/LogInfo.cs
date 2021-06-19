@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.FileProviders;
-using System;
+﻿using System;
 using System.Linq;
+using Microsoft.Extensions.FileProviders;
 
 namespace SbslFileTransformer.Models
 {

@@ -1,21 +1,21 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using System.IO;
+using System.Linq;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Models;
-using System;
-using System.IO;
-using System.Linq;
 
 namespace SbslFileTransformer.Controllers
 {
     /// <summary>
-    /// select plugin -> select file(s) -> run job
+    ///     select plugin -> select file(s) -> run job
     /// </summary>
     //[HandleLicense("All")]
     public class TaskController : Controller
     {
+        private readonly ApplicationDbContext _dbContext;
         private ILogger<TaskController> _logger;
-        private ApplicationDbContext _dbContext;
 
         public TaskController(ILogger<TaskController> logger, ApplicationDbContext dbContext)
         {
@@ -30,13 +30,9 @@ namespace SbslFileTransformer.Controllers
             Plugin selectedPlugin = null;
 
             if (pluginId != null)
-            {
                 selectedPlugin = plugins.FirstOrDefault(p => p.Id == pluginId);
-            }
             else
-            {
                 selectedPlugin = plugins.Last();
-            }
 
             var files = Directory.GetFiles(selectedPlugin.InputFolder).ToList();
 
@@ -51,7 +47,8 @@ namespace SbslFileTransformer.Controllers
                 if (!Directory.Exists(plugin.InputFolder))
                     Directory.CreateDirectory(plugin.InputFolder);
 
-                taskVM.Plugins.Add(new PluginViewModel {
+                taskVM.Plugins.Add(new PluginViewModel
+                {
                     Id = plugin.Id,
                     InputFolder = plugin.InputFolder,
                     IsSelected = plugin.Id == selectedPlugin.Id,
@@ -70,7 +67,6 @@ namespace SbslFileTransformer.Controllers
         [HttpPost]
         public IActionResult RunPlugin(string plugin, string file)
         {
-
             return RedirectToAction("Index");
         }
     }

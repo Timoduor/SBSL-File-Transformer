@@ -1,4 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -7,18 +12,13 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class MpesaNewLineCharRemoverJob : ConverterJobBase<MpesaNewLineCharRemoverJob>, IHostedService
     {
-
-        public MpesaNewLineCharRemoverJob(ILogger<MpesaNewLineCharRemoverJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public MpesaNewLineCharRemoverJob(ILogger<MpesaNewLineCharRemoverJob> logger,
+            IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -31,9 +31,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await ConvertC2BFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await ConvertC2BFile(), null,
+                TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
+        }
+
+        public async Task StopAsync(CancellationToken cancellationToken)
+        {
+            await _timer.DisposeAsync();
         }
 
         private async Task ConvertC2BFile()
@@ -52,14 +58,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = await dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToListAsync();
+                    var configurations = await dbContext.Configurations
+                        .Where(c => c.ConfigType == ConfigurationType.Sftp).ToListAsync();
 
-                    Entity = dbContext.Configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
+                    Entity = dbContext.Configurations
+                        .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
 
-                    var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
+                    var options = new EnumerationOptions
+                        {RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive};
 
                     var files = Directory.GetFiles(prodFolder, "*.xlsx", options).ToList();
 
@@ -68,14 +77,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     var cdmConverter = new MpesaCharRemover();
 
                     foreach (var file in files)
-                    {
                         //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
-                        if ((file.ToLower().Contains("mpesa") && file.ToLower().Contains("c2b")) && file.ToLower().Contains("imke") && !file.ToLower().Contains("conv"))
+                        if (file.ToLower().Contains("mpesa") && file.ToLower().Contains("c2b") &&
+                            file.ToLower().Contains("imke") && !file.ToLower().Contains("conv"))
                         {
-                            var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
+                            var fileToProcess =
+                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
+                                    f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
-                            {
                                 try
                                 {
                                     cdmConverter.FindAndReplaceOccurrences(file, "\n", " ");
@@ -86,7 +96,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting mpesa C2B file", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting mpesa C2B file",
+                                        $"{file} \n\n {ex.Message}", new[] {file}, _emailSender);
                                 }
                                 finally
                                 {
@@ -98,10 +109,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                     await dbContext.SaveChangesAsync();
                                 }
-
-                            }
                         }
-                    }
                 }
             }
             catch (Exception ex)
@@ -112,11 +120,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             {
                 _semaphore.Release();
             }
-        }
-
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            await _timer.DisposeAsync();
         }
     }
 }

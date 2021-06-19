@@ -1,26 +1,25 @@
-﻿using iText.Kernel.Pdf;
+﻿using System.Text;
+using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
 using iText.Kernel.Pdf.Canvas.Parser.Listener;
-using System.Text;
 
 namespace SbslFileTransformer.Infrastructure.Helpers
 {
     public class SbslPdfReader
     {
-
         public static string GetTextFromPDF(string path, string password = "")
         {
-            StringBuilder content = new StringBuilder();
+            var content = new StringBuilder();
 
             var readProps = new ReaderProperties().SetPassword(Encoding.Default.GetBytes(password));
 
-            using (PdfReader reader = new PdfReader(path, readProps))
+            using (var reader = new PdfReader(path, readProps))
             {
                 var pdfDocument = new PdfDocument(reader);
 
                 var pages = pdfDocument.GetNumberOfPages();
 
-                for (int i = 1; i <= pages; i++)
+                for (var i = 1; i <= pages; i++)
                 {
                     var strategy = new LocationTextExtractionStrategy();
 
@@ -34,6 +33,5 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
             return content.ToString();
         }
-
     }
 }

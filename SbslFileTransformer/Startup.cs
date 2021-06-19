@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -20,8 +22,6 @@ using SbslFileTransformer.Infrastructure.Jobs.Reporting;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Infrastructure.Sftp;
 using Serilog;
-using System;
-using System.IO;
 
 namespace SbslFileTransformer
 {
@@ -46,7 +46,7 @@ namespace SbslFileTransformer
             Directory.CreateDirectory(keyStore);
 
             services.AddDataProtection()
-                    .PersistKeysToFileSystem(new DirectoryInfo(keyStore));
+                .PersistKeysToFileSystem(new DirectoryInfo(keyStore));
 
             IFileProvider physicalProvider = new PhysicalFileProvider(Directory.GetCurrentDirectory());
 
@@ -127,11 +127,11 @@ namespace SbslFileTransformer
             services.AddHostedService<Mt300sTZConverterJob>();
 
             services.AddHostedService<FileNetworkCopyJob>();
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider, ILogger<Startup> logger)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider,
+            ILogger<Startup> logger)
         {
             if (env.IsDevelopment())
             {
@@ -157,8 +157,8 @@ namespace SbslFileTransformer
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
-                    name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    "default",
+                    "{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapRazorPages();
             });
 

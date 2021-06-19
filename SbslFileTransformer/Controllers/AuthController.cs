@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Models;
-using System;
-using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Controllers
 {
@@ -15,7 +15,8 @@ namespace SbslFileTransformer.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public AuthController(ILogger<AuthController> logger, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
+        public AuthController(ILogger<AuthController> logger, SignInManager<ApplicationUser> signInManager,
+            UserManager<ApplicationUser> userManager)
         {
             _logger = logger;
             _signInManager = signInManager;
@@ -35,14 +36,12 @@ namespace SbslFileTransformer.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginModel model, string returnUrl)
         {
-            if (!ModelState.IsValid)
-            {
-                return View();
-            }
+            if (!ModelState.IsValid) return View();
 
             try
             {
-                var user = (await _userManager.FindByEmailAsync(model.Username)) ?? await _userManager.FindByNameAsync(model.Username);
+                var user = await _userManager.FindByEmailAsync(model.Username) ??
+                           await _userManager.FindByNameAsync(model.Username);
 
                 if (user != null)
                 {
@@ -55,7 +54,8 @@ namespace SbslFileTransformer.Controllers
 
                     if (!user.IsEnabled || user.IsDeleted)
                     {
-                        TempData["ErrorMessage"] = $"Problem with user login for '{model.Username}'. Please contact admin for assistance";
+                        TempData["ErrorMessage"] =
+                            $"Problem with user login for '{model.Username}'. Please contact admin for assistance";
                         return View(model);
                     }
 
@@ -66,16 +66,14 @@ namespace SbslFileTransformer.Controllers
                     {
                         if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                             return Redirect(returnUrl);
-                        else
-                            return RedirectToAction("Index", "Home");
-
+                        return RedirectToAction("Index", "Home");
                     }
-                    else
-                        TempData["ErrorMessage"] = $"Invalid username or password";
+
+                    TempData["ErrorMessage"] = "Invalid username or password";
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = $"Invalid username or password";
+                    TempData["ErrorMessage"] = "Invalid username or password";
                 }
             }
             catch (Exception ex)

@@ -1,27 +1,26 @@
-﻿using ExcelDataReader;
-using Microsoft.Extensions.DependencyInjection;
-using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ExcelDataReader;
+using Microsoft.Extensions.DependencyInjection;
+using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class CDMBalanceExtractor
     {
-
-        public string Entity { get; set; }
-        public IServiceScopeFactory ServiceScopeFactory { get; set; }
-
         public CDMBalanceExtractor()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
+
+        public string Entity { get; set; }
+        public IServiceScopeFactory ServiceScopeFactory { get; set; }
 
         public async Task ConvertFile(string inputFile, string outputFolder, string entity)
         {
@@ -34,13 +33,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 IExcelDataReader reader;
 
                 if (Path.GetExtension(inputFile).ToLower().Contains("csv"))
-                {
                     reader = ExcelReaderFactory.CreateCsvReader(stream);
-                }
                 else
-                {
                     reader = ExcelReaderFactory.CreateReader(stream);
-                }
 
                 using (reader)
                 {
@@ -49,23 +44,21 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     while (reader.Read())
                     {
-
                         var value = reader.GetValue(0)?.ToString();
 
-                        if (string.IsNullOrEmpty(value))
-                        {
-                            continue;
-                        }
+                        if (string.IsNullOrEmpty(value)) continue;
 
                         var row = new CdmCols();
 
                         DateTime resultDate;
 
-                        if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out resultDate))
+                        if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd/MM/yyyy",
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out resultDate))
                         {
                             row.ReconDate = resultDate;
                         }
-                        else if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out resultDate))
+                        else if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "MM/dd/yyyy",
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out resultDate))
                         {
                             row.ReconDate = resultDate;
                         }
@@ -75,10 +68,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         }
                         else if (int.TryParse(reader.GetValue(1)?.ToString(), out var intRes))
                         {
-                            if (intRes.FromExcelSerialDate(out resultDate))
-                            {
-                                row.ReconDate = resultDate;
-                            }
+                            if (intRes.FromExcelSerialDate(out resultDate)) row.ReconDate = resultDate;
                         }
                         else
                         {
@@ -102,21 +92,20 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
-                var outputFile = Path.Combine(outputFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_cdm_{entity}.txt");
-                var outputFileGL = Path.Combine(outputFolder, $"GLAccounts_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_cdm_{entity}.txt");
+                var outputFile = Path.Combine(outputFolder,
+                    $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_cdm_{entity}.txt");
+                var outputFileGL = Path.Combine(outputFolder,
+                    $"GLAccounts_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_cdm_{entity}.txt");
 
-                Dictionary<string, string> lookUp = new Dictionary<string, string>();
+                var lookUp = new Dictionary<string, string>();
 
                 using (var scope = ServiceScopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var pairs = dbContext.Accounts.Select(a => new { a.Number, a.Name });
+                    var pairs = dbContext.Accounts.Select(a => new {a.Number, a.Name});
 
-                    foreach (var acc in pairs)
-                    {
-                        lookUp.TryAdd(acc.Number, acc.Name);
-                    }
+                    foreach (var acc in pairs) lookUp.TryAdd(acc.Number, acc.Name);
                 }
 
                 var toAppend = new StringBuilder();
@@ -124,37 +113,32 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 foreach (var row in list)
                 {
-                    var success = long.TryParse(row.Account, out long result);
+                    var success = long.TryParse(row.Account, out var result);
 
                     var account = success ? result.ToString() : row.Account;
 
-                    toAppend.Append($"{Entity}\t{account}\tCDM\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t\t{row.AmountMC}\t{GetAccountCurrency(row.Account)}\n");
+                    toAppend.Append(
+                        $"{Entity}\t{account}\tCDM\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t\t{row.AmountMC}\t{GetAccountCurrency(row.Account)}\n");
 
-                    toAppendGL.Append($"{Entity}\t{account}\tCDM\t\t\t\t\t\t\t\t{GetAccountName(row.Account, lookUp)}\tCDM\tA\tAsset\tTRUE\tTRUE\t\t{GetAccountCurrency(row.Account)}\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t{row.AmountGL}\n");
+                    toAppendGL.Append(
+                        $"{Entity}\t{account}\tCDM\t\t\t\t\t\t\t\t{GetAccountName(row.Account, lookUp)}\tCDM\tA\tAsset\tTRUE\tTRUE\t\t{GetAccountCurrency(row.Account)}\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t{row.AmountGL}\n");
                 }
 
                 //write multicurr file
                 var text = toAppend.ToString();
 
-                if (!string.IsNullOrEmpty(text))
-                {
-                    await File.WriteAllTextAsync(outputFile, text);
-                }
+                if (!string.IsNullOrEmpty(text)) await File.WriteAllTextAsync(outputFile, text);
 
                 //write gl_acc file
                 var text2 = toAppendGL.ToString();
 
-                if (!string.IsNullOrEmpty(text2))
-                {
-                    await File.WriteAllTextAsync(outputFileGL, text2);
-                }
-
+                if (!string.IsNullOrEmpty(text2)) await File.WriteAllTextAsync(outputFileGL, text2);
             }
         }
 
         private string GetAccountCurrency(string account)
         {
-            string currency = "KES";
+            var currency = "KES";
 
             using (var scope = ServiceScopeFactory.CreateScope())
             {
@@ -166,19 +150,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             }
 
             return currency;
-
         }
 
         private string GetAccountName(string accountNumber, Dictionary<string, string> dict)
         {
             if (dict.ContainsKey(accountNumber))
-            {
                 return dict[accountNumber];
-            }
-            else
-            {
-                return accountNumber;
-            }
+            return accountNumber;
         }
     }
 

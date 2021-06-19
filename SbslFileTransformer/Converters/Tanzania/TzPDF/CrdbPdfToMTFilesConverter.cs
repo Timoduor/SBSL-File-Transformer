@@ -1,13 +1,13 @@
-﻿using iText.Kernel.Pdf;
-using iText.Kernel.Pdf.Canvas.Parser;
-using iText.Kernel.Pdf.Canvas.Parser.Listener;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using iText.Kernel.Pdf;
+using iText.Kernel.Pdf.Canvas.Parser;
+using iText.Kernel.Pdf.Canvas.Parser.Listener;
 
 namespace SbslFileTransformer.Converters
 {
@@ -17,22 +17,19 @@ namespace SbslFileTransformer.Converters
         {
             var text = GetTextFromPdf(inputFile, password);
 
-            string bankAcc = string.Empty;
-            string currency = string.Empty;
+            var bankAcc = string.Empty;
+            var currency = string.Empty;
             var transactions = new List<ExtractedTableCRDB>();
-            bool isNewTableLine = true;
+            var isNewTableLine = true;
             double closingBal = 0;
 
             ExtractedTableCRDB extractedTableLine = null;
 
-            bool areTableValues = false;
+            var areTableValues = false;
 
             foreach (var line in text.Split('\n', '\r'))
             {
-                if (line.Contains("Posting Date"))
-                {
-                    areTableValues = true;
-                }
+                if (line.Contains("Posting Date")) areTableValues = true;
 
                 //FOR CRDB
                 if (line.ToLower().Contains("account:"))
@@ -47,15 +44,12 @@ namespace SbslFileTransformer.Converters
                     continue;
                 }
 
-                if (line.ToLower().Contains("cleared balance"))
-                {
-                    closingBal = Convert.ToDouble(line.Split(' ')[8]);
-                }
+                if (line.ToLower().Contains("cleared balance")) closingBal = Convert.ToDouble(line.Split(' ')[8]);
 
                 if (areTableValues && Regex.IsMatch(line.Trim(), @"^\d{2}\.\d{2}\.\d{4}$") && isNewTableLine)
                 {
                     extractedTableLine = new ExtractedTableCRDB();
-                    transactions.Add(extractedTableLine);//-----------------------------------------===================
+                    transactions.Add(extractedTableLine); //-----------------------------------------===================
                     extractedTableLine.PostingDate = line.Trim();
                     continue;
                 }
@@ -72,15 +66,14 @@ namespace SbslFileTransformer.Converters
                     var split = line.Split(':');
                     extractedTableLine.Ref = split[1].Trim();
 
-                    if (2 < split.Length)
-                    {
-                        extractedTableLine.Ref += split[2].Trim();
-                    }
+                    if (2 < split.Length) extractedTableLine.Ref += split[2].Trim();
                     continue;
                 }
 
-                if (areTableValues && !line.Contains("Posting Date") && !line.ToLower().Contains("ref:") && !Regex.IsMatch(line.Trim(), @"^\d{2}\.\d{2}\.\d{4}$")
-                    && !Regex.IsMatch(line.Trim(), @"^\d{2}\:\d{2}\:\d{2}$") && !Regex.IsMatch(line.Trim(), @"\d{1,3}(,\d{3})*(\.\d+)?"))
+                if (areTableValues && !line.Contains("Posting Date") && !line.ToLower().Contains("ref:") &&
+                    !Regex.IsMatch(line.Trim(), @"^\d{2}\.\d{2}\.\d{4}$")
+                    && !Regex.IsMatch(line.Trim(), @"^\d{2}\:\d{2}\:\d{2}$") &&
+                    !Regex.IsMatch(line.Trim(), @"\d{1,3}(,\d{3})*(\.\d+)?"))
                 {
                     extractedTableLine.Details += line.Trim();
                     continue;
@@ -99,7 +92,8 @@ namespace SbslFileTransformer.Converters
                     continue;
                 }
 
-                if (areTableValues && (Regex.IsMatch(line.Trim(), @"\d{1,3}(,\d{3})*\.\d{2}?$") || Regex.IsMatch(line.Trim(), @"\d{1,3}(,\d{3})$")))
+                if (areTableValues && (Regex.IsMatch(line.Trim(), @"\d{1,3}(,\d{3})*\.\d{2}?$") ||
+                                       Regex.IsMatch(line.Trim(), @"\d{1,3}(,\d{3})$")))
                 {
                     var numbers = line.Trim().Split(' ');
                     extractedTableLine.Debit = numbers[0];
@@ -110,9 +104,10 @@ namespace SbslFileTransformer.Converters
                 }
             }
 
-            StringBuilder lines = new StringBuilder();
+            var lines = new StringBuilder();
 
-            var balDate = DateTime.ParseExact(transactions.First().ValueDate, "dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+            var balDate = DateTime.ParseExact(transactions.First().ValueDate, "dd.MM.yyyy HH:mm:ss",
+                CultureInfo.InvariantCulture);
 
             lines.AppendLine(":20:" + "1");
             lines.AppendLine(":25:" + bankAcc);
@@ -121,21 +116,22 @@ namespace SbslFileTransformer.Converters
 
             foreach (var record in transactions)
             {
-                var valDate = DateTime.ParseExact(record.ValueDate, "dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                var valDate =
+                    DateTime.ParseExact(record.ValueDate, "dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture);
                 var valDateStr = valDate.ToString("yyMMdd");
                 var valDateStr2 = valDate.ToString("MMdd");
 
-                string dOrC = "C";
+                var dOrC = "C";
 
-                double amountC = Convert.ToDouble(record.Credit);
-                double amountD = Convert.ToDouble(record.Debit);
+                var amountC = Convert.ToDouble(record.Credit);
+                var amountD = Convert.ToDouble(record.Debit);
 
-                bool useC = true;
+                var useC = true;
                 if (amountC > 0)
                 {
                     dOrC = "C";
                 }
-                else if(amountD > 0)
+                else if (amountD > 0)
                 {
                     useC = false;
                     dOrC = "D";
@@ -148,7 +144,8 @@ namespace SbslFileTransformer.Converters
                 lines.AppendLine($":61:{c61}  {record.Details?.Trim()}");
             }
 
-            lines.AppendLine(":62F:" + $@"C{balDate:yyMMdd}{currency}{closingBal.ToString("N2").Replace(",", "").Replace(".", ",")}");
+            lines.AppendLine(":62F:" +
+                             $@"C{balDate:yyMMdd}{currency}{closingBal.ToString("N2").Replace(",", "").Replace(".", ",")}");
 
             var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
@@ -157,14 +154,16 @@ namespace SbslFileTransformer.Converters
                 var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                 Directory.CreateDirectory(outputFolder);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyyMMdd}_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.txt");
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyyMMdd}_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.txt");
             }
             else
             {
-                outputFile = Path.Combine(outputFile, $"{DateTime.Now:yyyyMMdd}{new string(fileName.TakeLast(10).ToArray())}.txt");
+                outputFile = Path.Combine(outputFile,
+                    $"{DateTime.Now:yyyyMMdd}{new string(fileName.TakeLast(10).ToArray())}.txt");
             }
 
-            File.WriteAllText(outputFile,lines.ToString());
+            File.WriteAllText(outputFile, lines.ToString());
         }
 
 
@@ -174,19 +173,19 @@ namespace SbslFileTransformer.Converters
 
             var readProps = new ReaderProperties().SetPassword(Encoding.Default.GetBytes(password));
 
-            using (PdfReader reader = new PdfReader(path, readProps))
+            using (var reader = new PdfReader(path, readProps))
             {
                 var pdfDocument = new PdfDocument(reader);
 
                 var pages = pdfDocument.GetNumberOfPages();
 
-                for (int i = 1; i <= pages; i++)
+                for (var i = 1; i <= pages; i++)
                 {
                     var strategy = new SimpleTextExtractionStrategy();
 
                     var page = pdfDocument.GetPage(i);
 
-                     var text = PdfTextExtractor.GetTextFromPage(page, strategy);
+                    var text = PdfTextExtractor.GetTextFromPage(page, strategy);
 
                     content.Append(text);
                 }

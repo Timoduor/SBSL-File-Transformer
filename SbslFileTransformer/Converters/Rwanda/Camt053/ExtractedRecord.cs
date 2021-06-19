@@ -23,8 +23,5 @@
         public string EndToEndId { get; set; }
         public string TxId { get; set; }
         public string BICFI { get; set; }
-
-
-
     }
 }

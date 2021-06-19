@@ -1,8 +1,8 @@
-﻿using CsvHelper;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using CsvHelper;
 
 namespace SbslFileTransformer.Converters
 {
@@ -14,7 +14,7 @@ namespace SbslFileTransformer.Converters
 
             var records = new List<EP75Item>();
 
-            for (int i = 0; i < lines.Length; i++)
+            for (var i = 0; i < lines.Length; i++)
             {
                 var batch = lines[i].Substring(0, 4).Trim();
 
@@ -56,11 +56,13 @@ namespace SbslFileTransformer.Converters
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_Ep75_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.csv");
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_Ep75_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.csv");
             }
 
             WriteToFile(records, outputFile);
         }
+
         private static void WriteToFile(List<EP75Item> rows, string outputFile)
         {
             using (var writer = new StreamWriter(outputFile))

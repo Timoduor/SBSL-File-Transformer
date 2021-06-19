@@ -18,8 +18,5 @@
         public string Status2 { get; set; }
         public string DR_CR { get; set; }
         public string Type_id { get; set; }
-
-
-
     }
 }

@@ -1,20 +1,21 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters.BalanceExtractors.Kenya;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Models.Enums;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 {
     public class MPesaTillBalanceTrackerJob : ConverterJobBase<MPesaTillBalanceTrackerJob>, IHostedService
     {
-        public MPesaTillBalanceTrackerJob(IServiceScopeFactory serviceScopeFactory, ILogger<MPesaTillBalanceTrackerJob> logger)
+        public MPesaTillBalanceTrackerJob(IServiceScopeFactory serviceScopeFactory,
+            ILogger<MPesaTillBalanceTrackerJob> logger)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
@@ -22,11 +23,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _timer = new Timer(async state => await UpdateMPesaBalances(), null, TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(30));
+            _timer = new Timer(async state => await UpdateMPesaBalances(), null,
+                TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(30));
 
             _semaphore = new SemaphoreSlim(1, 1);
 
             return Task.CompletedTask;
+        }
+
+        public async Task StopAsync(CancellationToken cancellationToken)
+        {
+            await _timer.DisposeAsync();
         }
 
         private async Task UpdateMPesaBalances()
@@ -45,14 +52,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
+                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
+                        .ToList();
 
-                    Entity = dbContext.Configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
+                    Entity = dbContext.Configurations
+                        .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
                 }
 
-                var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
+                var options = new EnumerationOptions
+                    {RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive};
 
                 var files = Directory.GetFiles(prodFolder, "*.csv", options).ToList();
 
@@ -73,11 +83,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
             {
                 _semaphore.Release();
             }
-        }
-
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            await _timer.DisposeAsync();
         }
     }
 }

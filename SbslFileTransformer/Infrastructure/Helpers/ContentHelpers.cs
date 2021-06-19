@@ -1,10 +1,10 @@
-﻿using CsvHelper;
-using SbslFileTransformer.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using CsvHelper;
+using SbslFileTransformer.Models;
 
 namespace SbslFileTransformer.Infrastructure.Helpers
 {
@@ -18,8 +18,8 @@ namespace SbslFileTransformer.Infrastructure.Helpers
         public static DateTime GetLastBusinessDayOfMonth(DateTime date)
         {
             //exclude holidays https://stackoverflow.com/questions/273048/how-to-determine-the-last-business-day-in-a-given-month
-            var holidays = new List<DateTime> {/* list of observed holidays */};
-            DateTime lastBusinessDay = new DateTime();
+            var holidays = new List<DateTime>();
+            var lastBusinessDay = new DateTime();
             var i = DateTime.DaysInMonth(date.Year, date.Month);
             while (i > 0)
             {

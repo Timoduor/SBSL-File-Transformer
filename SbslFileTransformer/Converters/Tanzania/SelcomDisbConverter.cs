@@ -1,10 +1,10 @@
-﻿using CsvHelper;
-using HtmlAgilityPack;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using CsvHelper;
+using HtmlAgilityPack;
 
 namespace SbslFileTransformer.Converters.Tanzania
 {
@@ -17,19 +17,19 @@ namespace SbslFileTransformer.Converters.Tanzania
 
         public void ConvertFile(string inputFile, string outputFile = "")
         {
-            List<B2WSelcomBalCols> list = new List<B2WSelcomBalCols>();
+            var list = new List<B2WSelcomBalCols>();
 
             var content = File.ReadAllText(inputFile);
 
-            HtmlDocument doc = new HtmlDocument();
+            var doc = new HtmlDocument();
 
             doc.LoadHtml(content);
 
-            foreach (HtmlNode table in doc.DocumentNode.SelectNodes("//table"))
+            foreach (var table in doc.DocumentNode.SelectNodes("//table"))
             {
-                int count = 0;
+                var count = 0;
 
-                foreach (HtmlNode row in table.SelectNodes("tr"))
+                foreach (var row in table.SelectNodes("tr"))
                 {
                     if (count <= 0)
                     {
@@ -41,18 +41,14 @@ namespace SbslFileTransformer.Converters.Tanzania
 
                     var dateString = row.SelectNodes("td")[0].InnerText;
 
-                    if (DateTime.TryParseExact(dateString, "M/dd/yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime resultDate))
-                    {
+                    if (DateTime.TryParseExact(dateString, "M/dd/yyyy HH:mm", CultureInfo.InvariantCulture,
+                        DateTimeStyles.None, out var resultDate))
                         selcomRow.Date = resultDate;
-                    }
-                    else if (DateTime.TryParseExact(dateString, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
-                    {
+                    else if (DateTime.TryParseExact(dateString, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture,
+                        DateTimeStyles.None, out var result))
                         selcomRow.Date = result;
-                    }
                     else
-                    {
                         continue;
-                    }
 
                     //string amountString = row.SelectNodes("td")[9].InnerText;
 
@@ -64,9 +60,9 @@ namespace SbslFileTransformer.Converters.Tanzania
 
                     selcomRow.TransType = row.SelectNodes("td")[2].InnerText;
 
-                    string amountString2 = row.SelectNodes("td")[3].InnerText;
+                    var amountString2 = row.SelectNodes("td")[3].InnerText;
 
-                    string amount2 = string.IsNullOrEmpty(amountString2) ? "0" : amountString2;
+                    var amount2 = string.IsNullOrEmpty(amountString2) ? "0" : amountString2;
 
                     selcomRow.Amount = amount2;
 
@@ -78,9 +74,9 @@ namespace SbslFileTransformer.Converters.Tanzania
 
                     selcomRow.TransID = row.SelectNodes("td")[7].InnerText;
 
-                    string amountString3 = row.SelectNodes("td")[8].InnerText;
+                    var amountString3 = row.SelectNodes("td")[8].InnerText;
 
-                    string amount3 = string.IsNullOrEmpty(amountString3) ? "0" : amountString3;
+                    var amount3 = string.IsNullOrEmpty(amountString3) ? "0" : amountString3;
 
                     selcomRow.OBal = amount3;
 
@@ -96,7 +92,8 @@ namespace SbslFileTransformer.Converters.Tanzania
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_SELC_DISB_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_SELC_DISB_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
             ConvertToCsvFile(list, inputFile, outputFile);
@@ -111,7 +108,8 @@ namespace SbslFileTransformer.Converters.Tanzania
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
 
@@ -130,6 +128,7 @@ namespace SbslFileTransformer.Converters.Tanzania
                 }
             }
         }
+
         private class B2WSelcomBalCols
         {
             public DateTime Date { get; set; }
@@ -140,10 +139,9 @@ namespace SbslFileTransformer.Converters.Tanzania
             public string UtilityReference { get; set; }
             public string Reference { get; set; }
             public string TransID { get; set; }
+
             public string OBal { get; set; }
             //public string CBal { get; set; }
-
         }
     }
-
 }

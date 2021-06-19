@@ -8,10 +8,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
         {
             try
             {
-                if (serialDate > 59)
-                {
-                    serialDate -= 1; //Excel/Lotus 2/29/1900 bug
-                }
+                if (serialDate > 59) serialDate -= 1; //Excel/Lotus 2/29/1900 bug
                 date = new DateTime(1899, 12, 31).AddDays(serialDate);
                 return true;
             }
@@ -20,7 +17,6 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                 date = default;
                 return false;
             }
-
         }
     }
 }

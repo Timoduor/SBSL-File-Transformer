@@ -1,12 +1,12 @@
-﻿using CsvHelper;
-using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using CsvHelper;
+using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Converters.KenSwitch
 {
@@ -15,9 +15,7 @@ namespace SbslFileTransformer.Converters.KenSwitch
         public void ConverterKenSwitchFile(string inputFile, string outputFolder = null)
         {
             if (string.IsNullOrEmpty(outputFolder))
-            {
                 outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
-            }
 
             var text = SbslPdfReader.GetTextFromPDF(inputFile);
 
@@ -27,34 +25,27 @@ namespace SbslFileTransformer.Converters.KenSwitch
 
             KenSwitchRec rec = null;
 
-            KenSwitchFileType ksType = KenSwitchFileType.ClientDebitActivity;
+            var ksType = KenSwitchFileType.ClientDebitActivity;
 
-            string AcquirerIssuer = string.Empty;
-            string TerminalId = string.Empty;
-            string NameLocation = string.Empty;
+            var AcquirerIssuer = string.Empty;
+            var TerminalId = string.Empty;
+            var NameLocation = string.Empty;
 
             if (lines.Any(l => l.Contains("Client Debit Activity", StringComparison.OrdinalIgnoreCase)))
-            {
                 ksType = KenSwitchFileType.ClientDebitActivity;
-            }
 
             if (lines.Any(l => l.Contains("ATM Activity", StringComparison.OrdinalIgnoreCase)))
-            {
                 ksType = KenSwitchFileType.ATMActivity;
-            }
 
-            for (int i = 0; i < lines.Length; i++)
+            for (var i = 0; i < lines.Length; i++)
             {
-                if (lines[i].Contains("Acquirer:", StringComparison.OrdinalIgnoreCase) || lines[i].Contains("Issuer:", StringComparison.OrdinalIgnoreCase))
+                if (lines[i].Contains("Acquirer:", StringComparison.OrdinalIgnoreCase) ||
+                    lines[i].Contains("Issuer:", StringComparison.OrdinalIgnoreCase))
                 {
                     if (lines[i].Split(" ").Length > 1)
-                    {
                         AcquirerIssuer = lines[i].Split(" ")[1];
-                    }
                     else
-                    {
                         AcquirerIssuer = lines[i - 1];
-                    }
                 }
 
                 if (lines[i].Contains("Terminal Id", StringComparison.OrdinalIgnoreCase))
@@ -84,7 +75,8 @@ namespace SbslFileTransformer.Converters.KenSwitch
                     }
                 }
 
-                if (Regex.IsMatch(lines[i].Split(" ", StringSplitOptions.RemoveEmptyEntries)[0], @"^\d{2}\/\d{2}\/\d{4}$") && lines[i].Split(" ").Length >= 7)
+                if (Regex.IsMatch(lines[i].Split(" ", StringSplitOptions.RemoveEmptyEntries)[0],
+                    @"^\d{2}\/\d{2}\/\d{4}$") && lines[i].Split(" ").Length >= 7)
                 {
                     rec = new KenSwitchRec();
 
@@ -109,6 +101,7 @@ namespace SbslFileTransformer.Converters.KenSwitch
                                 //rec.PartRev = parts[8];
                                 rec.Amount = parts[5];
                             }
+
                             if (parts.Count() == 7)
                             {
                                 rec.Date = parts[0];
@@ -135,6 +128,7 @@ namespace SbslFileTransformer.Converters.KenSwitch
                                 //rec.PartRev = parts[8];
                                 rec.Amount = parts[6];
                             }
+
                             if (parts.Count() == 8)
                             {
                                 rec.Date = parts[0];
@@ -164,6 +158,7 @@ namespace SbslFileTransformer.Converters.KenSwitch
                                 //rec.PartRev = parts[8];
                                 rec.Amount = parts[5];
                             }
+
                             if (parts.Count() == 7)
                             {
                                 rec.Date = parts[0];
@@ -177,6 +172,7 @@ namespace SbslFileTransformer.Converters.KenSwitch
                                 //rec.PartRev = parts[8];
                                 rec.Amount = parts[6];
                             }
+
                             if (parts.Count() == 8)
                             {
                                 rec.Date = parts[0];
@@ -190,6 +186,7 @@ namespace SbslFileTransformer.Converters.KenSwitch
                                 //rec.PartRev = parts[7];
                                 rec.Amount = parts[7];
                             }
+
                             break;
                     }
 
@@ -201,7 +198,9 @@ namespace SbslFileTransformer.Converters.KenSwitch
 
             var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-            WriteToFile(outputLines, Path.Combine(outputFolder, $"{DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss")}_KS_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.csv"));
+            WriteToFile(outputLines,
+                Path.Combine(outputFolder,
+                    $"{DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss")}_KS_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.csv"));
 
             Thread.Sleep(1000);
         }
@@ -223,6 +222,5 @@ namespace SbslFileTransformer.Converters.KenSwitch
                 }
             }
         }
-
     }
 }
