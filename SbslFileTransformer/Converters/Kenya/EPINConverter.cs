@@ -1,9 +1,9 @@
-﻿using CsvHelper;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using CsvHelper;
 
 namespace SbslFileTransformer.Converters
 {
@@ -11,7 +11,7 @@ namespace SbslFileTransformer.Converters
     {
         public void ConvertFile(string inputFile, string outputFile = null)
         {
-            var rowFilter = new string[] { "0500", "0700", "0600", "0620", "2500", "2700" }.ToList();
+            var rowFilter = new[] {"0500", "0700", "0600", "0620", "2500", "2700"}.ToList();
 
             var lines = File.ReadAllLines(inputFile).ToList();
 
@@ -38,7 +38,7 @@ namespace SbslFileTransformer.Converters
                     Code3 = line.Substring(132, 14),
                     Details = line.Substring(146, 13),
                     Code4 = line.Substring(159, 2),
-                    Code5 = line.Substring(161, 7),
+                    Code5 = line.Substring(161, 7)
                 };
 
                 records.Add(record);
@@ -52,7 +52,8 @@ namespace SbslFileTransformer.Converters
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_Epin_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.csv");
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_Epin_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.csv");
             }
 
             WriteToFile(records, outputFile);

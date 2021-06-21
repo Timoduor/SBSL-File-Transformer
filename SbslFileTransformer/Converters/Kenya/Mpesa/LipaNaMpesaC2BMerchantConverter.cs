@@ -1,19 +1,19 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using ExcelDataReader;
-using SbslFileTransformer.Infrastructure.Jobs.Converters;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CsvHelper;
+using CsvHelper.Configuration;
+using ExcelDataReader;
+using SbslFileTransformer.Infrastructure.Jobs.Converters;
 
 namespace SbslFileTransformer.Converters.Kenya
 {
     public class LipaNaMpesaC2BMerchantConverter
     {
-        string _entity;//might be need for balance files generated later
+        private string _entity; //might be need for balance files generated later
 
         public LipaNaMpesaC2BMerchantConverter(string entity)
         {
@@ -28,8 +28,9 @@ namespace SbslFileTransformer.Converters.Kenya
 
             using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                IExcelDataReader reader = ExcelReaderFactory.CreateCsvReader(stream, new ExcelReaderConfiguration {
-                    AutodetectSeparators = new[] { '\t' }
+                var reader = ExcelReaderFactory.CreateCsvReader(stream, new ExcelReaderConfiguration
+                {
+                    AutodetectSeparators = new[] {'\t'}
                 });
 
                 using (reader)
@@ -39,13 +40,9 @@ namespace SbslFileTransformer.Converters.Kenya
 
                     while (reader.Read())
                     {
-
                         var value = reader.GetValue(0)?.ToString();
 
-                        if (string.IsNullOrEmpty(value))
-                        {
-                            continue;
-                        }
+                        if (string.IsNullOrEmpty(value)) continue;
                         var row = new MPesaCols();
 
                         row.Col0 = reader.GetValue(0)?.ToString().Replace("\n", "").Replace("\r", "");
@@ -74,22 +71,17 @@ namespace SbslFileTransformer.Converters.Kenya
 
                         row.Col12 = reader.GetValue(12)?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        if (string.IsNullOrEmpty(row.Col7))
-                        {
-                            row.Col7 = "0";
-                        }
+                        if (string.IsNullOrEmpty(row.Col7)) row.Col7 = "0";
 
-                        if (string.IsNullOrEmpty(row.Col8))
-                        {
-
-                            row.Col8 = "0";
-                        }
+                        if (string.IsNullOrEmpty(row.Col8)) row.Col8 = "0";
 
                         list.Add(row);
                     }
                 }
 
-                var maxRecs = list.GroupBy(l => l.Col0).Select(x => x.First()); //last balance record for each short code MIGHT NEED TO SKIP HEADER ROW
+                var maxRecs =
+                    list.GroupBy(l => l.Col0)
+                        .Select(x => x.First()); //last balance record for each short code MIGHT NEED TO SKIP HEADER ROW
             }
 
             if (string.IsNullOrEmpty(outputFile))
@@ -99,7 +91,8 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_C2B_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.txt");
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_C2B_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.txt");
             }
 
             WriteToFile(list, outputFile);
@@ -109,9 +102,9 @@ namespace SbslFileTransformer.Converters.Kenya
         {
             using (var writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture) {
-                    Delimiter = "\t",
-
+                using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture)
+                {
+                    Delimiter = "\t"
                 }))
                 {
                     foreach (var row in rows)

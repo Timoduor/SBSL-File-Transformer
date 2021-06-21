@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Models;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Controllers
 {
@@ -31,9 +31,9 @@ namespace SbslFileTransformer.Controllers
         {
             ViewBag.Entities = new SelectList(new Dictionary<string, string>
             {
-                { "IMKE", "IMKE" },
-                { "IMRW", "IMRW" },
-                { "IMTZ", "IMTZ" },
+                {"IMKE", "IMKE"},
+                {"IMRW", "IMRW"},
+                {"IMTZ", "IMTZ"}
             }.Select(v => new SelectListItem
             {
                 Text = v.Key.ToString(),
@@ -52,7 +52,7 @@ namespace SbslFileTransformer.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    @ViewBag.Message = "Invalid values entered!";
+                    ViewBag.Message = "Invalid values entered!";
 
                     return View(acc);
                 }
@@ -74,9 +74,9 @@ namespace SbslFileTransformer.Controllers
         {
             ViewBag.Entities = new SelectList(new Dictionary<string, string>
             {
-                { "IMKE", "IMKE" },
-                { "IMRW", "IMRW" },
-                { "IMTZ", "IMTZ" },
+                {"IMKE", "IMKE"},
+                {"IMRW", "IMRW"},
+                {"IMTZ", "IMTZ"}
             }.Select(v => new SelectListItem
             {
                 Text = v.Key.ToString(),
@@ -97,7 +97,7 @@ namespace SbslFileTransformer.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    @ViewBag.Message = "Invalid values entered!";
+                    ViewBag.Message = "Invalid values entered!";
 
                     return View("Update", acc);
                 }

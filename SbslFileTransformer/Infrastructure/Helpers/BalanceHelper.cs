@@ -5,13 +5,10 @@
     {
         public static void GenerateMultiCurrFile(string outputFile)
         {
-
         }
 
         public static void GenerateGLBalanceFile(string outputFile)
         {
-
         }
-
     }
 }

@@ -1,22 +1,24 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Renci.SshNet;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Sftp;
 using SbslFileTransformer.Models;
-using System;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
+using SbslFileTransformer.Models.Enums;
 
 namespace SbslFileTransformer.Infrastructure.Helpers
 {
     public static class FileHelpers
     {
+        private static readonly object _locker = new object();
+
         public static void RestartService(string serviceName)
         {
             //https://stackoverflow.com/questions/28431621/how-to-restart-windows-service-by-itself-c-sharp
@@ -25,16 +27,14 @@ namespace SbslFileTransformer.Infrastructure.Helpers
             Environment.Exit(1);
         }
 
-        static object _locker = new object();
-
         public static bool UploadFileToSftp(string filePath, string md5, bool isProduction, string relativePath,
-            string accountNo, string statementNo, string sequenceNo, IServiceScopeFactory serviceScopeFactory, ILogger logger, SftpClient client)
+            string accountNo, string statementNo, string sequenceNo, IServiceScopeFactory serviceScopeFactory,
+            ILogger logger, SftpClient client)
         {
             lock (_locker)
             {
                 try
                 {
-
                     var previouslyUploaded = FileHasBeenUploadedBefore(filePath, isProduction, serviceScopeFactory);
 
                     if (previouslyUploaded.Item2)
@@ -49,11 +49,13 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                     {
                         var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                        var useUnicode = Convert.ToBoolean(dbContext.Configurations.FirstOrDefault(u => u.ConfigType == Models.Enums.ConfigurationType.Sftp && u.Key == "UseUnicode").Value);
+                        var useUnicode = Convert.ToBoolean(dbContext.Configurations
+                            .FirstOrDefault(u => u.ConfigType == ConfigurationType.Sftp && u.Key == "UseUnicode")
+                            .Value);
 
                         var sftpManager = scope.ServiceProvider.GetService<SftpManager>();
 
-                        string remotePath = isProduction ? "/PROD/" : "/SB/";
+                        var remotePath = isProduction ? "/PROD/" : "/SB/";
 
                         //connecting to local cygwin SFTP server
                         if (useUnicode)
@@ -86,12 +88,9 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
                             return true;
                         }
-                        else
-                        {
-                            logger.LogWarning($"Failed to upload file {filePath}");
-                        }
-                    }
 
+                        logger.LogWarning($"Failed to upload file {filePath}");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -102,23 +101,23 @@ namespace SbslFileTransformer.Infrastructure.Helpers
             }
         }
 
-        public static (string, bool) FileHasBeenUploadedBefore(string filePath, bool isProduction, IServiceScopeFactory serviceScopeFactory)
+        public static (string, bool) FileHasBeenUploadedBefore(string filePath, bool isProduction,
+            IServiceScopeFactory serviceScopeFactory)
         {
             lock (_locker)
             {
-                string md5 = GetMd5(filePath);
-                string name = Path.GetFileName(filePath);
+                var md5 = GetMd5(filePath);
+                var name = Path.GetFileName(filePath);
 
                 using (var scope = serviceScopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
                     //check if md5/filename exists
-                    if (dbContext.UploadedFiles.Any(f => f.Md5.ToUpper() == md5.ToUpper() || f.Name.ToLower() == name.ToLower()))
-                    {
-                        return (md5, true);
-                    }
+                    if (dbContext.UploadedFiles.Any(f =>
+                        f.Md5.ToUpper() == md5.ToUpper() || f.Name.ToLower() == name.ToLower())) return (md5, true);
                 }
+
                 return (md5, false);
             }
         }
@@ -140,19 +139,19 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
         public static async Task<string> GetTempPath(IServiceScopeFactory serviceScopeFactory)
         {
-            string backUpFolder = @"C:\SBSLETL_DbBackup";
+            var backUpFolder = @"C:\SBSLETL_DbBackup";
 
             using (var scope = serviceScopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
                 backUpFolder = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
-                                   b.ConfigType == Models.Enums.ConfigurationType.Sftp && b.Key == "BackUpFolder"))
+                                   b.ConfigType == ConfigurationType.Sftp && b.Key == "BackUpFolder"))
                                ?.Value ??
                                backUpFolder;
             }
 
-            string tempFolderDirectory = Path.Combine(backUpFolder, "SBSLETL_Temp");
+            var tempFolderDirectory = Path.Combine(backUpFolder, "SBSLETL_Temp");
 
             if (!Directory.Exists(tempFolderDirectory))
                 Directory.CreateDirectory(tempFolderDirectory);
@@ -160,6 +159,4 @@ namespace SbslFileTransformer.Infrastructure.Helpers
             return tempFolderDirectory;
         }
     }
-
-
 }

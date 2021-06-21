@@ -1,4 +1,12 @@
-﻿using CsvHelper;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
+using CsvHelper;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
@@ -8,13 +16,6 @@ using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 {
@@ -28,9 +29,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
                 var encryptionManager = scope.ServiceProvider.GetService<EncryptionManager>();
 
-                var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Report).ToList();
+                var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Report)
+                    .ToList();
 
-                var userLogins = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.ReportUser).ToList();
+                var userLogins = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.ReportUser)
+                    .ToList();
 
                 var config = new ReportConfigModel
                 {
@@ -43,21 +46,19 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                     Scope = configurations.FirstOrDefault(c => c.Key == "Scope")?.Value,
                     TokenUrl = configurations.FirstOrDefault(c => c.Key == "TokenUrl")?.Value,
                     ClientId = configurations.FirstOrDefault(c => c.Key == "ClientId")?.Value,
-                    ClientSecret = configurations.FirstOrDefault(c => c.Key == "ClientSecret")?.Value,
+                    ClientSecret = configurations.FirstOrDefault(c => c.Key == "ClientSecret")?.Value
                 };
 
                 config.UserNamesAndPasswords = new Dictionary<string, string>();
 
-                foreach (var login in userLogins)
-                {
-                    config.UserNamesAndPasswords.Add(login.Key, login.Value);
-                }
+                foreach (var login in userLogins) config.UserNamesAndPasswords.Add(login.Key, login.Value);
 
                 return config;
             }
         }
+
         /// <summary>
-        /// Download individual report using the report's ID and save to the specified path
+        ///     Download individual report using the report's ID and save to the specified path
         /// </summary>
         /// <param name="reportId"></param>
         /// <param name="config"></param>
@@ -65,16 +66,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
         /// <param name="token"></param>
         /// <param name="logger"></param>
         /// <returns></returns>
-        public async Task<bool> DownloadReport(long reportId, ReportConfigModel config, string savePath, string token, ILogger<ScheduledReporterJob> logger)
+        public async Task<bool> DownloadReport(long reportId, ReportConfigModel config, string savePath, string token,
+            ILogger<ScheduledReporterJob> logger)
         {
-            var reportToDownload = @$"https://{config.EnvironmentUrl}.{config.BaseUrl}/completedqueryrun/{reportId}/{config.ExportType}";
+            var reportToDownload =
+                @$"https://{config.EnvironmentUrl}.{config.BaseUrl}/completedqueryrun/{reportId}/{config.ExportType}";
             try
             {
                 using (var client = new HttpClient())
                 {
                     client.Timeout = TimeSpan.FromMinutes(10);
 
-                    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                     var response = await client.GetAsync(reportToDownload);
 
@@ -99,8 +102,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
             return false;
         }
+
         /// <summary>
-        /// Get DateTime from Excel serial date value
+        ///     Get DateTime from Excel serial date value
         /// </summary>
         /// <param name="SerialDate"></param>
         /// <returns></returns>
@@ -109,26 +113,28 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             if (SerialDate > 59) SerialDate -= 1; //Excel/Lotus 2/29/1900 bug
             return new DateTime(1899, 12, 31).AddDays(SerialDate);
         }
+
         /// <summary>
-        /// Create a CSV file from the list of open items already grouped by days overdue
+        ///     Create a CSV file from the list of open items already grouped by days overdue
         /// </summary>
         /// <param name="items"></param>
         /// <param name="serviceScopeFactory"></param>
         /// <returns></returns>
-        public async Task<Dictionary<int, string>> CreateCsvFile(Dictionary<int, List<OpenItem>> items, IServiceScopeFactory serviceScopeFactory)
+        public async Task<Dictionary<int, string>> CreateCsvFile(Dictionary<int, List<OpenItem>> items,
+            IServiceScopeFactory serviceScopeFactory)
         {
             var dict = new Dictionary<int, string>();
 
             foreach (var group in items)
             {
-
-                var tempFilePath = Path.Combine(await FileHelpers.GetTempPath(serviceScopeFactory), DateTime.Now.ToString("yyyy_MM_dd_") + group.Key + "_Days_Overdue_.csv");
+                var tempFilePath = Path.Combine(await FileHelpers.GetTempPath(serviceScopeFactory),
+                    DateTime.Now.ToString("yyyy_MM_dd_") + group.Key + "_Days_Overdue_.csv");
 
                 using (var writer = new StreamWriter(tempFilePath))
                 {
                     using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                     {
-                        await csv.WriteRecordsAsync(@group.Value);
+                        await csv.WriteRecordsAsync(group.Value);
                     }
                 }
 
@@ -137,29 +143,30 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
             return dict;
         }
+
         /// <summary>
-        /// Get the various email groups based on the criteria returned in pair of days overdue
+        ///     Get the various email groups based on the criteria returned in pair of days overdue
         /// </summary>
         /// <param name="emailGroups"></param>
         /// <param name="daysRange"></param>
         /// <param name="country"></param>
         /// <param name="sprint"></param>
         /// <param name="category"></param>
-        public int[] GetEmailGroupDays(List<EmailGroup> emailGroups, Country country = Country.Kenya, Sprint sprint = Sprint.Nostro, ReportCategory category = ReportCategory.Default)
+        public int[] GetEmailGroupDays(List<EmailGroup> emailGroups, Country country = Country.Kenya,
+            Sprint sprint = Sprint.Nostro, ReportCategory category = ReportCategory.Default)
         {
             var groups = emailGroups.Where(g => g.Country == country && g.Sprint == sprint && g.Category == category);
 
-            if(category == ReportCategory.Default)
-            {
+            if (category == ReportCategory.Default)
                 groups = emailGroups.Where(g => g.Country == country && g.Sprint == sprint);
-            }
 
             var daysRange = groups.OrderBy(g => g.AgeAlertDuration).Select(g => g.AgeAlertDuration).ToArray();
 
             return daysRange;
         }
 
-        public static IEnumerable<string> GetEmails(int duration, Country country, Sprint sprint, ReportCategory category, IServiceScopeFactory serviceScopeFactory)
+        public static IEnumerable<string> GetEmails(int duration, Country country, Sprint sprint,
+            ReportCategory category, IServiceScopeFactory serviceScopeFactory)
         {
             var emails = new List<string>();
 
@@ -167,37 +174,37 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             {
                 var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                var groups = dbContext.EmailGroups.Where(g => g.AgeAlertDuration == duration && g.Country == country && g.Sprint == sprint && g.Category == category && g.IsActive);
+                var groups = dbContext.EmailGroups.Where(g =>
+                    g.AgeAlertDuration == duration && g.Country == country && g.Sprint == sprint &&
+                    g.Category == category && g.IsActive);
 
-                if(category == ReportCategory.Default)
-                {
-                    groups = dbContext.EmailGroups.Where(g => g.AgeAlertDuration == duration && g.Country == country && g.Sprint == sprint && g.IsActive);
-                }
+                if (category == ReportCategory.Default)
+                    groups = dbContext.EmailGroups.Where(g =>
+                        g.AgeAlertDuration == duration && g.Country == country && g.Sprint == sprint && g.IsActive);
 
                 var groupEmails = groups.ToList().Select(g => g.Emails);
 
                 foreach (var group in groupEmails)
-                {
-                    emails.AddRange(group.Split(new[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries));
-                }
+                    emails.AddRange(@group.Split(new[] {',', '\r', '\n'}, StringSplitOptions.RemoveEmptyEntries));
 
                 return emails;
             }
         }
+
         /// <summary>
-        /// Get login tokens for downloading reports from blackline
+        ///     Get login tokens for downloading reports from blackline
         /// </summary>
         /// <param name="config"></param>
         /// <param name="logger"></param>
         /// <returns></returns>
-        public static async Task<List<string>> GetLoginTokens(ReportConfigModel config, ILogger<ScheduledReporterJob> logger)
+        public static async Task<List<string>> GetLoginTokens(ReportConfigModel config,
+            ILogger<ScheduledReporterJob> logger)
         {
             var tokens = new List<string>();
 
             try
             {
                 foreach (var user in config.UserNamesAndPasswords)
-                {
                     using (var client = new HttpClient())
                     {
                         client.Timeout = TimeSpan.FromMinutes(10);
@@ -209,7 +216,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                             new KeyValuePair<string, string>("username", user.Key),
                             new KeyValuePair<string, string>("password", user.Value),
                             new KeyValuePair<string, string>("client_id", config.ClientId),
-                            new KeyValuePair<string, string>("client_secret", config.ClientSecret),
+                            new KeyValuePair<string, string>("client_secret", config.ClientSecret)
                         };
 
                         var formdata = new FormUrlEncodedContent(content);
@@ -222,26 +229,27 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
                             var data = JObject.Parse(respContent);
 
-                            tokens.Add((string)data.SelectToken("access_token"));
+                            tokens.Add((string) data.SelectToken("access_token"));
                         }
-
                     }
-                }
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, ex.Message);
             }
+
             return tokens;
         }
+
         /// <summary>
-        /// Get latest reports from blackline website
+        ///     Get latest reports from blackline website
         /// </summary>
         /// <param name="config"></param>
         /// <param name="token"></param>
         /// <param name="logger"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<ReportModel>> GetRecentReports(ReportConfigModel config, string token, ILogger<ScheduledReporterJob> logger)
+        public static async Task<IEnumerable<ReportModel>> GetRecentReports(ReportConfigModel config, string token,
+            ILogger<ScheduledReporterJob> logger)
         {
             var reportsUrl = @$"https://{config.EnvironmentUrl}.{config.BaseUrl}/queryruns";
 
@@ -253,7 +261,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                 {
                     client.Timeout = TimeSpan.FromMinutes(10);
 
-                    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                     var response = await client.GetAsync(reportsUrl);
 
@@ -264,7 +272,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                         dynamic data = JArray.Parse(result);
 
                         foreach (var item in data)
-                        {
                             reports.Add(new ReportModel
                             {
                                 Creator = item.creatorFirstAndLastName,
@@ -277,7 +284,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                                 Status = item.status,
                                 UserToken = token
                             });
-                        }
                     }
                 }
             }
@@ -290,7 +296,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
         }
 
         /// <summary>
-        /// changes the balance value in the Tanzania clearing suspense balance proofing report (* -1)
+        ///     changes the balance value in the Tanzania clearing suspense balance proofing report (* -1)
         /// </summary>
         /// <param name="inputFile"></param>
         /// <returns>Adjusted file path</returns>
@@ -298,7 +304,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
         {
             var inputFileName = Path.GetFileName(inputFile);
 
-            var outputFilePath = Path.Combine(await FileHelpers.GetTempPath(_serviceScopeFactory), "Adj_" + inputFileName);
+            var outputFilePath =
+                Path.Combine(await FileHelpers.GetTempPath(_serviceScopeFactory), "Adj_" + inputFileName);
 
             using (var package = new ExcelPackage(new FileInfo(inputFile)))
             {
@@ -308,18 +315,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                 var end = sheet.Dimension.End;
 
                 for (var i = start.Row + 5; i <= end.Row; i++)
-                {
-                    if (double.TryParse(sheet.Cells[$"E{i}"].Value.ToString(), out double result))
-                    {
+                    if (double.TryParse(sheet.Cells[$"E{i}"].Value.ToString(), out var result))
                         sheet.Cells[$"E{i}"].Value = (-1 * result).ToString("N2");
-                    }
-                }
 
                 await package.SaveAsAsync(new FileInfo(outputFilePath));
             }
 
             return outputFilePath;
         }
-
     }
 }

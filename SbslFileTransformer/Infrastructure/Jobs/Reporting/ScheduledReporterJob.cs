@@ -1,4 +1,12 @@
-﻿using ExcelDataReader;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using ExcelDataReader;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -8,20 +16,13 @@ using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 {
     public partial class ScheduledReporterJob : ConverterJobBase<ScheduledReporterJob>, IHostedService
     {
-        public ScheduledReporterJob(ILogger<ScheduledReporterJob> logger, EmailSender emailSender, IServiceScopeFactory serviceScopeFactory)
+        public ScheduledReporterJob(ILogger<ScheduledReporterJob> logger, EmailSender emailSender,
+            IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;
             _emailSender = emailSender;
@@ -34,14 +35,20 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async (state) => await ProcessNewReports(), null, TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await ProcessNewReports(), null,
+                TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
+        public async Task StopAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogWarning("Scheduled reporter has been stopped");
+            await _timer.DisposeAsync();
+        }
+
         private async Task ProcessNewReports()
         {
-
             try
             {
                 await _semaphore.WaitAsync();
@@ -58,7 +65,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
                 foreach (var token in tokens)
                 {
-
                     var allReports = (await GetRecentReports(config, token, _logger)).ToList();
 
                     _logger.LogInformation($"Fetched {allReports.Count} reports for user {token}");
@@ -71,10 +77,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
                         foreach (var report in allReports)
                         {
-                            if (dbContext.ProcessedReports.Any(r => r.ReportId == report.ReportId))
-                            {
-                                continue;
-                            }
+                            if (dbContext.ProcessedReports.Any(r => r.ReportId == report.ReportId)) continue;
 
                             _logger.LogInformation($"Processing report {report.Name} with ID {report.ReportId}");
 
@@ -82,12 +85,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                                 $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{report.Name}." +
                                 (config.ExportType == "Excel" ? "xlsx" : config.ExportType));
 
-                            var entity = dbContext.Configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
+                            var entity = dbContext.Configurations.FirstOrDefault(c =>
+                                c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
 
                             //if category does not exist set it to default and ignore it in the select filters after
                             SetReportFilters(report, entity);
 
-                            var daysRange = GetEmailGroupDays(emailGroups, report.Country, report.Sprint, report.Category);
+                            var daysRange = GetEmailGroupDays(emailGroups, report.Country, report.Sprint,
+                                report.Category);
 
                             await DownloadReportAndSendEmails(config, token, dbContext, report, reportPath, daysRange);
                         }
@@ -104,7 +109,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             }
         }
 
-        private async Task DownloadReportAndSendEmails(ReportConfigModel config, string token, ApplicationDbContext dbContext, ReportModel report, string reportPath, int[] daysRange)
+        private async Task DownloadReportAndSendEmails(ReportConfigModel config, string token,
+            ApplicationDbContext dbContext, ReportModel report, string reportPath, int[] daysRange)
         {
             try
             {
@@ -119,16 +125,19 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                         foreach (var key in results.Item2)
                         {
                             //key is the overdue days used to select the email groups
-                            var emails = GetEmails(key.Key, report.Country, report.Sprint, report.Category, _serviceScopeFactory);
+                            var emails = GetEmails(key.Key, report.Country, report.Sprint, report.Category,
+                                _serviceScopeFactory);
 
                             //ONLY SEND EMAILS IF FILE HAS 1 OR MORE RECORDS
-                            await _emailSender.SendMessage(emails, config.EmailHeader + $" Report ID: { report.ReportId }",
-                                                 config.EmailBody + Environment.NewLine + $"{ key.Key } Days overdue" + Environment.NewLine +
-                                                 $"Report Name {report.Name}" + Environment.NewLine +
-                                                 //$"Report for {country} for {sprint}" + Environment.NewLine +
-                                                 $"Report generated by: {report.Creator}" + Environment.NewLine +
-                                                 $"COMMENTS:- {report.Notes}", false,
-                                                 filePaths: new string[] { results.Item1, key.Value });
+                            await _emailSender.SendMessage(emails,
+                                config.EmailHeader + $" Report ID: {report.ReportId}",
+                                config.EmailBody + Environment.NewLine + $"{key.Key} Days overdue" +
+                                Environment.NewLine +
+                                $"Report Name {report.Name}" + Environment.NewLine +
+                                //$"Report for {country} for {sprint}" + Environment.NewLine +
+                                $"Report generated by: {report.Creator}" + Environment.NewLine +
+                                $"COMMENTS:- {report.Notes}", false,
+                                new[] {results.Item1, key.Value});
 
                             await Task.Delay(7000);
                         }
@@ -141,18 +150,19 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
                             //change signage for Tz B.P. report
                             if (report.Name.ToLower().Contains("tanzania") && report.Name.ToLower().Contains("clearing")
-                                                && report.Name.ToLower().Contains("suspense") && report.Name.ToLower().Contains("proofing"))
-                            {
+                                                                           && report.Name.ToLower()
+                                                                               .Contains("suspense") &&
+                                                                           report.Name.ToLower().Contains("proofing"))
                                 outputFile = await AdjustBalanceValue(results.Item1);
-                            }
 
-                            await _emailSender.SendMessage(GetEmails(r, report.Country, report.Sprint, report.Category), config.EmailHeader,
-                                                config.EmailBody + Environment.NewLine +
-                                                    $"Report Name {report.Name}" + Environment.NewLine +
-                                                    //$"Report for {country} for {sprint}" + Environment.NewLine +
-                                                    $"Report generated by: {report.Creator}" + Environment.NewLine +
-                                                    $"COMMENTS:- {report.Notes}",
-                                                filePaths: new string[] { outputFile });
+                            await _emailSender.SendMessage(GetEmails(r, report.Country, report.Sprint, report.Category),
+                                config.EmailHeader,
+                                config.EmailBody + Environment.NewLine +
+                                $"Report Name {report.Name}" + Environment.NewLine +
+                                //$"Report for {country} for {sprint}" + Environment.NewLine +
+                                $"Report generated by: {report.Creator}" + Environment.NewLine +
+                                $"COMMENTS:- {report.Notes}",
+                                filePaths: new[] {outputFile});
                         }
 
                         await Task.Delay(7000);
@@ -177,20 +187,19 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             {
                 var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                var groups = dbContext.EmailGroups.Where(g => g.AgeAlertDuration == duration && g.Country == country && g.Sprint == sprint && g.Category == category && g.IsActive);
+                var groups = dbContext.EmailGroups.Where(g =>
+                    g.AgeAlertDuration == duration && g.Country == country && g.Sprint == sprint &&
+                    g.Category == category && g.IsActive);
 
                 //no subcategories is provided
-                if(category == ReportCategory.Default)
-                {
-                    groups = dbContext.EmailGroups.Where(g => g.AgeAlertDuration == duration && g.Country == country && g.Sprint == sprint && g.IsActive);
-                }
+                if (category == ReportCategory.Default)
+                    groups = dbContext.EmailGroups.Where(g =>
+                        g.AgeAlertDuration == duration && g.Country == country && g.Sprint == sprint && g.IsActive);
 
                 var groupEmails = groups.ToList().Select(g => g.Emails);
 
                 foreach (var group in groupEmails)
-                {
-                    emails.AddRange(group.Split(new[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries));
-                }
+                    emails.AddRange(group.Split(new[] {',', '\r', '\n'}, StringSplitOptions.RemoveEmptyEntries));
 
                 return emails;
             }
@@ -198,74 +207,41 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
         private static void SetReportFilters(ReportModel report, string entity)
         {
-            Country country = Country.Kenya;
-            Sprint sprint = Sprint.Nostro;
-            ReportCategory category = ReportCategory.Default;
+            var country = Country.Kenya;
+            var sprint = Sprint.Nostro;
+            var category = ReportCategory.Default;
 
-            if (entity == "IMTZ")
-            {
-                country = Country.Tanzania;
-            }
-            if (entity == "IMRW")
-            {
-                country = Country.Rwanda;
-            }
+            if (entity == "IMTZ") country = Country.Tanzania;
+            if (entity == "IMRW") country = Country.Rwanda;
 
             //SET COUNTRY
             //Kenya
-            if (report.Name.ToLower().Contains("kenya"))
-            {
-                country = Country.Kenya;
-            }
+            if (report.Name.ToLower().Contains("kenya")) country = Country.Kenya;
             //Rwanda
-            if (report.Name.ToLower().Contains("rwanda"))
-            {
-                country = Country.Rwanda;
-            }
+            if (report.Name.ToLower().Contains("rwanda")) country = Country.Rwanda;
             //Tanzania
-            if (report.Name.ToLower().Contains("tanzania"))
-            {
-                country = Country.Tanzania;
-            }
+            if (report.Name.ToLower().Contains("tanzania")) country = Country.Tanzania;
 
             //SET SPRINT
 
             //Nostros
-            if (report.Name.ToLower().Contains("nostro"))
-            {
-                sprint = Sprint.Nostro;
-            }
+            if (report.Name.ToLower().Contains("nostro")) sprint = Sprint.Nostro;
             //Mobile banking
-            if (report.Name.ToLower().Contains("mb"))
-            {
-                sprint = Sprint.Mobile_Banking;
-            }
+            if (report.Name.ToLower().Contains("mb")) sprint = Sprint.Mobile_Banking;
             //Cards
-            if (report.Name.ToLower().Contains("cards"))
-            {
-                sprint = Sprint.Cards;
-            }
+            if (report.Name.ToLower().Contains("cards")) sprint = Sprint.Cards;
             //Suspense
-            if (report.Name.ToLower().Contains("suspense"))
-            {
-                sprint = Sprint.Suspense;
-            }
+            if (report.Name.ToLower().Contains("suspense")) sprint = Sprint.Suspense;
             //others
-            if (report.Name.ToLower().Contains("abc"))
-            {
-                sprint = Sprint.ABC;
-            }
+            if (report.Name.ToLower().Contains("abc")) sprint = Sprint.ABC;
 
             //SET CATEGORY
 
             foreach (int val in Enum.GetValues(typeof(ReportCategory)))
             {
-                var checkVals = EnumHelpers.GetDescriptors((ReportCategory)val);
+                var checkVals = EnumHelpers.GetDescriptors((ReportCategory) val);
 
-                if(checkVals.All(x => report.Name.ToLower().Contains(x.ToLower())))
-                {
-                    category = (ReportCategory)val;
-                }
+                if (checkVals.All(x => report.Name.ToLower().Contains(x.ToLower()))) category = (ReportCategory) val;
             }
 
             report.Category = category;
@@ -294,7 +270,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
         }
 
         /// <summary>
-        /// Process the content in the downloaded report file
+        ///     Process the content in the downloaded report file
         /// </summary>
         /// <param name="savedFile"></param>
         /// <returns>List of key: email group name and value: list of files to send to them</returns>
@@ -310,23 +286,21 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             {
                 using (var reader = ExcelReaderFactory.CreateReader(stream))
                 {
-                    string lastAccountNo = string.Empty;
+                    var lastAccountNo = string.Empty;
 
                     while (reader.Read())
                     {
                         var col3 = reader.GetValue(3)?.ToString();
-                        if (string.IsNullOrEmpty(col3))
-                        {
-                            continue;
-                        }
+                        if (string.IsNullOrEmpty(col3)) continue;
 
                         DateTime postedDate;
 
                         if (DateTime.TryParse(col3, out postedDate))
-                        {
                             try
                             {
-                                int daysOverdue = Convert.ToInt32((DateTime.Now - postedDate).TotalDays);//datetime.now should be max posted date
+                                var daysOverdue =
+                                    Convert.ToInt32((DateTime.Now - postedDate)
+                                        .TotalDays); //datetime.now should be max posted date
 
                                 var openItem = new OpenItem
                                 {
@@ -347,7 +321,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                                     Reference3 = reader.GetValue(12)?.ToString(),
                                     TheyBalance = reader.GetValue(7)?.ToString(),
                                     TransNarrative = reader.GetValue(9)?.ToString(),
-                                    WeBalance = reader.GetValue(6)?.ToString(),
+                                    WeBalance = reader.GetValue(6)?.ToString()
                                 };
 
                                 openItems.Add(openItem);
@@ -356,23 +330,19 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                             {
                                 _logger.LogError(ex, ex.Message);
                             }
-                        }
                     }
                 }
             }
 
-            for (int i = 0; i < daysRange.Length; i++)
+            for (var i = 0; i < daysRange.Length; i++)
             {
                 List<OpenItem> items;
 
                 if (i + 1 < daysRange.Length)
-                {
-                    items = openItems.Where(it => it.DaysOverdue >= daysRange[i] && it.DaysOverdue < daysRange[i + 1]).ToList();
-                }
+                    items = openItems.Where(it => it.DaysOverdue >= daysRange[i] && it.DaysOverdue < daysRange[i + 1])
+                        .ToList();
                 else
-                {
                     items = openItems.Where(it => it.DaysOverdue >= daysRange[i]).ToList();
-                }
 
                 daysRecordsPairs.Add(daysRange[i], items);
             }
@@ -380,37 +350,30 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             var agingExcel = await CreateModifiedAgingExcel(inputFile, daysRange);
 
             if (daysRecordsPairs.Any())
-            {
                 return (agingExcel, await CreateCsvFile(daysRecordsPairs, _serviceScopeFactory));
-            }
-            else
-            {
-                return (inputFile, new Dictionary<int, string>());
-            }
+            return (inputFile, new Dictionary<int, string>());
         }
 
         private async Task<string> CreateModifiedAgingExcel(string inputFile, int[] daysRange)
         {
             var inputFileName = Path.GetFileName(inputFile);
 
-            var outputFilePath = Path.Combine(await FileHelpers.GetTempPath(_serviceScopeFactory), "Aged_" + inputFileName);
+            var outputFilePath =
+                Path.Combine(await FileHelpers.GetTempPath(_serviceScopeFactory), "Aged_" + inputFileName);
 
             using (var package = new ExcelPackage(new FileInfo(inputFile)))
             {
                 var sheet = package.Workbook.Worksheets.First();
 
-                int maxDateInt = 0;
+                var maxDateInt = 0;
 
-                DateTime maxDate = DateTime.Now;
+                var maxDate = DateTime.Now;
 
                 try
                 {
                     maxDateInt = sheet.Cells["D:D"].Max(c =>
                     {
-                        if (int.TryParse(c.Value?.ToString(), out int result))
-                        {
-                            return result;
-                        }
+                        if (int.TryParse(c.Value?.ToString(), out var result)) return result;
 
                         return 0;
                     });
@@ -438,7 +401,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                 {
                     var dateFromExcel = sheet.Cells[$"D{i}"].Value?.ToString();
 
-                    if (dateFromExcel != null && int.TryParse(dateFromExcel, out int dateInt))
+                    if (dateFromExcel != null && int.TryParse(dateFromExcel, out var dateInt))
                     {
                         var outputDate = FromExcelSerialDate(dateInt);
 
@@ -451,27 +414,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
 
                         if (daysRange.Length >= 2 && diff >= daysRange[0] && diff <= daysRange[1])
-                        {
                             sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.GreenYellow);
-                        }
 
                         if (daysRange.Length >= 3 && diff > daysRange[1] && diff <= daysRange[2])
-                        {
                             sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.RosyBrown);
-                        }
 
                         if (daysRange.Length >= 4 && diff > daysRange[2] && diff <= daysRange[3])
-                        {
                             sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Yellow);
-                        }
 
-                        if (diff > 30)
-                        {
-                            sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Red);
-                        }
-
+                        if (diff > 30) sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Red);
                     }
-
                 }
 
                 //save new excel
@@ -479,12 +431,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             }
 
             return outputFilePath;
-        }
-
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogWarning("Scheduled reporter has been stopped");
-            await _timer.DisposeAsync();
         }
     }
 }

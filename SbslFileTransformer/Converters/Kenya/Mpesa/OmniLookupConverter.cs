@@ -1,10 +1,10 @@
-﻿using CsvHelper;
-using ExcelDataReader;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
 
 namespace SbslFileTransformer.Converters.Kenya
 {
@@ -27,10 +27,7 @@ namespace SbslFileTransformer.Converters.Kenya
                     {
                         var value = reader.GetValue(1)?.ToString();
 
-                        if (string.IsNullOrEmpty(value))
-                        {
-                            continue;
-                        }
+                        if (string.IsNullOrEmpty(value)) continue;
                         var row = new ExcelCols();
 
                         //Date
@@ -80,7 +77,8 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm}_Omni_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm}_Omni_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
             WriteToFile(list, outputFile);

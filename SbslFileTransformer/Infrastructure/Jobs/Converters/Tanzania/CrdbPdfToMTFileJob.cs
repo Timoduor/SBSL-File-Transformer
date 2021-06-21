@@ -1,4 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -7,18 +12,13 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class CrdbPdfToMTFileJob : ConverterJobBase<CrdbPdfToMTFileJob>, IHostedService
     {
-
-        public CrdbPdfToMTFileJob(ILogger<CrdbPdfToMTFileJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public CrdbPdfToMTFileJob(ILogger<CrdbPdfToMTFileJob> logger, IServiceScopeFactory serviceScopeFactory,
+            EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -31,9 +31,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await ConvertPdfToMTFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await ConvertPdfToMTFile(), null,
+                TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
+        }
+
+        public async Task StopAsync(CancellationToken cancellationToken)
+        {
+            await _timer.DisposeAsync();
         }
 
         private async Task ConvertPdfToMTFile()
@@ -52,15 +58,19 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
+                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
+                        .ToList();
 
-                    Entity = dbContext.Configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
+                    Entity = dbContext.Configurations
+                        .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
-                    bool isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value);
+                    var isProd =
+                        Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value);
 
-                    var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
+                    var options = new EnumerationOptions
+                        {RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive};
 
                     var files = Directory.GetFiles(prodFolder, "*.pdf", options).ToList();
 
@@ -69,23 +79,24 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     var pdfConverter = new CrdbPdfToMTFilesConverter();
 
                     foreach (var file in files)
-                    {
                         //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
                         if (file.ToLower().Contains("crdb") && file.ToLower().Contains("imtz"))
                         {
-                            var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
+                            var fileToProcess =
+                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
+                                    f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
-                            {
                                 try
                                 {
-                                    string statementFolder = Path.Combine(sbFolder, @$"{Entity}\NOSTRO\STATEMENT");
+                                    var statementFolder = Path.Combine(sbFolder, @$"{Entity}\NOSTRO\STATEMENT");
 
                                     if (isProd)
                                         statementFolder = Path.Combine(prodFolder, @$"{Entity}\NOSTRO\STATEMENT");
 
 
-                                    var pdfPassword = await dbContext.Configurations.FirstOrDefaultAsync(c => c.ConfigType == ConfigurationType.Setting && c.Key == "PdfPassword");
+                                    var pdfPassword = await dbContext.Configurations.FirstOrDefaultAsync(c =>
+                                        c.ConfigType == ConfigurationType.Setting && c.Key == "PdfPassword");
                                     pdfConverter.ConvertFile(file, pdfPassword?.Value, statementFolder);
                                 }
                                 catch (Exception ex)
@@ -94,7 +105,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting CRDB files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting CRDB files",
+                                        $"{file} \n\n {ex.Message}", new[] {file}, _emailSender);
                                 }
                                 finally
                                 {
@@ -106,10 +118,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                     await dbContext.SaveChangesAsync();
                                 }
-
-                            }
                         }
-                    }
                 }
             }
             catch (Exception ex)
@@ -120,11 +129,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             {
                 _semaphore.Release();
             }
-        }
-
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            await _timer.DisposeAsync();
         }
     }
 }

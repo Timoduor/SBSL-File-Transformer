@@ -1,26 +1,26 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Microsoft.Extensions.Logging;
 using Renci.SshNet;
 using Renci.SshNet.Sftp;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Models.Enums;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace SbslFileTransformer.Infrastructure.Sftp
 {
     public class SftpManager
     {
-        private readonly ILogger<SftpManager> _logger;
+        private static readonly object _locker = new object();
         private readonly SftpConfig _config;
         private readonly ApplicationDbContext _dbContext;
+        private readonly ILogger<SftpManager> _logger;
 
-        private readonly static object _locker = new object();
-
-        public SftpManager(ILogger<SftpManager> logger, ApplicationDbContext dbContext, EncryptionManager encryptionManager)
+        public SftpManager(ILogger<SftpManager> logger, ApplicationDbContext dbContext,
+            EncryptionManager encryptionManager)
         {
             _logger = logger;
             _dbContext = dbContext;
@@ -80,6 +80,7 @@ namespace SbslFileTransformer.Infrastructure.Sftp
                     _logger.LogError(exception, $"Failed in uploading file [{localFilePath}] to [{remoteFilePath}]");
                 }
             }
+
             return false;
         }
 
@@ -95,25 +96,22 @@ namespace SbslFileTransformer.Infrastructure.Sftp
             // Consistent forward slashes
             path = path.Replace(@"\", "/");
 
-            foreach (string dir in path.Split('/'))
-            {
+            foreach (var dir in path.Split('/'))
                 // Ignoring leading/ending/multiple slashes
                 if (!string.IsNullOrWhiteSpace(dir))
                 {
-                    if (!client.Exists(dir))
-                    {
-                        client.CreateDirectory(dir);
-                    }
+                    if (!client.Exists(dir)) client.CreateDirectory(dir);
                     client.ChangeDirectory(dir);
                 }
-            }
+
             // Going back to default directory
             client.ChangeDirectory("/");
         }
 
         public void DownloadFile(string remoteFilePath, string localFilePath)
         {
-            using var client = new SftpClient(_config.Host, _config.Port == 0 ? 22 : _config.Port, _config.UserName, _config.Password);
+            using var client = new SftpClient(_config.Host, _config.Port == 0 ? 22 : _config.Port, _config.UserName,
+                _config.Password);
             try
             {
                 client.Connect();
@@ -133,7 +131,8 @@ namespace SbslFileTransformer.Infrastructure.Sftp
 
         public void DeleteFile(string remoteFilePath)
         {
-            using var client = new SftpClient(_config.Host, _config.Port == 0 ? 22 : _config.Port, _config.UserName, _config.Password);
+            using var client = new SftpClient(_config.Host, _config.Port == 0 ? 22 : _config.Port, _config.UserName,
+                _config.Password);
             try
             {
                 client.Connect();
@@ -150,6 +149,4 @@ namespace SbslFileTransformer.Infrastructure.Sftp
             }
         }
     }
-
-
 }

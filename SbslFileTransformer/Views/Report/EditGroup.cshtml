@@ -7,23 +7,23 @@
 <h1>Edit Group</h1>
 
 <h4>Email Group</h4>
-<hr />
+<hr/>
 
 
 <form asp-action="EditGroup">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-    <input type="hidden" asp-for="Id" class="form-control" />
+    <input type="hidden" asp-for="Id" class="form-control"/>
     <div class="row">
         <div class="col-md-6">
             <div class="form-group">
                 <label class="control-label">Group Name</label>
-                <input asp-for="GroupName" class="form-control" />
+                <input asp-for="GroupName" class="form-control"/>
                 <span asp-validation-for="GroupName" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label class="control-label">Alert Period (days)</label>
-                <input asp-for="AgeAlertDuration" class="form-control" />
+                <input asp-for="AgeAlertDuration" class="form-control"/>
                 <span asp-validation-for="AgeAlertDuration" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -36,27 +36,33 @@
         <div class="col-md-6">
             <div class="form-group">
                 <label asp-for="Account" class="control-label"></label>
-                <input asp-for="Account" class="form-control" />
+                <input asp-for="Account" class="form-control"/>
                 <span asp-validation-for="Account" class="text-danger"></span>
             </div>
             <div class="form-group form-check">
                 <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsActive" /> @Html.DisplayNameFor(model => model.IsActive)
+                    <input class="form-check-input" asp-for="IsActive"/> @Html.DisplayNameFor(model => model.IsActive)
                 </label>
             </div>
             <div class="form-group">
                 <label asp-for="Country" class="control-label"></label>
-                <select asp-for="Country" asp-items="@ViewBag.Countries"><option>Please select one</option></select>
+                <select asp-for="Country" asp-items="@ViewBag.Countries">
+                    <option>Please select one</option>
+                </select>
                 <span asp-validation-for="Country" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Sprint" class="control-label"></label>
-                <select asp-for="Sprint" asp-items="@ViewBag.Sprints"><option>Please select one</option></select>
+                <select asp-for="Sprint" asp-items="@ViewBag.Sprints">
+                    <option>Please select one</option>
+                </select>
                 <span asp-validation-for="Sprint" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Category" class="control-label"></label>
-                <select asp-for="Category" asp-items="@ViewBag.Categories"><option>Please select one</option></select>
+                <select asp-for="Category" asp-items="@ViewBag.Categories">
+                    <option>Please select one</option>
+                </select>
                 <span asp-validation-for="Category" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -69,7 +75,7 @@
     </div>
     <div class="row">
         <div class="col-md-6">
-            <input type="submit" value="Save" class="btn btn-primary" />
+            <input type="submit" value="Save" class="btn btn-primary"/>
         </div>
         <div class="col-md-6">
             <a asp-action="EmailGroups" class="btn btn-light float-right">Back to List</a>
@@ -77,8 +83,3 @@
     </div>
 
 </form>
-
-
-
-
-

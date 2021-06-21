@@ -1,12 +1,10 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using ExcelDataReader;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
 
 namespace SbslFileTransformer.Converters.Kenya
 {
@@ -16,13 +14,14 @@ namespace SbslFileTransformer.Converters.Kenya
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
+
         public void ConvertFile(string inputFile, string outputFile = null)
         {
             var list = new List<ExcelCols>();
-            int count = 0;
-            string IOBound = "";
-            string location = "";
-            string date = "";
+            var count = 0;
+            var IOBound = "";
+            var location = "";
+            var date = "";
 
 
             using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
@@ -38,18 +37,12 @@ namespace SbslFileTransformer.Converters.Kenya
                             && reader.GetValue(3) == null && reader.GetValue(4) == null && reader.GetValue(5) == null
                             && reader.GetValue(6) == null && reader.GetValue(7) == null
                             && reader.GetValue(8) == null && index20 == null)
-                        {
                             continue;
-                        }
-                        else if (index20 != null && index20.Contains("Total"))
-                        {
-                            continue;
-                        }
+                        if (index20 != null && index20.Contains("Total")) continue;
 
                         //set the headers
                         if (count == 0)
                         {
-
                             row.Col0 = "Date";
                             row.Col1 = "Location";
                             row.Col2 = "Direction";
@@ -75,28 +68,20 @@ namespace SbslFileTransformer.Converters.Kenya
                                     location = index0.Split(':')[1];
                                     IOBound = "Total";
                                 }
-                                if (index0.Contains("Date Range"))
-                                {
-                                    date = index0.Replace("Date Range", "");
-                                }
+
+                                if (index0.Contains("Date Range")) date = index0.Replace("Date Range", "");
                             }
 
                             //logic for direction
                             if (index1 != null)
-                            {
                                 if (index1.Contains("Direction"))
-                                {
                                     IOBound = index1;
-
-                                }
-                            }
                             row.Col0 = date;
                             row.Col1 = location;
                             row.Col2 = IOBound;
 
                             if (index0 != null)
                             {
-
                                 if (index0.Contains("Count"))
                                 {
                                     //count
@@ -117,10 +102,10 @@ namespace SbslFileTransformer.Converters.Kenya
                                     row.Col10 = reader.GetValue(18)?.ToString().Replace("\n", "");
 
                                     row.Col11 = reader.GetValue(21)?.ToString().Replace("\n", "");
-
                                 }
                                 else if (index0.Contains("Location") || index0.Contains("KICUKIRO")
-                                    || index0.Contains("Date") || index0.Contains("Agent"))
+                                                                     || index0.Contains("Date") ||
+                                                                     index0.Contains("Agent"))
                                 {
                                     continue;
                                 }
@@ -144,7 +129,6 @@ namespace SbslFileTransformer.Converters.Kenya
 
                                     row.Col11 = reader.GetValue(20)?.ToString().Replace("\n", "");
                                 }
-
                             }
                             else
                             {
@@ -165,17 +149,11 @@ namespace SbslFileTransformer.Converters.Kenya
                                 row.Col10 = reader.GetValue(17)?.ToString().Replace("\n", "");
 
                                 row.Col11 = reader.GetValue(20)?.ToString().Replace("\n", "");
-
                             }
                         }
-                        if (row.Col4 != null && row.Col4.Contains("Direction"))
-                        {
-                            continue;
-                        }
-                        if (row.Col10 == null && row.Col11 == null)
-                        {
-                            continue;
-                        }
+
+                        if (row.Col4 != null && row.Col4.Contains("Direction")) continue;
+                        if (row.Col10 == null && row.Col11 == null) continue;
                         list.Add(row);
                     }
                 }
@@ -205,7 +183,8 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_ADV_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_ADV_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
             WriteToFile(list, outputFile);

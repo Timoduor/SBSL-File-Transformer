@@ -1,12 +1,11 @@
-﻿using CsvHelper;
-using ExcelDataReader;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using CsvHelper;
+using ExcelDataReader;
 
 namespace SbslFileTransformer.Converters.Kenya
 {
@@ -23,11 +22,12 @@ namespace SbslFileTransformer.Converters.Kenya
 
             using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateCsvReader(stream, new ExcelReaderConfiguration() { AutodetectSeparators = new char[] { ',', ';', '\t', '|', '#' } }))
+                using (var reader = ExcelReaderFactory.CreateCsvReader(stream,
+                    new ExcelReaderConfiguration {AutodetectSeparators = new[] {',', ';', '\t', '|', '#'}}))
                 {
-                    int countHeader = 0;
+                    var countHeader = 0;
 
-                    string computedbaseamnt = "Computed Base Amount";
+                    var computedbaseamnt = "Computed Base Amount";
 
                     while (reader.Read())
                     {
@@ -37,10 +37,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
                         var check = reader.GetValue(1)?.ToString().Trim();
 
-                        if (string.IsNullOrEmpty(check))
-                        {
-                            break;
-                        }
+                        if (string.IsNullOrEmpty(check)) break;
 
                         if (string.IsNullOrEmpty(value) && value != "Number" && list.Count() > 0)
                         {
@@ -413,23 +410,19 @@ namespace SbslFileTransformer.Converters.Kenya
                             last.Col187 = reader.GetValue(183)?.ToString().Replace("\n", "");
                             try
                             {
-                                double recamnt = Convert.ToDouble(reader.GetValue(90));
+                                var recamnt = Convert.ToDouble(reader.GetValue(90));
 
-                                double totalchamnt = Convert.ToDouble(reader.GetValue(91));
+                                var totalchamnt = Convert.ToDouble(reader.GetValue(91));
 
                                 if (reader.GetValue(46) != null && reader.GetValue(46).ToString() == "S")
-                                {
                                     last.Col188 = (recamnt + totalchamnt).ToString().TrimStart().TrimEnd();
-                                }
                                 else if (reader.GetValue(46) != null && reader.GetValue(46).ToString() == "P")
-                                {
                                     last.Col188 = reader.GetValue(138)?.ToString().TrimStart().TrimEnd();
-                                }
                             }
                             catch (Exception)
                             {
-
                             }
+
                             continue;
                         }
 
@@ -810,34 +803,23 @@ namespace SbslFileTransformer.Converters.Kenya
 
                         row.Col187 = reader.GetValue(187)?.ToString().Replace("\n", "");
 
-                        if (countHeader == 0)
-                        {
-
-                            row.Col188 = computedbaseamnt;
-                        }
+                        if (countHeader == 0) row.Col188 = computedbaseamnt;
 
                         countHeader++;
 
                         try
                         {
-                            double recamnt = Convert.ToDouble(reader.GetValue(94).ToString());
+                            var recamnt = Convert.ToDouble(reader.GetValue(94).ToString());
 
-                            double totalchamnt = Convert.ToDouble(reader.GetValue(95).ToString());
+                            var totalchamnt = Convert.ToDouble(reader.GetValue(95).ToString());
 
                             if (reader.GetValue(50) != null && reader.GetValue(50).ToString() == "S")
-                            {
-
                                 row.Col188 = (recamnt + totalchamnt).ToString().TrimStart().TrimEnd();
-                            }
                             else
-                            {
                                 row.Col188 = row.Col142.TrimStart().TrimEnd();
-                            }
-
                         }
                         catch (Exception)
                         {
-
                         }
 
                         list.Add(row);
@@ -852,7 +834,8 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm}_WUSKE_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm}_WUSKE_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
             WriteToFile(list, outputFile);

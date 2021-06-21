@@ -1,41 +1,43 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
 using X.PagedList;
-
 
 namespace SbslFileTransformer.Controllers
 {
     //[HandleLicense("All")]
     public class LogsController : Controller
     {
-        private readonly ILogger<LogsController> _logger;
         private readonly ApplicationDbContext _dbContext;
+        private readonly ILogger<LogsController> _logger;
         private readonly string _logsFolder;
+
         public LogsController(ILogger<LogsController> logger, ApplicationDbContext dbContext)
         {
             _logger = logger;
             _dbContext = dbContext;
 
-            _logsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "SBSL_ETL", "logs");
+            _logsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                "SBSL_ETL", "logs");
         }
 
         public IActionResult Index(int page = 1)
         {
             try
             {
-                int count = 0;
-                int itemsPerPage = 10;
+                var count = 0;
+                var itemsPerPage = 10;
 
-                var uploadedFiles = _dbContext.UploadedFiles.OrderByDescending(f => f.UploadedDate).Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToList().OrderByDescending(f => f.UploadedDate);
+                var uploadedFiles = _dbContext.UploadedFiles.OrderByDescending(f => f.UploadedDate)
+                    .Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToList().OrderByDescending(f => f.UploadedDate);
 
                 count = _dbContext.UploadedFiles.Count();
 
@@ -54,10 +56,10 @@ namespace SbslFileTransformer.Controllers
         {
             try
             {
-                int count = 0;
-                int itemsPerPage = 10;
+                var count = 0;
+                var itemsPerPage = 10;
 
-                IOrderedEnumerable<SqliteLog> sqliteLogs = GetSqliteLogs(page, itemsPerPage, out count);
+                var sqliteLogs = GetSqliteLogs(page, itemsPerPage, out count);
 
                 sqliteLogs = sqliteLogs ?? new List<SqliteLog>().OrderByDescending(l => l.Id);
 
@@ -76,12 +78,13 @@ namespace SbslFileTransformer.Controllers
         {
             try
             {
-                int count = 0;
-                int itemsPerPage = 10;
+                var count = 0;
+                var itemsPerPage = 10;
 
                 var latestFiles = GetLogFiles(page, itemsPerPage, out count);
 
-                var fileInfos = latestFiles.OrderByDescending(f => f.LastWriteTime) ?? new List<FileInfo>().OrderByDescending(f => f.LastWriteTime);
+                var fileInfos = latestFiles.OrderByDescending(f => f.LastWriteTime) ??
+                                new List<FileInfo>().OrderByDescending(f => f.LastWriteTime);
 
                 var pagedList = new StaticPagedList<FileInfo>(fileInfos, page, itemsPerPage, count);
 
@@ -101,25 +104,29 @@ namespace SbslFileTransformer.Controllers
             {
                 var filesMaxDate = _dbContext.UploadedFiles.Select(d => d.UploadedDate).Max();
 
-                var files = _dbContext.UploadedFiles.ToList().Where(f => f.UploadedDate > filesMaxDate.AddDays(-7)).GroupBy(f => f.UploadedDate.Date).OrderByDescending(g => g.Key).ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
+                var files = _dbContext.UploadedFiles.ToList().Where(f => f.UploadedDate > filesMaxDate.AddDays(-7))
+                    .GroupBy(f => f.UploadedDate.Date).OrderByDescending(g => g.Key)
+                    .ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
 
-                var logs = GetLast7DaysSqliteLogs(-7).GroupBy(l => l.Date.Date).OrderByDescending(g => g.Key).ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
+                var logs = GetLast7DaysSqliteLogs(-7).GroupBy(l => l.Date.Date).OrderByDescending(g => g.Key)
+                    .ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
 
                 var reportsMaxDate = DateTime.Now;
 
                 if (_dbContext.ProcessedReports.Any())
-                {
                     reportsMaxDate = _dbContext.ProcessedReports.Select(d => d.ProcessedDate).Max();
-                }
 
-                var reports = _dbContext.ProcessedReports.ToList().Where(r => r.ProcessedDate > reportsMaxDate.AddDays(-7)).GroupBy(r => r.ProcessedDate.Date).OrderByDescending(g => g.Key).ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
+                var reports = _dbContext.ProcessedReports.ToList()
+                    .Where(r => r.ProcessedDate > reportsMaxDate.AddDays(-7)).GroupBy(r => r.ProcessedDate.Date)
+                    .OrderByDescending(g => g.Key).ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
 
-                return View(new ChartObjects { UploadedFiles = files, Logs = logs, Reports = reports });
+                return View(new ChartObjects {UploadedFiles = files, Logs = logs, Reports = reports});
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
             }
+
             return RedirectToAction("Index", "Home");
         }
 
@@ -136,7 +143,6 @@ namespace SbslFileTransformer.Controllers
                 var bytes = ReadAllBytes2(file.FullName);
 
                 return File(bytes, "text/plain");
-
             }
             catch (Exception ex)
             {
@@ -145,7 +151,8 @@ namespace SbslFileTransformer.Controllers
             }
         }
 
-        private byte[] ReadAllBytes2(string filePath, FileAccess fileAccess = FileAccess.Read, FileShare shareMode = FileShare.ReadWrite)
+        private byte[] ReadAllBytes2(string filePath, FileAccess fileAccess = FileAccess.Read,
+            FileShare shareMode = FileShare.ReadWrite)
         {
             using (var fs = new FileStream(filePath, FileMode.Open, fileAccess, shareMode))
             {
@@ -165,7 +172,7 @@ namespace SbslFileTransformer.Controllers
             var files = Directory.GetFiles(logPathFiles).Select(f => new FileInfo(f));
 
             var latestFiles = files
-                      .OrderByDescending(f => f.LastWriteTime).Skip(itemsPerPage * (page - 1)).Take(itemsPerPage);
+                .OrderByDescending(f => f.LastWriteTime).Skip(itemsPerPage * (page - 1)).Take(itemsPerPage);
 
             totalCount = files.Count();
 
@@ -179,14 +186,16 @@ namespace SbslFileTransformer.Controllers
             using (var connection = new SqliteConnection(@"Data Source=bin\Debug\netcoreapp3.1\sbsletl_logs.db"))
 #else
             var logPathSqlite = Path.Combine(_logsFolder, "log_sqlite");
-            using (var connection = new SqliteConnection($"Data Source={Path.Combine(logPathSqlite, "sbsletl_logs.db")}"))
+            using (var connection =
+ new SqliteConnection($"Data Source={Path.Combine(logPathSqlite, "sbsletl_logs.db")}"))
 #endif
             {
                 connection.Open();
 
                 var command = connection.CreateCommand();
 
-                command.CommandText = $@"SELECT ""TimeStamp"", ""Level"", RenderedMessage, Properties, ""Exception"", id FROM Logs ORDER BY ""Timestamp"" DESC LIMIT {itemsPerPage} OFFSET {(page - 1) * itemsPerPage}";
+                command.CommandText =
+                    $@"SELECT ""TimeStamp"", ""Level"", RenderedMessage, Properties, ""Exception"", id FROM Logs ORDER BY ""Timestamp"" DESC LIMIT {itemsPerPage} OFFSET {(page - 1) * itemsPerPage}";
 
                 using (var reader = command.ExecuteReader())
                 {
@@ -225,7 +234,8 @@ namespace SbslFileTransformer.Controllers
             using (var connection = new SqliteConnection(@"Data Source=bin\Debug\netcoreapp3.1\sbsletl_logs.db"))
 #else
             var logPathSqlite = Path.Combine(_logsFolder, "log_sqlite");
-            using (var connection = new SqliteConnection($"Data Source={Path.Combine(logPathSqlite, "sbsletl_logs.db")}"))
+            using (var connection =
+ new SqliteConnection($"Data Source={Path.Combine(logPathSqlite, "sbsletl_logs.db")}"))
 #endif
             {
                 connection.Open();
@@ -233,11 +243,13 @@ namespace SbslFileTransformer.Controllers
                 var commandMaxDate = connection.CreateCommand();
                 commandMaxDate.CommandText = @"SELECT ""Timestamp"" FROM Logs ORDER BY ""Timestamp"" DESC LIMIT 1";
 
-                var maxDate = DateTime.ParseExact(commandMaxDate.ExecuteScalar().ToString(), "yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
+                var maxDate = DateTime.ParseExact(commandMaxDate.ExecuteScalar().ToString(), "yyyy-MM-ddTHH:mm:ss",
+                    CultureInfo.InvariantCulture);
 
                 var command = connection.CreateCommand();
 
-                command.CommandText = $@"select ""Timestamp"", ""Level"" from logs where ""Timestamp"" > ""{maxDate.AddDays(days).ToString("yyyy-MM-dd")}""";
+                command.CommandText =
+                    $@"select ""Timestamp"", ""Level"" from logs where ""Timestamp"" > ""{maxDate.AddDays(days).ToString("yyyy-MM-dd")}""";
 
                 using (var reader = command.ExecuteReader())
                 {

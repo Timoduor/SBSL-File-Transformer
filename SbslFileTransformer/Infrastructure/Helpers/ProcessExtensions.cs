@@ -4,10 +4,104 @@ using System.Runtime.InteropServices;
 namespace SbslFileTransformer.Infrastructure.Helpers
 {
     /// <summary>
-    /// Good for running exe files
+    ///     Good for running exe files
     /// </summary>
     public static class ProcessExtensions
     {
+        // Gets the user token from the currently active session
+        private static bool GetSessionUserToken(ref IntPtr phUserToken)
+        {
+            var bResult = false;
+            var hImpersonationToken = IntPtr.Zero;
+            var activeSessionId = INVALID_SESSION_ID;
+            var pSessionInfo = IntPtr.Zero;
+            var sessionCount = 0;
+
+            // Get a handle to the user access token for the current active session.
+            if (WTSEnumerateSessions(WTS_CURRENT_SERVER_HANDLE, 0, 1, ref pSessionInfo, ref sessionCount) != 0)
+            {
+                var arrayElementSize = Marshal.SizeOf(typeof(WTS_SESSION_INFO));
+                var current = pSessionInfo;
+
+                for (var i = 0; i < sessionCount; i++)
+                {
+                    var si = (WTS_SESSION_INFO) Marshal.PtrToStructure(current, typeof(WTS_SESSION_INFO));
+                    current += arrayElementSize;
+
+                    if (si.State == WTS_CONNECTSTATE_CLASS.WTSActive) activeSessionId = si.SessionID;
+                }
+            }
+
+            // If enumerating did not work, fall back to the old method
+            if (activeSessionId == INVALID_SESSION_ID) activeSessionId = WTSGetActiveConsoleSessionId();
+
+            if (WTSQueryUserToken(activeSessionId, ref hImpersonationToken) != 0)
+            {
+                // Convert the impersonation token to a primary token
+                bResult = DuplicateTokenEx(hImpersonationToken, 0, IntPtr.Zero,
+                    (int) SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation, (int) TOKEN_TYPE.TokenPrimary,
+                    ref phUserToken);
+
+                CloseHandle(hImpersonationToken);
+            }
+
+            return bResult;
+        }
+
+        public static bool StartProcessAsCurrentUser(string appPath, string cmdLine = null, string workDir = null,
+            bool visible = true)
+        {
+            var hUserToken = IntPtr.Zero;
+            var startInfo = new STARTUPINFO();
+            var procInfo = new PROCESS_INFORMATION();
+            var pEnv = IntPtr.Zero;
+            int iResultOfCreateProcessAsUser;
+
+            startInfo.cb = Marshal.SizeOf(typeof(STARTUPINFO));
+
+            try
+            {
+                if (!GetSessionUserToken(ref hUserToken))
+                    throw new Exception("StartProcessAsCurrentUser: GetSessionUserToken failed.");
+
+                var dwCreationFlags = CREATE_UNICODE_ENVIRONMENT |
+                                      (uint) (visible ? CREATE_NEW_CONSOLE : CREATE_NO_WINDOW);
+                startInfo.wShowWindow = (short) (visible ? SW1.SW_SHOW : SW1.SW_HIDE);
+                startInfo.lpDesktop = "winsta0\\default";
+
+                if (!CreateEnvironmentBlock(ref pEnv, hUserToken, false))
+                    throw new Exception("StartProcessAsCurrentUser: CreateEnvironmentBlock failed.");
+
+                if (!CreateProcessAsUser(hUserToken,
+                    appPath, // Application Name
+                    cmdLine, // Command Line
+                    IntPtr.Zero,
+                    IntPtr.Zero,
+                    false,
+                    dwCreationFlags,
+                    pEnv,
+                    workDir, // Working directory
+                    ref startInfo,
+                    out procInfo))
+                {
+                    iResultOfCreateProcessAsUser = Marshal.GetLastWin32Error();
+                    throw new Exception("StartProcessAsCurrentUser: CreateProcessAsUser failed.  Error Code -" +
+                                        iResultOfCreateProcessAsUser);
+                }
+
+                iResultOfCreateProcessAsUser = Marshal.GetLastWin32Error();
+            }
+            finally
+            {
+                CloseHandle(hUserToken);
+                if (pEnv != IntPtr.Zero) DestroyEnvironmentBlock(pEnv);
+                CloseHandle(procInfo.hThread);
+                CloseHandle(procInfo.hProcess);
+            }
+
+            return true;
+        }
+
         #region Win32 Constants
 
         private const int CREATE_UNICODE_ENVIRONMENT = 0x00000400;
@@ -22,17 +116,18 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
         #region DllImports
 
-        [DllImport("advapi32.dll", EntryPoint = "CreateProcessAsUser", SetLastError = true, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
+        [DllImport("advapi32.dll", EntryPoint = "CreateProcessAsUser", SetLastError = true, CharSet = CharSet.Ansi,
+            CallingConvention = CallingConvention.StdCall)]
         private static extern bool CreateProcessAsUser(
             IntPtr hToken,
-            String lpApplicationName,
-            String lpCommandLine,
+            string lpApplicationName,
+            string lpCommandLine,
             IntPtr lpProcessAttributes,
             IntPtr lpThreadAttributes,
             bool bInheritHandle,
             uint dwCreationFlags,
             IntPtr lpEnvironment,
-            String lpCurrentDirectory,
+            string lpCurrentDirectory,
             ref STARTUPINFO lpStartupInfo,
             out PROCESS_INFORMATION lpProcessInformation);
 
@@ -108,10 +203,10 @@ namespace SbslFileTransformer.Infrastructure.Helpers
         [StructLayout(LayoutKind.Sequential)]
         private struct PROCESS_INFORMATION
         {
-            public IntPtr hProcess;
-            public IntPtr hThread;
-            public uint dwProcessId;
-            public uint dwThreadId;
+            public readonly IntPtr hProcess;
+            public readonly IntPtr hThread;
+            public readonly uint dwProcessId;
+            public readonly uint dwThreadId;
         }
 
         private enum SECURITY_IMPERSONATION_LEVEL
@@ -119,30 +214,30 @@ namespace SbslFileTransformer.Infrastructure.Helpers
             SecurityAnonymous = 0,
             SecurityIdentification = 1,
             SecurityImpersonation = 2,
-            SecurityDelegation = 3,
+            SecurityDelegation = 3
         }
 
         [StructLayout(LayoutKind.Sequential)]
         private struct STARTUPINFO
         {
             public int cb;
-            public String lpReserved;
-            public String lpDesktop;
-            public String lpTitle;
-            public uint dwX;
-            public uint dwY;
-            public uint dwXSize;
-            public uint dwYSize;
-            public uint dwXCountChars;
-            public uint dwYCountChars;
-            public uint dwFillAttribute;
-            public uint dwFlags;
+            public readonly string lpReserved;
+            public string lpDesktop;
+            public readonly string lpTitle;
+            public readonly uint dwX;
+            public readonly uint dwY;
+            public readonly uint dwXSize;
+            public readonly uint dwYSize;
+            public readonly uint dwXCountChars;
+            public readonly uint dwYCountChars;
+            public readonly uint dwFillAttribute;
+            public readonly uint dwFlags;
             public short wShowWindow;
-            public short cbReserved2;
-            public IntPtr lpReserved2;
-            public IntPtr hStdInput;
-            public IntPtr hStdOutput;
-            public IntPtr hStdError;
+            public readonly short cbReserved2;
+            public readonly IntPtr lpReserved2;
+            public readonly IntPtr hStdInput;
+            public readonly IntPtr hStdOutput;
+            public readonly IntPtr hStdError;
         }
 
         private enum TOKEN_TYPE
@@ -154,120 +249,13 @@ namespace SbslFileTransformer.Infrastructure.Helpers
         [StructLayout(LayoutKind.Sequential)]
         private struct WTS_SESSION_INFO
         {
-            public readonly UInt32 SessionID;
+            public readonly uint SessionID;
 
-            [MarshalAs(UnmanagedType.LPStr)]
-            public readonly String pWinStationName;
+            [MarshalAs(UnmanagedType.LPStr)] public readonly string pWinStationName;
 
             public readonly WTS_CONNECTSTATE_CLASS State;
         }
 
         #endregion
-
-        // Gets the user token from the currently active session
-        private static bool GetSessionUserToken(ref IntPtr phUserToken)
-        {
-            var bResult = false;
-            var hImpersonationToken = IntPtr.Zero;
-            var activeSessionId = INVALID_SESSION_ID;
-            var pSessionInfo = IntPtr.Zero;
-            var sessionCount = 0;
-
-            // Get a handle to the user access token for the current active session.
-            if (WTSEnumerateSessions(WTS_CURRENT_SERVER_HANDLE, 0, 1, ref pSessionInfo, ref sessionCount) != 0)
-            {
-                var arrayElementSize = Marshal.SizeOf(typeof(WTS_SESSION_INFO));
-                var current = pSessionInfo;
-
-                for (var i = 0; i < sessionCount; i++)
-                {
-                    var si = (WTS_SESSION_INFO)Marshal.PtrToStructure((IntPtr)current, typeof(WTS_SESSION_INFO));
-                    current += arrayElementSize;
-
-                    if (si.State == WTS_CONNECTSTATE_CLASS.WTSActive)
-                    {
-                        activeSessionId = si.SessionID;
-                    }
-                }
-            }
-
-            // If enumerating did not work, fall back to the old method
-            if (activeSessionId == INVALID_SESSION_ID)
-            {
-                activeSessionId = WTSGetActiveConsoleSessionId();
-            }
-
-            if (WTSQueryUserToken(activeSessionId, ref hImpersonationToken) != 0)
-            {
-                // Convert the impersonation token to a primary token
-                bResult = DuplicateTokenEx(hImpersonationToken, 0, IntPtr.Zero,
-                    (int)SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation, (int)TOKEN_TYPE.TokenPrimary,
-                    ref phUserToken);
-
-                CloseHandle(hImpersonationToken);
-            }
-
-            return bResult;
-        }
-
-        public static bool StartProcessAsCurrentUser(string appPath, string cmdLine = null, string workDir = null, bool visible = true)
-        {
-            var hUserToken = IntPtr.Zero;
-            var startInfo = new STARTUPINFO();
-            var procInfo = new PROCESS_INFORMATION();
-            var pEnv = IntPtr.Zero;
-            int iResultOfCreateProcessAsUser;
-
-            startInfo.cb = Marshal.SizeOf(typeof(STARTUPINFO));
-
-            try
-            {
-                if (!GetSessionUserToken(ref hUserToken))
-                {
-                    throw new Exception("StartProcessAsCurrentUser: GetSessionUserToken failed.");
-                }
-
-                uint dwCreationFlags = CREATE_UNICODE_ENVIRONMENT | (uint)(visible ? CREATE_NEW_CONSOLE : CREATE_NO_WINDOW);
-                startInfo.wShowWindow = (short)(visible ? SW1.SW_SHOW : SW1.SW_HIDE);
-                startInfo.lpDesktop = "winsta0\\default";
-
-                if (!CreateEnvironmentBlock(ref pEnv, hUserToken, false))
-                {
-                    throw new Exception("StartProcessAsCurrentUser: CreateEnvironmentBlock failed.");
-                }
-
-                if (!CreateProcessAsUser(hUserToken,
-                    appPath, // Application Name
-                    cmdLine, // Command Line
-                    IntPtr.Zero,
-                    IntPtr.Zero,
-                    false,
-                    dwCreationFlags,
-                    pEnv,
-                    workDir, // Working directory
-                    ref startInfo,
-                    out procInfo))
-                {
-                    iResultOfCreateProcessAsUser = Marshal.GetLastWin32Error();
-                    throw new Exception("StartProcessAsCurrentUser: CreateProcessAsUser failed.  Error Code -" + iResultOfCreateProcessAsUser);
-                }
-
-                iResultOfCreateProcessAsUser = Marshal.GetLastWin32Error();
-            }
-            finally
-            {
-                CloseHandle(hUserToken);
-                if (pEnv != IntPtr.Zero)
-                {
-                    DestroyEnvironmentBlock(pEnv);
-                }
-                CloseHandle(procInfo.hThread);
-                CloseHandle(procInfo.hProcess);
-            }
-
-            return true;
-        }
-
     }
 }
-

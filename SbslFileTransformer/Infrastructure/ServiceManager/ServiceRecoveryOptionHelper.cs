@@ -8,29 +8,10 @@ namespace SbslFileTransformer.Infrastructure.ServiceManager
         //Action Enum
         public enum RecoverAction
         {
-            None = 0, Restart = 1, Reboot = 2, RunCommand = 3
-        }
-
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-
-        public struct ServiceFailureActions
-        {
-            public int dwResetPeriod;
-            [MarshalAs(UnmanagedType.LPWStr)]
-
-            public string lpRebootMsg;
-            [MarshalAs(UnmanagedType.LPWStr)]
-
-            public string lpCommand;
-            public int cActions;
-            public IntPtr lpsaActions;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        public class ScAction
-        {
-            public int type;
-            public uint dwDelay;
+            None = 0,
+            Restart = 1,
+            Reboot = 2,
+            RunCommand = 3
         }
 
         // Win32 function to open the service control manager
@@ -43,34 +24,31 @@ namespace SbslFileTransformer.Infrastructure.ServiceManager
 
         // Win32 function to change the service config for the failure actions.
         [DllImport("advapi32.dll", EntryPoint = "ChangeServiceConfig2")]
-
         public static extern bool ChangeServiceFailureActions(IntPtr hService, int dwInfoLevel,
-            [MarshalAs(UnmanagedType.Struct)]
-            ref ServiceFailureActions lpInfo);
+            [MarshalAs(UnmanagedType.Struct)] ref ServiceFailureActions lpInfo);
 
         [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true, EntryPoint = "QueryServiceConfig2W")]
-        public static extern Boolean QueryServiceConfig2(IntPtr hService, UInt32 dwInfoLevel, IntPtr buffer, UInt32 cbBufSize, out UInt32 pcbBytesNeeded);
+        public static extern bool QueryServiceConfig2(IntPtr hService, uint dwInfoLevel, IntPtr buffer, uint cbBufSize,
+            out uint pcbBytesNeeded);
 
         [DllImport("kernel32.dll")]
         public static extern int GetLastError();
-    }
 
-    public class FailureAction
-    {
-        // Default constructor
-        public FailureAction() { }
-
-        // Constructor
-        public FailureAction(ServiceRecoveryOptionHelper.RecoverAction actionType, int actionDelay)
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct ServiceFailureActions
         {
-            Type = actionType;
-            Delay = actionDelay;
+            public int dwResetPeriod;
+            [MarshalAs(UnmanagedType.LPWStr)] public string lpRebootMsg;
+            [MarshalAs(UnmanagedType.LPWStr)] public string lpCommand;
+            public int cActions;
+            public IntPtr lpsaActions;
         }
 
-        // Property to set recover action type
-        public ServiceRecoveryOptionHelper.RecoverAction Type { get; set; } = ServiceRecoveryOptionHelper.RecoverAction.None;
-
-        // Property to set recover action delay
-        public int Delay { get; set; }
+        [StructLayout(LayoutKind.Sequential)]
+        public class ScAction
+        {
+            public uint dwDelay;
+            public int type;
+        }
     }
 }

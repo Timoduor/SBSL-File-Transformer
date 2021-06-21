@@ -1,5 +1,4 @@
-﻿@using Newtonsoft.Json;
-
+﻿@using Newtonsoft.Json
 @model SbslFileTransformer.Models.ViewModels.ChartObjects
 
 <div class="container">
@@ -14,7 +13,7 @@
         </div>
     }
 
-    <partial name="_LogHeader" />
+    <partial name="_LogHeader"/>
 
     <div class="card card-deck small">
         <div class="card-header">
@@ -24,15 +23,15 @@
 
             <h3>Files Per Day</h3>
             <div>
-                <canvas id="myFiles"  width="500" height="200"></canvas>
+                <canvas id="myFiles" width="500" height="200"></canvas>
             </div>
-            <br /><br />
+            <br/><br/>
 
             <h3>Logs Per Day</h3>
             <div>
                 <canvas id="myLogs" width="500" height="200"></canvas>
             </div>
-            <br /><br />
+            <br/><br/>
 
             <h3>Reports Per Day</h3>
             <div>
@@ -53,42 +52,45 @@
         var labels = @Html.Raw(JsonConvert.SerializeObject(Model.UploadedFiles.Keys));
         var data = @Html.Raw(JsonConvert.SerializeObject(Model.UploadedFiles.Values));
 
-        var myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Files Uploaded Per day',
-                    data: data,
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(255, 206, 86, 0.2)',
-                        'rgba(75, 192, 192, 0.2)',
-                        'rgba(153, 102, 255, 0.2)',
-                        'rgba(153, 102, 115, 0.2)',
-                        'rgba(255, 159, 64, 0.2)'
-                    ],
-                    borderColor: [
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(229, 102, 215, 1)',
-                        'rgba(255, 159, 64, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
+        var myChart = new Chart(ctx,
+            {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Files Uploaded Per day',
+                            data: data,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(255, 206, 86, 0.2)',
+                                'rgba(75, 192, 192, 0.2)',
+                                'rgba(153, 102, 255, 0.2)',
+                                'rgba(153, 102, 115, 0.2)',
+                                'rgba(255, 159, 64, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(229, 102, 215, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     }
                 }
-            }
-        });
+            });
 
 
         //LOGS
@@ -98,42 +100,45 @@
         var labels = @Html.Raw(JsonConvert.SerializeObject(Model.Logs.Keys));
         var data = @Html.Raw(JsonConvert.SerializeObject(Model.Logs.Values));
 
-        var myChart = new Chart(ctx2, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Logs Per day',
-                    data: data,
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(255, 206, 86, 0.2)',
-                        'rgba(75, 192, 192, 0.2)',
-                        'rgba(153, 102, 255, 0.2)',
-                        'rgba(153, 102, 115, 0.2)',
-                        'rgba(255, 159, 64, 0.2)'
-                    ],
-                    borderColor: [
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(229, 102, 215, 1)',
-                        'rgba(255, 159, 64, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
+        var myChart = new Chart(ctx2,
+            {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Logs Per day',
+                            data: data,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(255, 206, 86, 0.2)',
+                                'rgba(75, 192, 192, 0.2)',
+                                'rgba(153, 102, 255, 0.2)',
+                                'rgba(153, 102, 115, 0.2)',
+                                'rgba(255, 159, 64, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(229, 102, 215, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     }
                 }
-            }
-        });
+            });
 
 
         //REPORTS
@@ -143,43 +148,45 @@
         var labels = @Html.Raw(JsonConvert.SerializeObject(Model.Reports.Keys));
         var data = @Html.Raw(JsonConvert.SerializeObject(Model.Reports.Values));
 
-        var myChart = new Chart(ctx3, {
-            type: 'pie',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Reports Per day',
-                    data: data,
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(255, 206, 86, 0.2)',
-                        'rgba(75, 192, 192, 0.2)',
-                        'rgba(153, 102, 255, 0.2)',
-                        'rgba(153, 102, 115, 0.2)',
-                        'rgba(255, 159, 64, 0.2)'
-                    ],
-                    borderColor: [
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(229, 102, 215, 1)',
-                        'rgba(255, 159, 64, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
+        var myChart = new Chart(ctx3,
+            {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Reports Per day',
+                            data: data,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(255, 206, 86, 0.2)',
+                                'rgba(75, 192, 192, 0.2)',
+                                'rgba(153, 102, 255, 0.2)',
+                                'rgba(153, 102, 115, 0.2)',
+                                'rgba(255, 159, 64, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(229, 102, 215, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     }
                 }
-            }
-        });
+            });
 
     </script>
 }
-

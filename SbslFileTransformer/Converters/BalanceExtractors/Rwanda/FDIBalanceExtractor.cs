@@ -1,18 +1,18 @@
-﻿using CsvHelper;
-using ExcelDataReader;
-using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
+using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Converters.BalanceExtractors
 {
     public class FDIBalanceExtractor
     {
-        string _entity;
+        private readonly string _entity;
 
         public FDIBalanceExtractor(string entity)
         {
@@ -24,36 +24,32 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
         public void ConvertFile(string inputFile, string rootFolder, string outputFile = null)
         {
             var list = new List<ExcelCols>();
-
             using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
                 using (var reader = ExcelReaderFactory.CreateCsvReader(stream))
                 {
-                    int count = 0;
-
                     while (reader.Read())
                     {
                         var value = reader.GetValue(0)?.ToString();
+
+                        var value1 = reader.GetValue(3)?.ToString();
+
+                        if (value1.Contains("float"))
+                        {
+                            continue;
+                        }
                         if (string.IsNullOrEmpty(value))
                         {
                             continue;
                         }
-
-                        if(count == 0)
+                        var row = new ExcelCols
                         {
-                            count++;
-                            continue;
-                        }
+                            Col0 = reader.GetValue(0)?.ToString().Replace("'", ""),
 
-                        var row = new ExcelCols();
-
-                        row.Col0 = reader.GetValue(0)?.ToString().Replace("'", "");
-
-                        row.Col2 = reader.GetValue(7)?.ToString();
-
-                        row.Col3 = (Convert.ToDouble(reader.GetValue(9)) + Convert.ToDouble(reader.GetValue(10))).ToString();
+                            Col2 = reader.GetValue(7)?.ToString(),
 
 
+                        };
                         list.Add(row);
                     }
                 }
@@ -61,11 +57,11 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
 
             //logic for getting sum
 
-            double amount = list.Sum(r => Convert.ToDouble(r.Col2.ToString()));
+            double amount = list.Skip(1).Sum(r => Convert.ToDouble(r.Col2.ToString()));
 
             var sumrow = new ExcelCols
             {
-                Col0 = list.Select(r => r.Col0).FirstOrDefault(),
+                Col0 = list.Skip(1).Select(r => r.Col0).FirstOrDefault(),
 
                 Col1 = "Commission",
 
@@ -97,23 +93,22 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
 
             var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
-            var outputFile = Path.Combine(rootFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_FDI_{_entity}.txt");
+            var outputFile = Path.Combine(rootFolder,
+                $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_FDI_{_entity}.txt");
 
             var toAppend = new StringBuilder();
 
-            DateTime date = Convert.ToDateTime(list.First().Col0);
+            var date = Convert.ToDateTime(list.First().Col0);
             var amount = list.First().Col3; //vs col5 diff
             var currency = "RWF";
             var account = "20100243506073";
 
-            toAppend.Append($"{_entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
+            toAppend.Append(
+                $"{_entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
 
             var text = toAppend.ToString();
 
-            if (!string.IsNullOrEmpty(text))
-            {
-                File.WriteAllText(outputFile, text);
-            }
+            if (!string.IsNullOrEmpty(text)) File.WriteAllText(outputFile, text);
         }
 
         private void WriteToCommissionFile(List<ExcelCols> rows, string outputFile)
@@ -130,6 +125,5 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
                 }
             }
         }
-
     }
 }

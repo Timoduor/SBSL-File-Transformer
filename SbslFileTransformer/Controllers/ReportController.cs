@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -6,9 +9,6 @@ using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using X.PagedList;
 
 namespace SbslFileTransformer.Controllers
@@ -17,10 +17,11 @@ namespace SbslFileTransformer.Controllers
     [AllowAnonymous]
     public class ReportController : Controller
     {
-        private ApplicationDbContext _dbContext;
-        private ILogger<ReportController> _logger;
+        private readonly ApplicationDbContext _dbContext;
+        private readonly ILogger<ReportController> _logger;
 
-        public ReportController(ILogger<ReportController> logger, ApplicationDbContext dbContext)//, PluginManager pluginManager)
+        public ReportController(ILogger<ReportController> logger,
+            ApplicationDbContext dbContext) //, PluginManager pluginManager)
         {
             _dbContext = dbContext;
             _logger = logger;
@@ -28,7 +29,8 @@ namespace SbslFileTransformer.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var configurations = await _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Report).ToListAsync();
+            var configurations = await _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Report)
+                .ToListAsync();
 
             var config = new ReportConfigModel
             {
@@ -37,7 +39,7 @@ namespace SbslFileTransformer.Controllers
                 UserToken = configurations.FirstOrDefault(c => c.Key == "UserToken")?.Value,
                 EmailBody = configurations.FirstOrDefault(c => c.Key == "EmailBody")?.Value,
                 EmailHeader = configurations.FirstOrDefault(c => c.Key == "EmailHeader")?.Value,
-                ExportType = configurations.FirstOrDefault(c => c.Key == "ExportType")?.Value,
+                ExportType = configurations.FirstOrDefault(c => c.Key == "ExportType")?.Value
             };
 
 
@@ -61,23 +63,26 @@ namespace SbslFileTransformer.Controllers
 
         public IActionResult CreateGroup()
         {
-            ViewBag.Countries = new SelectList(Enum.GetValues(typeof(Country)).Cast<Country>().Select(v => new SelectListItem
-            {
-                Text = v.ToString(),
-                Value = ((int)v).ToString()
-            }).ToList(), "Value", "Text");
+            ViewBag.Countries = new SelectList(Enum.GetValues(typeof(Country)).Cast<Country>().Select(v =>
+                new SelectListItem
+                {
+                    Text = v.ToString(),
+                    Value = ((int) v).ToString()
+                }).ToList(), "Value", "Text");
 
-            ViewBag.Sprints = new SelectList(Enum.GetValues(typeof(Sprint)).Cast<Sprint>().Select(v => new SelectListItem
-            {
-                Text = v.ToString(),
-                Value = ((int)v).ToString()
-            }).ToList(), "Value", "Text");
+            ViewBag.Sprints = new SelectList(Enum.GetValues(typeof(Sprint)).Cast<Sprint>().Select(v =>
+                new SelectListItem
+                {
+                    Text = v.ToString(),
+                    Value = ((int) v).ToString()
+                }).ToList(), "Value", "Text");
 
-            ViewBag.Categories = new SelectList(Enum.GetValues(typeof(ReportCategory)).Cast<ReportCategory>().Select(v => new SelectListItem
-            {
-                Text = v.ToString(),
-                Value = ((int)v).ToString()
-            }).ToList(), "Value", "Text");
+            ViewBag.Categories = new SelectList(Enum.GetValues(typeof(ReportCategory)).Cast<ReportCategory>().Select(
+                v => new SelectListItem
+                {
+                    Text = v.ToString(),
+                    Value = ((int) v).ToString()
+                }).ToList(), "Value", "Text");
 
             return View();
         }
@@ -96,23 +101,26 @@ namespace SbslFileTransformer.Controllers
         {
             var group = await _dbContext.EmailGroups.FindAsync(id);
 
-            ViewBag.Countries = new SelectList(Enum.GetValues(typeof(Country)).Cast<Country>().Select(v => new SelectListItem
-            {
-                Text = v.ToString(),
-                Value = ((int)v).ToString()
-            }).ToList(), "Value", "Text");
+            ViewBag.Countries = new SelectList(Enum.GetValues(typeof(Country)).Cast<Country>().Select(v =>
+                new SelectListItem
+                {
+                    Text = v.ToString(),
+                    Value = ((int) v).ToString()
+                }).ToList(), "Value", "Text");
 
-            ViewBag.Sprints = new SelectList(Enum.GetValues(typeof(Sprint)).Cast<Sprint>().Select(v => new SelectListItem
-            {
-                Text = v.ToString(),
-                Value = ((int)v).ToString()
-            }).ToList(), "Value", "Text");
+            ViewBag.Sprints = new SelectList(Enum.GetValues(typeof(Sprint)).Cast<Sprint>().Select(v =>
+                new SelectListItem
+                {
+                    Text = v.ToString(),
+                    Value = ((int) v).ToString()
+                }).ToList(), "Value", "Text");
 
-            ViewBag.Categories = new SelectList(Enum.GetValues(typeof(ReportCategory)).Cast<ReportCategory>().Select(v => new SelectListItem
-            {
-                Text = v.ToString(),
-                Value = ((int)v).ToString()
-            }).ToList(), "Value", "Text");
+            ViewBag.Categories = new SelectList(Enum.GetValues(typeof(ReportCategory)).Cast<ReportCategory>().Select(
+                v => new SelectListItem
+                {
+                    Text = v.ToString(),
+                    Value = ((int) v).ToString()
+                }).ToList(), "Value", "Text");
 
 
             return View(group);
@@ -145,10 +153,12 @@ namespace SbslFileTransformer.Controllers
         {
             try
             {
-                int count = 0;
-                int itemsPerPage = 10;
+                var count = 0;
+                var itemsPerPage = 10;
 
-                var uploadedFiles = _dbContext.ProcessedReports.OrderByDescending(f => f.ProcessedDate).Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToList().OrderByDescending(f => f.ProcessedDate);
+                var uploadedFiles = _dbContext.ProcessedReports.OrderByDescending(f => f.ProcessedDate)
+                    .Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToList()
+                    .OrderByDescending(f => f.ProcessedDate);
 
                 count = await _dbContext.ProcessedReports.CountAsync();
 
@@ -294,13 +304,12 @@ namespace SbslFileTransformer.Controllers
 
                 await CreateOrUpdate(configuration);
             }
-
         }
 
         private async Task CreateOrUpdate(Configuration config)
         {
-
-            var existing = await _dbContext.Configurations.FirstOrDefaultAsync(c => c.Key.ToLower() == config.Key.ToLower() && c.ConfigType == config.ConfigType);
+            var existing = await _dbContext.Configurations.FirstOrDefaultAsync(c =>
+                c.Key.ToLower() == config.Key.ToLower() && c.ConfigType == config.ConfigType);
 
             if (existing != null)
             {
@@ -317,7 +326,5 @@ namespace SbslFileTransformer.Controllers
 
             await _dbContext.SaveChangesAsync();
         }
-
-
     }
 }

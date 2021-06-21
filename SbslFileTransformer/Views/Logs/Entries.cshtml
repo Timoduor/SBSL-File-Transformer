@@ -1,8 +1,6 @@
-﻿@using X.PagedList;
-@using X.PagedList.Mvc.Core;
-@using X.PagedList.Mvc.Core.Common;
-
-@model IPagedList<SbslFileTransformer.Models.SqliteLog>
+﻿@using X.PagedList.Mvc.Core
+@using X.PagedList.Mvc.Core.Common
+@model X.PagedList.IPagedList<SqliteLog>
 
 @{
     ViewData["Title"] = "Logs";
@@ -19,7 +17,7 @@
         </div>
     }
 
-    <partial name="_LogHeader" />
+    <partial name="_LogHeader"/>
 
     <div class="card card-light small">
         <div class="card-header">
@@ -29,52 +27,52 @@
             <div class="table-wrapper-scroll-y my-custom-scrollbar">
                 <table class="table table-striped table-bordered table-sm">
                     <thead class="thead-dark">
-                        <tr>
-                            <th>
-                                Time Stamp
-                            </th>
-                            <th>
-                                Level
-                            </th>
-                            <th>
-                                Rendered Message
-                            </th>
-                            <th>
-                                Properties
-                            </th>
-                            <th>
-                                Exception
-                            </th>
-                        </tr>
+                    <tr>
+                        <th>
+                            Time Stamp
+                        </th>
+                        <th>
+                            Level
+                        </th>
+                        <th>
+                            Rendered Message
+                        </th>
+                        <th>
+                            Properties
+                        </th>
+                        <th>
+                            Exception
+                        </th>
+                    </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr class="@(item.Level == "Error" ? "bg-danger": item.Level == "Warning" ? "bg-warning" : "")">
-                                <td>
-                                    @Html.DisplayFor(modelItem => item.TimeStamp)
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(modelItem => item.Level)
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(modelItem => item.RenderedMessage)
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(modelItem => item.Properties)
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(modelItem => item.Exception)
-                                </td>
-                            </tr>
-                        }
+                    @foreach (var item in Model)
+                    {
+                        <tr class="@(item.Level == "Error" ? "bg-danger" : item.Level == "Warning" ? "bg-warning" : "")">
+                            <td>
+                                @Html.DisplayFor(modelItem => item.TimeStamp)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Level)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.RenderedMessage)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Properties)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Exception)
+                            </td>
+                        </tr>
+                    }
                     </tbody>
                 </table>
-                @Html.PagedListPager(Model, page => Url.Action("Entries", new { page }),
-                                           new PagedListRenderOptions()
-                                           {
-                                               LiElementClasses = new List<string> { "btn", "btn-light mb-5" }
-                                           })
+                @Html.PagedListPager(Model, page => Url.Action("Entries", new {page}),
+                    new PagedListRenderOptions
+                    {
+                        LiElementClasses = new List<string> {"btn", "btn-light mb-5"}
+                    })
             </div>
         </div>
     </div>

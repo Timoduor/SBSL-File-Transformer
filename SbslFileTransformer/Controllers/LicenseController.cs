@@ -1,11 +1,11 @@
-﻿using Licensing;
+﻿using System.IO;
+using System.Linq;
+using Licensing;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.FileProviders;
 using SbslFileTransformer.Infrastructure.Licensing;
 using SbslFileTransformer.Infrastructure.Licensing.Attributes;
-using System.IO;
-using System.Linq;
 
 namespace SbslFileTransformer.Controllers
 {
@@ -13,7 +13,7 @@ namespace SbslFileTransformer.Controllers
     [AllowAnonymous]
     public class LicenseController : Controller
     {
-        private IFileProvider _fileProvider;
+        private readonly IFileProvider _fileProvider;
 
         public LicenseController(IFileProvider fileProvider)
         {
@@ -26,16 +26,18 @@ namespace SbslFileTransformer.Controllers
             //displays the license info if it is ok else redirects to renew license
             var licenseInfo = new LicenseInfo();
 
-            var licensePath = _fileProvider.GetDirectoryContents("/").FirstOrDefault(f => f.Name == "license.lic")?.PhysicalPath;
+            var licensePath = _fileProvider.GetDirectoryContents("/").FirstOrDefault(f => f.Name == "license.lic")
+                ?.PhysicalPath;
 
-            var status = licenseInfo.GetLicenseStatus(out string licenseMessage);
+            var status = licenseInfo.GetLicenseStatus(out var licenseMessage);
 
             ViewBag.LicenseMessage = licenseMessage;
             ViewBag.Status = status;
 
             var validationMsg = string.Empty;
 
-            if (status == LicenseStatus.VALID && licenseInfo.License.DoExtraValidation(out validationMsg) == LicenseStatus.VALID)
+            if (status == LicenseStatus.VALID &&
+                licenseInfo.License.DoExtraValidation(out validationMsg) == LicenseStatus.VALID)
             {
                 ViewBag.License = licenseInfo.License;
                 ViewBag.LicenseInfo = licenseInfo.GetLicenseInfo(licenseInfo.License, "");
@@ -58,7 +60,7 @@ namespace SbslFileTransformer.Controllers
 
             var licenseInfo = new LicenseInfo();
 
-            var status = licenseInfo.GetLicenseStatus(out string licenseMessage);
+            var status = licenseInfo.GetLicenseStatus(out var licenseMessage);
 
             ViewBag.LicenseMessage = licenseMessage;
             ViewBag.Status = status;
@@ -71,14 +73,12 @@ namespace SbslFileTransformer.Controllers
         {
             var licActivator = new LicenseActivator();
 
-            if (licActivator.ValidateLicense(licKey, out string msg, out LicenseStatus status))
+            if (licActivator.ValidateLicense(licKey, out var msg, out var status))
             {
-                var licensePath = _fileProvider.GetDirectoryContents("/").FirstOrDefault(f => f.Name == "license.lic")?.PhysicalPath;
+                var licensePath = _fileProvider.GetDirectoryContents("/").FirstOrDefault(f => f.Name == "license.lic")
+                    ?.PhysicalPath;
 
-                if(licensePath == null)
-                {
-                    licensePath = Path.Combine(Directory.GetCurrentDirectory(), "license.lic");
-                }
+                if (licensePath == null) licensePath = Path.Combine(Directory.GetCurrentDirectory(), "license.lic");
 
                 System.IO.File.WriteAllText(licensePath, licKey);
                 return RedirectToAction("Index");

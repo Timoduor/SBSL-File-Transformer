@@ -1,4 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -7,17 +12,13 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class MT300RWConverterJob : ConverterJobBase<MT300RWConverterJob>, IHostedService
     {
-        public MT300RWConverterJob(ILogger<MT300RWConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public MT300RWConverterJob(ILogger<MT300RWConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
+            EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -30,9 +31,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await ConvertMT300File(), null, TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await ConvertMT300File(), null,
+                TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
+        }
+
+        public async Task StopAsync(CancellationToken cancellationToken)
+        {
+            await _timer.DisposeAsync();
         }
 
         private async Task ConvertMT300File()
@@ -51,14 +58,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = await dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToListAsync();
+                    var configurations = await dbContext.Configurations
+                        .Where(c => c.ConfigType == ConfigurationType.Sftp).ToListAsync();
 
-                    Entity = dbContext.Configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
+                    Entity = dbContext.Configurations
+                        .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
 
-                    var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
+                    var options = new EnumerationOptions
+                        {RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive};
 
                     var files = Directory.GetFiles(prodFolder, "*.BKP", options).ToList();
 
@@ -67,27 +77,30 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     var mt300Converter = new Mt300Converter();
 
                     foreach (var file in files)
-                    {
                         //FILE PATH SHOULD HAVE FOLDER NAME MT300 SOMEWHERE IN IT
                         if (file.ToLower().Contains("mt300") && file.ToLower().Contains("imrw"))
                         {
-                            var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
-                            string outputfile= Path.GetDirectoryName(file) + "\\Converted_MT300_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".csv";
+                            var fileToProcess =
+                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
+                                    f.FilePath.ToLower() == file.ToLower());
+                            var outputfile = Path.GetDirectoryName(file) + "\\Converted_MT300_" +
+                                             DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".csv";
                             //if (fileToProcess != null && fileToProcess.Converted == false)
-                           // {
-                                try
-                                {
-                                    mt300Converter.ProcessMt300File(file);
-                                }
-                                catch (Exception ex)
-                                {
-                                    fileToProcess.Failed = true;
+                            // {
+                            try
+                            {
+                                mt300Converter.ProcessMt300File(file);
+                            }
+                            catch (Exception ex)
+                            {
+                                fileToProcess.Failed = true;
 
-                                    _logger.LogError(ex, ex.Message);
+                                _logger.LogError(ex, ex.Message);
 
-                                string archive = "";
+                                var archive = "";
 
-                                archive = Path.Combine(Path.GetDirectoryName(file) + "\\MT300", "FAILED", DateTime.Now.ToString("yyMMdd") + "\\RTGSMT300");
+                                archive = Path.Combine(Path.GetDirectoryName(file) + "\\MT300", "FAILED",
+                                    DateTime.Now.ToString("yyMMdd") + "\\RTGSMT300");
                                 if (!Directory.Exists(archive))
                                     Directory.CreateDirectory(archive);
 
@@ -96,15 +109,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 {
                                     File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".out");
                                     File.Delete(file);
-
                                 }
                                 catch (Exception xc)
                                 {
                                 }
-                                await EmailHelpers.SendEmails(dbContext, "Error in MT300 file conversion", $"Problem with  file {file} \n\n {ex.Message}", new string[] { file }, _emailSender);
-                                }
-                                finally
-                                {
+
+                                await EmailHelpers.SendEmails(dbContext, "Error in MT300 file conversion",
+                                    $"Problem with  file {file} \n\n {ex.Message}", new[] {file}, _emailSender);
+                            }
+                            finally
+                            {
                                 //fileToProcess.Converted = true;
 
                                 //fileToProcess.ConvertedBy = nameof(Mt300Converter);
@@ -113,9 +127,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                 //await dbContext.SaveChangesAsync();
 
-                                string archive = "";
+                                var archive = "";
 
-                                archive = Path.Combine(Path.GetDirectoryName(file) + "\\MT300", "ARCHIVE", DateTime.Now.ToString("yyMMdd") + "\\RTGSMT300");
+                                archive = Path.Combine(Path.GetDirectoryName(file) + "\\MT300", "ARCHIVE",
+                                    DateTime.Now.ToString("yyMMdd") + "\\RTGSMT300");
                                 if (!Directory.Exists(archive))
                                     Directory.CreateDirectory(archive);
 
@@ -124,7 +139,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 {
                                     File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".out");
                                     File.Delete(file);
-                                    
                                 }
                                 catch (Exception xc)
                                 {
@@ -132,7 +146,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             }
                             //}
                         }
-                    }
                 }
             }
             catch (Exception ex)
@@ -143,11 +156,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             {
                 _semaphore.Release();
             }
-        }
-
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            await _timer.DisposeAsync();
         }
     }
 }

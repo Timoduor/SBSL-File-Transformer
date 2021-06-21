@@ -6,7 +6,7 @@
 
 <h2>Email Configuration</h2>
 
-<hr />
+<hr/>
 <div class="row">
     <div class="col-md-12">
         <form asp-action="UpdateSmtpConfig">
@@ -16,17 +16,17 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label asp-for="Name" class="control-label"></label>
-                        <input asp-for="Name" class="form-control" />
+                        <input asp-for="Name" class="form-control"/>
                         <span asp-validation-for="Name" class="text-danger"></span>
                     </div>
                     <div class="form-group">
                         <label asp-for="EmailAddress" class="control-label"></label>
-                        <input asp-for="EmailAddress" class="form-control" />
+                        <input asp-for="EmailAddress" class="form-control"/>
                         <span asp-validation-for="EmailAddress" class="text-danger"></span>
                     </div>
                     <div class="form-group">
                         <label asp-for="SmtpServer" class="control-label"></label>
-                        <input asp-for="SmtpServer" class="form-control" />
+                        <input asp-for="SmtpServer" class="form-control"/>
                         <span asp-validation-for="SmtpServer" class="text-danger"></span>
                     </div>
                     <div class="form-group">
@@ -38,33 +38,33 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label asp-for="Port" class="control-label"></label>
-                        <input asp-for="Port" class="form-control" type="number" />
+                        <input asp-for="Port" class="form-control" type="number"/>
                         <span asp-validation-for="Port" class="text-danger"></span>
                     </div>
                     <div class="form-group">
                         <label asp-for="UserName" class="control-label"></label>
-                        <input asp-for="UserName" class="form-control" />
+                        <input asp-for="UserName" class="form-control"/>
                         <span asp-validation-for="UserName" class="text-danger"></span>
                     </div>
                     <div class="form-group">
                         <label asp-for="Password" class="control-label"></label>
-                        <input asp-for="Password" class="form-control" />
+                        <input asp-for="Password" class="form-control"/>
                         <span asp-validation-for="Password" class="text-danger"></span>
                     </div>
                     <div class="form-group form-check">
                         <label class="form-check-label">
-                            <input class="form-check-input" asp-for="UseSsl" /> @Html.DisplayNameFor(model => model.UseSsl)
+                            <input class="form-check-input" asp-for="UseSsl"/> @Html.DisplayNameFor(model => model.UseSsl)
                         </label>
                     </div>
                     <div class="form-group form-check">
                         <label class="form-check-label">
-                            <input class="form-check-input" asp-for="UseDefaultCredentials" /> @Html.DisplayNameFor(model => model.UseDefaultCredentials)
+                            <input class="form-check-input" asp-for="UseDefaultCredentials"/> @Html.DisplayNameFor(model => model.UseDefaultCredentials)
                         </label>
                     </div>
                 </div>
             </div>
             <div class="form-group">
-                <input type="submit" value="Save Configuration" class="btn btn-primary" />
+                <input type="submit" value="Save Configuration" class="btn btn-primary"/>
             </div>
         </form>
         <div>
@@ -72,5 +72,3 @@
         </div>
     </div>
 </div>
-
-

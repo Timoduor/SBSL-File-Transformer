@@ -6,7 +6,9 @@
 
 <div class="login-box">
     <div class="login-logo">
-        <a href=""><img src="~/img/logo.png" /></a>
+        <a href="">
+            <img src="~/img/logo.png"/>
+        </a>
     </div>
     <!-- /.login-logo -->
     <div class="card">
@@ -17,68 +19,68 @@
             {
                 @Html.AntiForgeryToken()
                 <div class="input-group mb-3">
-                    @Html.TextBoxFor(m => m.Organization, new { @class = "form-control", placeholder = "Organization", tabindex = "1", autofocus = "true" })
+                    @Html.TextBoxFor(m => m.Organization, new {@class = "form-control", placeholder = "Organization", tabindex = "1", autofocus = "true"})
                     <div class="input-group-append">
                         <div class="input-group-text">
                             <span class="fas fa-envelope"></span>
                         </div>
                     </div>
                 </div>
-                @Html.ValidationMessageFor(m => m.Organization, "", new { @class = "text-danger" })
+                @Html.ValidationMessageFor(m => m.Organization, "", new {@class = "text-danger"})
                 <div class="input-group mb-3">
-                    @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "Email" })
+                    @Html.TextBoxFor(m => m.Email, new {@class = "form-control", placeholder = "Email"})
                     <div class="input-group-append">
                         <div class="input-group-text">
                             <span class="fas fa-envelope"></span>
                         </div>
                     </div>
                 </div>
-                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                @Html.ValidationMessageFor(m => m.Email, "", new {@class = "text-danger"})
                 <div class="input-group mb-3">
-                    @Html.TextBoxFor(m => m.FirstName, new { @class = "form-control", placeholder = "First Name" })
+                    @Html.TextBoxFor(m => m.FirstName, new {@class = "form-control", placeholder = "First Name"})
                     <div class="input-group-append">
                         <div class="input-group-text">
                             <span class="fas fa-envelope"></span>
                         </div>
                     </div>
                 </div>
-                @Html.ValidationMessageFor(m => m.FirstName, "", new { @class = "text-danger" })
+                @Html.ValidationMessageFor(m => m.FirstName, "", new {@class = "text-danger"})
                 <div class="input-group mb-3">
-                    @Html.TextBoxFor(m => m.LastName, new { @class = "form-control", placeholder = "Last Name"})
+                    @Html.TextBoxFor(m => m.LastName, new {@class = "form-control", placeholder = "Last Name"})
                     <div class="input-group-append">
                         <div class="input-group-text">
                             <span class="fas fa-envelope"></span>
                         </div>
                     </div>
                 </div>
-                @Html.ValidationMessageFor(m => m.LastName, "", new { @class = "text-danger" })
+                @Html.ValidationMessageFor(m => m.LastName, "", new {@class = "text-danger"})
                 <div class="input-group mb-3">
-                    @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", placeholder = "Phone Number" })
+                    @Html.TextBoxFor(m => m.PhoneNumber, new {@class = "form-control", placeholder = "Phone Number"})
                     <div class="input-group-append">
                         <div class="input-group-text">
                             <span class="fas fa-envelope"></span>
                         </div>
                     </div>
                 </div>
-                @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger" })
+                @Html.ValidationMessageFor(m => m.PhoneNumber, "", new {@class = "text-danger"})
                 <div class="input-group mb-3">
-                    @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "Password" })
+                    @Html.PasswordFor(m => m.Password, new {@class = "form-control", placeholder = "Password"})
                     <div class="input-group-append">
                         <div class="input-group-text">
                             <span class="fas fa-lock"></span>
                         </div>
                     </div>
                 </div>
-                @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+                @Html.ValidationMessageFor(m => m.Password, "", new {@class = "text-danger"})
                 <div class="input-group mb-3">
-                    @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", placeholder = "Confirm Password" })
+                    @Html.PasswordFor(m => m.ConfirmPassword, new {@class = "form-control", placeholder = "Confirm Password"})
                     <div class="input-group-append">
                         <div class="input-group-text">
                             <span class="fas fa-lock"></span>
                         </div>
                     </div>
                 </div>
-                @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger" })
+                @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new {@class = "text-danger"})
                 <div class="row">
                     <div class="col-7">
                         @*<div class="icheck-primary">

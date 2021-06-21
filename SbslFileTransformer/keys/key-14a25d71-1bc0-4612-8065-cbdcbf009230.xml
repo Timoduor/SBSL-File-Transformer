@@ -1,9 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
+
 <key id="14a25d71-1bc0-4612-8065-cbdcbf009230" version="1">
   <creationDate>2021-06-08T20:46:50.5447245Z</creationDate>
   <activationDate>2021-06-08T20:46:50.3185666Z</activationDate>
   <expirationDate>2021-09-06T20:46:50.3185666Z</expirationDate>
-  <descriptor deserializerType="Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Version=3.1.9.0, Culture=neutral, PublicKeyToken=adb9793829ddae60">
+  <descriptor
+    deserializerType="Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Version=3.1.9.0, Culture=neutral, PublicKeyToken=adb9793829ddae60">
     <descriptor>
       <encryption algorithm="AES_256_CBC" />
       <validation algorithm="HMACSHA256" />

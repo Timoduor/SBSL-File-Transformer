@@ -1,7 +1,7 @@
-﻿using CsvHelper;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using CsvHelper;
 
 namespace SbslFileTransformer.Converters.Camt053
 {
@@ -29,7 +29,6 @@ namespace SbslFileTransformer.Converters.Camt053
 
                 csvWriter.WriteRecords(Bal);
             }
-
         }
     }
 }

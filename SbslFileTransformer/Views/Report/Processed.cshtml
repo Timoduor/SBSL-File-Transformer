@@ -1,8 +1,6 @@
-﻿@using X.PagedList;
-@using X.PagedList.Mvc.Core;
-@using X.PagedList.Mvc.Core.Common;
-
-@model IPagedList<ProcessedReport>
+﻿@using X.PagedList.Mvc.Core
+@using X.PagedList.Mvc.Core.Common
+@model X.PagedList.IPagedList<ProcessedReport>
 
 @{
     ViewData["Title"] = "Logs";
@@ -27,39 +25,39 @@
             <div class="table-wrapper-scroll-y my-custom-scrollbar">
                 <table class="table table-striped table-bordered table-sm">
                     <thead class="thead-dark">
-                        <tr>
-                            <th>
-                                Name
-                            </th>
-                            <th>
-                                Date
-                            </th>
-                            <th>
-                                Creator
-                            </th>
-                            <th>
-                                ID
-                            </th>
-                            <th>
-                                Format
-                            </th>
-                            <th>
-                                Notes
-                            </th>
-                            <th>
-                                Message
-                            </th>
-                            <th>
-                                Status
-                            </th>
-                            <th>
-                                EndTime
-                            </th>
-                        </tr>
+                    <tr>
+                        <th>
+                            Name
+                        </th>
+                        <th>
+                            Date
+                        </th>
+                        <th>
+                            Creator
+                        </th>
+                        <th>
+                            ID
+                        </th>
+                        <th>
+                            Format
+                        </th>
+                        <th>
+                            Notes
+                        </th>
+                        <th>
+                            Message
+                        </th>
+                        <th>
+                            Status
+                        </th>
+                        <th>
+                            EndTime
+                        </th>
+                    </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in Model)
-                        {
+                    @foreach (var item in Model)
+                    {
                         <tr>
                             <td>
                                 @Html.DisplayFor(modelItem => item.Name)
@@ -90,14 +88,14 @@
                             </td>
 
                         </tr>
-                        }
+                    }
                     </tbody>
                 </table>
-                @Html.PagedListPager(Model, page => Url.Action("Processed", new { page }),
-                                            new PagedListRenderOptions()
-                                            {
-                                                LiElementClasses = new List<string> { "btn", "btn-light mb-5" }
-                                            })
+                @Html.PagedListPager(Model, page => Url.Action("Processed", new {page}),
+                    new PagedListRenderOptions
+                    {
+                        LiElementClasses = new List<string> {"btn", "btn-light mb-5"}
+                    })
             </div>
         </div>
     </div>

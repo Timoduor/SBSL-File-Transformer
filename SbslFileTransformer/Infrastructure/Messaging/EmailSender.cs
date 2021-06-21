@@ -1,4 +1,10 @@
-﻿
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Mail;
+using System.Net.Mime;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MimeKit;
@@ -6,23 +12,17 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Mail;
-using System.Net.Mime;
-using System.Threading.Tasks;
 using ContentType = MimeKit.ContentType;
 
 namespace SbslFileTransformer.Infrastructure.Messaging
 {
     public class EmailSender
     {
-        private SmtpConfigModel _emailConfig;
-        private ILogger<EmailSender> _logger;
+        private readonly SmtpConfigModel _emailConfig;
+        private readonly ILogger<EmailSender> _logger;
 
-        public EmailSender(IServiceScopeFactory serviceScopeFactory, ILogger<EmailSender> logger, EncryptionManager encryptionManager)
+        public EmailSender(IServiceScopeFactory serviceScopeFactory, ILogger<EmailSender> logger,
+            EncryptionManager encryptionManager)
         {
             _logger = logger;
 
@@ -33,21 +33,28 @@ namespace SbslFileTransformer.Infrastructure.Messaging
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Email).ToList();
+                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Email)
+                        .ToList();
 
-                    var useDefaultCreds = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "UseDefaultCredentials" && c.ConfigType == ConfigurationType.Email)?.Value);
+                    var useDefaultCreds = Convert.ToBoolean(configurations.FirstOrDefault(c =>
+                        c.Key == "UseDefaultCredentials" && c.ConfigType == ConfigurationType.Email)?.Value);
 
                     _emailConfig = new SmtpConfigModel
                     {
                         Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port")?.Value),
                         UserName = configurations.FirstOrDefault(c => c.Key == "UserName")?.Value,
-                        Password = useDefaultCreds ? "" : encryptionManager.Decrypt(configurations.FirstOrDefault(c => c.Key == "Password")?.Value ?? "#"),
+                        Password = useDefaultCreds
+                            ? ""
+                            : encryptionManager.Decrypt(
+                                configurations.FirstOrDefault(c => c.Key == "Password")?.Value ?? "#"),
                         EmailAddress = configurations.FirstOrDefault(c => c.Key == "EmailAddress")?.Value,
                         SmtpServer = configurations.FirstOrDefault(c => c.Key == "SmtpServer")?.Value,
                         Name = configurations.FirstOrDefault(c => c.Key == "Name")?.Value,
                         Recipients = configurations.FirstOrDefault(c => c.Key == "Recipients")?.Value,
-                        UseSsl = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "UseSsl" && c.ConfigType == ConfigurationType.Email)?.Value),
-                        UseDefaultCredentials = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "UseDefaultCredentials" && c.ConfigType == ConfigurationType.Email)?.Value),
+                        UseSsl = Convert.ToBoolean(configurations
+                            .FirstOrDefault(c => c.Key == "UseSsl" && c.ConfigType == ConfigurationType.Email)?.Value),
+                        UseDefaultCredentials = Convert.ToBoolean(configurations.FirstOrDefault(c =>
+                            c.Key == "UseDefaultCredentials" && c.ConfigType == ConfigurationType.Email)?.Value)
                     };
                 }
             }
@@ -57,12 +64,12 @@ namespace SbslFileTransformer.Infrastructure.Messaging
             }
         }
 
-        public async Task SendMessage(IEnumerable<string> recipients, string subject, string content, bool isHtml = false, IEnumerable<string> filePaths = null)
+        public async Task SendMessage(IEnumerable<string> recipients, string subject, string content,
+            bool isHtml = false, IEnumerable<string> filePaths = null)
         {
             if (recipients == null || !recipients.Any())
-            {
-                recipients = _emailConfig.Recipients.Split(new[] { ',', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-            }
+                recipients =
+                    _emailConfig.Recipients.Split(new[] {',', '\n', '\r'}, StringSplitOptions.RemoveEmptyEntries);
 
             var message = new Message(recipients, subject, content, filePaths);
 
@@ -84,25 +91,19 @@ namespace SbslFileTransformer.Infrastructure.Messaging
             var builder = new BodyBuilder();
 
             if (isHtml)
-            {
                 builder.HtmlBody = message.Content; //html content string
-            }
             else
-            {
                 builder.TextBody = message.Content;
-            }
 
             if (message?.FilePaths != null)
-            {
                 foreach (var file in message.FilePaths)
                 {
-                    string mediaType = GetMediaType(file);
+                    var mediaType = GetMediaType(file);
 
                     var contentType = new ContentType(mediaType.Split('/')[0], mediaType.Split('/')[1]);
 
                     builder.Attachments.Add(Path.GetFileName(file), File.OpenRead(file), contentType);
                 }
-            }
 
             emailMessage.Body = builder.ToMessageBody();
 
@@ -112,7 +113,6 @@ namespace SbslFileTransformer.Infrastructure.Messaging
         private async Task Send((MimeMessage, Message) mailMessage)
         {
             if (_emailConfig.UseDefaultCredentials)
-            {
                 using (var client = new SmtpClient(_emailConfig.SmtpServer, _emailConfig.Port))
                 {
                     client.UseDefaultCredentials = _emailConfig.UseDefaultCredentials;
@@ -126,16 +126,13 @@ namespace SbslFileTransformer.Infrastructure.Messaging
                     };
 
                     foreach (var email in mailMessage.Item2.To)
-                    {
-                        if(!string.IsNullOrEmpty(email.Address))
+                        if (!string.IsNullOrEmpty(email.Address))
                             message.To.Add(email.Address);
-                    }
 
                     if (mailMessage.Item2.FilePaths != null)
-                    {
                         foreach (var file in mailMessage.Item2.FilePaths)
                         {
-                            Attachment data = new Attachment(file, MediaTypeNames.Application.Octet);
+                            var data = new Attachment(file, MediaTypeNames.Application.Octet);
 
                             var disposition = data.ContentDisposition;
                             disposition.CreationDate = File.GetCreationTime(file);
@@ -144,14 +141,10 @@ namespace SbslFileTransformer.Infrastructure.Messaging
 
                             message.Attachments.Add(data);
                         }
-                    }
 
                     client.Send(message);
-
                 }
-            }
             else
-            {
                 using (var client = new MailKit.Net.Smtp.SmtpClient())
                 {
                     await client.ConnectAsync(_emailConfig.SmtpServer, _emailConfig.Port, _emailConfig.UseSsl);
@@ -164,7 +157,6 @@ namespace SbslFileTransformer.Infrastructure.Messaging
 
                     client.Disconnect(true);
                 }
-            }
         }
 
         private static string GetMediaType(string file)
@@ -190,30 +182,6 @@ namespace SbslFileTransformer.Infrastructure.Messaging
             }
 
             return mediaType;
-        }
-    }
-
-
-
-    public class Message
-    {
-        public List<MailboxAddress> To { get; set; }
-        public string Subject { get; set; }
-        public string Content { get; set; }
-
-        public IEnumerable<string> FilePaths { get; set; }
-
-        public Message(IEnumerable<string> to, string subject, string content, IEnumerable<string> filePaths)
-        {
-            To = new List<MailboxAddress>();
-
-            var range = to.Select(x => new MailboxAddress(x.Split("@").FirstOrDefault().Trim(), x.Trim()));
-
-            To.AddRange(range);
-
-            Subject = subject;
-            Content = content;
-            FilePaths = filePaths;
         }
     }
 }

@@ -1,12 +1,11 @@
-﻿using CsvHelper;
-using ExcelDataReader;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using CsvHelper;
+using ExcelDataReader;
 
 namespace SbslFileTransformer.Converters.Kenya
 {
@@ -23,17 +22,18 @@ namespace SbslFileTransformer.Converters.Kenya
 
             using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateCsvReader(stream, new ExcelReaderConfiguration() { AutodetectSeparators = new char[] { ',', ';', '\t', '|', '#' } }))
+                using (var reader = ExcelReaderFactory.CreateCsvReader(stream,
+                    new ExcelReaderConfiguration {AutodetectSeparators = new[] {',', ';', '\t', '|', '#'}}))
                 {
-                    int countHeader = 0;
+                    var countHeader = 0;
 
-                    double per = 0.2;
+                    var per = 0.2;
 
-                    string excise = "Excise duty";
+                    var excise = "Excise duty";
 
-                    string computedbaseamnt = "Computed Base Amount";
+                    var computedbaseamnt = "Computed Base Amount";
 
-                    int count = 0;
+                    var count = 0;
 
                     while (reader.Read())
                     {
@@ -45,10 +45,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
                         var check = reader.GetValue(1)?.ToString().Trim();
 
-                        if (string.IsNullOrEmpty(check))
-                        {
-                            break;
-                        }
+                        if (string.IsNullOrEmpty(check)) break;
 
                         if (value != "KES" && value != "Code" && list.Count() > 0)
                         {
@@ -84,18 +81,15 @@ namespace SbslFileTransformer.Converters.Kenya
 
                             last.Col17 = reader.GetValue(15)?.ToString();
 
-                            double recamnt = Convert.ToDouble(reader.GetValue(11));
+                            var recamnt = Convert.ToDouble(reader.GetValue(11));
 
-                            double totalchamnt = Convert.ToDouble(reader.GetValue(12));
+                            var totalchamnt = Convert.ToDouble(reader.GetValue(12));
 
                             if (reader.GetValue(4).ToString().Contains("S"))
-                            {
-                                last.Col19 = (recamnt + totalchamnt + (totalchamnt * per)).ToString().TrimStart().TrimEnd();
-                            }
+                                last.Col19 = (recamnt + totalchamnt + totalchamnt * per).ToString().TrimStart()
+                                    .TrimEnd();
                             else if (reader.GetValue(4).ToString().Contains("P"))
-                            {
                                 last.Col19 = reader.GetValue(17).ToString().TrimStart().TrimEnd();
-                            }
 
                             continue;
                         }
@@ -147,28 +141,22 @@ namespace SbslFileTransformer.Converters.Kenya
 
                         try
                         {
-                            double recamnt = Convert.ToDouble(reader.GetValue(13));
+                            var recamnt = Convert.ToDouble(reader.GetValue(13));
 
-                            double totalchamnt = Convert.ToDouble(reader.GetValue(14));
+                            var totalchamnt = Convert.ToDouble(reader.GetValue(14));
 
                             if (reader.GetValue(6).ToString().Contains("S"))
-                            {
-                                row.Col19 = (recamnt + totalchamnt + (totalchamnt * per)).ToString().TrimStart().TrimEnd();
-                            }
+                                row.Col19 = (recamnt + totalchamnt + totalchamnt * per).ToString().TrimStart()
+                                    .TrimEnd();
                             else if (reader.GetValue(6).ToString().Contains("P"))
-                            {
                                 row.Col19 = reader.GetValue(17)?.ToString().TrimStart().TrimEnd();
-                            }
-
                         }
                         catch (Exception)
                         {
-
                         }
 
                         list.Add(row);
                     }
-
                 }
             }
 
@@ -183,7 +171,8 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm}_WUAKE_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm}_WUAKE_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
             WriteToFile(list4, outputFile);
@@ -195,10 +184,10 @@ namespace SbslFileTransformer.Converters.Kenya
 
             using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateCsvReader(stream, new ExcelReaderConfiguration() { AutodetectSeparators = new char[] { ',', ';', '\t', '|', '#' } }))
+                using (var reader = ExcelReaderFactory.CreateCsvReader(stream,
+                    new ExcelReaderConfiguration {AutodetectSeparators = new[] {',', ';', '\t', '|', '#'}}))
                 {
-
-                    double per = 0.2;
+                    var per = 0.2;
 
                     while (reader.Read())
                     {
@@ -208,10 +197,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
                         var check = reader.GetValue(1)?.ToString().Trim();
 
-                        if (string.IsNullOrEmpty(check))
-                        {
-                            break;
-                        }
+                        if (string.IsNullOrEmpty(check)) break;
 
                         //traversing through row 5
                         if (value1 != "KES" && value1 != "Code" && list3.Count() > 0)
@@ -221,13 +207,8 @@ namespace SbslFileTransformer.Converters.Kenya
                             var last = list3.Last();
 
                             if (value3.Contains("S"))
-                            {
                                 last.Col6 = "excise duty";
-                            }
-                            else if (value3.Contains("P"))
-                            {
-                                continue;
-                            }
+                            else if (value3.Contains("P")) continue;
 
                             last.Col3 = reader.GetValue(1)?.ToString();
 
@@ -266,11 +247,9 @@ namespace SbslFileTransformer.Converters.Kenya
                                 last.Col18 = (cost * per).ToString("0.##").TrimStart().TrimEnd();
 
                                 last.Col19 = last.Col18.TrimStart().TrimEnd();
-
                             }
                             catch (Exception)
                             {
-
                             }
 
                             continue;
@@ -279,13 +258,8 @@ namespace SbslFileTransformer.Converters.Kenya
                         var value2 = reader.GetValue(6)?.ToString();
 
                         if (value2.Contains("S"))
-                        {
                             row.Col6 = "excise duty";
-                        }
-                        else if (value2.Contains("P"))
-                        {
-                            continue;
-                        }
+                        else if (value2.Contains("P")) continue;
 
                         //code
                         row.Col0 = reader.GetValue(0)?.ToString().Trim().Replace("\n", "");
@@ -327,16 +301,14 @@ namespace SbslFileTransformer.Converters.Kenya
                         //excise duty calculation (0.2% of amount)
                         try
                         {
-                            double cost = Convert.ToDouble(reader.GetValue(14));
+                            var cost = Convert.ToDouble(reader.GetValue(14));
 
                             row.Col18 = (cost * per).ToString("0.##").TrimStart().TrimEnd();
 
                             row.Col19 = row.Col18.TrimStart().TrimEnd();
-
                         }
                         catch (Exception)
                         {
-
                         }
 
                         list3.Add(row);

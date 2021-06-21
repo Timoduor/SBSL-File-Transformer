@@ -6,7 +6,7 @@
 
 <h1>Run Manual Conversion Task</h1>
 
-<hr />
+<hr/>
 <div class="row">
     <div class="col-md-12">
         <form asp-action="RunPlugin" id="taskForm" method="post">
@@ -15,46 +15,46 @@
                 <div class="col-md-6">
                     <table class="table table-striped table-sm">
                         <thead class="table-dark">
-                            <tr>
-                                <th>Select Plugin</th>
-                            </tr>
+                        <tr>
+                            <th>Select Plugin</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            @foreach (var plugin in Model.Plugins)
-                            {
-                                <tr>
-                                    <td>
-                                        <input type="radio" id="@plugin.Id" name="plugin" value="@plugin.Id" onchange="onPluginSelected()" @(plugin.IsSelected ? "checked": "")>
-                                        <label for="huey">@plugin.Name</label>
-                                    </td>
-                                </tr>
-                            }
+                        @foreach (var plugin in Model.Plugins)
+                        {
+                            <tr>
+                                <td>
+                                    <input type="radio" id="@plugin.Id" name="plugin" value="@plugin.Id" onchange="onPluginSelected()" @(plugin.IsSelected ? "checked" : "")>
+                                    <label for="huey">@plugin.Name</label>
+                                </td>
+                            </tr>
+                        }
                         </tbody>
                     </table>
                 </div>
                 <div class="col-md-6">
                     <table class="table table-striped table-sm">
                         <thead class="table-dark">
-                            <tr>
-                                <th>Select File</th>
-                            </tr>
+                        <tr>
+                            <th>Select File</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            @foreach (var file in Model.Files)
-                            {
-                                <tr>
-                                    <td>
-                                        <input type="radio" id="@file.Name" name="file" value="@file.FullName">
-                                        <label for="huey">@file.Name</label>
-                                    </td>
-                                </tr>
-                            }
+                        @foreach (var file in Model.Files)
+                        {
+                            <tr>
+                                <td>
+                                    <input type="radio" id="@file.Name" name="file" value="@file.FullName">
+                                    <label for="huey">@file.Name</label>
+                                </td>
+                            </tr>
+                        }
                         </tbody>
                     </table>
                 </div>
             </div>
             <div class="form-group">
-                <input type="submit" value="Run Conversion" class="btn btn-primary" />
+                <input type="submit" value="Run Conversion" class="btn btn-primary"/>
             </div>
         </form>
     </div>
@@ -64,8 +64,8 @@
 @section Scripts {
     <script>
         function onPluginSelected() {
-            var selectedPluginId = $('input[name="plugin"]:checked').val();
-            window.location.href = '/task/index?pluginId=' + selectedPluginId;
+            const selectedPluginId = $('input[name="plugin"]:checked').val();
+            window.location.href = `/task/index?pluginId=${selectedPluginId}`;
         }
     </script>
 }

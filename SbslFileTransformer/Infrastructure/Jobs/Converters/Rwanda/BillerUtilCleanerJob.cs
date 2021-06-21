@@ -1,4 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -7,18 +12,13 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class BillerUtilCleanerJob : ConverterJobBase<BillerUtilCleanerJob>, IHostedService
     {
-
-        public BillerUtilCleanerJob(ILogger<BillerUtilCleanerJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public BillerUtilCleanerJob(ILogger<BillerUtilCleanerJob> logger, IServiceScopeFactory serviceScopeFactory,
+            EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -31,8 +31,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await ConvertBnrFile(), null, TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await ConvertBnrFile(), null,
+                TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
 
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            _semaphore.Dispose();
+            _timer.Dispose();
             return Task.CompletedTask;
         }
 
@@ -52,14 +60,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
+                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
+                        .ToList();
 
-                    Entity = dbContext.Configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
+                    Entity = dbContext.Configurations
+                        .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
 
-                    var options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
+                    var options = new EnumerationOptions
+                        {RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive};
 
                     var files = Directory.GetFiles(prodFolder, "*.csv", options).ToList();
 
@@ -68,13 +79,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     var bnrConverter = new FDICleaner();
 
                     foreach (var file in files)
-                    {
-                        if (file.ToLower().Contains("fdi") && file.ToLower().Contains("imrw") && file.ToLower().Contains("portal") && !file.ToLower().Contains("bal") && !file.ToLower().Contains("conv"))
+                        if (file.ToLower().Contains("fdi") && file.ToLower().Contains("imrw") &&
+                            file.ToLower().Contains("portal") && !file.ToLower().Contains("bal") &&
+                            !file.ToLower().Contains("conv"))
                         {
-                            var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
+                            var fileToProcess =
+                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
+                                    f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
-                            {
                                 try
                                 {
                                     bnrConverter.ConvertFile(file);
@@ -85,7 +98,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem cleaning files", $"{file} \n\n {ex.Message}", new string[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem cleaning files",
+                                        $"{file} \n\n {ex.Message}", new[] {file}, _emailSender);
                                 }
                                 finally
                                 {
@@ -97,11 +111,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                     await dbContext.SaveChangesAsync();
                                 }
-                            }
                         }
-                    }
                 }
-
             }
             catch (Exception ex)
             {
@@ -111,13 +122,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             {
                 _semaphore.Release();
             }
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _semaphore.Dispose();
-            _timer.Dispose();
-            return Task.CompletedTask;
         }
     }
 }

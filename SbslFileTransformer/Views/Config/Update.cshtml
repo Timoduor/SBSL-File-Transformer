@@ -7,7 +7,7 @@
 <h1>Create</h1>
 
 <h4>Configuration</h4>
-<hr />
+<hr/>
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Create" id="configUpdate">
@@ -15,12 +15,14 @@
 
             <div class="form-group">
                 <label asp-for="ConfigType" class="control-label"></label>
-                <select asp-for="ConfigType" asp-items="@ViewBag.ConfigTypes"><option>Please select one</option></select>
+                <select asp-for="ConfigType" asp-items="@ViewBag.ConfigTypes">
+                    <option>Please select one</option>
+                </select>
                 <span asp-validation-for="ConfigType" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Key" class="control-label"></label>
-                <input asp-for="Key" class="form-control" value="@Model.Key" />
+                <input asp-for="Key" class="form-control" value="@Model.Key"/>
                 <span asp-validation-for="Key" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -29,7 +31,7 @@
                 <span asp-validation-for="Value" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Update" class="btn btn-primary" />
+                <input type="submit" value="Update" class="btn btn-primary"/>
             </div>
         </form>
 
@@ -40,4 +42,3 @@
 <div>
     <a asp-action="Index" class="btn btn-light float-right">Back to List</a>
 </div>
-
