@@ -10,6 +10,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
 {
     public class Mt320Converter
     {
+         
         public void ProcessMt320File(string file, string outputFolder = null)
         {
             var content = File.ReadAllText(file);
@@ -48,6 +49,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                 }
                 catch (Exception xc)
                 {
+                    
                 }
 
                 return;
@@ -65,11 +67,11 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                 var seq15E = new MandatorySequence320E();
 
 
+
                 List<string> l = GetRtgsDetails_MT320_15A(sDet);
                 List<string> lb = GetRtgsDetails_MT320_15B(sDet);
                 List<string> lc = GetRtgsDetails_MT320_15C(sDet);
                 List<string> ld = GetRtgsDetails_MT320_15D(sDet);
-
 
 
                 seq15A.NewSequenceA = "";
@@ -105,25 +107,23 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
 
                 seq15C.NewSequenceC = "";
                 seq15C.ReceivingAgent15C = lc.Any(p => p.StartsWith("57A:")) ? lc.First(p => p.StartsWith("57A:")).Split('|')[1].ToString() : "";
+                seq15C.DeliveryAgent15C = lc.Any(p => p.StartsWith("58A:")) ? lc.First(p => p.StartsWith("58A:")).Split('|')[1].ToString() : "";
 
                 seq15D.NewSequenceD = "";
                 seq15D.DeliveryAgent15D = ld.Any(p => p.StartsWith("53A:")) ? ld.First(p => p.StartsWith("53A:")).Split('|')[1].ToString() : "";
                 seq15D.ReceivingAgent15D = ld.Any(p => p.StartsWith("T57A:")) ? ld.First(p => p.StartsWith("T57A:")).Split('~')[1].ToString() : "";
                 seq15D.BeneficiaryInstitution15D = ld.Any(p => p.StartsWith("T58A:")) ? ld.First(p => p.StartsWith("T58A:")).Split('~')[1].ToString() : "";
 
+                scontent = " New Sequence A,Sender Reference,Type of operation,Scope Of Operation,Type Of Event,Common Reference,Contract NO,Party A - BIC,Party B - BIC,  " +
+                             "New Sequence B,Partys A role,Trade date,Value date,Maturity Date,Currency,Principal Amount,Interest Date,Currency,Interest Amount,Interest Rate,Day Count, " +
+                             "New Sequence C,Delivery Agent 1,Receiving Agent 1, " +
+                            " New Sequence D, Delivery Agent 2, Receiving Agent 2  " + Environment.NewLine;
+                scontent += seq15A.NewSequenceA + "," + seq15A.SenderRef15A + "," + seq15A.TypeofOperation15A + "," + seq15A.ScopeofOperation15A + "," + seq15A.TypeofEvent15A + "," + seq15A.CommonReference15A + "," + seq15A.ContractNumberPartyA15A + "," + seq15A.PartyA15A + "," + seq15A.PartyB15A;
+                scontent += "," + seq15B.NewSequenceB + "," + seq15B.PartyAsRole15B + "," + seq15B.TradeDate15B + "," + seq15B.ValueDate15B + "," + seq15B.MaturityDate15B + "," + seq15B.CurrencyPrincipalAmount15B + "," + seq15B.PrincipalAmount15B + "," + seq15B.NextInterestDueDate15B + "," + seq15B.CurrencyInterestAmount15B + "," + seq15B.InterestAmount15B + "," + seq15B.InterestRate15B + "," + seq15B.DayCountFraction15B;
+                scontent += "," + seq15C.NewSequenceC + "," + seq15C.DeliveryAgent15C + "," + seq15C.ReceivingAgent15C;
+                scontent += "," + seq15D.NewSequenceD + "," + seq15D.DeliveryAgent15D + "," + seq15D.ReceivingAgent15D;
 
-                scontent = " New Sequence A, Sender's Reference,Related Reference,Type of Operation,Scope of Operation,Type of Event,Common Reference ,  " +
-                             "Party A - BIC, Party B - BIC,New Sequence B,   " +
-                             "Party A's Role, Trade Date,Value Date,Maturity Date,Currency,Principal Amount,Currency,Amount to be Settled,Next Interest Due Date,Currency,Interest Amount,Interest Rate,Day Count Fraction,Last Day of First Int Per,Number of Days, " +
-                            " New Sequence C ,Receiving Agent - FI BIC," +
-                            " New Sequence D,Delivery Agent - FI BIC,Receiving Agent - FI BIC,Beneficiary Institution - BIC " + Environment.NewLine;
-                scontent += seq15A.NewSequenceA + "," + seq15A.SenderRef15A + "," + seq15A.RelatedRef15A + "," + seq15A.TypeofOperation15A + "," + seq15A.ScopeofOperation15A + "," + seq15A.TypeofEvent15A + "," + seq15A.CommonReference15A + "," + seq15A.PartyA15A + "," + seq15A.PartyB15A;
-                scontent += "," + seq15B.NewSequenceB + "," + seq15B.PartyAsRole15B + "," + seq15B.TradeDate15B + "," + seq15B.ValueDate15B + "," + seq15B.MaturityDate15B + "," + seq15B.CurrencyPrincipalAmount15B + "," + seq15B.PrincipalAmount15B + "," + seq15B.CurrencyAmounttobeSettled15B + "," + seq15B.AmounttobeSettledt15B + "," + seq15B.NextInterestDueDate15B + "," + seq15B.CurrencyInterestAmount15B + "," + seq15B.InterestAmount15B + "," + seq15B.InterestRate15B + "," + seq15B.DayCountFraction15B + "," + seq15B.LastDayoftheFirstInterestPeriod15B + "," + seq15B.NumberofDays15B;
-                scontent += "," + seq15C.NewSequenceC + "," + seq15C.ReceivingAgent15C;
-                scontent += "," + seq15D.NewSequenceD + "," + seq15D.DeliveryAgent15D + "," + seq15D.ReceivingAgent15D + "," + seq15D.BeneficiaryInstitution15D;
-
-
-                WriteFile(outputFolder + "\\Converted_MT320_" + Path.GetFileNameWithoutExtension(file) + ".csv", scontent);
+              WriteFile(outputFolder + "\\Converted_MT320_" + Path.GetFileNameWithoutExtension(file) + ".csv", scontent);
             }
         }
 
@@ -380,6 +380,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                             l.Add(d[i].Trim() + "|" + d[i + 2].Trim() + "|" + d[i + 3].Trim());
                         }
 
+                        
                     }
                 }
                 if (d[i].Contains("37G:"))
@@ -407,6 +408,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
 
             return l;
         }
+
         private List<string> GetRtgsDetails_MT320_15C(string[] d)
         {
 
@@ -422,13 +424,14 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                 }
                 if (d[i].Contains("57A:"))
                 {
-                    if (i < 74)
+                    if (i < 71)
                     {
-                        if (d[i + 2].Trim().Length != 8 || d[i + 2].Trim().Length != 11)
+                        if (d[i + 1].Trim().Length != 8)
                         {
-
-                            l.Add(d[i].Trim() + "|" + d[i + 2].Trim());
-
+                            if (d[i + 1].Trim().Length != 11)
+                            {
+                                l.Add(d[i].Trim() + "|" + d[i + 2].Trim());
+                            }
 
                         }
                         else
@@ -439,18 +442,56 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                     }
                     else
                     {
-                        if (d[i + 2].Trim().Length != 8 || d[i + 2].Trim().Length != 11)
+                        if (d[i + 1].Trim().Length != 8)
                         {
-                            //if (d[i + 1].Trim().Length != 8 || d[i + 2].Trim().Length != 8)
-                            //{
-                            l.Add("T" + d[i].Trim() + "~" + d[i + 2].Trim());
-                            //}
+                            if (d[i + 1].Trim().Length != 11)
+                            {
+                                l.Add("T" + d[i].Trim() + "~" + d[i + 2].Trim());
+                            }
                             //else
                             //{ l.Add("T" + d[i].Trim() + "~" + d[i + 1].Trim()); }
                         }
                         else
                         {
-                            l.Add("T" + d[i].Trim() + "~" + d[i + 3].Trim());
+                            l.Add("T" + d[i].Trim() + "~" + d[i + 1].Trim());
+                        }
+
+                    }
+
+                }
+
+                if (d[i].Contains("58A:"))
+                {
+                    if (i < 71)
+                    {
+                        if (d[i + 1].Trim().Length != 8)
+                        {
+                            if (d[i + 1].Trim().Length != 11)
+                            {
+                                l.Add(d[i].Trim() + "|" + d[i + 2].Trim());
+                            }
+
+                        }
+                        else
+                        {
+                            l.Add(d[i].Trim() + "|" + d[i + 2].Trim());
+                        }
+
+                    }
+                    else
+                    {
+                        if (d[i + 1].Trim().Length != 8)
+                        {
+                            if (d[i + 1].Trim().Length != 11)
+                            {
+                                l.Add("T" + d[i].Trim() + "~" + d[i + 2].Trim());
+                            }
+                            //else
+                            //{ l.Add("T" + d[i].Trim() + "~" + d[i + 1].Trim()); }
+                        }
+                        else
+                        {
+                            l.Add("T" + d[i].Trim() + "~" + d[i + 2].Trim());
                         }
 
                     }
@@ -481,11 +522,12 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                 {
                     if (i < 77)
                     {
-                        if (d[i + 2].Trim().Length != 8 || d[i + 2].Trim().Length != 11)
+                        if (d[i + 1].Trim().Length != 8)
                         {
-
-                            l.Add(d[i].Trim() + "|" + d[i + 2].Trim());
-
+                            if (d[i + 1].Trim().Length != 11)
+                            {
+                                l.Add(d[i].Trim() + "|" + d[i + 2].Trim());
+                            }
 
                         }
                         else
@@ -496,7 +538,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                     }
                     else
                     {
-                        if (d[i + 2].Trim().Length != 8 || d[i + 2].Trim().Length != 11)
+                        if (d[i + 1].Trim().Length != 8 || d[i + 1].Trim().Length != 11)
                         {
 
                             l.Add("T" + d[i].Trim() + "~" + d[i + 2].Trim());
@@ -504,7 +546,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                         }
                         else
                         {
-                            l.Add("T" + d[i].Trim() + "~" + d[i + 3].Trim());
+                            l.Add("T" + d[i].Trim() + "~" + d[i + 1].Trim());
                         }
 
                     }
@@ -512,13 +554,14 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                 }
                 if (d[i].Contains("57A:"))
                 {
-                    if (i < 75)
+                    if (i < 74)
                     {
-                        if (d[i + 2].Trim().Length != 8 || d[i + 2].Trim().Length != 11)
+                        if (d[i + 1].Trim().Length != 8)
                         {
-
-                            l.Add(d[i].Trim() + "|" + d[i + 2].Trim());
-
+                            if (d[i + 1].Trim().Length != 11)
+                            {
+                                l.Add(d[i].Trim() + "|" + d[i + 2].Trim());
+                            }
 
                         }
                         else
@@ -529,15 +572,16 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                     }
                     else
                     {
-                        if (d[i + 2].Trim().Length != 8 || d[i + 1].Trim().Length != 11)
+                        if (d[i + 1].Trim().Length != 8)
                         {
-
-                            l.Add("T" + d[i].Trim() + "~" + d[i + 1].Trim());
-
+                            if (d[i + 1].Trim().Length != 11)
+                            {
+                                l.Add("T" + d[i].Trim() + "~" + d[i + 2].Trim());
+                            }
                         }
                         else
                         {
-                            l.Add("T" + d[i].Trim() + "~" + d[i + 2].Trim());
+                            l.Add("T" + d[i].Trim() + "~" + d[i + 1].Trim());
                         }
 
                     }
@@ -546,13 +590,14 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
 
                 if (d[i].Contains("58A:"))
                 {
-                    if (i < 75)
+                    if (i < 67)
                     {
-                        if (d[i + 2].Trim().Length != 8 || d[i + 2].Trim().Length != 11)
+                        if (d[i + 1].Trim().Length != 8)
                         {
-
-                            l.Add(d[i].Trim() + "|" + d[i + 2].Trim());
-
+                            if (d[i + 1].Trim().Length != 11)
+                            {
+                                l.Add(d[i].Trim() + "|" + d[i + 2].Trim());
+                            }
 
                         }
                         else
@@ -563,15 +608,16 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                     }
                     else
                     {
-                        if (d[i + 2].Trim().Length != 8 || d[i + 2].Trim().Length != 11)
+                        if (d[i + 1].Trim().Length != 8)
                         {
-
-                            l.Add("T" + d[i].Trim() + "~" + d[i + 2].Trim());
-
+                            if (d[i + 1].Trim().Length != 11)
+                            {
+                                l.Add("T" + d[i].Trim() + "~" + d[i + 2].Trim());
+                            }
                         }
                         else
                         {
-                            l.Add("T" + d[i].Trim() + "~" + d[i + 3].Trim());
+                            l.Add("T" + d[i].Trim() + "~" + d[i + 1].Trim());
                         }
 
                     }
@@ -581,6 +627,13 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
 
             return l;
         }
+
+
+
+
+
+
+
 
 
     }
