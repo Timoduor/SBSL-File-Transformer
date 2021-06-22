@@ -16,9 +16,9 @@ using SbslFileTransformer.Models.Enums;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 {
-    public class FxRatesConverterJob : ConverterJobBase<FxRatesConverterJob>, IHostedService
+    public class FxRatesTzConverterJob : ConverterJobBase<FxRatesTzConverterJob>, IHostedService
     {
-        public FxRatesConverterJob(ILogger<FxRatesConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
+        public FxRatesTzConverterJob(ILogger<FxRatesTzConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {
             _logger = logger;

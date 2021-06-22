@@ -3,15 +3,28 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UserSecretsId>aspnet-SbslFileTransformer-92C8AB10-D7B6-4168-928B-5FC7E66E002C</UserSecretsId>
-    <Company>Strategic Business Solutions Ltd</Company>
-    <Authors>Bryson Yida</Authors>
-    <Product>Sbsl File Transformer</Product>
     <Description>SBSL File Extraction Transformation and Loading Services Tool</Description>
-    <Copyright>SBSL</Copyright>
     <PackageProjectUrl>https://www.sbsl.co.ke</PackageProjectUrl>
     <PackageIcon>sbsl.jpg</PackageIcon>
     <RepositoryUrl></RepositoryUrl>
     <ApplicationIcon>sbsl.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants>STD</DefineConstants>
+    <PlatformTarget>x64</PlatformTarget>
+    <AssemblyName>SbslFileTransformer</AssemblyName>
+    <RootNamespace>SbslFileTransformer</RootNamespace>
+    <VersionSuffix>1.0.0.$([System.DateTime]::UtcNow.ToString(mmff))</VersionSuffix>
+    <AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</AssemblyVersion>
+    <AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</AssemblyVersion>
+    <Version Condition=" '$(VersionSuffix)' == '' ">0.0.1.0</Version>
+    <Version Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</Version>
+    <Company>Strategic Business Solutions Ltd</Company>
+    <Authors>Bryson Yida</Authors>
+    <Copyright>Copyright © SBSL</Copyright>
+    <Product>Sbsl File Transformer</Product>
+    <Deterministic>false</Deterministic>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -21,6 +34,7 @@
 
   <PropertyGroup>
     <PublishWithAspNetCoreTargetManifest>false</PublishWithAspNetCoreTargetManifest>
+    <PackageId>SbslFileTransformer</PackageId>
   </PropertyGroup>
 
   <ItemGroup>

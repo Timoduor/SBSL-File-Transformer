@@ -18,32 +18,35 @@
 
 <table class="table table-striped table-wrapper-scroll-y table-bordered table-sm" style="display: inline-table; overflow: scroll; table-layout: fixed; word-wrap: break-word;">
     <thead>
-    <tr>
-        <th style="width: 10%">
-            Name
-        </th>
+        <tr>
+            <th style="width: 10%">
+                Name
+            </th>
 
-        <th style="width: 6%">
-            Period
-        </th>
-        <th style="max-width: 23%">
-            Emails
-        </th>
-        <th style="width: 13%">
-            Sprint
-        </th>
-        <th style="width: 9%">
-            Country
-        </th>
-        <th style="width: 15%">
-            Comments
-        </th>
-        <th style="width: 5%">
-            Acc
-        </th>
+            <th style="width: 6%">
+                Period
+            </th>
+            <th style="max-width: 23%">
+                Emails
+            </th>
+            <th style="width: 13%">
+                Sprint
+            </th>
+            <th style="width: 9%">
+                Country
+            </th>
+            <th style="width: 9%">
+                Category
+            </th>
+            <th style="width: 15%">
+                Comments
+            </th>
+            <th style="width: 5%">
+                Acc
+            </th>
 
-        <th style="width: 9%"></th>
-    </tr>
+            <th style="width: 9%"></th>
+        </tr>
     </thead>
     <tbody>
     @foreach (var item in Model)
@@ -63,6 +66,9 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Country)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Category)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Description)
