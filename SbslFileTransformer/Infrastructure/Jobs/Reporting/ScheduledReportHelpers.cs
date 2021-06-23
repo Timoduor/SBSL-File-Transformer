@@ -316,7 +316,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
                 for (var i = start.Row + 5; i <= end.Row; i++)
                     if (double.TryParse(sheet.Cells[$"E{i}"].Value.ToString(), out var result))
-                        sheet.Cells[$"E{i}"].Value = (-1 * result).ToString("N2");
+                        sheet.Cells[$"E{i}"].Value = (1 * result).ToString("N2");//change the (1 * result) to (-1 * result) if need be
 
                 await package.SaveAsAsync(new FileInfo(outputFilePath));
             }
