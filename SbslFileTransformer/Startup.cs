@@ -132,6 +132,7 @@ namespace SbslFileTransformer
             services.AddHostedService<OUTMT320ConverterJob>();
 
             services.AddHostedService<TZ_ATMJournalConverterjob>();
+            services.AddHostedService<ATMjournalConverterJob>();
             services.AddHostedService<FileNetworkCopyJob>();
         }
 
