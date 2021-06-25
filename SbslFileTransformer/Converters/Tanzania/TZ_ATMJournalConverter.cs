@@ -51,14 +51,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         {
                             if (scontent == "")
                             {
-                                scontent = "CARD, DATE ,   AMOUNT, UTRN NO ,SUCCESSFUL,  RC" + Environment.NewLine;
-                                scontent += ATMflds.CARDNo + ",'" + ATMflds.trnDATE + "," + ATMflds.AMOUNT + ",'" + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + "," + ATMflds.ReasonCode + Environment.NewLine;
+                                scontent = "CARD, DATE ,   AMOUNT, UTRN NO ,SUCCESSFUL,  RC,ATM NO" + Environment.NewLine;
+                                scontent += ATMflds.CARDNo + ",'" + ATMflds.trnDATE + "," + ATMflds.AMOUNT + ",'" + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + "," + ATMflds.ReasonCode + "," + ATMflds.AtmNo + Environment.NewLine;
                                  
 
                             }
                             else
                             {
-                                scontent += ATMflds.CARDNo + ",'" + ATMflds.trnDATE + "," + ATMflds.AMOUNT + ",'" + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + "," + ATMflds.ReasonCode + Environment.NewLine;
+                                scontent += ATMflds.CARDNo + ",'" + ATMflds.trnDATE + "," + ATMflds.AMOUNT + ",'" + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + "," + ATMflds.ReasonCode + "," + ATMflds.AtmNo  + Environment.NewLine;
 
                             }
                         }
@@ -125,6 +125,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         {
                             l.Add("DATE:" + d[i].Substring(0, 9).Replace(".", "/") + " " + d[i].Substring(9, 5));
                             gotdate = true;
+                        }
+                        if (gotATM == !true)
+                        {
+                            l.Add("ATMNO:" + d[i].Split(" ")[2]);
+                            gotATM = true;
                         }
                         else
                         {
