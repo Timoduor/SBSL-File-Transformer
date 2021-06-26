@@ -8,17 +8,19 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SbslFileTransformer.Converters.Rwanda;
 using SbslFileTransformer.Converters.Tanzania;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
+using SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
+namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda
 {
-    public class FxRatesTzConverterJob : ConverterJobBase<FxRatesTzConverterJob>, IHostedService
+    public class RSwitchConverterJob : ConverterJobBase<RSwitchConverterJob>, IHostedService
     {
-        public FxRatesTzConverterJob(ILogger<FxRatesTzConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
+        public RSwitchConverterJob(ILogger<RSwitchConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {
             _logger = logger;
@@ -26,26 +28,20 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
             _emailSender = emailSender;
         }
 
+
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting FX Rates Converter TZ Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await FxRatesConverter(), null,
+            _timer = new Timer(async state => await RSwitchConverter(), null,
                 TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _semaphore.Dispose();
-            _timer.Dispose();
-            return Task.CompletedTask;
-        }
-
-        private async Task FxRatesConverter()
+        private async Task RSwitchConverter()
         {
             try
             {
@@ -79,13 +75,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                     files.AddRange(
                         Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls")));
 
-                    var mt300Converter = new FxRatesTZConverter();
+                    var mt300Converter = new RSwitchConverter();
 
                     foreach (var file in files)
                         //SPECIFY FOLDER and file extension above PENDING
 
-                        if (file.ToLower().Contains("westernunion")
-                            && file.ToLower().Contains("fx_rates") && file.ToLower().Contains("imtz") &&
+                        if (file.ToLower().Contains("cards")
+                            && file.ToLower().Contains("rswitch") && file.ToLower().Contains("imrw") &&
                             !file.Contains("Conv"))
                         {
                             var fileToProcess =
@@ -127,6 +123,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
             {
                 _semaphore.Release();
             }
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            _semaphore.Dispose();
+            _timer.Dispose();
+            return Task.CompletedTask;
         }
     }
 }
