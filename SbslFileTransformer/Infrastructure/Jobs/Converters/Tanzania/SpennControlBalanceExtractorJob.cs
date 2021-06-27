@@ -71,20 +71,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                                           false.ToString());
 
                     var options = new EnumerationOptions
-                        {RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive};
+                    { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.txt|*.csv", options).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.txt", options).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.txt|*.csv", options));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.txt", options));
 
                     var pdfConverter = new SpennControlExtractor();
 
                     foreach (var file in files)
-                        if ((file.ToLower().Contains("spenn") && file.ToLower().Contains("control") &&
-                             file.ToLower().Contains("balance")
-                             || file.ToLower().Contains("spenn") && file.ToLower().Contains("selcom") &&
-                             file.ToLower().Contains("portal")
-                             || file.ToLower().Contains("b2w") && file.ToLower().Contains("portal"))
+                        if (file.ToLower().Contains("spenn") && file.ToLower().Contains("control") && file.ToLower().Contains("balance")
                             && file.ToLower().Contains("mb") && file.ToLower().Contains("imtz"))
                         {
                             var fileToProcess =
@@ -106,7 +102,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 
                                     await EmailHelpers.SendEmails(dbContext,
                                         "Problem running  Spenn Control Balance Extractor files",
-                                        $"{file} \n\n {ex.Message}", new[] {file}, _emailSender);
+                                        $"{file} \n\n {ex.Message}", new[] { file }, _emailSender);
                                 }
                                 finally
                                 {

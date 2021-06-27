@@ -85,19 +85,15 @@ namespace SbslFileTransformer.Converters.Kenya
                             {
 
                             }
-
                             //logic for direction
                             if (index1 != null)
                             {
                                 if (index1.Contains("Direction"))
                                 {
                                     IOBound = index1;
-
                                 }
                             }
                             row.Col0 = date;
-
-
                             row.Col1 = location;
                             row.Col2 = IOBound;
 
@@ -127,7 +123,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
                                 }
                                 else if (index0.Contains("Location") || index0.Contains("KICUKIRO")
-                                    || index0.Contains("Agent") || index0.Contains("RWF"))
+                                    || index0.Contains("Agent"))
                                 {
                                     continue;
                                 }
@@ -180,7 +176,6 @@ namespace SbslFileTransformer.Converters.Kenya
                         {
                             continue;
                         }
-
                         list.Add(row);
                     }
                 }
@@ -193,26 +188,18 @@ namespace SbslFileTransformer.Converters.Kenya
             foreach (var rows in list)
             {
                 rows.Col0 = list[list.Count - 1].Col0;
-                finalList.Add(rows);
-            }
-
-            //finalList.Remove(list[list.Count-1]);
-            finalList[finalList.Count - 1].Col2 = "Grand_Total";
-            finalList[finalList.Count - 2].Col2 = "Grand_Total";
-            finalList[finalList.Count - 3].Col2 = "Settlement";
-            finalList[finalList.Count - 4].Col2 = "Settlement";
-
-            var output = new List<ExcelCols>();
-
-            foreach (var rows in finalList)
-            {
                 if (rows.Col10 == null && rows.Col11 == null)
                 {
                     continue;
                 }
 
-                output.Add(rows);
+                finalList.Add(rows);
             }
+
+            finalList[finalList.Count - 1].Col2 = "Grand_Total";
+            finalList[finalList.Count - 2].Col2 = "Grand_Total";
+            finalList[finalList.Count - 3].Col2 = "Settelement";
+            finalList[finalList.Count - 4].Col2 = "Settelement";
 
 
             if (string.IsNullOrEmpty(outputFile))
@@ -226,7 +213,7 @@ namespace SbslFileTransformer.Converters.Kenya
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_ADV_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
-            WriteToFile(output, outputFile);
+            WriteToFile(finalList, outputFile);
         }
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)

@@ -56,25 +56,25 @@ namespace SbslFileTransformer.Converters.Tanzania
 
                     //selcomRow.CBal = Convert.ToDouble(amount);
 
-                    selcomRow.Terminal = row.SelectNodes("td")[1].InnerText;
+                    selcomRow.Terminal = row.SelectNodes("td")[1].InnerText?.Replace(System.Environment.NewLine, "");
 
-                    selcomRow.TransType = row.SelectNodes("td")[2].InnerText;
+                    selcomRow.TransType = row.SelectNodes("td")[2].InnerText?.Replace(System.Environment.NewLine, "");
 
-                    var amountString2 = row.SelectNodes("td")[3].InnerText;
+                    var amountString2 = row.SelectNodes("td")[3].InnerText?.Replace(System.Environment.NewLine, "");
 
                     var amount2 = string.IsNullOrEmpty(amountString2) ? "0" : amountString2;
 
                     selcomRow.Amount = amount2;
 
-                    selcomRow.UtilityType = row.SelectNodes("td")[4].InnerText;
+                    selcomRow.UtilityType = row.SelectNodes("td")[4].InnerText?.Replace(System.Environment.NewLine, "");
 
-                    selcomRow.UtilityReference = row.SelectNodes("td")[5].InnerText;
+                    selcomRow.UtilityReference = row.SelectNodes("td")[5].InnerText?.Replace(System.Environment.NewLine, "");
 
-                    selcomRow.Reference = row.SelectNodes("td")[6].InnerText;
+                    selcomRow.Reference = row.SelectNodes("td")[6].InnerText?.Replace(System.Environment.NewLine, "");
 
-                    selcomRow.TransID = row.SelectNodes("td")[7].InnerText;
+                    selcomRow.TransID = row.SelectNodes("td")[7].InnerText?.Replace(System.Environment.NewLine, "");
 
-                    var amountString3 = row.SelectNodes("td")[8].InnerText;
+                    var amountString3 = row.SelectNodes("td")[8].InnerText?.Replace(System.Environment.NewLine, "");
 
                     var amount3 = string.IsNullOrEmpty(amountString3) ? "0" : amountString3;
 

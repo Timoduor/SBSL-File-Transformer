@@ -84,8 +84,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         if (file.ToLower().Contains("mb") && file.ToLower().Contains("imtz") &&
                             (file.ToLower().Contains("selcom") || file.ToLower().Contains("b2w")
                                                                || file.ToLower().Contains("w2b") ||
-                                                               file.ToLower().Contains("spenn")) &&
-                            file.ToLower().Contains("balance"))
+                                                               file.ToLower().Contains("spenn")) && file.ToLower().Contains("balance"))
                         {
                             var fileToProcess =
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>

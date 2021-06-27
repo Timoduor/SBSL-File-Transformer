@@ -95,7 +95,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    if (file.ToLower().Contains("mt300")) mt300Converter.ConvertFile(file);
+                                    mt300Converter.ConvertFile(file);
                                 }
                                 catch (Exception ex)
                                 {
