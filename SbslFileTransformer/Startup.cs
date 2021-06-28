@@ -133,6 +133,7 @@ namespace SbslFileTransformer
 
             services.AddHostedService<TZ_ATMJournalConverterjob>();
             services.AddHostedService<ATMjournalConverterJob>();
+
             services.AddHostedService<FileNetworkCopyJob>();
         }
 
