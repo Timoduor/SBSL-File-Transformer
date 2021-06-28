@@ -135,6 +135,7 @@ namespace SbslFileTransformer
             services.AddHostedService<ATMjournalConverterJob>();
 
             services.AddHostedService<FileNetworkCopyJob>();
+            services.AddHostedService<ImsBalanceExtractorJob>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -73,11 +73,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt"))
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls"))
                         .ToList();
 
                     files.AddRange(
-                        Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt")));
+                        Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls")));
 
                     var mt300Converter = new FxRatesTZConverter();
 
@@ -95,7 +95,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    if (file.ToLower().Contains("mt300")) mt300Converter.ConvertFile(file);
+                                    mt300Converter.ConvertFile(file);
                                 }
                                 catch (Exception ex)
                                 {

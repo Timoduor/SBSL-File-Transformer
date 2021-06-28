@@ -18,44 +18,43 @@ namespace SbslFileTransformer.Converters.BNR
         public void ConvertFile(string inputFile, string outputFile = null)
         {
             var list = new List<ExcelCols>();
-
             using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
                 using (var reader = ExcelReaderFactory.CreateReader(stream))
                 {
-                    var reference = "Reference";
+                    string reference = "Reference";
 
-                    var code = "Codes";
+                    string code = "Codes";
 
-                    var value_date = "Value Date";
+                    string value_date = "Value Date";
 
-                    var type = "Type";
+                    string type = "Type";
 
-                    var debit_account = "Debit Account";
+                    string debit_account = "Debit Account";
 
-                    var ordering_customer = "Ordering Customer/Drawer";
+                    string ordering_customer = "Ordering Customer/Drawer";
 
-                    var credit_account = "Credit Account";
+                    string credit_account = "Credit Account";
 
-                    var beneficiary = "Beneficiary";
+                    string beneficiary = "Beneficiary";
 
-                    var remmittance_infos = "Remittance infos";
+                    string remmittance_infos = "Remittance infos";
 
-                    var amount = "Amount";
+                    string amount = "Amount";
 
-                    var input_time = "Input Time";
+                    string input_time = "Input Time";
 
-                    var status = "Status";
+                    string status = "Status";
 
-                    var modification_time = "Modification Time";
+                    string modification_time = "Modification Time";
 
-                    var status2 = "Status2";
+                    string status2 = "Status2";
 
-                    var DR_CR = "DR_CR";
+                    string DR_CR = "DR_CR";
 
-                    var Type_id = "Type_id";
+                    string Type_id = "Type_id";
 
-                    var countHeader = 0;
+                    int countHeader = 0;
 
                     while (reader.Read())
                     {
@@ -65,101 +64,91 @@ namespace SbslFileTransformer.Converters.BNR
 
                         //Ignore the colunm that contain DIFF or MT971
                         if (value.Contains("DIFF"))
+                        {
                             continue;
-                        if (value.Contains("MT971")) continue;
+                        }
+                        else if (value.Contains("MT971"))
+                        {
+                            continue;
+                        }
 
-                        if (string.IsNullOrEmpty(value)) continue;
+                        if (string.IsNullOrEmpty(value))
+                        {
+                            continue;
+                        }
 
-                        if (reader.GetValue(5) != null && reader.GetValue(6) != null &&
-                            reader.GetValue(5).ToString().Contains("Settl. Outw TSF") &&
-                            reader.GetValue(6).ToString().Contains("USD"))
+                        if (reader.GetValue(5) != null && reader.GetValue(6) != null && reader.GetValue(5).ToString().Contains("Settl. Outw TSF") && reader.GetValue(6).ToString().Contains("USD"))
                         {
                             row.Col4 = "3208000-USD";
                             row.Col14 = "Credit";
+
                         }
-                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null &&
-                                 reader.GetValue(5).ToString().Contains("Settl. Inw TSF") &&
-                                 reader.GetValue(6).ToString().Contains("USD"))
+                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null && reader.GetValue(5).ToString().Contains("Settl. Inw TSF") && reader.GetValue(6).ToString().Contains("USD"))
                         {
                             row.Col6 = "3208000-USD";
                             row.Col14 = "Debit";
+
                         }
-                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null &&
-                                 reader.GetValue(5).ToString().Contains("Settl. Outw CHQ") &&
-                                 reader.GetValue(6).ToString().Contains("USD"))
+                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null && reader.GetValue(5).ToString().Contains("Settl. Outw CHQ") && reader.GetValue(6).ToString().Contains("USD"))
                         {
                             row.Col4 = "3208000-USD";
                             row.Col14 = "Debit";
+
                         }
-                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null &&
-                                 reader.GetValue(5).ToString().Contains("Settl. Inw CHQ") &&
-                                 reader.GetValue(6).ToString().Contains("USD"))
+                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null && reader.GetValue(5).ToString().Contains("Settl. Inw CHQ") && reader.GetValue(6).ToString().Contains("USD"))
                         {
                             row.Col6 = "3208000-USD";
                             row.Col14 = "Credit";
+
                         }
-                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null &&
-                                 reader.GetValue(5).ToString().Contains("Settl. Outw TSF") &&
-                                 reader.GetValue(6).ToString().Contains("RWF"))
+                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null && reader.GetValue(5).ToString().Contains("Settl. Outw TSF") && reader.GetValue(6).ToString().Contains("RWF"))
                         {
                             row.Col4 = "1240000-RWF";
                             row.Col14 = "Credit";
+
                         }
-                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null &&
-                                 reader.GetValue(5).ToString().Contains("Settl. Inw TSF") &&
-                                 reader.GetValue(6).ToString().Contains("RWF"))
+                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null && reader.GetValue(5).ToString().Contains("Settl. Inw TSF") && reader.GetValue(6).ToString().Contains("RWF"))
                         {
                             row.Col6 = "1240000-RWF";
                             row.Col14 = "Debit";
+
                         }
-                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null &&
-                                 reader.GetValue(5).ToString().Contains("Settl. Outw CHQ") &&
-                                 reader.GetValue(6).ToString().Contains("RWF"))
+                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null && reader.GetValue(5).ToString().Contains("Settl. Outw CHQ") && reader.GetValue(6).ToString().Contains("RWF"))
                         {
                             row.Col4 = "1240000-RWF";
                             row.Col14 = "Debit";
                         }
-                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null &&
-                                 reader.GetValue(5).ToString().Contains("Settl. Inw CHQ") &&
-                                 reader.GetValue(6).ToString().Contains("RWF"))
+                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null && reader.GetValue(5).ToString().Contains("Settl. Inw CHQ") && reader.GetValue(6).ToString().Contains("RWF"))
                         {
                             row.Col6 = "1240000-RWF";
                             row.Col14 = "Credit";
                         }
-                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null &&
-                                 reader.GetValue(5).ToString().Contains("Settl. Outw TSF") &&
-                                 reader.GetValue(6).ToString().Contains("EUR"))
+                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null && reader.GetValue(5).ToString().Contains("Settl. Outw TSF") && reader.GetValue(6).ToString().Contains("EUR"))
                         {
                             row.Col4 = "1000026561-EUR";
                             row.Col14 = "Credit";
                         }
-                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null &&
-                                 reader.GetValue(5).ToString().Contains("Settl. Inw TSF") &&
-                                 reader.GetValue(6).ToString().Contains("EUR"))
+                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null && reader.GetValue(5).ToString().Contains("Settl. Inw TSF") && reader.GetValue(6).ToString().Contains("EUR"))
                         {
                             row.Col6 = "1000026561-EUR";
                             row.Col14 = "Debit";
                         }
-                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null &&
-                                 reader.GetValue(5).ToString().Contains("Settl. Outw CHQ") &&
-                                 reader.GetValue(6).ToString().Contains("EUR"))
+                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null && reader.GetValue(5).ToString().Contains("Settl. Outw CHQ") && reader.GetValue(6).ToString().Contains("EUR"))
                         {
                             row.Col4 = "1000026561-EUR";
                             row.Col14 = "Debit";
                         }
-                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null &&
-                                 reader.GetValue(5).ToString().Contains("Settl. Inw CHQ") &&
-                                 reader.GetValue(6).ToString().Contains("EUR"))
+                        else if (reader.GetValue(5) != null && reader.GetValue(6) != null && reader.GetValue(5).ToString().Contains("Settl. Inw CHQ") && reader.GetValue(6).ToString().Contains("EUR"))
                         {
                             row.Col6 = "1000026561-EUR";
                             row.Col14 = "Credit";
+
                         }
 
                         //Format into date
                         var date = reader.GetValue(5)?.ToString();
 
-                        row.Col2 = date.Substring(Math.Max(0, date.Length - 10), Math.Min(10, date.Length))
-                            .Replace(".", "-");
+                        row.Col2 = date.Substring(Math.Max(0, date.Length - 10), Math.Min(10, date.Length)).Replace(".", "-");
 
                         row.Col7 = reader.GetValue(5)?.ToString().Replace("\n", "");
 
@@ -186,10 +175,10 @@ namespace SbslFileTransformer.Converters.BNR
 
                             countHeader++;
                         }
-
                         list.Add(row);
                     }
                 }
+
             }
 
             if (string.IsNullOrEmpty(outputFile))
