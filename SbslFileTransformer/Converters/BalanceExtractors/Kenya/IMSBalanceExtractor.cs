@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ExcelDataReader;
+using Microsoft.Extensions.DependencyInjection;
+using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Jobs.Converters;
 
@@ -18,33 +20,60 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
-        public void ConvertFile(string inputFile, string outputFolder)
+        public string Entity { get; set; }
+        public IServiceScopeFactory ServiceScopeFactory { get; set; }
+
+        public async Task ConvertFile(string inputFile, string outputFolder, string entity = "IMKE")
         {
-            var list = new List<AirtelCols>();
+            //Replace empties with zeros in columns 5 and 6
+
+            var list = new List<CdmCols>();
 
             using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
+                IExcelDataReader reader;
 
-                IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream);
+                if (Path.GetExtension(inputFile).ToLower().Contains("csv"))
+                    reader = ExcelReaderFactory.CreateCsvReader(stream);
+                else
+                    reader = ExcelReaderFactory.CreateReader(stream);
 
                 using (reader)
                 {
+                    // Choose one of either 1 or 2:
+                    // 1. Use the reader methods
 
                     while (reader.Read())
                     {
-                        if (reader.GetValue(0)?.ToString().ToLower().Contains("transaction") ?? false) continue;
+                        var value = reader.GetValue(0)?.ToString();
 
-                        var row = new AirtelCols();
+                        if (string.IsNullOrEmpty(value)) continue;
 
-                        if (DateTime.TryParseExact(reader.GetValue(2)?.ToString(), "dd/MM/yyyy HH:mm",
-                            CultureInfo.InvariantCulture, DateTimeStyles.None, out var resultDate))
+                        var row = new CdmCols();
+
+                        DateTime resultDate;
+                        
+                        if (DateTime.TryParseExact(reader.GetValue(0)?.ToString(), "MM/dd/yyyy",
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out resultDate))
+                        {
                             row.ReconDate = resultDate;
+                        }
+                        else if (DateTime.TryParse(reader.GetValue(0)?.ToString(), out resultDate))
+                        {
+                            row.ReconDate = resultDate;
+                        }
+                        else if (int.TryParse(reader.GetValue(0)?.ToString(), out var intRes))
+                        {
+                            if (intRes.FromExcelSerialDate(out resultDate)) row.ReconDate = resultDate;
+                        }
                         else
+                        {
                             continue;
+                        }
 
-                        row.Account = "19990126507008";//TODO: NEEDS TO BE CHANGED
+                        row.Account = reader.GetValue(2)?.ToString();
 
-                        row.Amount = Convert.ToDouble(reader.GetValue(7)?.ToString());
+                        row.AmountMC = Convert.ToDouble(reader.GetValue(3)?.ToString());
 
                         list.Add(row);
                     }
@@ -58,16 +87,60 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
                 var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
                 var outputFile = Path.Combine(outputFolder,
-                    $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_IMS_KE.txt");
+                    $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_IMS_{entity}.txt");
 
-                var lastRow = list.OrderByDescending(i => i.ReconDate)
-                    .FirstOrDefault(c => c.ReconDate == list.Max(r => r.ReconDate));
+                var lookUp = new Dictionary<string, string>();
 
-                var toAppend =
-                    $"IMKE\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.ReconDate):MM/dd/yyyy}\t\t\t\t{-lastRow.Amount}\tKES\n";//TODO: NEEDS SOME CHANGES
+                using (var scope = ServiceScopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                if (!string.IsNullOrEmpty(toAppend)) File.WriteAllText(outputFile, toAppend);
+                    var pairs = dbContext.Accounts.Select(a => new { a.Number, a.Name });
+
+                    foreach (var acc in pairs) lookUp.TryAdd(acc.Number, acc.Name);
+                }
+
+                var toAppend = new StringBuilder();
+
+                foreach (var row in list)
+                {
+                    //var success = long.TryParse(row.Account, out var result);
+
+                    var account = row.Account;
+
+                    toAppend.Append(
+                        $"{Entity}\t{account}\tIMS\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t\t{row.AmountMC}\tKES\n");
+                }
+
+                //write multicurr file
+                var text = toAppend.ToString();
+
+                if (!string.IsNullOrEmpty(text)) 
+                    await File.WriteAllTextAsync(outputFile, text);
             }
+        }
+
+        private string GetAccountCurrency(string account)
+        {
+            var currency = "KES";
+
+            using (var scope = ServiceScopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                var curr = dbContext.Accounts.FirstOrDefault(a => a.Number == account).Currency;
+
+                currency = string.IsNullOrEmpty(curr) ? currency : curr;
+            }
+
+            return currency;
+        }
+
+        private string GetAccountName(string accountNumber, Dictionary<string, string> dict)
+        {
+            if (dict.ContainsKey(accountNumber))
+                return dict[accountNumber];
+            return accountNumber;
         }
     }
 

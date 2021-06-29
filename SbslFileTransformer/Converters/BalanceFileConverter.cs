@@ -131,57 +131,74 @@ namespace SbslFileTransformer.Converters
             if (filePath.ToLower().Contains("nostro"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_NOSTRO_{Entity}.txt");
+
             if (filePath.ToLower().Contains("bnr"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_BNR_{Entity}.txt");
+
             if (filePath.ToLower().Contains("bplus"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_BPLUS_{Entity}.txt");
+
             if (filePath.ToLower().Contains("float"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_FLOAT_{Entity}.txt");
+
             if (filePath.ToLower().Contains("float") && filePath.ToLower().Contains("spenn"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_SFLOAT_{Entity}.txt");
+
             if (filePath.ToLower().Contains("selcom") && filePath.ToLower().Contains("spenn"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_SELCOM_{Entity}.txt");
+
             if (filePath.ToLower().Contains("mb"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_MB_{Entity}.txt");
+
             if (filePath.ToLower().Contains("b2w"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_B2W_{Entity}.txt");
+
             if (filePath.ToLower().Contains("w2b"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_W2B_{Entity}.txt");
+
             if (filePath.ToLower().Contains("util"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_UTIL_{Entity}.txt");
             if (filePath.ToLower().Contains("br_sus"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_BR_SUS_{Entity}.txt");
+
             if (filePath.ToLower().Contains("fco_sus"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_FCO_SUS_{Entity}.txt");
+
             if (filePath.ToLower().Contains("clearing"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_CLEAR_{Entity}.txt");
-            if (filePath.ToLower().Contains("mg_balance"))
+
+            if (filePath.ToLower().Contains("mg_sus"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_MG_{Entity}.txt");
-            if (filePath.ToLower().Contains("wu_balance"))
+
+            if (filePath.ToLower().Contains("wu_sus"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_WU_{Entity}.txt");
+
             if (filePath.ToLower().Contains("treasury_sus"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_TREASURY_{Entity}.txt");
+
             if (filePath.ToLower().Contains("fin_sus"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_FIN_{Entity}.txt");
+
             if (filePath.ToLower().Contains("cre_sus"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_CRE_{Entity}.txt");
+
             if (filePath.ToLower().Contains("ops_sus"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_OPS_{Entity}.txt");

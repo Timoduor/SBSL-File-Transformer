@@ -18,5 +18,6 @@ namespace SbslFileTransformer.Models
         public bool Converted { get; set; }
         public string ConvertedBy { get; set; }
         public bool Failed { get; set; }
+        public bool BalanceExtracted { get; set; }
     }
 }
