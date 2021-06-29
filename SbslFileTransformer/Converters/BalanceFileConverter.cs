@@ -183,7 +183,7 @@ namespace SbslFileTransformer.Converters
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_MG_{Entity}.txt");
 
-            if (filePath.ToLower().Contains("wu_sus"))
+            if (filePath.ToLower().Contains("wu_sus") || filePath.ToLower().Contains("westernunion_balance"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_WU_{Entity}.txt");
 

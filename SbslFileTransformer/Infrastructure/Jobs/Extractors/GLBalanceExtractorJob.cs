@@ -96,7 +96,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                                 else if (file.ToLower().Contains("mg_sus"))
                                     await converter.Execute(file, "Moneygram");
 
-                                else if (file.ToLower().Contains("wu_sus"))
+                                else if (file.ToLower().Contains("wu_sus") || file.ToLower().Contains("westernunion_balance"))
                                     await converter.Execute(file, "Western Union");
 
                                 else if (file.ToLower().Contains("treasury_sus"))
@@ -113,7 +113,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                                 else if (file.ToLower().Contains("clearing_balance"))
                                     await converter.Execute(file, "Clearing");
-
+                                
                                 else
                                     await converter.Execute(file);
                             }
