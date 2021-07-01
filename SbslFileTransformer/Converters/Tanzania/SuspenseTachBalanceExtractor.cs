@@ -6,11 +6,11 @@ using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Converters.Tanzania
 {
-    public class SuspenseBalanceExtractor
+    public class SuspenseTachBalanceExtractor
     {
         private readonly string _entity;
 
-        public SuspenseBalanceExtractor(string entity)
+        public SuspenseTachBalanceExtractor(string entity)
         {
             _entity = entity;
 
