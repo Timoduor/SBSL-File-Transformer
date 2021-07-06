@@ -75,6 +75,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                     var mpesaConverter = new ImsBalanceExtractor();
 
+                    mpesaConverter.Entity = Entity;
+                    mpesaConverter.ServiceScopeFactory = _serviceScopeFactory;
+
                     foreach (var file in files)
                         if (file.ToLower().Contains("ims") && file.ToLower().Contains("imke") &&
                             file.ToLower().Contains("balance") && file.ToLower().Contains("innova"))
@@ -92,7 +95,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                                     var rootFolder = isProd ? prodFolder : sbFolder;
 
-                                    mpesaConverter.ConvertFile(file, rootFolder);
+                                    await mpesaConverter.ConvertFile(file, rootFolder, Entity);  
                                 }
                                 catch (Exception ex)
                                 {

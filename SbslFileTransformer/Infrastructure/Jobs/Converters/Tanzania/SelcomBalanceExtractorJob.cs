@@ -84,13 +84,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         if (file.ToLower().Contains("mb") && file.ToLower().Contains("imtz") &&
                             (file.ToLower().Contains("selcom") || file.ToLower().Contains("b2w")
                                                                || file.ToLower().Contains("w2b") ||
-                                                               file.ToLower().Contains("spenn")) && file.ToLower().Contains("balance"))
+                                                               file.ToLower().Contains("spenn")))
                         {
                             var fileToProcess =
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
                                     f.FilePath.ToLower() == file.ToLower());
 
-                            if (fileToProcess != null && fileToProcess.Converted == false)
+                            if (fileToProcess != null && fileToProcess.BalanceExtracted == false)
                                 try
                                 {
                                     var isProd = Convert.ToBoolean(
@@ -100,10 +100,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                     var rootFolder = isProd ? prodFolder : sbFolder;
 
                                     mpesaConverter.ConvertFile(file, rootFolder);
+
+                                    fileToProcess.BalanceExtracted = true;
                                 }
                                 catch (Exception ex)
                                 {
-                                    fileToProcess.Failed = true;
+                                    //fileToProcess.Failed = true;
+                                    fileToProcess.BalanceExtracted = true;
 
                                     _logger.LogError(ex, ex.Message);
 
@@ -112,7 +115,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    fileToProcess.Converted = true;
+                                    //fileToProcess.Converted = true;
+                                    fileToProcess.BalanceExtracted = true;
 
                                     fileToProcess.ConvertedBy = nameof(SelcomBalanceExtractor);
 

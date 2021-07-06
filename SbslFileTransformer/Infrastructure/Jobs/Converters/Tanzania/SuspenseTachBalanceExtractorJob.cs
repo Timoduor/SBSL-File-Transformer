@@ -15,9 +15,9 @@ using SbslFileTransformer.Models.Enums;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 {
-    public class SuspenseBalanceExtractorJob : ConverterJobBase<SuspenseBalanceExtractorJob>, IHostedService
+    public class SuspenseTachBalanceExtractorJob : ConverterJobBase<SuspenseTachBalanceExtractorJob>, IHostedService
     {
-        public SuspenseBalanceExtractorJob(ILogger<SuspenseBalanceExtractorJob> logger,
+        public SuspenseTachBalanceExtractorJob(ILogger<SuspenseTachBalanceExtractorJob> logger,
             IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;
@@ -77,7 +77,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.xls", options));
 
-                    var pdfConverter = new SuspenseBalanceExtractor(Entity);
+                    var pdfConverter = new SuspenseTachBalanceExtractor(Entity);
 
                     foreach (var file in files)
                         if (file.ToLower().Contains("clearing_suspense") && file.ToLower().Contains("imtz") &&
@@ -108,7 +108,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                                 {
                                     fileToProcess.Converted = true;
 
-                                    fileToProcess.ConvertedBy = nameof(SuspenseBalanceExtractor);
+                                    fileToProcess.ConvertedBy = nameof(SuspenseTachBalanceExtractor);
 
                                     dbContext.Update(fileToProcess);
 

@@ -102,7 +102,7 @@ namespace SbslFileTransformer
             services.AddHostedService<CamtToMultiCurrJob>();
 
             //SPRINT 3
-            services.AddHostedService<SuspenseBalanceExtractorJob>();
+            services.AddHostedService<SuspenseTachBalanceExtractorJob>();
 
             services.AddHostedService<SuspenseTachFileConverterJob>();
             services.AddHostedService<SpennControlBalanceExtractorJob>();
