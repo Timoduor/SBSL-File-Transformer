@@ -150,6 +150,24 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     }
                 }
 
+                if (d[i].Contains("COMMUNICATION ERROR"))
+                {
+                    if (gotRC != true)
+                    {
+                        l.Add("DESC:" + " COMMUNICATION ERROR");
+                        gotRC = true;
+
+                    }
+                }
+                if (d[i].Contains("BALANCE ENQUIRY"))
+                {
+                    if (gotRC != true)
+                    {
+                        l.Add("DESC:" + " BALANCE ENQUIRY");
+                        gotRC = true;
+
+                    }
+                }
                 if (d[i].Contains("DESC:"))
                 {
                     if (gotRC != true)

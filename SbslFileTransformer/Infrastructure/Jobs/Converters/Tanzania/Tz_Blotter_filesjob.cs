@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters.Rwanda.Camt053;
+using SbslFileTransformer.Converters;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
@@ -15,9 +15,9 @@ using SbslFileTransformer.Models.Enums;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class ATMjournalConverterJob : ConverterJobBase<ATMjournalConverterJob>, IHostedService
+    public class Tz_Blotter_filesjob : ConverterJobBase<Tz_Blotter_filesjob>, IHostedService
     {
-        public ATMjournalConverterJob(ILogger<ATMjournalConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
+        public Tz_Blotter_filesjob(ILogger<Tz_Blotter_filesjob> logger, IServiceScopeFactory serviceScopeFactory,
            EmailSender emailSender)
         {
             _logger = logger;
@@ -27,29 +27,28 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting RW ATMjournal Converter Job");
+            _logger.LogInformation("Starting ATM Journal Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await RWConvertATMJournal(), null,
+            _timer = new Timer(async state => await ConvertBlotterFile(), null,
                 TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
-
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             await _timer.DisposeAsync();
         }
 
-        private async Task RWConvertATMJournal()
+        private async Task ConvertBlotterFile()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running RW ATM Journal Converter Job");
+                _logger.LogInformation("Running TZ Blotter Converter Job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -71,17 +70,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.txt", options).ToList();
-
-                    files.AddRange(
-                        Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt")));
+                    var files = Directory.GetFiles(prodFolder, "*.xlsx", options).ToList();
 
 
-                    var ATMJournalConverter = new RW_ATMJournalConverter();
+                    var Blotter_Converter = new Tz_Blotter_Converter();
 
                     foreach (var file in files)
                         //FILE PATH SHOULD HAVE FOLDER NAME MT300 SOMEWHERE IN IT
-                        if (file.Contains("CARDS") && file.Contains("E-JRN"))
+                        if (file.ToLower().Contains("blotter") && file.ToLower().Contains("imtz"))
                         {
                             var fileToProcess =
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
@@ -89,7 +85,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                             try
                             {
-                                ATMJournalConverter.ConvertFile_WinkaATMjrn (file);
+                                Blotter_Converter.Convert_Blotter_file(file);
                             }
                             catch (Exception ex)
                             {
@@ -99,8 +95,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                 var archive = "";
 
-                                archive = Path.Combine(Path.GetDirectoryName(file) + "\\ATMJournal", "FAILED",
-                                    DateTime.Now.ToString("yyMMdd") + "\\ATMJournal");
+                                archive = Path.Combine(Path.GetDirectoryName(file) + "\\blotter", "FAILED",
+                                    DateTime.Now.ToString("yyMMdd") + "\\blotter");
                                 if (!Directory.Exists(archive))
                                     Directory.CreateDirectory(archive);
 
@@ -114,7 +110,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 {
                                 }
 
-                                await EmailHelpers.SendEmails(dbContext, "Error in ATMJournal file conversion",
+                                await EmailHelpers.SendEmails(dbContext, "Error in Blotter file conversion",
                                     $"Problem with  file {file} \n\n {ex.Message}", new[] { file }, _emailSender);
                             }
                             finally
@@ -129,7 +125,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                 try
                                 {
-                                    File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".atm");
+                                    File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".blt");
                                     File.Delete(file);
                                 }
                                 catch (Exception xc)
@@ -149,5 +145,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 _semaphore.Release();
             }
         }
+
     }
 }
