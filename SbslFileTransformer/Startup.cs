@@ -134,6 +134,7 @@ namespace SbslFileTransformer
             services.AddHostedService<TZ_ATMJournalConverterjob>();
             services.AddHostedService<ATMjournalConverterJob>();
             services.AddHostedService<Tz_Blotter_filesjob>();
+            services.AddHostedService<RSwitchConverterJob>();
 
             services.AddHostedService<FileNetworkCopyJob>();
             services.AddHostedService<ImsBalanceExtractorJob>();

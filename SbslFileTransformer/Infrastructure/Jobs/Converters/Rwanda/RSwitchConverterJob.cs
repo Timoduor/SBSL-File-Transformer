@@ -16,7 +16,7 @@ using SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda
+namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class RSwitchConverterJob : ConverterJobBase<RSwitchConverterJob>, IHostedService
     {
@@ -31,7 +31,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting FX Rates Converter TZ Job");
+            _logger.LogInformation("Starting RSwitch Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
@@ -47,7 +47,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running FX Rates Converter TZ job");
+                _logger.LogInformation("Running RSwitch Converter RW job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -69,29 +69,28 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls"))
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt"))
                         .ToList();
 
                     files.AddRange(
-                        Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls")));
+                        Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt")));
 
-                    var mt300Converter = new RSwitchConverter();
+                    var rSwitchConverter_ = new RSwitchConverter();
 
                     foreach (var file in files)
                         //SPECIFY FOLDER and file extension above PENDING
 
-                        if (file.ToLower().Contains("cards")
-                            && file.ToLower().Contains("rswitch") && file.ToLower().Contains("imrw") &&
+                        if ( file.Contains("ATMs-OFF-US") && file.Contains("imrw") &&
                             !file.Contains("Conv"))
                         {
                             var fileToProcess =
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
                                     f.FilePath.ToLower() == file.ToLower());
 
-                            if (fileToProcess != null && fileToProcess.Converted == false)
+                            //if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    if (file.ToLower().Contains("mt300")) mt300Converter.ConvertFile(file);
+                                    if (file.Contains("Member_DailyAcquiringATMTrxRpt")) rSwitchConverter_.ConvertFile(file);
                                 }
                                 catch (Exception ex)
                                 {
@@ -99,7 +98,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda
 
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting  Fx Rates TZ files",
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting  Rswitch files",
                                         $"{file} \n\n {ex.Message}", new[] { file }, _emailSender);
                                 }
                                 finally
