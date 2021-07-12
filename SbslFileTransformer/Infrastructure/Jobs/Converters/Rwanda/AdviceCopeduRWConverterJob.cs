@@ -110,7 +110,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 {
                                     fileToProcess.Converted = true;
 
-                                    fileToProcess.ConvertedBy = nameof(MoneyGramConverter);
+                                    fileToProcess.ConvertedBy = nameof(AdviceCopeduRWConverterJob);
 
                                     dbContext.Update(fileToProcess);
 
