@@ -129,7 +129,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                 try
                                 {
-                                    File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".atm");
+                                    File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file)+  "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") +  ".atm");
                                     File.Delete(file);
                                 }
                                 catch (Exception xc)

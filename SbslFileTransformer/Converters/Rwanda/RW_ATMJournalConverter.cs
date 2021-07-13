@@ -17,6 +17,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
              
             string outputFile = "";
 
+            
             string[] sDet = File.ReadAllLines(inputFile);
             try
             {
@@ -28,13 +29,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             catch (Exception xc)
             { }
             string content = File.ReadAllText(inputFile);
-            string[] sGrp = content.Split("DATE    TIME   ATM   OPERATION");
+
+            
+            string[] sGrp = content.Split("TRANSACTION START");
             string[] sGrp_s = content.Split("SUPERVISOR MODE ENTRY");
             string scontent = "";
             string scontent_ = "";
             string scontent_sup = "";
             var ATMflds = new ATMJournal();
-           
+            
             bool hascashcount = false;
             if (string.IsNullOrEmpty(outputFolder))
             {
@@ -46,7 +49,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 for (var i = 1; i < sGrp_s.Length - 1; i++)
                 {
                     List<string> ly = GetJournalDetails_supervisor(sGrp_s[i].Split("\n"));
-                    if (ly.Count > 0)
+                    if (ly != null)
                     {
                         //hascashcount = ly.Any(p => p.StartsWith("CASH COUNTS CLEARED")) ? true : false; //"CASH COUNTS CLEARED"
                         ATMflds.CARDNo = ly.Any(p => p.StartsWith("CARDNO:")) ? ly.First(p => p.StartsWith("CARDNO:")).Split(':')[1].ToString().Replace("|", "") : "";
@@ -57,6 +60,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         ATMflds.AtmNo = ly.Any(p => p.StartsWith("ATMNO:")) ? ly.First(p => p.StartsWith("ATMNO:")).Split(':')[1].ToString().Replace("|", "") : ATMNO;
                         ATMflds.AUTHNO = ly.Any(p => p.StartsWith("AUTHNO:")) ? ly.First(p => p.StartsWith("AUTHNO:")).Split(':')[1].ToString().Replace("|", "") : "";
 
+                        ATMflds.AMOUNT_REMAINING = ly.Any(p => p.StartsWith("AMOUNTR:")) ? ly.First(p => p.StartsWith("AMOUNTR:")).Split(":")[1].Trim().Split(" ")[0] : "0";
                         if (hascashcount == true)
                         {
 
@@ -77,6 +81,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                     scontent_sup += ATMflds.CARDNo + "," + ATMflds.trnDATE + "," + ATMflds.AMOUNT + "," + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + "," + ATMflds.ReasonCode + "," + ATMflds.AUTHNO + "," + ATMflds.AtmNo + Environment.NewLine;
 
                                 }
+                                if (ATMflds.AMOUNT_REMAINING != "0")
+                                {
+                                    scontent_sup += ATMflds.CARDNo + "," + ATMflds.trnDATE + "," + ATMflds.AMOUNT_REMAINING + "," + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + ",CASH LOADED AT ATM," + ATMflds.AUTHNO + "," + ATMflds.AtmNo + Environment.NewLine;
+
+                                    if (ATMflds.AMOUNT != ATMflds.AMOUNT_REMAINING)
+                                    {
+                                        scontent_sup += ATMflds.CARDNo + "," + ATMflds.trnDATE + "," + (Convert.ToDecimal(ATMflds.AMOUNT) - Convert.ToDecimal(ATMflds.AMOUNT_REMAINING)) + "," + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + ",CASH REMAINING DIFFERENCE," + ATMflds.AUTHNO + "," + ATMflds.AtmNo + Environment.NewLine;
+                                    }
+                                }
                                 hascashcount = false;
                             }
                         }
@@ -87,8 +100,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             if (sGrp.Length != 0)
             {
 
-                for (var i = 1; i < sGrp.Length - 1; i++)
+                for (var i = 1; i < sGrp.Length; i++)
                 {
+
                     List<string> lx = GetJournalDetails(sGrp[i].Split("\n"));
                     if (lx.Count > 0)
                     {
@@ -117,7 +131,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                 if (scontent == "")
                                 {
-                                    //scontent = "CARD NO, DATE ,   AMOUNT,UTRN NO ,TRAN STAT,RC,AUTH NO,ATM NO" + Environment.NewLine;
+
                                     scontent += ATMflds.CARDNo.Trim() + "," + ATMflds.trnDATE.Trim() + "," + ATMflds.AMOUNT.Trim() + "," + ATMflds.UTRNNO.Trim() + "," + ATMflds.SUCCESSFUL.Trim() + "," + ATMflds.ReasonCode.Trim() + "," + ATMflds.AUTHNO.Trim() + "," + ATMflds.AtmNo.Trim() + Environment.NewLine;
 
                                 }
@@ -184,10 +198,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             bool gotATM_s = false;
             bool gotATHNO = false;
             bool refusedtxn = false;
-
+            string currenAMount = "";
             var l = new List<string>();
             for (var i = 1; i < d.Length - 1; i++)
-            {//CARD	DATE	AMOUNT	UTRN NO	SUCCESSFUL	RC CARD NO:
+            {//CARD	DATE	AMOUNT	UTRN NO	SUCCESSFUL	RC CARD NO: 471376XXXX192395
+
                 if (d[i].Contains("REFUSED TRANSACTION"))
                 {
                     if (refusedtxn == false)
@@ -386,19 +401,23 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             decimal type3 = 0;
             decimal type4 = 0;
 
+            string currenAMount = "";
+            string currenAMount_ = "";
+
+            string currenAMount_s = "";
+            string currenAMount_x = "";
+
+            decimal type1_s = 0;
+            decimal type2_s = 0;
+            decimal type3_s = 0;
+            decimal type4_s = 0;
 
             var l = new List<string>();
             for (var i = 1; i < d.Length - 1; i++)
             {//CARD	DATE	AMOUNT	UTRN NO	SUCCESSFUL	RC CARD NO:
 
-                if (d[i].Contains("*424*06"))
-                {
 
-                }
-                if (d[i].Contains("*452*06"))
-                {
 
-                }
                 if (d[i].Contains("CASH COUNTS CLEARED"))
                 {
                     l.Add("CASH COUNTS CLEARED");
@@ -409,13 +428,21 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     if (gotATM_s != true)
                     {
                         //get date
-                        if (gotdate_s != true)
+                        if (gotdate != true)
                         {
-                            l.Add("DATE:" + d[i + 3].Split('*')[2].Substring(3, 2) + "/" + d[i + 3].Split('*')[2].Substring(0, 2) + "/" + d[i + 3].Split('*')[2].Substring(6, 4) + " " + d[i + 3].Split('*')[3]);
-                            gotdate_s = true;
+                            try { l.Add("DATE:" + d[i + 3].Split('*')[2].Substring(3, 2) + "/" + d[i + 3].Split('*')[2].Substring(0, 2) + "/" + d[i + 3].Split('*')[2].Substring(8, 2) + " " + d[i + 3].Split('*')[3]); }
+                            catch (Exception sc)
+                            { l.Add("DATE:" + d[i + 4].Split('*')[2].Substring(3, 2) + "/" + d[i + 4].Split('*')[2].Substring(0, 2) + "/" + d[i + 4].Split('*')[2].Substring(8, 2) + " " + d[i + 4].Split('*')[3]); }
+
+                            gotdate = true;
                         }
                         //get amount
-                        if (gotamount_s != true)
+                        if (d[i + 1].Trim() != currenAMount && currenAMount != "")
+                        {
+                            l.Remove(currenAMount_);
+                            gotamount = false;
+                        }
+                        if (gotamount != true)
                         {
                             try
                             { type1 = Convert.ToDecimal(d[i + 1].Split("TYPE")[1].Split('=')[1].Trim()) * 1000; }
@@ -437,14 +464,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             catch (Exception xc)
                             { type4 = Convert.ToDecimal(d[i + 2].Split("TYPE")[2].Split('≈')[1].Trim()) * 5000; }
 
-                            l.Add("AMOUNT:" + (type1 + type2 + type3 + type3));
-                            // l.Add("AMOUNT:" + (((Convert.ToDecimal(d[i + 1].Split("TYPE")[1].Split('=')[1].Trim())) + (((Convert.ToDecimal(d[i + 2].Split("TYPE")[1].Split('=')[2].Trim())) * 5000)) + (Convert.ToDecimal(d[i + 2].Split("TYPE")[1].Split('=')[1].Trim()) * 5000) * (Convert.ToDecimal(d[i + 2].Split("TYPE")[2].Split('=')[1].Trim()) * 5000)));
-                            gotamount_s = true;
+                            l.Add("AMOUNT:" + (type1 + type2 + type3 + type4));
+                            currenAMount_ = "AMOUNT:" + (type1 + type2 + type3 + type4);
+                            currenAMount = d[i + 1].Trim();
+                            gotamount = true;
                         }
                         if (gotcashtaken == false)
                         {
                             l.Add("CASH TAKEN:" + d[i].Split("\r\n")[0] + "|");
-
+                            gotcashtaken = true;
                         }
                         if (gotRC != true)
                         {
@@ -458,7 +486,64 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     }
                 }
 
+
+                if (d[i].Contains("CASH REMAINING"))
+                {
+                    if (gotATM != true)
+                    {
+                        //get date
+                        if (gotdate_s != true)
+                        {
+                            //l.Add("DATE:" + d[i + 3].Split('*')[2].Substring(3, 2) + "/" + d[i + 3].Split('*')[2].Substring(0, 2) + "/" + d[i + 3].Split('*')[2].Substring(6, 4) + " " + d[i + 3].Split('*')[3]);
+                            gotdate_s = true;
+                        }
+                        //get amount
+                        if (d[i + 1].Trim() != currenAMount_s && currenAMount_s != "")
+                        {
+                            l.Remove(currenAMount_x);
+                            gotamount = false;
+                        }
+                        if (gotamount_s != true)
+                        {
+                            try
+                            { type1_s = Convert.ToDecimal(d[i + 1].Split("TYPE")[1].Split('=')[1].Trim()) * 1000; }
+                            catch (Exception xc)
+                            { type1_s = Convert.ToDecimal(d[i + 1].Split("TYPE")[1].Split('≈')[1].Trim()) * 1000; }
+                            try
+                            { type2_s = Convert.ToDecimal(d[i + 1].Split("TYPE")[2].Split('=')[1].Trim()) * 5000; }
+                            catch (Exception xc)
+                            {
+                                type2_s = Convert.ToDecimal(d[i + 1].Split("TYPE")[2].Split('≈')[1].Trim()) * 5000;
+                            }
+                            try
+                            { type3_s = Convert.ToDecimal(d[i + 2].Split("TYPE")[1].Split('=')[1].Trim()) * 5000; }
+                            catch (Exception xc)
+                            { type3_s = Convert.ToDecimal(d[i + 2].Split("TYPE")[1].Split('≈')[1].Trim()) * 5000; }
+
+                            try
+                            { type4_s = Convert.ToDecimal(d[i + 2].Split("TYPE")[2].Split('=')[1].Trim()) * 5000; }
+                            catch (Exception xc)
+                            { type4_s = Convert.ToDecimal(d[i + 2].Split("TYPE")[2].Split('≈')[1].Trim()) * 5000; }
+
+                            l.Add("AMOUNTR:" + (type1_s + type2_s + type3_s + type4_s));
+                            currenAMount_x = "AMOUNTR:" + (type1_s + type2_s + type3_s + type4_s);
+                            currenAMount_s = d[i + 1].Trim();
+                            
+                            gotamount_s = true;
+                        }
+                        if (gotcashtaken_s == false)
+                        {
+                            l.Add("AMOUNT REMAINING:" + d[i].Split("\r\n")[0] + "|");
+                            gotcashtaken_s = true;
+                        }
+                        
+                        gotATM = true;
+
+                    }
+                }
             }
+
+             
 
 
             return l;
@@ -471,8 +556,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             public string UTRNNO { get; set; }
             public string SUCCESSFUL { get; set; }
             public string ReasonCode { get; set; }
+
+            public string AMOUNT_REMAINING { get; set; }
+
             public string AtmNo { get; set; }
             public string AUTHNO { get; set; }
+
             public Boolean Cashtaken { get; set; }
 
         }
