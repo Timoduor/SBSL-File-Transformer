@@ -67,7 +67,7 @@ namespace SbslFileTransformer.Converters.Tanzania
             var amount = list.Col2; //vs col5 diff
             var currency = list.Col1.Trim();
 
-            var account = "30990411005001"; //TZS
+            var account = "30990311001001"; //TZS
 
             if (currency.ToUpper() == "USD") account = "30990411005001";
 
