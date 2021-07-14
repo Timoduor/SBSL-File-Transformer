@@ -103,13 +103,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                //fileToProcess.Converted = true;
+                                fileToProcess.Converted = true;
 
-                                //fileToProcess.ConvertedBy = nameof(FxRatesTZConverter);
+                                fileToProcess.ConvertedBy = nameof(FxRatesTZConverter);
 
-                                //dbContext.Update(fileToProcess);
+                                dbContext.Update(fileToProcess);
 
-                                //await dbContext.SaveChangesAsync();
+                                await dbContext.SaveChangesAsync();
                                 var archive = "";
 
                                 archive = Path.Combine(Path.GetDirectoryName(file), "ARCHIVE",
