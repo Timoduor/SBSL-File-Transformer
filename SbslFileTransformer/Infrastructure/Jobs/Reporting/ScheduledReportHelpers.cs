@@ -185,7 +185,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                 var groupEmails = groups.ToList().Select(g => g.Emails);
 
                 foreach (var group in groupEmails)
-                    emails.AddRange(@group.Split(new[] {',', '\r', '\n'}, StringSplitOptions.RemoveEmptyEntries));
+                    emails.AddRange(@group.Split(new[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries));
 
                 return emails;
             }
@@ -202,9 +202,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
         {
             var tokens = new List<string>();
 
-            try
+
+            foreach (var user in config.UserNamesAndPasswords)
             {
-                foreach (var user in config.UserNamesAndPasswords)
+                try
+                {
                     using (var client = new HttpClient())
                     {
                         client.Timeout = TimeSpan.FromMinutes(10);
@@ -232,10 +234,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                             tokens.Add((string) data.SelectToken("access_token"));
                         }
                     }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, ex.Message);
+                }
             }
 
             return tokens;
