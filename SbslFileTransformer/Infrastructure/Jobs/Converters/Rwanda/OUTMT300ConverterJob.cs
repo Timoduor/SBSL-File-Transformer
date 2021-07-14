@@ -72,16 +72,23 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         if (file.ToLower().Contains("mt300") && file.ToLower().Contains("imrw"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
-
-                            try
+                             
+                            if (fileToProcess != null && fileToProcess.Converted == false)
+                                try
                             {
                                 mt300Converter.ProcessOutMt300File(file);
                             }
                             catch (Exception ex)
                             {
-                                //fileToProcess.Failed = true;
+                                    fileToProcess.Converted = true;
 
-                                _logger.LogError(ex, ex.Message);
+                                    fileToProcess.ConvertedBy = nameof(OUTMT300ConverterJob);
+
+                                    dbContext.Update(fileToProcess);
+
+                                    await dbContext.SaveChangesAsync();
+
+                                    _logger.LogError(ex, ex.Message);
 
                                 string archive = "";
 

@@ -83,14 +83,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             var fileToProcess =
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
                                     f.FilePath.ToLower() == file.ToLower());
-
-                            try
+                            if (fileToProcess != null && fileToProcess.Converted == false)
+                                try
                             {
                                 mt320Converter.ProcessMt320File(file);
                             }
                             catch (Exception ex)
                             {
-                                //fileToProcess.Failed = true;
+                                fileToProcess.Failed = true;
 
                                 _logger.LogError(ex, ex.Message);
 
@@ -116,23 +116,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             }
                             finally
                             {
-                                var archive = "";
 
-                                archive = Path.Combine(Path.GetDirectoryName(file) + "\\MT320", "ARCHIVE",
-                                    DateTime.Now.ToString("yyMMdd") + "\\RTGSMT320");
-                                if (!Directory.Exists(archive))
-                                    Directory.CreateDirectory(archive);
+                                    fileToProcess.Converted = true;
 
+                                    fileToProcess.ConvertedBy = nameof(MT320RWConverterJob);
 
-                                try
-                                {
-                                    File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".out");
-                                    File.Delete(file);
-                                }
-                                catch (Exception xc)
-                                {
-                                    _logger.LogError(xc, xc.Message);
-                                }
+                                    dbContext.Update(fileToProcess);
+
+                                    await dbContext.SaveChangesAsync();
+                                 
+
+                                 
                             }
                         }
                 }

@@ -85,9 +85,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                     f.FilePath.ToLower() == file.ToLower());
                             var outputfile = Path.GetDirectoryName(file) + "\\Converted_MT300_" +
                                              DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".csv";
-                            //if (fileToProcess != null && fileToProcess.Converted == false)
-                            // {
-                            try
+                            if (fileToProcess != null && fileToProcess.Converted == false)
+                                // {
+                                try
                             {
                                 mt300Converter.ProcessMt300File(file);
                             }
@@ -119,30 +119,30 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             }
                             finally
                             {
-                                //fileToProcess.Converted = true;
+                                    fileToProcess.Converted = true;
 
-                                //fileToProcess.ConvertedBy = nameof(Mt300Converter);
+                                    fileToProcess.ConvertedBy = nameof(MT300RWConverterJob);
 
-                                //dbContext.Update(fileToProcess);
+                                    dbContext.Update(fileToProcess);
 
-                                //await dbContext.SaveChangesAsync();
+                                    await dbContext.SaveChangesAsync();
 
-                                var archive = "";
+                                //    var archive = "";
 
-                                archive = Path.Combine(Path.GetDirectoryName(file) + "\\MT300", "ARCHIVE",
-                                    DateTime.Now.ToString("yyMMdd") + "\\RTGSMT300");
-                                if (!Directory.Exists(archive))
-                                    Directory.CreateDirectory(archive);
+                                //archive = Path.Combine(Path.GetDirectoryName(file) + "\\MT300", "ARCHIVE",
+                                //    DateTime.Now.ToString("yyMMdd") + "\\RTGSMT300");
+                                //if (!Directory.Exists(archive))
+                                //    Directory.CreateDirectory(archive);
 
 
-                                try
-                                {
-                                    File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".out");
-                                    File.Delete(file);
-                                }
-                                catch (Exception xc)
-                                {
-                                }
+                                //try
+                                //{
+                                //    File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".out");
+                                //    File.Delete(file);
+                                //}
+                                //catch (Exception xc)
+                                //{
+                                //}
                             }
                             //}
                         }

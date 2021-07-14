@@ -87,7 +87,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
                                     f.FilePath.ToLower() == file.ToLower());
 
-                            //if (fileToProcess != null && fileToProcess.Converted == false)
+                            if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
                                     if (file.Contains("Member_DailyAcquiringATMTrxRpt")) rSwitchConverter_.ConvertFile(file);
@@ -105,7 +105,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 {
                                 fileToProcess.Converted = true;
 
-                                fileToProcess.ConvertedBy = nameof(FxRatesTZConverter);
+                                fileToProcess.ConvertedBy = nameof(RSwitchConverterJob);
 
                                 dbContext.Update(fileToProcess);
 
@@ -127,6 +127,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 {
                                     _logger.LogError(xc, xc.Message);
                                 }
+
                             }
                         }
                 }
