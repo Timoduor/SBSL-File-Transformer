@@ -120,7 +120,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                 try
                                 {
-                                    File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".rsw");
+                                    File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".rsw");
                                     File.Delete(file);
                                 }
                                 catch (Exception xc)
