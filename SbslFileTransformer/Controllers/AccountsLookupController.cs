@@ -64,6 +64,13 @@ namespace SbslFileTransformer.Controllers
                     return View(acc);
                 }
 
+                if (_dbContext.Accounts.Any())
+                {
+                    ViewBag.Message = $"An entry with the account number {acc.Number} exists! Try editing it";
+
+                    return View(acc);
+                }
+
                 await _dbContext.Accounts.AddAsync(acc);
 
                 await _dbContext.SaveChangesAsync();

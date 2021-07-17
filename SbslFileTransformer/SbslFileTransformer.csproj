@@ -108,6 +108,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="AccountsUploads\sample_accounts_format.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Content\eula.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Content\eula.rtf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="DLLs\BouncyCastle.Crypto.dll">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>

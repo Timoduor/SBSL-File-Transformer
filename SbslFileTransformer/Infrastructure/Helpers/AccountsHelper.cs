@@ -41,7 +41,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
                         if (dbContext.Accounts.Any(x => x.Number == number))
                         {
-                            toReturn.AppendLine($"{entity} {name} {number} {account} {currency} already exists");
+                            toReturn.AppendLine($"{entity} {name} {number} {account} {currency} already exists! {Environment.NewLine}");
                         }
                         else
                         {
