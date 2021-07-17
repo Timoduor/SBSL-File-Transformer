@@ -1,10 +1,15 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Models;
 
 namespace SbslFileTransformer.Controllers
@@ -12,10 +17,12 @@ namespace SbslFileTransformer.Controllers
     public class AccountsLookupController : Controller
     {
         private readonly ApplicationDbContext _dbContext;
+        private readonly IWebHostEnvironment _hostingEnvironment;
 
-        public AccountsLookupController(ApplicationDbContext dbContext)
+        public AccountsLookupController(ApplicationDbContext dbContext, IWebHostEnvironment env)
         {
             _dbContext = dbContext;
+            _hostingEnvironment = env;
         }
 
         // GET: AccountsLookupController
@@ -138,6 +145,42 @@ namespace SbslFileTransformer.Controllers
             }
 
             return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> BulkImport(IFormFile excel)
+        {
+            if (excel == null || excel.Length == 0)
+            {
+                return Content("File not properly selected");
+            }
+            else
+            {
+                var uploadFolder = Path.Combine(_hostingEnvironment.ContentRootPath, "AccountsUploads");
+                Directory.CreateDirectory(uploadFolder);
+                var filePath = Path.Combine(uploadFolder, excel.FileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await excel.CopyToAsync(stream);
+                }
+
+                string failedInserts = await AccountsHelper.ProcessedExcelUpload(filePath, _dbContext);
+
+                if (!string.IsNullOrEmpty(failedInserts))
+                {
+                    return Content(failedInserts);
+                }
+            }
+            return RedirectToAction("Index");
+        }
+
+        public async Task<ActionResult> DownloadSample()
+        {
+            var sampleAccountsFile = Path.Combine(_hostingEnvironment.ContentRootPath, "AccountsUploads", "sample_accounts_format.xlsx");
+
+            var file = await System.IO.File.ReadAllBytesAsync(sampleAccountsFile);
+
+            return File(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","accounts_sample.xlsx");
         }
     }
 }

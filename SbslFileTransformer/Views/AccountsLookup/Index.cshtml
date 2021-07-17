@@ -4,58 +4,75 @@
     ViewData["Title"] = "Accounts Lookup";
 }
 
-<h3>Accounts Lookup</h3>
 
-<p>
-    <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="If ConfigType and Key combination exist then it's value will be UPDATED!">
-        <a asp-action="Create" class="btn btn-primary">Add New Account</a>
-    </span>
-</p>
+
+<div class="row">
+    <div class="col-md-6">
+        <h3>Accounts Lookup</h3>
+        <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="If ConfigType and Key combination exist then it's value will be UPDATED!">
+            <a asp-action="Create" class="btn btn-primary">Add New Account</a>
+        </span>
+    </div>
+    <div class="col-md-6">        
+        <span class="d-inline-block border rounded" tabindex="0" data-toggle="tooltip" title="Download sample file to see the format to use to bulk upload accounts using formatted excel file">
+            
+            <b style="margin:10px">Uploads</b>
+            <a asp-action="DownloadSample" asp-controller="AccountsLookup" class="btn btn-primary btn-sm" style="margin:10px">Download Sample File</a>
+
+            <form asp-controller="AccountsLookup" asp-action="BulkImport" method="post" enctype="multipart/form-data">
+                <div class="form-group border rounded" style="margin:10px; padding:5px">
+                    <input type="file" name="excel" />
+                    <input type="submit" value="Upload and Process Files" class="btn btn-success btn-sm" style="margin-right:10px" />
+                </div>
+            </form>
+        </span>
+    </div>
+</div>
 <table class="table table-striped table-responsive table-bordered table-sm">
     <thead class="thead-dark">
-    <tr>
-        <th>
-            Entity
-        </th>
-        <th>
-            Name
-        </th>
-        <th>
-            Bank Account
-        </th>
-        <th>
-            GL Account Number
-        </th>
-        <th>
-            Currency
-        </th>
-        <th></th>
-    </tr>
+        <tr>
+            <th>
+                Entity
+            </th>
+            <th>
+                Name
+            </th>
+            <th>
+                Bank Account
+            </th>
+            <th>
+                GL Account Number
+            </th>
+            <th>
+                Currency
+            </th>
+            <th></th>
+        </tr>
     </thead>
     <tbody>
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Entity)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Account)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Number)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Currency)
-            </td>
-            <td>
-                <a class="btn btn-primary btn-sm" asp-controller="AccountsLookup" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
-                <a class="btn btn-danger btn-sm" asp-controller="AccountsLookup" asp-action="Delete" asp-route-id="@item.Id" onclick="return confirm('Are you sure you want to delete @item.Name ?');">Delete</a>
-            </td>
-        </tr>
-    }
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Entity)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Account)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Number)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Currency)
+                </td>
+                <td>
+                    <a class="btn btn-primary btn-sm" asp-controller="AccountsLookup" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                    <a class="btn btn-danger btn-sm" asp-controller="AccountsLookup" asp-action="Delete" asp-route-id="@item.Id" onclick="return confirm('Are you sure you want to delete @item.Name ?');">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

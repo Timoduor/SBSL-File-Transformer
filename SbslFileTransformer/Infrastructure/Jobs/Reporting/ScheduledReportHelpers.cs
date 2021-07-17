@@ -201,8 +201,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             ILogger<ScheduledReporterJob> logger)
         {
             var tokens = new List<string>();
-
-
+            
             foreach (var user in config.UserNamesAndPasswords)
             {
                 try
