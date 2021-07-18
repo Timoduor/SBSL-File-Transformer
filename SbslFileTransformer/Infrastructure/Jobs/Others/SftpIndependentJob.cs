@@ -87,8 +87,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
         private void GetConfiguration(out SftpConfigModel config, out int prodTimeSpan, out int sbTimeSpan)
         {
-            prodTimeSpan = 15;
-            sbTimeSpan = 5;
+            prodTimeSpan = 10;
+            sbTimeSpan = 15;
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
@@ -126,7 +126,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         private async Task RunFileCheckAndUpload(object state, bool isProduction, string productionOrSandboxFolder,
             SftpConfigModel config)
         {
-            var fileToProcess = string.Empty;
+            bool result;
 
             try
             {
@@ -152,38 +152,35 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 if (config.UseUnicode) connectionInfo.Encoding = Encoding.UTF8;
 
-                using (var client = new SftpClient(connectionInfo))
+
+
+                if (string.IsNullOrEmpty(path) || !Directory.Exists(path) || !File.Exists(path))
                 {
-                    client.Connect();
-
-                    if (string.IsNullOrEmpty(path) || !Directory.Exists(path) || !File.Exists(path))
+                    //do check for all folders/files
+                    var options = new EnumerationOptions
                     {
-                        //do check for all folders/files
-                        var options = new EnumerationOptions
-                        {
-                            MatchCasing = MatchCasing.CaseInsensitive,
-                            MatchType = MatchType.Simple,
-                            RecurseSubdirectories = true
-                        };
+                        MatchCasing = MatchCasing.CaseInsensitive,
+                        MatchType = MatchType.Simple,
+                        RecurseSubdirectories = true
+                    };
 
-                        var files = Directory.GetFiles(productionOrSandboxFolder, "*", options);
+                    var files = Directory.GetFiles(productionOrSandboxFolder, "*", options);
 
-                        foreach (var file in files)
-                            fileToProcess = ProcessFileAndUpload(isProduction, productionOrSandboxFolder, file, client);
-                    }
-                    else
-                    {
-                        fileToProcess = ProcessFileAndUpload(isProduction, productionOrSandboxFolder, path, client);
-                    }
-
-                    client.Disconnect();
+                    result  = await ProcessFileAndUpload(isProduction, productionOrSandboxFolder, files, connectionInfo);
+                }
+                else
+                {
+                    result = await ProcessFileAndUpload(isProduction, productionOrSandboxFolder, new List<string> { path }, connectionInfo);
                 }
 
-                _logger.LogInformation("File check and upload ran successfully!");
+                if (result)
+                {
+                    _logger.LogInformation("File check and upload ran successfully!");
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message + $" Error running file check and upload {fileToProcess}");
+                _logger.LogError(ex, ex.Message + $" Error running file check and upload");
             }
             finally
             {
@@ -191,37 +188,19 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
         }
 
-        private string ProcessFileAndUpload(bool isProduction, string productionOrSandboxFolder, string file,
-            SftpClient client)
+        private async Task<bool> ProcessFileAndUpload(bool isProduction, string productionOrSandboxFolder, IEnumerable<string> files,
+            ConnectionInfo connectionInfo)
         {
-            var newFileName = MTFileConverter.RenameMTFile(file, _logger);
-
             try
             {
-                var uploadCheckResult =
-                    FileHelpers.FileHasBeenUploadedBefore(newFileName.Item1, isProduction, _serviceScopeFactory);
-
-                if (uploadCheckResult.Item2)
-                    //_logger.LogInformation($"File {file} already uploaded!");
-                    return string.Empty;
-
-                //IF IT IS AN MT FILE
-                if (newFileName.Item3.Count() > 0)
-                    FileHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction,
-                        Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), newFileName.Item2,
-                        newFileName.Item3[0], newFileName.Item3.Count() == 1 ? string.Empty : newFileName.Item3[1],
-                        _serviceScopeFactory, _logger, client);
-                else
-                    FileHelpers.UploadFileToSftp(newFileName.Item1, uploadCheckResult.Item1, isProduction,
-                        Path.GetRelativePath(productionOrSandboxFolder, newFileName.Item1), string.Empty, string.Empty,
-                        string.Empty, _serviceScopeFactory, _logger, client);
+                return await FileHelpers.UploadFilesToSftp(files, isProduction, productionOrSandboxFolder, _serviceScopeFactory, _logger, connectionInfo);                
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message + " Error uploading file");
             }
 
-            return newFileName.Item1;
+            return false;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -12,12 +13,14 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Sftp;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
+using static SbslFileTransformer.Converters.MTFileConverter;
 
 namespace SbslFileTransformer.Infrastructure.Helpers
 {
     public static class FileHelpers
     {
         private static readonly object _locker = new object();
+        private static int delay = 0;
 
         public static void RestartService(string serviceName)
         {
@@ -27,100 +30,153 @@ namespace SbslFileTransformer.Infrastructure.Helpers
             Environment.Exit(1);
         }
 
-        public static bool UploadFileToSftp(string filePath, string md5, bool isProduction, string relativePath,
-            string accountNo, string statementNo, string sequenceNo, IServiceScopeFactory serviceScopeFactory,
-            ILogger logger, SftpClient client)
+        public static async Task<bool> UploadFilesToSftp(IEnumerable<string> filePaths, bool isProduction, string productionOrSandboxFolder,
+             IServiceScopeFactory serviceScopeFactory, ILogger logger, ConnectionInfo connectionInfo)
         {
-            lock (_locker)
+            try
             {
-                try
+                using (var client = new SftpClient(connectionInfo))
                 {
-                    var previouslyUploaded = FileHasBeenUploadedBefore(filePath, isProduction, serviceScopeFactory);
+                    await Task.Delay(delay);
 
-                    if (previouslyUploaded.Item2)
+                    client.Connect();
+
+                    foreach (var filePath in filePaths)
                     {
-                        logger.LogWarning($"File {filePath} has been previously uploaded. Ignoring upload");
-                        return true;
-                    }
-
-                    logger.LogInformation($"Uploading file {filePath} to SFTP site at {DateTime.Now}!");
-
-                    using (var scope = serviceScopeFactory.CreateScope())
-                    {
-                        var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-
-                        var useUnicode = Convert.ToBoolean(dbContext.Configurations
-                            .FirstOrDefault(u => u.ConfigType == ConfigurationType.Sftp && u.Key == "UseUnicode")
-                            .Value);
-
-                        var sftpManager = scope.ServiceProvider.GetService<SftpManager>();
-
-                        var remotePath = isProduction ? "/PROD/" : "/SB/";
-
-                        //connecting to local cygwin SFTP server
-                        if (useUnicode)
+                        lock (_locker)
                         {
-                            remotePath = "/cygdrive/e/Recon_Files/Files" + remotePath;
+                            MTFileValidation newFileName = ValidateMTFile(filePath, logger);
 
-                            client.ConnectionInfo.Encoding = Encoding.Unicode;
-                        }
+                            var previouslyUploaded = FileHasBeenUploadedBefore(filePath, isProduction, serviceScopeFactory);
 
-                        remotePath = Path.Combine(remotePath, relativePath.Replace('\\', '/'));
-
-                        if (sftpManager.UploadFile(filePath, remotePath, client))
-                        {
-                            dbContext.UploadedFiles.Add(new SftpUploadedFile
+                            if (previouslyUploaded.Uploaded)
                             {
-                                FilePath = filePath,
-                                IsProduction = isProduction,
-                                Md5 = md5,
-                                Name = Path.GetFileName(filePath),
-                                Size = new FileInfo(filePath).Length,
-                                UploadedDate = DateTime.Now,
-                                MtAccountNo = accountNo,
-                                MtStatementNo = statementNo,
-                                MtSequenceNo = sequenceNo
-                            });
+                                logger.LogWarning($"File {filePath} has been previously uploaded. Ignoring upload");
+                                continue;
+                            }
 
-                            dbContext.SaveChanges();
+                            logger.LogInformation($"Uploading file {filePath} to SFTP site at {DateTime.Now}!");
 
-                            logger.LogInformation($"Uploaded file to SFTP {remotePath} site successfully!");
+                            using (var scope = serviceScopeFactory.CreateScope())
+                            {
+                                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                            return true;
+                                var useUnicode = Convert.ToBoolean(dbContext.Configurations
+                                    .FirstOrDefault(u => u.ConfigType == ConfigurationType.Sftp && u.Key == "UseUnicode")
+                                    .Value);
+
+                                var sftpManager = scope.ServiceProvider.GetService<SftpManager>();
+
+                                var remotePath = isProduction ? "/PROD/" : "/SB/";
+
+                                //connecting to local cygwin SFTP server
+                                if (useUnicode)
+                                {
+                                    remotePath = "/cygdrive/e/Recon_Files/Files" + remotePath;
+
+                                    client.ConnectionInfo.Encoding = Encoding.Unicode;
+                                }
+
+                                var relativePath = Path.GetRelativePath(productionOrSandboxFolder, filePath);
+
+                                remotePath = Path.Combine(remotePath, relativePath.Replace('\\', '/'));
+
+                                if (sftpManager.UploadFile(filePath, remotePath, client))
+                                {
+                                    dbContext.UploadedFiles.Add(new SftpUploadedFile
+                                    {
+                                        FilePath = filePath,
+                                        IsProduction = isProduction,
+                                        Md5 = previouslyUploaded.Md5,
+                                        Name = Path.GetFileName(filePath),
+                                        Size = new FileInfo(filePath).Length,
+                                        UploadedDate = DateTime.Now,
+                                        MtAccountNo = newFileName.Account,
+                                        MtStatementNo = newFileName.Statement,
+                                        MtSequenceNo = string.Join(",", newFileName.Sequences)
+                                    });
+
+                                    dbContext.SaveChanges();
+
+                                    logger.LogInformation($"Uploaded file to SFTP {remotePath} site successfully!");
+                                }
+
+                                logger.LogWarning($"Failed to upload file {filePath}");
+                            }
                         }
-
-                        logger.LogWarning($"Failed to upload file {filePath}");
                     }
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, $"Error uploading file {ex.Message}" + $"{filePath}");
-                }
 
-                return false;
+                    client.Disconnect();
+
+                    delay = 0;
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error uploading file {ex.Message}");
+
+                //THIS IS A CIRCUIT BREAKER CODE TO DELAY PASSWORD RETRY IF THERE IS A FAILURE
+                if(ex.Message.Contains("password") || ex.Message.Contains("denied"))
+                {
+                    DelayUploadDueToFailure();
+
+                    logger.LogWarning($"Delaying for {delay} ms");
+                }
+            }
+
+            return false;
+        }
+
+        private static void DelayUploadDueToFailure()
+        {
+            int toUse = 300000;//5 minutes incremental delay for use of wrong password
+
+            if (delay > 0)
+            {
+                delay += toUse;
+            }
+            else
+            {
+                delay = toUse;
+            }
+
+            if (delay > 1800000) //30 minutes
+            {
+                delay = toUse;//reset back to 5 minutes
             }
         }
 
-        public static (string, bool) FileHasBeenUploadedBefore(string filePath, bool isProduction,
+        public static UploadCheckResult FileHasBeenUploadedBefore(string filePath, bool isProduction,
             IServiceScopeFactory serviceScopeFactory)
-        {
+        {    
             lock (_locker)
             {
                 var md5 = GetMd5(filePath);
                 var name = Path.GetFileName(filePath);
 
+                var uploadCheckResult = new UploadCheckResult
+                {
+                    Md5 = md5,
+                    Uploaded = false
+                };
+
                 using (var scope = serviceScopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-                    
+
                     //code to ignore duplicates for special scenarios goes here
-                    
+
                     //check if md5/filename exists
                     if (dbContext.UploadedFiles.Any(f =>
-                        f.Md5.ToUpper() == md5.ToUpper() || f.Name.ToLower() == name.ToLower())) return (md5, true);
-                }
+                        f.Md5.ToUpper() == md5.ToUpper() || f.Name.ToLower() == name.ToLower())) 
+                    {
+                        uploadCheckResult.Uploaded = true; 
+                    }
+                }                
 
-                return (md5, false);
+                return uploadCheckResult;
             }
         }
 
@@ -160,5 +216,11 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
             return tempFolderDirectory;
         }
+    }
+
+    public class UploadCheckResult
+    {
+        public bool Uploaded { get; set; }
+        public string Md5 { get; set; }
     }
 }

@@ -25,11 +25,19 @@ namespace SbslFileTransformer.Converters
         private static readonly SemaphoreSlim SemaphoreExtractor = new SemaphoreSlim(1, 1);
         private static readonly SemaphoreSlim SemaphoreValidator = new SemaphoreSlim(1, 1);
 
-        public static (string, string, string[]) RenameMTFile(string originalFile, ILogger logger)
+        public static MTFileValidation ValidateMTFile(string originalFile, ILogger logger)
         {
+
+            var validation = new MTFileValidation 
+            {
+                Statement = originalFile,
+                Account = string.Empty,
+                Sequences = new string[0].ToList(),
+            };
+
             //if it is not in the statement folder
             if (!originalFile.ToLower().Contains("nostro") || !originalFile.ToLower().Contains("statement"))
-                return (originalFile, string.Empty, new string[] { });
+                return validation;
 
             try
             {
@@ -44,7 +52,11 @@ namespace SbslFileTransformer.Converters
                     {
                         var toRet = pair.Split("/");
 
-                        return (originalFile, account, toRet);
+                        validation.Statement = originalFile;
+                        validation.Account = account;
+                        validation.Sequences = toRet.ToList();
+                        
+                        return validation;
                     }
                 }
             }
@@ -53,7 +65,7 @@ namespace SbslFileTransformer.Converters
                 logger.LogError(ex, "Error renaming file " + $"{originalFile}");
             }
 
-            return (originalFile, string.Empty, new string[] { });
+            return validation;
         }
 
         public static async Task RunMtSequenceValidationCheck(IServiceScopeFactory serviceScopeFactory, ILogger logger,
@@ -71,7 +83,7 @@ namespace SbslFileTransformer.Converters
                         u.UploadedDate.Date == DateTime.Now.Date && u.MtAccountNo != null);
 
                     var dict = uploadedToday.GroupBy(u => u.MtAccountNo)
-                        .Select(u => new {Account = u.Key, Max = u.Max(u => u.MtSequenceNo)}).ToList();
+                        .Select(u => new { Account = u.Key, Max = u.Max(u => u.MtSequenceNo) }).ToList();
 
                     //Dictionary<string, string> absent = new Dictionary<string, string>();
 
@@ -85,7 +97,7 @@ namespace SbslFileTransformer.Converters
                         foreach (var StatementNo in StatementNos)
                         {
                             var validation = new MTFileValidation
-                                {Account = stmt.Account, Statement = StatementNo, Sequences = new List<string>()};
+                            { Account = stmt.Account, Statement = StatementNo, Sequences = new List<string>() };
 
                             var worked = int.TryParse(stmt.Max, out var result);
 
@@ -137,7 +149,7 @@ namespace SbslFileTransformer.Converters
                     var config = await dbContext.Configurations.FirstOrDefaultAsync(c =>
                         c.ConfigType == ConfigurationType.Email && c.Key == "Recipients");
 
-                    var recipients = config.Value.Split(new[] {',', '\r', '\n'}, StringSplitOptions.RemoveEmptyEntries);
+                    var recipients = config.Value.Split(new[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
                     if (!string.IsNullOrEmpty(message.ToString().Trim()))
                         await EmailHelpers.SendEmails(dbContext, "Possible Missing Closing Balances & Sequence Numbers",
@@ -194,7 +206,7 @@ namespace SbslFileTransformer.Converters
                     if (paths.Count() > 0)
                     {
                         var options = new EnumerationOptions
-                            {RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive};
+                        { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
                         var filesInDirectory = Directory.GetFiles(loc, "*.*", options).ToList();
 
@@ -225,26 +237,18 @@ namespace SbslFileTransformer.Converters
                                     new PrivateKeyAuthenticationMethod(sftpConfig.UserName, keyFiles));
                             }
 
-                            //using (var client = new SftpClient(sftpConfig.Host, sftpConfig.Port == 0 ? 22 : sftpConfig.Port, sftpConfig.UserName, sftpConfig.Password))
-                            using (var client = new SftpClient(connectionInfo))
+                            if (await FileHelpers.UploadFilesToSftp(new List<string> { resultFile }, isProduction,
+                                Path.GetFileName(resultFile),
+                                serviceScopeFactory, logger, connectionInfo))
                             {
-                                client.Connect();
+                                foreach (var file in notProcessed.OrderBy(f => f.UploadedDate))
+                                    if (filesInDirectoryToProcess.Contains(file.FilePath,
+                                        StringComparer.OrdinalIgnoreCase))
+                                        file.ProcessFor62F = true;
 
-                                if (FileHelpers.UploadFileToSftp(resultFile, md5, isProduction,
-                                    Path.GetFileName(resultFile), null, null, null,
-                                    serviceScopeFactory, logger, client))
-                                {
-                                    foreach (var file in notProcessed.OrderBy(f => f.UploadedDate))
-                                        if (filesInDirectoryToProcess.Contains(file.FilePath,
-                                            StringComparer.OrdinalIgnoreCase))
-                                            file.ProcessFor62F = true;
+                                dbContext.UpdateRange(notProcessed);
 
-                                    dbContext.UpdateRange(notProcessed);
-
-                                    await dbContext.SaveChangesAsync();
-                                }
-
-                                client.Disconnect();
+                                await dbContext.SaveChangesAsync();
                             }
                         }
 
@@ -343,9 +347,11 @@ namespace SbslFileTransformer.Converters
             public string Currency { get; set; }
         }
 
-        private class MTFileValidation
+        public class MTFileValidation
         {
+            //original file name
             public string Account { get; set; }
+            //
             public string Statement { get; set; }
             public List<string> Sequences { get; set; }
         }

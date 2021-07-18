@@ -89,7 +89,7 @@ namespace SbslFileTransformer.Infrastructure.Sftp
             _logger.LogInformation($"Response from server for upload is {obj}");
         }
 
-        public void CreateAllDirectories(SftpClient client, string path)
+        private void CreateAllDirectories(SftpClient client, string path)
         {
             client.ChangeDirectory("/");
 
