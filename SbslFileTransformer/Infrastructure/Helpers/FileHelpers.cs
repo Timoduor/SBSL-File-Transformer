@@ -51,7 +51,6 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
                             if (previouslyUploaded.Uploaded)
                             {
-                                logger.LogWarning($"File {filePath} has been previously uploaded. Ignoring upload");
                                 continue;
                             }
 
