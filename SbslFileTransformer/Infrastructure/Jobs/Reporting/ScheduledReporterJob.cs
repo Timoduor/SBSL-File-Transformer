@@ -388,7 +388,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                 sheet.InsertColumn(5, 1);
 
                 //set maxDate only if it is not a balance proofing report
-                if (!inputFileName.Contains("proofing"))
+                if (!inputFileName.ToLower().Contains("proofing"))
                 {
                     sheet.Cells["A5"].Value = $"Recon Date: {maxDate:MM/dd/yyyy}";
                 }
