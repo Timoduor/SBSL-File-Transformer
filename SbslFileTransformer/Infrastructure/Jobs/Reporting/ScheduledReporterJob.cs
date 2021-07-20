@@ -387,8 +387,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
                 sheet.InsertColumn(5, 1);
 
-                //set maxDate
-                sheet.Cells["A5"].Value = $"Recon Date: {maxDate:MM/dd/yyyy}";
+                //set maxDate only if it is not a balance proofing report
+                if (!inputFileName.Contains("proofing"))
+                {
+                    sheet.Cells["A5"].Value = $"Recon Date: {maxDate:MM/dd/yyyy}";
+                }
+
                 sheet.Cells["A5"].Style.Font.Bold = true;
                 //set header
                 sheet.Cells["E6"].Value = "DAYS OVERDUE";
