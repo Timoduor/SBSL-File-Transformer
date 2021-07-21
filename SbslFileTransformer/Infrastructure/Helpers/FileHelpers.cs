@@ -99,8 +99,6 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
                                     logger.LogInformation($"Uploaded file to SFTP {remotePath} site successfully!");
                                 }
-
-                                logger.LogWarning($"Failed to upload file {filePath}");
                             }
                         }
                     }
@@ -117,18 +115,17 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                 logger.LogError(ex, $"Error uploading file {ex.Message}");
 
                 //THIS IS A CIRCUIT BREAKER CODE TO DELAY PASSWORD RETRY IF THERE IS A FAILURE
-                if(ex.Message.Contains("password") || ex.Message.Contains("denied"))
-                {
-                    DelayUploadDueToFailure();
+                DelayUploadAttemptDueToFailure();
 
-                    logger.LogWarning($"Delaying for {delay} ms");
-                }
+                logger.LogWarning($"Delaying for {delay} ms");
+
+                logger.LogWarning($"Failed to upload files {string.Join(',', filePaths)}");
             }
 
             return false;
         }
 
-        private static void DelayUploadDueToFailure()
+        private static void DelayUploadAttemptDueToFailure()
         {
             int toUse = 300000;//5 minutes incremental delay for use of wrong password
 
@@ -149,7 +146,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
         public static UploadCheckResult FileHasBeenUploadedBefore(string filePath, bool isProduction,
             IServiceScopeFactory serviceScopeFactory)
-        {    
+        {
             lock (_locker)
             {
                 var md5 = GetMd5(filePath);
@@ -169,11 +166,11 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
                     //check if md5/filename exists
                     if (dbContext.UploadedFiles.Any(f =>
-                        f.Md5.ToUpper() == md5.ToUpper() || f.Name.ToLower() == name.ToLower())) 
+                        f.Md5.ToUpper() == md5.ToUpper() || f.Name.ToLower() == name.ToLower()))
                     {
-                        uploadCheckResult.Uploaded = true; 
+                        uploadCheckResult.Uploaded = true;
                     }
-                }                
+                }
 
                 return uploadCheckResult;
             }
