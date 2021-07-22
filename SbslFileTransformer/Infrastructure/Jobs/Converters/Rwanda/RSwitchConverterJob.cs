@@ -80,7 +80,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     foreach (var file in files)
                         //SPECIFY FOLDER and file extension above PENDING
 
-                        if ( file.Contains("ATMs-OFF-US") && file.Contains("imrw") &&
+                        if ( file.Contains("ATMs-OFF-US") && file.Contains("IMRW") &&
                             !file.Contains("Conv"))
                         {
                             var fileToProcess =
