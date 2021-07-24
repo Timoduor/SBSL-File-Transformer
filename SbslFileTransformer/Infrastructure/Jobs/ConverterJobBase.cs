@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Threading;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Messaging;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace SbslFileTransformer.Infrastructure.Jobs
 {

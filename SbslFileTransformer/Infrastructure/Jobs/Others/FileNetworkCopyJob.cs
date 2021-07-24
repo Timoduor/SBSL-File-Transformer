@@ -1,13 +1,13 @@
-﻿using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Models.Enums;
+using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Others
 {
@@ -63,7 +63,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
                     if (Directory.Exists(localFolder) && Directory.Exists(networkFolder))
                     {
                         var enumOptions = new EnumerationOptions
-                            {RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive};
+                        { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
                         foreach (var file in Directory.GetFiles(localFolder, "*.*", enumOptions))
                         {

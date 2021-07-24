@@ -1,9 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -12,6 +7,11 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 {
@@ -70,7 +70,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 
 
                     var options = new EnumerationOptions
-                        {RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive};
+                    { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
                     var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls"))
                         .ToList();
@@ -82,9 +82,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 
                     foreach (var file in files)
                         if (file.ToLower().Contains("mb") && file.ToLower().Contains("imtz") &&
-                            (file.ToLower().Contains("selcom") || file.ToLower().Contains("b2w")
-                                                               || file.ToLower().Contains("w2b") ||
-                                                               file.ToLower().Contains("spenn")) &&
+                            (file.ToLower().Contains("w2b") || file.ToLower().Contains("spenn")) &&
                             !file.ToLower().Contains("balance"))
                         {
                             var fileToProcess =
@@ -103,7 +101,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                                     _logger.LogError(ex, ex.Message);
 
                                     await EmailHelpers.SendEmails(dbContext, "Problem Converting Selcom Balance files",
-                                        $"{file} \n\n {ex.Message}", new[] {file}, _emailSender);
+                                        $"{file} \n\n {ex.Message}", new[] { file }, _emailSender);
                                 }
                                 finally
                                 {

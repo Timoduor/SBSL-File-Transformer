@@ -1,17 +1,16 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters.Rwanda.Camt053;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
@@ -86,22 +85,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             var fileToProcess =
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
                                     f.FilePath.ToLower() == file.ToLower());
-                          if (fileToProcess != null && fileToProcess.Converted == false)
+                            if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
-                            {
-                                ATMJournalConverter.ConvertFile_WinkaATMjrn (file);
-                            }
-                            catch (Exception ex)
-                            {
+                                {
+                                    ATMJournalConverter.ConvertFile_WinkaATMjrn(file);
+                                }
+                                catch (Exception ex)
+                                {
                                     fileToProcess.Failed = true;
 
                                     _logger.LogError(ex, ex.Message);
-                               
+
                                     await EmailHelpers.SendEmails(dbContext, "Error in ATMJournal file conversion",
                                     $"Problem with  file {file} \n\n {ex.Message}", new[] { file }, _emailSender);
-                            }
-                            finally
-                            {
+                                }
+                                finally
+                                {
                                     fileToProcess.Converted = true;
 
                                     fileToProcess.ConvertedBy = nameof(ATMjournalConverterJob);
@@ -109,7 +108,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                     dbContext.Update(fileToProcess);
 
                                     await dbContext.SaveChangesAsync();
-                                    
+
                                 }
                         }
                 }

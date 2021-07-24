@@ -1,14 +1,14 @@
-﻿using System;
+﻿using ExcelDataReader;
+using Microsoft.Extensions.DependencyInjection;
+using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ExcelDataReader;
-using Microsoft.Extensions.DependencyInjection;
-using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
@@ -103,7 +103,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var pairs = dbContext.Accounts.Select(a => new {a.Number, a.Name});
+                    var pairs = dbContext.Accounts.Select(a => new { a.Number, a.Name });
 
                     foreach (var acc in pairs) lookUp.TryAdd(acc.Number, acc.Name);
                 }

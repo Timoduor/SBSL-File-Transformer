@@ -1,9 +1,9 @@
-﻿using System;
+﻿using CsvHelper;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using CsvHelper;
 
 namespace SbslFileTransformer.Converters
 {
@@ -11,7 +11,7 @@ namespace SbslFileTransformer.Converters
     {
         public void ConvertFile(string inputFile, string outputFile = null)
         {
-            var rowFilter = new[] {"0500", "0700", "0600", "0620", "2500", "2700"}.ToList();
+            var rowFilter = new[] { "0500", "0700", "0600", "0620", "2500", "2700" }.ToList();
 
             var lines = File.ReadAllLines(inputFile).ToList();
 

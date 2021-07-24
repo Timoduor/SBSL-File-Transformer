@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using MimeKit;
+using System.Collections.Generic;
 using System.Linq;
-using MimeKit;
 
 namespace SbslFileTransformer.Infrastructure.Messaging
 {

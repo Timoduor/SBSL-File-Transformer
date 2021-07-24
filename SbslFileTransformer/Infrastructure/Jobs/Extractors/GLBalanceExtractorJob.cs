@@ -1,14 +1,14 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Models.Enums;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 {
@@ -64,7 +64,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                                           false.ToString());
 
                     var options = new EnumerationOptions
-                        {RecurseSubdirectories = false, MatchCasing = MatchCasing.CaseInsensitive};
+                    { RecurseSubdirectories = false, MatchCasing = MatchCasing.CaseInsensitive };
 
                     var files = Directory.GetFiles(prodFolder, "*.csv", options).ToList();
 
@@ -113,7 +113,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                                 else if (file.ToLower().Contains("clearing_balance"))
                                     await converter.Execute(file, "Clearing");
-                                
+
                                 else
                                     await converter.Execute(file);
                             }

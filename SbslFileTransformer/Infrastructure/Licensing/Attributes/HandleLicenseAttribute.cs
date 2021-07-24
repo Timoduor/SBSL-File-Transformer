@@ -1,7 +1,7 @@
-﻿using System.IO;
-using Licensing;
+﻿using Licensing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using System.IO;
 
 namespace SbslFileTransformer.Infrastructure.Licensing.Attributes
 {

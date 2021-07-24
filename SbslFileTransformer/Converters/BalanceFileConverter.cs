@@ -1,17 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CsvHelper;
+﻿using CsvHelper;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Converters
 {
@@ -61,7 +61,8 @@ namespace SbslFileTransformer.Converters
                     {
                         dbContext.Configurations.Add(new Configuration
                         {
-                            ConfigType = ConfigurationType.Account, Key = "GLExemptAccounts",
+                            ConfigType = ConfigurationType.Account,
+                            Key = "GLExemptAccounts",
                             Value = "25049787002,25049787004,20100243506064"
                         });
                         await dbContext.SaveChangesAsync();
@@ -70,7 +71,7 @@ namespace SbslFileTransformer.Converters
                     exemptAccs.AddRange(dbContext.Configurations.Where(c => c.Key == "GLExemptAccounts")
                         .FirstOrDefault()?.Value.Split(","));
 
-                    var pairs = dbContext.Accounts.Select(a => new {a.Number, a.Name});
+                    var pairs = dbContext.Accounts.Select(a => new { a.Number, a.Name });
 
                     foreach (var acc in pairs) lookUp.TryAdd(acc.Number, acc.Name);
                 }

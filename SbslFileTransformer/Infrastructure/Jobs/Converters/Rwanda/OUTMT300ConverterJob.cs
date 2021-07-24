@@ -72,14 +72,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         if (file.ToLower().Contains("mt300") && file.ToLower().Contains("imrw"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
-                             
+
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
-                            {
-                                mt300Converter.ProcessOutMt300File(file);
-                            }
-                            catch (Exception ex)
-                            {
+                                {
+                                    mt300Converter.ProcessOutMt300File(file);
+                                }
+                                catch (Exception ex)
+                                {
                                     fileToProcess.Converted = true;
 
                                     fileToProcess.ConvertedBy = nameof(OUTMT300ConverterJob);
@@ -90,45 +90,45 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                     _logger.LogError(ex, ex.Message);
 
-                                string archive = "";
+                                    string archive = "";
 
-                                archive = Path.Combine(Path.GetDirectoryName(file) + "\\MT300", "FAILED", DateTime.Now.ToString("yyMMdd") + "\\RTGSMT300");
-                                if (!Directory.Exists(archive))
-                                    Directory.CreateDirectory(archive);
+                                    archive = Path.Combine(Path.GetDirectoryName(file) + "\\MT300", "FAILED", DateTime.Now.ToString("yyMMdd") + "\\RTGSMT300");
+                                    if (!Directory.Exists(archive))
+                                        Directory.CreateDirectory(archive);
 
 
-                                try
-                                {
-                                    File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".out");
-                                    File.Delete(file);
+                                    try
+                                    {
+                                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".out");
+                                        File.Delete(file);
 
+                                    }
+                                    catch (Exception xc)
+                                    {
+                                    }
+                                    await EmailHelpers.SendEmails(dbContext, "Error in  OUTMT300 file conversion", $"Problem with  file {file} \n\n {ex.Message}", new string[] { file }, _emailSender);
                                 }
-                                catch (Exception xc)
+                                finally
                                 {
+
+
+                                    string archive = "";
+
+                                    archive = Path.Combine(Path.GetDirectoryName(file) + "\\MT300", "ARCHIVE", DateTime.Now.ToString("yyMMdd") + "\\RTGSMT300");
+                                    if (!Directory.Exists(archive))
+                                        Directory.CreateDirectory(archive);
+
+
+                                    try
+                                    {
+                                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".out");
+                                        File.Delete(file);
+
+                                    }
+                                    catch (Exception xc)
+                                    {
+                                    }
                                 }
-                                await EmailHelpers.SendEmails(dbContext, "Error in  OUTMT300 file conversion", $"Problem with  file {file} \n\n {ex.Message}", new string[] { file }, _emailSender);
-                            }
-                            finally
-                            {
-
-
-                                string archive = "";
-
-                                archive = Path.Combine(Path.GetDirectoryName(file) + "\\MT300", "ARCHIVE", DateTime.Now.ToString("yyMMdd") + "\\RTGSMT300");
-                                if (!Directory.Exists(archive))
-                                    Directory.CreateDirectory(archive);
-
-
-                                try
-                                {
-                                    File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".out");
-                                    File.Delete(file);
-
-                                }
-                                catch (Exception xc)
-                                {
-                                }
-                            }
 
                         }
                     }

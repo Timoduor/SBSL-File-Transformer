@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Licensing;
+using System;
 using System.ComponentModel;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using Licensing;
 
 namespace SbslFileTransformer.Infrastructure.Licensing
 {
@@ -38,7 +38,7 @@ namespace SbslFileTransformer.Infrastructure.Licensing
             //Check if the XML license file exists
             if (File.Exists(licensePath))
             {
-                License = (ETLLicense) LicenseHandler.ParseLicenseFromBASE64String(
+                License = (ETLLicense)LicenseHandler.ParseLicenseFromBASE64String(
                     typeof(ETLLicense),
                     File.ReadAllText(licensePath),
                     _certPubicKeyData,
@@ -70,7 +70,7 @@ namespace SbslFileTransformer.Infrastructure.Licensing
                     try
                     {
                         var showAttr =
-                            (ShowInLicenseInfoAttribute) Attribute.GetCustomAttribute(p,
+                            (ShowInLicenseInfoAttribute)Attribute.GetCustomAttribute(p,
                                 typeof(ShowInLicenseInfoAttribute));
                         if (showAttr != null && showAttr.ShowInLicenseInfo)
                         {
@@ -90,7 +90,7 @@ namespace SbslFileTransformer.Infrastructure.Licensing
                                     case ShowInLicenseInfoAttribute.FormatType.Date:
                                         if (p.PropertyType == typeof(DateTime) &&
                                             !string.IsNullOrWhiteSpace(DateFormat))
-                                            formattedValue = ((DateTime) _value).ToString(DateFormat);
+                                            formattedValue = ((DateTime)_value).ToString(DateFormat);
                                         else
                                             formattedValue = _value.ToString();
                                         break;
@@ -98,7 +98,7 @@ namespace SbslFileTransformer.Infrastructure.Licensing
                                     case ShowInLicenseInfoAttribute.FormatType.DateTime:
                                         if (p.PropertyType == typeof(DateTime) &&
                                             !string.IsNullOrWhiteSpace(DateTimeFormat))
-                                            formattedValue = ((DateTime) _value).ToString(DateTimeFormat);
+                                            formattedValue = ((DateTime)_value).ToString(DateTimeFormat);
                                         else
                                             formattedValue = _value.ToString();
                                         break;
@@ -109,7 +109,7 @@ namespace SbslFileTransformer.Infrastructure.Licensing
                                         {
                                             var fi = p.PropertyType.GetField(name);
 
-                                            var dna = (DescriptionAttribute) Attribute.GetCustomAttribute(fi,
+                                            var dna = (DescriptionAttribute)Attribute.GetCustomAttribute(fi,
                                                 typeof(DescriptionAttribute));
 
                                             formattedValue = dna != null ? dna.Description : _value.ToString();

@@ -1,11 +1,7 @@
-﻿using SbslFileTransformer.Models.Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 
 namespace SbslFileTransformer.Converters.Rwanda.Camt053
@@ -91,7 +87,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
             }
 
         }
-            private List<string> GetRtgsDetails320(string[] d)
+        private List<string> GetRtgsDetails320(string[] d)
         {
             var l = new List<string>();
             for (var i = 1; i < d.Length - 1; i++)

@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.Logging;
+using System;
 using System.IO;
 using System.Security.Cryptography;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.Extensions.Logging;
 
 namespace SbslFileTransformer.Infrastructure.Encryption
 {

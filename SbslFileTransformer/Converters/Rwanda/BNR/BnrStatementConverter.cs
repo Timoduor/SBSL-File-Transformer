@@ -1,14 +1,14 @@
-﻿using System;
+﻿using CsvHelper;
+using ExcelDataReader;
+using SbslFileTransformer.Converters.BNR;
+using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using CsvHelper;
-using ExcelDataReader;
-using SbslFileTransformer.Converters.BNR;
-using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Converters
 {
@@ -260,11 +260,11 @@ namespace SbslFileTransformer.Converters
 
                         if (reader.GetValue(0)?.ToString().Contains("Account:") ?? false)
                             row.Col1 = reader.GetValue(0)?.ToString()
-                                .Split(new[] {':', '-'}, StringSplitOptions.RemoveEmptyEntries)[1];
+                                .Split(new[] { ':', '-' }, StringSplitOptions.RemoveEmptyEntries)[1];
                         if (reader.GetValue(7)?.ToString().StartsWith("Date From") ?? false)
                         {
                             var data = reader.GetValue(7)?.ToString();
-                            var lines = data.Split(new[] {'\n', '\r'}, StringSplitOptions.RemoveEmptyEntries);
+                            var lines = data.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 
                             foreach (var line in lines)
                                 if (line.StartsWith("Currency:"))

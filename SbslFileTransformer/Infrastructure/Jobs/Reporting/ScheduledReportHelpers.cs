@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Threading.Tasks;
-using CsvHelper;
+﻿using CsvHelper;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
@@ -16,6 +8,14 @@ using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 {
@@ -201,7 +201,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             ILogger<ScheduledReporterJob> logger)
         {
             var tokens = new List<string>();
-            
+
             foreach (var user in config.UserNamesAndPasswords)
             {
                 try
@@ -230,7 +230,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
                             var data = JObject.Parse(respContent);
 
-                            tokens.Add((string) data.SelectToken("access_token"));
+                            tokens.Add((string)data.SelectToken("access_token"));
                         }
                     }
                 }

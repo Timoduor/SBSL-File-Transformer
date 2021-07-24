@@ -1,9 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -12,6 +7,11 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
@@ -69,7 +69,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
 
                     var options = new EnumerationOptions
-                        {RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive};
+                    { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
                     var files = Directory.GetFiles(prodFolder, "*.BKP", options).ToList();
 
@@ -85,37 +85,37 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                     f.FilePath.ToLower() == file.ToLower());
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
-                            {
-                                mt320Converter.ProcessMt320File(file);
-                            }
-                            catch (Exception ex)
-                            {
-                                fileToProcess.Failed = true;
-
-                                _logger.LogError(ex, ex.Message);
-
-                                var archive = "";
-
-                                archive = Path.Combine(Path.GetDirectoryName(file) + "\\MT320", "FAILED",
-                                    DateTime.Now.ToString("yyMMdd") + "\\RTGSMT320");
-                                if (!Directory.Exists(archive))
-                                    Directory.CreateDirectory(archive);
-
-
-                                try
                                 {
-                                    File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".out");
-                                    File.Delete(file);
+                                    mt320Converter.ProcessMt320File(file);
                                 }
-                                catch (Exception xc)
+                                catch (Exception ex)
                                 {
-                                }
+                                    fileToProcess.Failed = true;
 
-                                await EmailHelpers.SendEmails(dbContext, "Error in MT320 file conversion",
-                                    $"Problem with  file {file} \n\n {ex.Message}", new[] {file}, _emailSender);
-                            }
-                            finally
-                            {
+                                    _logger.LogError(ex, ex.Message);
+
+                                    var archive = "";
+
+                                    archive = Path.Combine(Path.GetDirectoryName(file) + "\\MT320", "FAILED",
+                                        DateTime.Now.ToString("yyMMdd") + "\\RTGSMT320");
+                                    if (!Directory.Exists(archive))
+                                        Directory.CreateDirectory(archive);
+
+
+                                    try
+                                    {
+                                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".out");
+                                        File.Delete(file);
+                                    }
+                                    catch (Exception xc)
+                                    {
+                                    }
+
+                                    await EmailHelpers.SendEmails(dbContext, "Error in MT320 file conversion",
+                                        $"Problem with  file {file} \n\n {ex.Message}", new[] { file }, _emailSender);
+                                }
+                                finally
+                                {
 
                                     fileToProcess.Converted = true;
 
@@ -124,10 +124,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                     dbContext.Update(fileToProcess);
 
                                     await dbContext.SaveChangesAsync();
-                                 
 
-                                 
-                            }
+
+
+                                }
                         }
                 }
             }

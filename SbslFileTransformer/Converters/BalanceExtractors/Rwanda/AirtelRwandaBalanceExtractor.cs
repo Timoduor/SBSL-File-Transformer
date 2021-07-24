@@ -1,10 +1,10 @@
-﻿using System;
+﻿using ExcelDataReader;
+using SbslFileTransformer.Infrastructure.Helpers;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using ExcelDataReader;
-using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Converters.BalanceExtractors
 {

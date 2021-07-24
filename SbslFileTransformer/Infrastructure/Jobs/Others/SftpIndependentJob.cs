@@ -1,20 +1,19 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Renci.SshNet;
+using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Encryption;
+using SbslFileTransformer.Infrastructure.Helpers;
+using SbslFileTransformer.Models;
+using SbslFileTransformer.Models.Enums;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Renci.SshNet;
-using SbslFileTransformer.Converters;
-using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Encryption;
-using SbslFileTransformer.Infrastructure.Helpers;
-using SbslFileTransformer.Models;
-using SbslFileTransformer.Models.Enums;
 
 namespace SbslFileTransformer.Infrastructure.Jobs
 {
@@ -166,7 +165,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                     var files = Directory.GetFiles(productionOrSandboxFolder, "*", options);
 
-                    result  = await ProcessFileAndUpload(isProduction, productionOrSandboxFolder, files, connectionInfo);
+                    result = await ProcessFileAndUpload(isProduction, productionOrSandboxFolder, files, connectionInfo);
                 }
                 else
                 {
@@ -193,7 +192,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             try
             {
-                return await FileHelpers.UploadFilesToSftp(files, isProduction, productionOrSandboxFolder, _serviceScopeFactory, _logger, connectionInfo);                
+                return await FileHelpers.UploadFilesToSftp(files, isProduction, productionOrSandboxFolder, _serviceScopeFactory, _logger, connectionInfo);
             }
             catch (Exception ex)
             {

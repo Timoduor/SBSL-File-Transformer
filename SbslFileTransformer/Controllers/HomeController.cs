@@ -1,12 +1,12 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Infrastructure.Licensing.Attributes;
 using SbslFileTransformer.Models;
+using System;
+using System.Diagnostics;
+using System.Linq;
 
 namespace SbslFileTransformer.Controllers
 {
@@ -50,7 +50,7 @@ namespace SbslFileTransformer.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel {RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier});
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }

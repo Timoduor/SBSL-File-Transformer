@@ -1,15 +1,15 @@
-﻿using System;
+﻿using ExcelDataReader;
+using Microsoft.Extensions.DependencyInjection;
+using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Helpers;
+using SbslFileTransformer.Infrastructure.Jobs.Converters;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ExcelDataReader;
-using Microsoft.Extensions.DependencyInjection;
-using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
-using SbslFileTransformer.Infrastructure.Jobs.Converters;
 
 namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
 {
@@ -52,7 +52,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
                         var row = new CdmCols();
 
                         DateTime resultDate;
-                        
+
                         if (DateTime.TryParseExact(reader.GetValue(0)?.ToString(), "MM/dd/yyyy",
                             CultureInfo.InvariantCulture, DateTimeStyles.None, out resultDate))
                         {
@@ -115,7 +115,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
                 //write multicurr file
                 var text = toAppend.ToString();
 
-                if (!string.IsNullOrEmpty(text)) 
+                if (!string.IsNullOrEmpty(text))
                     await File.WriteAllTextAsync(outputFile, text);
             }
         }

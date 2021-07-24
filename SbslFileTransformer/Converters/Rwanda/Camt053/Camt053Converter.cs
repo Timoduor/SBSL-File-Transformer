@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using SbslFileTransformer.Infrastructure.Helpers;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Converters.Camt053
 {

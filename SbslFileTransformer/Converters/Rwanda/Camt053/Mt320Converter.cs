@@ -2,15 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Converters.Rwanda.Camt053
 {
     public class Mt320Converter
     {
-         
+
         public void ProcessMt320File(string file, string outputFolder = null)
         {
             var content = File.ReadAllText(file);
@@ -49,7 +46,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                 }
                 catch (Exception xc)
                 {
-                    
+
                 }
 
                 return;
@@ -123,7 +120,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                 scontent += "," + seq15C.NewSequenceC + "," + seq15C.DeliveryAgent15C + "," + seq15C.ReceivingAgent15C;
                 scontent += "," + seq15D.NewSequenceD + "," + seq15D.DeliveryAgent15D + "," + seq15D.ReceivingAgent15D;
 
-              WriteFile(outputFolder + "\\Converted_MT320_" + Path.GetFileNameWithoutExtension(file) + ".csv", scontent);
+                WriteFile(outputFolder + "\\Converted_MT320_" + Path.GetFileNameWithoutExtension(file) + ".csv", scontent);
             }
         }
 
@@ -380,7 +377,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                             l.Add(d[i].Trim() + "|" + d[i + 2].Trim() + "|" + d[i + 3].Trim());
                         }
 
-                        
+
                     }
                 }
                 if (d[i].Contains("37G:"))

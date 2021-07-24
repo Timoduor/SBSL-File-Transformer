@@ -14,10 +14,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
             string ATMNO = "";
             string outputFolder = null;
-             
+
             string outputFile = "";
 
-            
+
             string[] sDet = File.ReadAllLines(inputFile);
             try
             {
@@ -30,14 +30,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             { }
             string content = File.ReadAllText(inputFile);
 
-            
+
             string[] sGrp = content.Split("TRANSACTION START");
             string[] sGrp_s = content.Split("SUPERVISOR MODE ENTRY");
             string scontent = "";
             string scontent_ = "";
             string scontent_sup = "";
             var ATMflds = new ATMJournal();
-            
+
             bool hascashcount = false;
             if (string.IsNullOrEmpty(outputFolder))
             {
@@ -528,7 +528,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             l.Add("AMOUNTR:" + (type1_s + type2_s + type3_s + type4_s));
                             currenAMount_x = "AMOUNTR:" + (type1_s + type2_s + type3_s + type4_s);
                             currenAMount_s = d[i + 1].Trim();
-                            
+
                             gotamount_s = true;
                         }
                         if (gotcashtaken_s == false)
@@ -536,14 +536,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             l.Add("AMOUNT REMAINING:" + d[i].Split("\r\n")[0] + "|");
                             gotcashtaken_s = true;
                         }
-                        
+
                         gotATM = true;
 
                     }
                 }
             }
 
-             
+
 
 
             return l;

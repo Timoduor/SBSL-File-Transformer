@@ -1,9 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -12,6 +7,11 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
@@ -71,7 +71,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
 
                     var options = new EnumerationOptions
-                        {RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive};
+                    { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
                     var files = Directory.GetFiles(prodFolder, "*", options).ToList();
 
@@ -100,7 +100,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                                     await EmailHelpers.SendEmails(dbContext,
                                         "Problem Converting Western Union Activities KE files",
-                                        $"{file} \n\n {ex.Message}", new[] {file}, _emailSender);
+                                        $"{file} \n\n {ex.Message}", new[] { file }, _emailSender);
                                 }
                                 finally
                                 {

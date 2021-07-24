@@ -11,7 +11,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
             using (var sr = new StringReader(input))
             {
-                return (T) ser.Deserialize(sr);
+                return (T)ser.Deserialize(sr);
             }
         }
 

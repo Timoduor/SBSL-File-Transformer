@@ -1,10 +1,10 @@
-﻿using System;
+﻿using CsvHelper;
+using HtmlAgilityPack;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using CsvHelper;
-using HtmlAgilityPack;
 
 namespace SbslFileTransformer.Converters.Tanzania
 {
@@ -50,11 +50,11 @@ namespace SbslFileTransformer.Converters.Tanzania
                     else
                         continue;
 
-                    //string amountString = row.SelectNodes("td")[9].InnerText;
+                    string amountString = row.SelectNodes("td")[9].InnerText;
 
-                    //string amount = string.IsNullOrEmpty(amountString) ? "0" : amountString;
+                    string amount = string.IsNullOrEmpty(amountString) ? "0" : amountString;
 
-                    //selcomRow.CBal = Convert.ToDouble(amount);
+                    selcomRow.CBal = Convert.ToDouble(amount).ToString("N2");
 
                     selcomRow.Terminal = row.SelectNodes("td")[1].InnerText?.Replace(System.Environment.NewLine, "");
 
@@ -96,23 +96,11 @@ namespace SbslFileTransformer.Converters.Tanzania
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_SELC_DISB_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
-            ConvertToCsvFile(list, inputFile, outputFile);
+            ConvertToCsvFile(list, outputFile);
         }
 
-        private void ConvertToCsvFile<T>(List<T> rows, string inputFile, string outputFile = null)
+        private void ConvertToCsvFile<T>(List<T> rows, string outputFile = null)
         {
-            if (string.IsNullOrEmpty(outputFile))
-            {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
-                Directory.CreateDirectory(outputFolder);
-
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
-
-                outputFile = Path.Combine(outputFolder,
-                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
-            }
-
-
             using (var writer = new StreamWriter(outputFile))
             {
                 using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
@@ -139,9 +127,8 @@ namespace SbslFileTransformer.Converters.Tanzania
             public string UtilityReference { get; set; }
             public string Reference { get; set; }
             public string TransID { get; set; }
-
             public string OBal { get; set; }
-            //public string CBal { get; set; }
+            public string CBal { get; set; }
         }
     }
 }

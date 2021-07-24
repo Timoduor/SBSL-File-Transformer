@@ -1,9 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -11,6 +6,10 @@ using Microsoft.EntityFrameworkCore;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Models;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Controllers
 {
@@ -187,7 +186,7 @@ namespace SbslFileTransformer.Controllers
 
             var file = await System.IO.File.ReadAllBytesAsync(sampleAccountsFile);
 
-            return File(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","accounts_sample.xlsx");
+            return File(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "accounts_sample.xlsx");
         }
     }
 }

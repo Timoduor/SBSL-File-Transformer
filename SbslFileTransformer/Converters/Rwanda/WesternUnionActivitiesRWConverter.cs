@@ -1,11 +1,11 @@
-﻿using System;
+﻿using CsvHelper;
+using ExcelDataReader;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using CsvHelper;
-using ExcelDataReader;
 
 namespace SbslFileTransformer.Converters.Kenya
 {
@@ -23,7 +23,7 @@ namespace SbslFileTransformer.Converters.Kenya
             using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
                 using (var reader = ExcelReaderFactory.CreateCsvReader(stream,
-                    new ExcelReaderConfiguration {AutodetectSeparators = new[] {',', ';', '\t', '|', '#'}}))
+                    new ExcelReaderConfiguration { AutodetectSeparators = new[] { ',', ';', '\t', '|', '#' } }))
                 {
                     var countHeader = 0;
 

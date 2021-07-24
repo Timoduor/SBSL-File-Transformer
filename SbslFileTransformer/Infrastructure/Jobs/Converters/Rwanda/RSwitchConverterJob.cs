@@ -1,20 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters.Rwanda;
-using SbslFileTransformer.Converters.Tanzania;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
-using SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
@@ -80,7 +77,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     foreach (var file in files)
                         //SPECIFY FOLDER and file extension above PENDING
 
-                        if ( file.Contains("ATMs-OFF-US") && file.Contains("IMRW") &&
+                        if (file.Contains("ATMs-OFF-US") && file.Contains("IMRW") &&
                             !file.Contains("Conv"))
                         {
                             var fileToProcess =
@@ -103,32 +100,32 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                fileToProcess.Converted = true;
+                                    fileToProcess.Converted = true;
 
-                                fileToProcess.ConvertedBy = nameof(RSwitchConverterJob);
+                                    fileToProcess.ConvertedBy = nameof(RSwitchConverterJob);
 
-                                dbContext.Update(fileToProcess);
+                                    dbContext.Update(fileToProcess);
 
-                                await dbContext.SaveChangesAsync();
-                                var archive = "";
+                                    await dbContext.SaveChangesAsync();
+                                    var archive = "";
 
-                                archive = Path.Combine(Path.GetDirectoryName(file), "ARCHIVE",
-                                    DateTime.Now.ToString("yyMMdd"));
-                                if (!Directory.Exists(archive))
-                                    Directory.CreateDirectory(archive);
+                                    archive = Path.Combine(Path.GetDirectoryName(file), "ARCHIVE",
+                                        DateTime.Now.ToString("yyMMdd"));
+                                    if (!Directory.Exists(archive))
+                                        Directory.CreateDirectory(archive);
 
 
-                                try
-                                {
-                                    File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".rsw");
-                                    File.Delete(file);
+                                    try
+                                    {
+                                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".rsw");
+                                        File.Delete(file);
+                                    }
+                                    catch (Exception xc)
+                                    {
+                                        _logger.LogError(xc, xc.Message);
+                                    }
+
                                 }
-                                catch (Exception xc)
-                                {
-                                    _logger.LogError(xc, xc.Message);
-                                }
-
-                            }
                         }
                 }
             }

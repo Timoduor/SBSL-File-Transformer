@@ -1,9 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -12,6 +7,11 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 {
@@ -71,7 +71,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                                           false.ToString());
 
                     var options = new EnumerationOptions
-                        {RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive};
+                    { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
                     var files = Directory.GetFiles(prodFolder, "*.xls", options).ToList();
 
@@ -102,7 +102,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 
                                     await EmailHelpers.SendEmails(dbContext,
                                         "Problem running Suspense Balance Extractor files", $"{file} \n\n {ex.Message}",
-                                        new[] {file}, _emailSender);
+                                        new[] { file }, _emailSender);
                                 }
                                 finally
                                 {

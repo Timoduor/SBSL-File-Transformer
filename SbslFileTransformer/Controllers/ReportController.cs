@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +6,9 @@ using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using X.PagedList;
 
 namespace SbslFileTransformer.Controllers
@@ -67,21 +67,21 @@ namespace SbslFileTransformer.Controllers
                 new SelectListItem
                 {
                     Text = v.ToString(),
-                    Value = ((int) v).ToString()
+                    Value = ((int)v).ToString()
                 }).ToList(), "Value", "Text");
 
             ViewBag.Sprints = new SelectList(Enum.GetValues(typeof(Sprint)).Cast<Sprint>().Select(v =>
                 new SelectListItem
                 {
                     Text = v.ToString(),
-                    Value = ((int) v).ToString()
+                    Value = ((int)v).ToString()
                 }).ToList(), "Value", "Text");
 
             ViewBag.Categories = new SelectList(Enum.GetValues(typeof(ReportCategory)).Cast<ReportCategory>().Select(
                 v => new SelectListItem
                 {
                     Text = v.ToString(),
-                    Value = ((int) v).ToString()
+                    Value = ((int)v).ToString()
                 }).ToList(), "Value", "Text");
 
             return View();
@@ -105,21 +105,21 @@ namespace SbslFileTransformer.Controllers
                 new SelectListItem
                 {
                     Text = v.ToString(),
-                    Value = ((int) v).ToString()
+                    Value = ((int)v).ToString()
                 }).ToList(), "Value", "Text");
 
             ViewBag.Sprints = new SelectList(Enum.GetValues(typeof(Sprint)).Cast<Sprint>().Select(v =>
                 new SelectListItem
                 {
                     Text = v.ToString(),
-                    Value = ((int) v).ToString()
+                    Value = ((int)v).ToString()
                 }).ToList(), "Value", "Text");
 
             ViewBag.Categories = new SelectList(Enum.GetValues(typeof(ReportCategory)).Cast<ReportCategory>().Select(
                 v => new SelectListItem
                 {
                     Text = v.ToString(),
-                    Value = ((int) v).ToString()
+                    Value = ((int)v).ToString()
                 }).ToList(), "Value", "Text");
 
 

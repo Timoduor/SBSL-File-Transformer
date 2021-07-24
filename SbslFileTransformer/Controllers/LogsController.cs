@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.ViewModels;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 using X.PagedList;
 
 namespace SbslFileTransformer.Controllers
@@ -120,7 +120,7 @@ namespace SbslFileTransformer.Controllers
                     .Where(r => r.ProcessedDate > reportsMaxDate.AddDays(-7)).GroupBy(r => r.ProcessedDate.Date)
                     .OrderByDescending(g => g.Key).ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
 
-                return View(new ChartObjects {UploadedFiles = files, Logs = logs, Reports = reports});
+                return View(new ChartObjects { UploadedFiles = files, Logs = logs, Reports = reports });
             }
             catch (Exception ex)
             {

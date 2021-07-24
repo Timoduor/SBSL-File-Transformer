@@ -62,7 +62,7 @@ namespace SbslFileTransformer.Infrastructure.ServiceManager
 
                 foreach (FailureAction fa in failureActions)
                 {
-                    myActions[currInd] = (int) fa.Type;
+                    myActions[currInd] = (int)fa.Type;
                     myActions[++currInd] = fa.Delay;
                     currInd++;
                 }

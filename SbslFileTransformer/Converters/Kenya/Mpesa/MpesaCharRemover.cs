@@ -1,7 +1,7 @@
-﻿using System;
+﻿using OfficeOpenXml;
+using System;
 using System.IO;
 using System.Linq;
-using OfficeOpenXml;
 
 namespace SbslFileTransformer.Converters
 {
@@ -15,8 +15,8 @@ namespace SbslFileTransformer.Converters
                 var sheet = package.Workbook.Worksheets.First();
 
                 var query = from cell in sheet.Cells.Where(c => !string.IsNullOrEmpty(c.Value?.ToString()))
-                    where cell.Value?.ToString()?.ToLower().Contains(searchText.ToLower()) == true
-                    select cell;
+                            where cell.Value?.ToString()?.ToLower().Contains(searchText.ToLower()) == true
+                            select cell;
 
                 foreach (var cell in query) cell.Value = cell.Value.ToString()?.Replace(searchText, replaceText);
 

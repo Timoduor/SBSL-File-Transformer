@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Renci.SshNet;
@@ -15,6 +8,13 @@ using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Converters
 {
@@ -28,7 +28,7 @@ namespace SbslFileTransformer.Converters
         public static MTFileValidation ValidateMTFile(string originalFile, ILogger logger)
         {
 
-            var validation = new MTFileValidation 
+            var validation = new MTFileValidation
             {
                 Statement = originalFile,
                 Account = string.Empty,
@@ -55,7 +55,7 @@ namespace SbslFileTransformer.Converters
                         validation.Statement = originalFile;
                         validation.Account = account;
                         validation.Sequences = toRet.ToList();
-                        
+
                         return validation;
                     }
                 }

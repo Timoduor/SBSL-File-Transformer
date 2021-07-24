@@ -53,12 +53,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             {
                                 scontent = "CARD, DATE ,   AMOUNT, UTRN NO ,SUCCESSFUL,  RC,ATM NO" + Environment.NewLine;
                                 scontent += ATMflds.CARDNo + ",'" + ATMflds.trnDATE + "," + ATMflds.AMOUNT + ",'" + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + "," + ATMflds.ReasonCode + "," + ATMflds.AtmNo + Environment.NewLine;
-                                 
+
 
                             }
                             else
                             {
-                                scontent += ATMflds.CARDNo + ",'" + ATMflds.trnDATE + "," + ATMflds.AMOUNT + ",'" + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + "," + ATMflds.ReasonCode + "," + ATMflds.AtmNo  + Environment.NewLine;
+                                scontent += ATMflds.CARDNo + ",'" + ATMflds.trnDATE + "," + ATMflds.AMOUNT + ",'" + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + "," + ATMflds.ReasonCode + "," + ATMflds.AtmNo + Environment.NewLine;
 
                             }
                         }

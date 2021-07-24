@@ -1,12 +1,9 @@
-﻿using System;
+﻿using CsvHelper;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using CsvHelper;
-using ExcelDataReader;
 
 namespace SbslFileTransformer.Converters.Rwanda
 {
@@ -30,7 +27,7 @@ namespace SbslFileTransformer.Converters.Rwanda
                 {
                     Directory.CreateDirectory(outputFolder);
                 }
-                
+
             }
 
             int countHeader = 0;

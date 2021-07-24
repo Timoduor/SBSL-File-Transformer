@@ -1,9 +1,9 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
+using System;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Helpers
 {

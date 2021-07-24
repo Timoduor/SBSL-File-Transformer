@@ -1,6 +1,6 @@
-﻿using System;
+﻿using SbslFileTransformer.Models.Enums;
+using System;
 using System.ComponentModel.DataAnnotations;
-using SbslFileTransformer.Models.Enums;
 
 namespace SbslFileTransformer.Models
 {

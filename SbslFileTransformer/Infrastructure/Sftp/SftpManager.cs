@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Renci.SshNet;
 using Renci.SshNet.Sftp;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Models.Enums;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace SbslFileTransformer.Infrastructure.Sftp
 {

@@ -1,8 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SbslFileTransformer.Data;
@@ -11,6 +7,10 @@ using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Controllers
 {
@@ -61,7 +61,7 @@ namespace SbslFileTransformer.Controllers
                 .Select(v => new SelectListItem
                 {
                     Text = v.ToString(),
-                    Value = ((int) v).ToString()
+                    Value = ((int)v).ToString()
                 }).ToList(), "Value", "Text");
 
             return View();
@@ -71,13 +71,13 @@ namespace SbslFileTransformer.Controllers
         {
             var config =
                 _dbContext.Configurations.FirstOrDefault(c =>
-                    c.ConfigType == (ConfigurationType) configType && c.Key == key);
+                    c.ConfigType == (ConfigurationType)configType && c.Key == key);
 
             ViewBag.ConfigTypes = new SelectList(Enum.GetValues(typeof(ConfigurationType)).Cast<ConfigurationType>()
                 .Select(v => new SelectListItem
                 {
                     Text = v.ToString(),
-                    Value = ((int) v).ToString()
+                    Value = ((int)v).ToString()
                 }).ToList(), "Value", "Text", configType);
 
             return View(config);
@@ -183,7 +183,7 @@ namespace SbslFileTransformer.Controllers
         {
             var testFiles = Directory
                 .GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory), "*.*",
-                    new EnumerationOptions {RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive})
+                    new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive })
                 .Take(2).ToList();
 
             for (var i = 0; i < testFiles.Count; i++)

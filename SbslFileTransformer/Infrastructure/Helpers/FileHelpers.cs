@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Renci.SshNet;
@@ -13,6 +6,13 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Sftp;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
 using static SbslFileTransformer.Converters.MTFileConverter;
 
 namespace SbslFileTransformer.Infrastructure.Helpers

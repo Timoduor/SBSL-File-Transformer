@@ -1,12 +1,12 @@
-﻿using System;
+﻿using CsvHelper;
+using HtmlAgilityPack;
+using SbslFileTransformer.Infrastructure.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using CsvHelper;
-using HtmlAgilityPack;
-using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Converters
 {
@@ -239,7 +239,7 @@ namespace SbslFileTransformer.Converters
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
-                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_SELC_BE_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
 

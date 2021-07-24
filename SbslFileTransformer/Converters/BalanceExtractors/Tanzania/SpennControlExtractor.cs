@@ -1,9 +1,9 @@
-﻿using System;
+﻿using ExcelDataReader;
+using SbslFileTransformer.Infrastructure.Helpers;
+using System;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using ExcelDataReader;
-using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Converters.BalanceExtractors.Tanzania
 {
@@ -21,7 +21,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Tanzania
             using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
                 using (var reader = ExcelReaderFactory.CreateCsvReader(stream,
-                    new ExcelReaderConfiguration {AutodetectSeparators = new[] {',', '\t'}}))
+                    new ExcelReaderConfiguration { AutodetectSeparators = new[] { ',', '\t' } }))
                 {
                     while (reader.Read())
                     {

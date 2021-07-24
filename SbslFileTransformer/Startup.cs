@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -22,6 +20,8 @@ using SbslFileTransformer.Infrastructure.Jobs.Reporting;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Infrastructure.Sftp;
 using Serilog;
+using System;
+using System.IO;
 
 namespace SbslFileTransformer
 {

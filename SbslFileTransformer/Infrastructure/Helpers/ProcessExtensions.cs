@@ -25,7 +25,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
                 for (var i = 0; i < sessionCount; i++)
                 {
-                    var si = (WTS_SESSION_INFO) Marshal.PtrToStructure(current, typeof(WTS_SESSION_INFO));
+                    var si = (WTS_SESSION_INFO)Marshal.PtrToStructure(current, typeof(WTS_SESSION_INFO));
                     current += arrayElementSize;
 
                     if (si.State == WTS_CONNECTSTATE_CLASS.WTSActive) activeSessionId = si.SessionID;
@@ -39,7 +39,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
             {
                 // Convert the impersonation token to a primary token
                 bResult = DuplicateTokenEx(hImpersonationToken, 0, IntPtr.Zero,
-                    (int) SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation, (int) TOKEN_TYPE.TokenPrimary,
+                    (int)SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation, (int)TOKEN_TYPE.TokenPrimary,
                     ref phUserToken);
 
                 CloseHandle(hImpersonationToken);
@@ -65,8 +65,8 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                     throw new Exception("StartProcessAsCurrentUser: GetSessionUserToken failed.");
 
                 var dwCreationFlags = CREATE_UNICODE_ENVIRONMENT |
-                                      (uint) (visible ? CREATE_NEW_CONSOLE : CREATE_NO_WINDOW);
-                startInfo.wShowWindow = (short) (visible ? SW1.SW_SHOW : SW1.SW_HIDE);
+                                      (uint)(visible ? CREATE_NEW_CONSOLE : CREATE_NO_WINDOW);
+                startInfo.wShowWindow = (short)(visible ? SW1.SW_SHOW : SW1.SW_HIDE);
                 startInfo.lpDesktop = "winsta0\\default";
 
                 if (!CreateEnvironmentBlock(ref pEnv, hUserToken, false))
