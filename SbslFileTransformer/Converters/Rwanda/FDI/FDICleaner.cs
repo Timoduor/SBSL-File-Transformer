@@ -41,7 +41,9 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
                         if (reader.TryGetValue(7, out var result7)) row.Col7 = result7.ToString().Replace("'", "");
                         if (reader.TryGetValue(8, out var result8)) row.Col8 = result8.ToString().Replace("'", "");
                         if (reader.TryGetValue(9, out var result9)) row.Col9 = result9.ToString().Replace("'", "");
-
+                        if (reader.TryGetValue(10, out var result10)) row.Col9 = result10.ToString().Replace("'", "");
+                        if (reader.TryGetValue(11, out var result11)) row.Col9 = result11.ToString().Replace("'", "");
+                        if (reader.TryGetValue(12, out var result12)) row.Col9 = result12.ToString().Replace("'", "");
 
                         list.Add(row);
                     }

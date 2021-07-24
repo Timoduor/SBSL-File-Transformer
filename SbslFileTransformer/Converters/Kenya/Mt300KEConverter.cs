@@ -14,7 +14,7 @@ namespace SbslFileTransformer.Converters.Kenya
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
-        public void ConvertFile(string inputFile, string outputFile = null)
+        public void ConvertFile(string inputFile, string outputFile = null, string entity = "IMKE")
         {
             var list = new List<ExcelCols>();
 
@@ -254,7 +254,7 @@ namespace SbslFileTransformer.Converters.Kenya
                 var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
-                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MT300_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MT300_{entity}_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
             WriteToFile(list, outputFile);

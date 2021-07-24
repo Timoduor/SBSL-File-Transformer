@@ -87,7 +87,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
                                     f.FilePath.ToLower() == file.ToLower());
 
-                            if (fileToProcess != null && fileToProcess.Converted == false)
+                            if (fileToProcess != null && fileToProcess.BalanceExtracted == false)
                                 try
                                 {
                                     var isProd = Convert.ToBoolean(
@@ -109,7 +109,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    fileToProcess.Converted = true;
+                                    fileToProcess.BalanceExtracted = true;
 
                                     fileToProcess.ConvertedBy = nameof(FDIBalanceExtractor);
 

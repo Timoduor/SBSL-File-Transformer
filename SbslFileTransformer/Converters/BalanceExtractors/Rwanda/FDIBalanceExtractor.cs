@@ -98,7 +98,9 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
 
             var toAppend = new StringBuilder();
 
-            var date = Convert.ToDateTime(list.First().Col0);
+            list = list.Skip(1).ToList();
+
+            var date = Convert.ToDateTime(list.First().Col0.Replace("'",""));
             var amount = list.First().Col3; //vs col5 diff
             var currency = "RWF";
             var account = "20100243506073";

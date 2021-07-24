@@ -95,9 +95,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    if (file.ToLower().Contains("mt300")) mt300Converter.ConvertFile(file);
+                                    if (file.ToLower().Contains("mt300")) mt300Converter.ConvertFile(file, entity: "IMTZ");
 
-                                    if (file.ToLower().Contains("mt320")) mt320Converter.ConvertFile(file);
+                                    if (file.ToLower().Contains("mt320")) mt320Converter.ConvertFile(file, entity: "IMTZ");
                                 }
                                 catch (Exception ex)
                                 {
