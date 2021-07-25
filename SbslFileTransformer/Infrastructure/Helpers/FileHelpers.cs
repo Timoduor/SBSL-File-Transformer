@@ -55,65 +55,72 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
                     foreach (var filePath in filePaths)
                     {
-                        lock (_locker)
+                        try
                         {
-                            MTFileValidation newFileName = ValidateMTFile(filePath, logger);
-
-                            var previouslyUploaded = FileHasBeenUploadedBefore(filePath, isProduction, serviceScopeFactory);
-
-                            if (previouslyUploaded.Uploaded)
+                            lock (_locker)
                             {
-                                continue;
-                            }
+                                MTFileValidation newFileName = ValidateMTFile(filePath, logger);
 
-                            logger.LogInformation($"Uploading file {filePath} to SFTP site at {DateTime.Now}!");
+                                var previouslyUploaded = FileHasBeenUploadedBefore(filePath, isProduction, serviceScopeFactory);
 
-                            using (var scope = serviceScopeFactory.CreateScope())
-                            {
-                                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-
-                                var useUnicode = Convert.ToBoolean(dbContext.Configurations
-                                    .FirstOrDefault(u => u.ConfigType == ConfigurationType.Sftp && u.Key == "UseUnicode")
-                                    .Value);
-
-                                var sftpManager = scope.ServiceProvider.GetService<SftpManager>();
-
-                                var remotePath = isProduction ? "/PROD/" : "/SB/";
-
-                                //connecting to local cygwin SFTP server
-                                if (useUnicode)
+                                if (previouslyUploaded.Uploaded)
                                 {
-                                    remotePath = "/cygdrive/e/Recon_Files/Files" + remotePath;
-
-                                    client.ConnectionInfo.Encoding = Encoding.Unicode;
+                                    continue;
                                 }
 
-                                var relativePath = Path.GetRelativePath(productionOrSandboxFolder, filePath);
+                                logger.LogInformation($"Uploading file {filePath} to SFTP site at {DateTime.Now}!");
 
-                                remotePath = Path.Combine(remotePath, relativePath.Replace('\\', '/'));
-
-                                if (sftpManager.UploadFile(filePath, remotePath, client))
+                                using (var scope = serviceScopeFactory.CreateScope())
                                 {
-                                    dbContext.UploadedFiles.Add(new SftpUploadedFile
+                                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                                    var useUnicode = Convert.ToBoolean(dbContext.Configurations
+                                        .FirstOrDefault(u => u.ConfigType == ConfigurationType.Sftp && u.Key == "UseUnicode")
+                                        .Value);
+
+                                    var sftpManager = scope.ServiceProvider.GetService<SftpManager>();
+
+                                    var remotePath = isProduction ? "/PROD/" : "/SB/";
+
+                                    //connecting to local cygwin SFTP server
+                                    if (useUnicode)
                                     {
-                                        FilePath = filePath,
-                                        IsProduction = isProduction,
-                                        Md5 = previouslyUploaded.Md5,
-                                        Name = Path.GetFileName(filePath),
-                                        Size = new FileInfo(filePath).Length,
-                                        UploadedDate = DateTime.Now,
-                                        MtAccountNo = newFileName.Account,
-                                        MtStatementNo = newFileName.Statement,
-                                        MtSequenceNo = string.Join(",", newFileName.Sequences)
-                                    });
+                                        remotePath = "/cygdrive/e/Recon_Files/Files" + remotePath;
 
-                                    dbContext.SaveChanges();
+                                        client.ConnectionInfo.Encoding = Encoding.Unicode;
+                                    }
 
-                                    succeeded.Add(filePath);
+                                    var relativePath = Path.GetRelativePath(productionOrSandboxFolder, filePath);
 
-                                    logger.LogInformation($"Uploaded file to SFTP {remotePath} site successfully!");
+                                    remotePath = Path.Combine(remotePath, relativePath.Replace('\\', '/'));
+
+                                    if (sftpManager.UploadFile(filePath, remotePath, client))
+                                    {
+                                        dbContext.UploadedFiles.Add(new SftpUploadedFile
+                                        {
+                                            FilePath = filePath,
+                                            IsProduction = isProduction,
+                                            Md5 = previouslyUploaded.Md5,
+                                            Name = Path.GetFileName(filePath),
+                                            Size = new FileInfo(filePath).Length,
+                                            UploadedDate = DateTime.Now,
+                                            MtAccountNo = newFileName.Account,
+                                            MtStatementNo = newFileName.Statement,
+                                            MtSequenceNo = string.Join(",", newFileName.Sequences)
+                                        });
+
+                                        dbContext.SaveChanges();
+
+                                        succeeded.Add(filePath);
+
+                                        logger.LogInformation($"Uploaded file to SFTP {remotePath} site successfully!");
+                                    }
                                 }
                             }
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogError(ex, $"Error uploading file {ex.Message}");
                         }
                     }
 
