@@ -133,7 +133,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
                 logger.LogWarning($"Delaying for {delay} ms");
 
-                logger.LogWarning($"Failed to upload files {string.Join(',', filePaths.Except(succeeded))}");
+                logger.LogWarning($"Failed to upload files {string.Join(Environment.NewLine, filePaths.Except(succeeded))}");
             }
 
             return false;
