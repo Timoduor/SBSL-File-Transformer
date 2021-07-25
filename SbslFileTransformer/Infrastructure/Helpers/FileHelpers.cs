@@ -30,9 +30,21 @@ namespace SbslFileTransformer.Infrastructure.Helpers
             Environment.Exit(1);
         }
 
+        /// <summary>
+        /// Main upload method
+        /// </summary>
+        /// <param name="filePaths"></param>
+        /// <param name="isProduction"></param>
+        /// <param name="productionOrSandboxFolder"></param>
+        /// <param name="serviceScopeFactory"></param>
+        /// <param name="logger"></param>
+        /// <param name="connectionInfo"></param>
+        /// <returns></returns>
         public static async Task<bool> UploadFilesToSftp(IEnumerable<string> filePaths, bool isProduction, string productionOrSandboxFolder,
              IServiceScopeFactory serviceScopeFactory, ILogger logger, ConnectionInfo connectionInfo)
         {
+            List<string> succeeded = new List<string>();
+
             try
             {
                 using (var client = new SftpClient(connectionInfo))
@@ -97,6 +109,8 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
                                     dbContext.SaveChanges();
 
+                                    succeeded.Add(filePath);
+
                                     logger.LogInformation($"Uploaded file to SFTP {remotePath} site successfully!");
                                 }
                             }
@@ -119,7 +133,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
                 logger.LogWarning($"Delaying for {delay} ms");
 
-                logger.LogWarning($"Failed to upload files {string.Join(',', filePaths)}");
+                logger.LogWarning($"Failed to upload files {string.Join(',', filePaths.Except(succeeded))}");
             }
 
             return false;
