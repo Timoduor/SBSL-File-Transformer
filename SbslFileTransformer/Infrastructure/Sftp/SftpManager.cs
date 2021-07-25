@@ -75,6 +75,8 @@ namespace SbslFileTransformer.Infrastructure.Sftp
                 }
                 catch (Exception exception)
                 {
+                    client.Disconnect();
+
                     _logger.LogError(exception, $"Failed in uploading file [{localFilePath}] to [{remoteFilePath}]");
                 }
             }
