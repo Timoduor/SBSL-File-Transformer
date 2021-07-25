@@ -66,7 +66,8 @@ namespace SbslFileTransformer.Converters
                     var toAppend =
                         $"IMTZ\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.Date):MM/dd/yyyy}\t\t\t\t{lastRow.CBal}\tTZS\n";
 
-                    if (!string.IsNullOrEmpty(toAppend)) File.WriteAllText(outputFile, toAppend);
+                    if (!string.IsNullOrEmpty(toAppend)) 
+                        File.WriteAllText(outputFile, toAppend);
                 }
             }
         }

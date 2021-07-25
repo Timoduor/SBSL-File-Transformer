@@ -87,7 +87,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
                                     f.FilePath.ToLower() == file.ToLower());
 
-                            if (fileToProcess != null && fileToProcess.Converted == false)
+                            if (fileToProcess != null && fileToProcess.BalanceExtracted == false)
                                 try
                                 {
                                     var rootFolder = isProd ? prodFolder : sbFolder;
@@ -106,7 +106,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                                 }
                                 finally
                                 {
-                                    fileToProcess.Converted = true;
+                                    fileToProcess.BalanceExtracted = true;
 
                                     fileToProcess.ConvertedBy = nameof(SpennControlExtractor);
 

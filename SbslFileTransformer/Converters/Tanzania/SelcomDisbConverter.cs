@@ -56,25 +56,25 @@ namespace SbslFileTransformer.Converters.Tanzania
 
                     selcomRow.CBal = Convert.ToDouble(amount).ToString("N2");
 
-                    selcomRow.Terminal = row.SelectNodes("td")[1].InnerText?.Replace(System.Environment.NewLine, "");
+                    selcomRow.Terminal = row.SelectNodes("td")[1].InnerText?.Replace(Environment.NewLine, "");
 
-                    selcomRow.TransType = row.SelectNodes("td")[2].InnerText?.Replace(System.Environment.NewLine, "");
+                    selcomRow.TransType = row.SelectNodes("td")[2].InnerText?.Replace(Environment.NewLine, "");
 
-                    var amountString2 = row.SelectNodes("td")[3].InnerText?.Replace(System.Environment.NewLine, "");
+                    var amountString2 = row.SelectNodes("td")[3].InnerText?.Replace(Environment.NewLine, "");
 
                     var amount2 = string.IsNullOrEmpty(amountString2) ? "0" : amountString2;
 
                     selcomRow.Amount = amount2;
 
-                    selcomRow.UtilityType = row.SelectNodes("td")[4].InnerText?.Replace(System.Environment.NewLine, "");
+                    selcomRow.UtilityType = row.SelectNodes("td")[4].InnerText?.Replace(Environment.NewLine, "");
 
-                    selcomRow.UtilityReference = row.SelectNodes("td")[5].InnerText?.Replace(System.Environment.NewLine, "");
+                    selcomRow.UtilityReference = row.SelectNodes("td")[5].InnerText?.Replace(Environment.NewLine, "");
 
-                    selcomRow.Reference = row.SelectNodes("td")[6].InnerText?.Replace(System.Environment.NewLine, "");
+                    selcomRow.Reference = row.SelectNodes("td")[6].InnerText?.Replace(Environment.NewLine, "");
 
-                    selcomRow.TransID = row.SelectNodes("td")[7].InnerText?.Replace(System.Environment.NewLine, "");
+                    selcomRow.TransID = row.SelectNodes("td")[7].InnerText?.Replace(Environment.NewLine, "");
 
-                    var amountString3 = row.SelectNodes("td")[8].InnerText?.Replace(System.Environment.NewLine, "");
+                    var amountString3 = row.SelectNodes("td")[8].InnerText?.Replace(Environment.NewLine, "");
 
                     var amount3 = string.IsNullOrEmpty(amountString3) ? "0" : amountString3;
 

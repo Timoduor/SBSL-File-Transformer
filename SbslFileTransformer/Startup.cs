@@ -106,7 +106,7 @@ namespace SbslFileTransformer
 
             services.AddHostedService<SuspenseTachFileConverterJob>();
             services.AddHostedService<SpennControlBalanceExtractorJob>();
-            services.AddHostedService<SelcomDisbursementConverterJob>();
+            //services.AddHostedService<SelcomDisbursementConverterJob>();
 
 
             //SPRINT 4
