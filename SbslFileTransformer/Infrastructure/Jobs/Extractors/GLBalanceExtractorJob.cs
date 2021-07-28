@@ -114,6 +114,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                                 else if (file.ToLower().Contains("clearing_balance"))
                                     await converter.Execute(file, "Clearing");
 
+                                else if (file.ToLower().Contains("rswitch_balance"))
+                                    await converter.Execute(file, "rswitch");
+
                                 else
                                     await converter.Execute(file);
                             }

@@ -99,7 +99,7 @@ namespace SbslFileTransformer.Converters
                             var multiplyBy = exemptAccs.Contains(accNo) ? 1 : -1;
 
                             if (filePath.ToLower().Contains("_sus") && Entity == "IMRW") multiplyBy = 1;
-
+                           
                             var toAppend =
                                 $"{Entity}\t{accNo}\t{functionalArea}\t\t\t\t\t\t\t\t{GetAccountName(accNo, lookUp)}\t{functionalArea}\tA\tAsset\tTRUE\tTRUE\t\t{currency}\t{ContentHelpers.GetLastDayOfTheMonth(date2):MM/dd/yyyy}\t\t\t{multiplyBy * DorC2 * closingBalance}\n";
 
