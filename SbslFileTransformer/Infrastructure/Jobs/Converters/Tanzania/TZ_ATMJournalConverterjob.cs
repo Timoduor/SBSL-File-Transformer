@@ -69,23 +69,30 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.jrn", options).ToList();
+                    //var files = Directory.GetFiles(prodFolder, "*.jrn", options).ToList();
+
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".jrn"))
+                    .ToList();
+
+                    files.AddRange(
+                        Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".jrn")));
 
 
                     var ATMJournalConverter = new TZ_ATMJournalConverter();
 
                     foreach (var file in files)
-                        //FILE PATH SHOULD HAVE FOLDER NAME MT300 SOMEWHERE IN IT
-                        if (file.ToLower().Contains("atmjournal") && file.ToLower().Contains("imtz"))
+                        //FILE PATH SHOULD HAVE FOLDER NAME MT300 SOMEWHERE IN IT JRN_ATM
+                        if (file.ToLower().Contains("cards_atm") && file.ToLower().Contains("jrn_atm") && file.ToLower().Contains("imtz"))
                         {
                             var fileToProcess =
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
                                     f.FilePath.ToLower() == file.ToLower());
-
+                            if (fileToProcess != null && fileToProcess.Converted == false)
                             try
                             {
                                 ATMJournalConverter.ProcessATMjournalFile(file);
-                            }
+                                    fileToProcess.Converted = true;
+                                }
                             catch (Exception ex)
                             {
                                 //fileToProcess.Failed = true;
@@ -114,7 +121,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             }
                             finally
                             {
-                                var archive = "";
+
+
+                                    fileToProcess.ConvertedBy = nameof(TZ_ATMJournalConverter);
+
+                                    dbContext.Update(fileToProcess);
+
+                                    await dbContext.SaveChangesAsync();
+                                    var archive = "";
 
                                 archive = Path.Combine(Path.GetDirectoryName(file), "ARCHIVE",
                                     DateTime.Now.ToString("yyMMdd"));

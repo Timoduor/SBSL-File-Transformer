@@ -15,15 +15,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
             if (string.IsNullOrEmpty(outputFolder)) outputFolder = Path.GetDirectoryName(inputFile);
 
+
             string[] sDet = File.ReadAllLines(inputFile);
-            //string content = File.ReadAllText(inputFile);
+            
             string[] sGrp = content.Split("-> TRANSACTION START");
             string scontent = "";
 
             if (sGrp.Length != 0)
             {
                 var ATMflds = new ATMJournal();
-                for (var i = 1; i < sGrp.Length - 1; i++)
+                for (var i = 1; i < sGrp.Length; i++)
                 {
                     List<string> lx = GetJournalDetails(sGrp[i].Split("\r\n"));
                     if (lx.Count > 0)
@@ -53,7 +54,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             {
                                 scontent = "CARD, DATE ,   AMOUNT, UTRN NO ,SUCCESSFUL,  RC,ATM NO" + Environment.NewLine;
                                 scontent += ATMflds.CARDNo + ",'" + ATMflds.trnDATE + "," + ATMflds.AMOUNT + ",'" + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + "," + ATMflds.ReasonCode + "," + ATMflds.AtmNo + Environment.NewLine;
-
 
                             }
                             else

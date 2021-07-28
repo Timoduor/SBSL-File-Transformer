@@ -69,28 +69,35 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.xlsx", options).ToList();
+                    //var files = Directory.GetFiles(prodFolder, "*.xlsx", options).ToList();
+
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx"))
+                    .ToList();
+
+                    files.AddRange(
+                        Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")));
 
 
                     var Blotter_Converter = new Tz_Blotter_Converter();
 
                     foreach (var file in files)
                         //FILE PATH SHOULD HAVE FOLDER NAME MT300 SOMEWHERE IN IT
-                        if (file.ToLower().Contains("blotter") && file.ToLower().Contains("imtz"))
+                        if (file.ToLower().Contains("treasury_accounts") && file.ToLower().Contains("blotter") && file.ToLower().Contains("imtz"))
                         {
                             var fileToProcess =
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
                                     f.FilePath.ToLower() == file.ToLower());
-
-                            try
+                        if (fileToProcess != null && fileToProcess.Converted == false)
+                           try
                             {
                                 Blotter_Converter.Convert_Blotter_file(file);
-                            }
+                                    fileToProcess.Converted = true;
+                                }
                             catch (Exception ex)
                             {
-                                //fileToProcess.Failed = true;
+                                    fileToProcess.Failed = true;
 
-                                _logger.LogError(ex, ex.Message);
+                                    _logger.LogError(ex, ex.Message);
 
                                 var archive = "";
 
@@ -114,7 +121,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             }
                             finally
                             {
-                                var archive = "";
+                                    
+
+                                    fileToProcess.ConvertedBy = nameof(Tz_Blotter_Converter);
+
+                                    dbContext.Update(fileToProcess);
+
+                                    await dbContext.SaveChangesAsync();
+
+                                    var archive = "";
 
                                 archive = Path.Combine(Path.GetDirectoryName(file), "ARCHIVE",
                                     DateTime.Now.ToString("yyMMdd"));

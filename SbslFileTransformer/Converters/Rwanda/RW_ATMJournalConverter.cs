@@ -39,63 +39,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             var ATMflds = new ATMJournal();
 
             bool hascashcount = false;
-            if (string.IsNullOrEmpty(outputFolder))
-            {
-                outputFolder = Path.GetDirectoryName(inputFile);
-            }
-
-            if (sGrp_s.Length != 0)
-            {
-                for (var i = 1; i < sGrp_s.Length - 1; i++)
-                {
-                    List<string> ly = GetJournalDetails_supervisor(sGrp_s[i].Split("\n"));
-                    if (ly != null)
-                    {
-                        //hascashcount = ly.Any(p => p.StartsWith("CASH COUNTS CLEARED")) ? true : false; //"CASH COUNTS CLEARED"
-                        ATMflds.CARDNo = ly.Any(p => p.StartsWith("CARDNO:")) ? ly.First(p => p.StartsWith("CARDNO:")).Split(':')[1].ToString().Replace("|", "") : "";
-                        ATMflds.trnDATE = ly.Any(p => p.StartsWith("DATE:")) ? ly.First(p => p.StartsWith("DATE:")).Replace("DATE:", "") : "";
-                        ATMflds.AMOUNT = ly.Any(p => p.StartsWith("AMOUNT:")) ? ly.First(p => p.StartsWith("AMOUNT:")).Split(":")[1].Trim().Split(" ")[0] : "0";
-                        ATMflds.UTRNNO = ly.Any(p => p.StartsWith("SEQ:")) ? ly.First(p => p.StartsWith("SEQ:")).Split(':')[1].ToString().Replace("|", "") : "";
-                        ATMflds.ReasonCode = ly.Any(p => p.StartsWith("RESPONSE CODE:")) ? ly.First(p => p.StartsWith("RESPONSE CODE:")).Split(':')[1].ToString().Replace("|", "") : "";
-                        ATMflds.AtmNo = ly.Any(p => p.StartsWith("ATMNO:")) ? ly.First(p => p.StartsWith("ATMNO:")).Split(':')[1].ToString().Replace("|", "") : ATMNO;
-                        ATMflds.AUTHNO = ly.Any(p => p.StartsWith("AUTHNO:")) ? ly.First(p => p.StartsWith("AUTHNO:")).Split(':')[1].ToString().Replace("|", "") : "";
-
-                        ATMflds.AMOUNT_REMAINING = ly.Any(p => p.StartsWith("AMOUNTR:")) ? ly.First(p => p.StartsWith("AMOUNTR:")).Split(":")[1].Trim().Split(" ")[0] : "0";
-                        if (hascashcount == true)
-                        {
-
-
-                        }
-                        if (hascashcount != true)
-                        {
-                            if (ATMflds.ReasonCode != "" && ATMflds.AMOUNT != "0")
-                            {
-                                if (scontent_sup == "")
-                                {
-                                    scontent_sup = "CARD NO, DATE ,   AMOUNT,UTRN NO ,TRAN STAT,RC,AUTH NO,ATM NO" + Environment.NewLine;
-                                    scontent_sup += ATMflds.CARDNo + "," + ATMflds.trnDATE + "," + ATMflds.AMOUNT + "," + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + "," + ATMflds.ReasonCode + "," + ATMflds.AUTHNO + "," + ATMflds.AtmNo + Environment.NewLine;
-
-                                }
-                                else
-                                {
-                                    scontent_sup += ATMflds.CARDNo + "," + ATMflds.trnDATE + "," + ATMflds.AMOUNT + "," + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + "," + ATMflds.ReasonCode + "," + ATMflds.AUTHNO + "," + ATMflds.AtmNo + Environment.NewLine;
-
-                                }
-                                if (ATMflds.AMOUNT_REMAINING != "0")
-                                {
-                                    scontent_sup += ATMflds.CARDNo + "," + ATMflds.trnDATE + "," + ATMflds.AMOUNT_REMAINING + "," + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + ",CASH LOADED AT ATM," + ATMflds.AUTHNO + "," + ATMflds.AtmNo + Environment.NewLine;
-
-                                    if (ATMflds.AMOUNT != ATMflds.AMOUNT_REMAINING)
-                                    {
-                                        scontent_sup += ATMflds.CARDNo + "," + ATMflds.trnDATE + "," + (Convert.ToDecimal(ATMflds.AMOUNT) - Convert.ToDecimal(ATMflds.AMOUNT_REMAINING)) + "," + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + ",CASH REMAINING DIFFERENCE," + ATMflds.AUTHNO + "," + ATMflds.AtmNo + Environment.NewLine;
-                                    }
-                                }
-                                hascashcount = false;
-                            }
-                        }
-                    }
-                }
-            }
 
             if (sGrp.Length != 0)
             {
@@ -126,6 +69,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         }
                         if (ATMflds.CARDNo != "" && ATMflds.AMOUNT != "0")
                         {
+                            ATMNO = ATMflds.AtmNo;
                             if (scontent_sup != "")
                             {
 
@@ -160,19 +104,77 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         }
                     }
                 }
-                if (scontent_sup != "")
-                {
-                    scontent_ += scontent_sup;
-                    scontent_ += scontent;
-                }
-                else
-                {
-                    scontent_ += scontent;
-                }
-                outputFile = outputFolder + "\\Converted_ATMJournal_" + Path.GetFileNameWithoutExtension(inputFile) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".csv";
-                WriteFile(outputFile, scontent_);
 
             }
+            //*****
+
+            if (sGrp_s.Length != 0)
+            {
+                for (var i = 1; i < sGrp_s.Length; i++)
+                {
+                    List<string> ly = GetJournalDetails_supervisor(sGrp_s[i].Split("\n"), ATMNO);
+                    if (ly != null)
+                    {
+                        //hascashcount = ly.Any(p => p.StartsWith("CASH COUNTS CLEARED")) ? true : false; //"CASH COUNTS CLEARED"
+                        ATMflds.CARDNo = ly.Any(p => p.StartsWith("CARDNO:")) ? ly.First(p => p.StartsWith("CARDNO:")).Split(':')[1].ToString().Replace("|", "") : "";
+                        ATMflds.trnDATE = ly.Any(p => p.StartsWith("DATE:")) ? ly.First(p => p.StartsWith("DATE:")).Replace("DATE:", "") : "";
+                        ATMflds.AMOUNT = ly.Any(p => p.StartsWith("AMOUNT:")) ? ly.First(p => p.StartsWith("AMOUNT:")).Split(":")[1].Trim().Split(" ")[0] : "0";
+                        ATMflds.UTRNNO = ly.Any(p => p.StartsWith("SEQ:")) ? ly.First(p => p.StartsWith("SEQ:")).Split(':')[1].ToString().Replace("|", "") : "";
+                        ATMflds.ReasonCode = ly.Any(p => p.StartsWith("RESPONSE CODE:")) ? ly.First(p => p.StartsWith("RESPONSE CODE:")).Split(':')[1].ToString().Replace("|", "") : "";
+                        ATMflds.AtmNo = ly.Any(p => p.StartsWith("ATMNO:")) ? ly.First(p => p.StartsWith("ATMNO:")).Split(':')[1].ToString().Replace("|", "") : ATMNO;
+                        ATMflds.AUTHNO = ly.Any(p => p.StartsWith("AUTHNO:")) ? ly.First(p => p.StartsWith("AUTHNO:")).Split(':')[1].ToString().Replace("|", "") : "";
+
+                        ATMflds.AMOUNT_REMAINING = ly.Any(p => p.StartsWith("AMOUNTR:")) ? ly.First(p => p.StartsWith("AMOUNTR:")).Split(":")[1].Trim().Split(" ")[0] : "0";
+                        if (hascashcount == true)
+                        {
+
+
+                        }
+                        if (hascashcount != true)
+                        {
+                            if (ATMflds.ReasonCode != "" && ATMflds.AMOUNT != "0")
+                            {
+                                if (scontent_sup == "")
+                                {
+
+                                    scontent_sup += ATMflds.CARDNo + "," + ATMflds.trnDATE + "," + ATMflds.AMOUNT + "," + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + "," + ATMflds.ReasonCode + "," + ATMflds.AUTHNO + "," + ATMflds.AtmNo + Environment.NewLine;
+
+                                }
+                                else
+                                {
+                                    scontent_sup += ATMflds.CARDNo + "," + ATMflds.trnDATE + "," + ATMflds.AMOUNT + "," + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + "," + ATMflds.ReasonCode + "," + ATMflds.AUTHNO + "," + ATMflds.AtmNo + Environment.NewLine;
+
+                                }
+                                if (ATMflds.AMOUNT_REMAINING != "0")
+                                {
+                                    scontent_sup += ATMflds.CARDNo + "," + ATMflds.trnDATE + "," + ATMflds.AMOUNT_REMAINING + "," + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + ",CASH LOADED AT ATM," + ATMflds.AUTHNO + "," + ATMflds.AtmNo + Environment.NewLine;
+
+                                    if (ATMflds.AMOUNT != ATMflds.AMOUNT_REMAINING)
+                                    {
+                                        scontent_sup += ATMflds.CARDNo + "," + ATMflds.trnDATE + "," + (Convert.ToDecimal(ATMflds.AMOUNT) - Convert.ToDecimal(ATMflds.AMOUNT_REMAINING)) + "," + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + ",CASH REMAINING DIFFERENCE," + ATMflds.AUTHNO + "," + ATMflds.AtmNo + Environment.NewLine;
+                                    }
+                                }
+                                hascashcount = false;
+                            }
+                        }
+                    }
+                }
+            }
+            //*****
+            if (scontent_sup != "")
+            {
+                scontent_ += scontent;
+                scontent_ += scontent_sup;
+            }
+            else
+            {
+                scontent_ += scontent;
+            }
+            
+            outputFile = outputFolder + "\\Converted_ATMJournal_" + Path.GetFileNameWithoutExtension(inputFile) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".csv";
+            WriteFile(outputFile, scontent_);
+
+            
         }
         public static void WriteFile(string path, string content)
         {
@@ -201,8 +203,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             string currenAMount = "";
             var l = new List<string>();
             for (var i = 1; i < d.Length - 1; i++)
-            {//CARD	DATE	AMOUNT	UTRN NO	SUCCESSFUL	RC CARD NO: 471376XXXX192395
-
+            {
+                 
                 if (d[i].Contains("REFUSED TRANSACTION"))
                 {
                     if (refusedtxn == false)
@@ -250,7 +252,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             }
                     }
                 }
-                //DATE    TIME   ATM   OPERATION
+                
                 if (d[i].Contains("ATN"))
                 {
                     if (gotdate != true)
@@ -381,7 +383,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
             return l;
         }
-        private List<string> GetJournalDetails_supervisor(string[] d)
+        private List<string> GetJournalDetails_supervisor(string[] d, string ATMNo_ = "")
         {
             bool gotcardno = false;
             bool gotdate = false;
@@ -432,7 +434,26 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         {
                             try { l.Add("DATE:" + d[i + 3].Split('*')[2].Substring(3, 2) + "/" + d[i + 3].Split('*')[2].Substring(0, 2) + "/" + d[i + 3].Split('*')[2].Substring(8, 2) + " " + d[i + 3].Split('*')[3]); }
                             catch (Exception sc)
-                            { l.Add("DATE:" + d[i + 4].Split('*')[2].Substring(3, 2) + "/" + d[i + 4].Split('*')[2].Substring(0, 2) + "/" + d[i + 4].Split('*')[2].Substring(8, 2) + " " + d[i + 4].Split('*')[3]); }
+                            {
+                                try
+                                {
+                                    l.Add("DATE:" + d[i + 4].Split('*')[2].Substring(3, 2) + "/" + d[i + 4].Split('*')[2].Substring(0, 2) + "/" + d[i + 4].Split('*')[2].Substring(8, 2) + " " + d[i + 4].Split('*')[3]);
+                                }
+                                catch (Exception xc)
+                                {
+                                    try
+                                    {
+                                        l.Add("DATE:" + d[i + 4].Split('=')[1].Substring(3, 2) + "/" + d[i + 4].Split('=')[1].Substring(0, 2) + "/" + d[i + 4].Split('=')[1].Substring(8, 2) + " " + d[i + 4].Split('=')[1].Substring(9, 5));
+                                    }
+                                    catch (Exception cx)
+                                    {
+                                        l.Add("DATE:" + d[i + 5].Split('=')[1].Substring(3, 2) + "/" + d[i + 5].Split('=')[1].Substring(0, 2) + "/" + d[i + 5].Split('=')[1].Substring(8, 2) + " " + d[i + 5].Split('=')[1].Substring(9, 5));
+                                    }
+
+                                }
+
+
+                            }
 
                             gotdate = true;
                         }
@@ -449,10 +470,24 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             catch (Exception xc)
                             { type1 = Convert.ToDecimal(d[i + 1].Split("TYPE")[1].Split('≈')[1].Trim()) * 1000; }
                             try
-                            { type2 = Convert.ToDecimal(d[i + 1].Split("TYPE")[2].Split('=')[1].Trim()) * 5000; }
+                            {
+                                if (ATMNo_ == "ATN07013")
+                                {
+                                    type2 = Convert.ToDecimal(d[i + 1].Split("TYPE")[2].Split('=')[1].Trim()) * 2000;
+                                }
+                                else
+                                { type2 = Convert.ToDecimal(d[i + 1].Split("TYPE")[2].Split('=')[1].Trim()) * 5000; }
+
+                            }
                             catch (Exception xc)
                             {
-                                type2 = Convert.ToDecimal(d[i + 1].Split("TYPE")[2].Split('≈')[1].Trim()) * 5000;
+
+                                if (ATMNo_ == "ATN07013")
+                                {
+                                    type2 = Convert.ToDecimal(d[i + 1].Split("TYPE")[2].Split('≈')[1].Trim()) * 2000;
+                                }
+                                else
+                                { type2 = Convert.ToDecimal(d[i + 1].Split("TYPE")[2].Split('≈')[1].Trim()) * 5000; }
                             }
                             try
                             { type3 = Convert.ToDecimal(d[i + 2].Split("TYPE")[1].Split('=')[1].Trim()) * 5000; }
@@ -494,7 +529,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         //get date
                         if (gotdate_s != true)
                         {
-                            //l.Add("DATE:" + d[i + 3].Split('*')[2].Substring(3, 2) + "/" + d[i + 3].Split('*')[2].Substring(0, 2) + "/" + d[i + 3].Split('*')[2].Substring(6, 4) + " " + d[i + 3].Split('*')[3]);
+                            
                             gotdate_s = true;
                         }
                         //get amount
@@ -510,10 +545,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             catch (Exception xc)
                             { type1_s = Convert.ToDecimal(d[i + 1].Split("TYPE")[1].Split('≈')[1].Trim()) * 1000; }
                             try
-                            { type2_s = Convert.ToDecimal(d[i + 1].Split("TYPE")[2].Split('=')[1].Trim()) * 5000; }
+                            { type2_s = Convert.ToDecimal(d[i + 1].Split("TYPE")[2].Split('=')[1].Trim()) * 2000; }
                             catch (Exception xc)
                             {
-                                type2_s = Convert.ToDecimal(d[i + 1].Split("TYPE")[2].Split('≈')[1].Trim()) * 5000;
+                                type2_s = Convert.ToDecimal(d[i + 1].Split("TYPE")[2].Split('≈')[1].Trim()) * 2000;
                             }
                             try
                             { type3_s = Convert.ToDecimal(d[i + 2].Split("TYPE")[1].Split('=')[1].Trim()) * 5000; }
@@ -528,7 +563,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             l.Add("AMOUNTR:" + (type1_s + type2_s + type3_s + type4_s));
                             currenAMount_x = "AMOUNTR:" + (type1_s + type2_s + type3_s + type4_s);
                             currenAMount_s = d[i + 1].Trim();
-
+                            // l.Add("AMOUNT:" + (((Convert.ToDecimal(d[i + 1].Split("TYPE")[1].Split('=')[1].Trim())) + (((Convert.ToDecimal(d[i + 2].Split("TYPE")[1].Split('=')[2].Trim())) * 5000)) + (Convert.ToDecimal(d[i + 2].Split("TYPE")[1].Split('=')[1].Trim()) * 5000) * (Convert.ToDecimal(d[i + 2].Split("TYPE")[2].Split('=')[1].Trim()) * 5000)));
                             gotamount_s = true;
                         }
                         if (gotcashtaken_s == false)
@@ -536,14 +571,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             l.Add("AMOUNT REMAINING:" + d[i].Split("\r\n")[0] + "|");
                             gotcashtaken_s = true;
                         }
-
+                      
                         gotATM = true;
 
                     }
                 }
             }
 
-
+             
 
 
             return l;
