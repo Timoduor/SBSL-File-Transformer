@@ -70,7 +70,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.txt", options).ToList();
+                    //var files = Directory.GetFiles(prodFolder, "*.txt", options).ToList();
+
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt"))
+                    .ToList();
+
+                    files.AddRange(
+                        Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt")));
 
                     files.AddRange(
                         Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt")));
@@ -89,6 +95,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 try
                                 {
                                     ATMJournalConverter.ConvertFile_WinkaATMjrn(file);
+                                    fileToProcess.Converted = true;
                                 }
                                 catch (Exception ex)
                                 {
@@ -101,7 +108,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    fileToProcess.Converted = true;
+                                    
 
                                     fileToProcess.ConvertedBy = nameof(ATMjournalConverterJob);
 
