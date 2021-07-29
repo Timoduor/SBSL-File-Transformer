@@ -48,7 +48,8 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
 
                             Col2 = reader.GetValue(7)?.ToString(),
 
-
+                            Col9 = reader.GetValue(9)?.ToString(),
+                            Col10 = reader.GetValue(10)?.ToString(),
                         };
                         list.Add(row);
                     }
@@ -100,13 +101,13 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
 
             list = list.Skip(1).ToList();
 
-            var date = Convert.ToDateTime(list.First().Col0.Replace("'",""));
-            var amount = list.First().Col3; //vs col5 diff
+            var date = Convert.ToDateTime(list.First().Col0.Replace("'", ""));
+            var amount = Convert.ToDouble(list.First().Col9) + Convert.ToDouble(list.First().Col10); //vs col5 diff
             var currency = "RWF";
             var account = "20100243506073";
 
             toAppend.Append(
-                $"{_entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
+                $"{_entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount.ToString("N2")}\t{currency}\n");
 
             var text = toAppend.ToString();
 
