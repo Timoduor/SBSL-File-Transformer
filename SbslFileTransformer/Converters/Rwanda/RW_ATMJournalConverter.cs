@@ -17,7 +17,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
             string outputFile = "";
 
-
+            if (string.IsNullOrEmpty(outputFolder))
+            {
+                outputFolder = Path.GetDirectoryName(inputFile);
+            }
             string[] sDet = File.ReadAllLines(inputFile);
             try
             {
