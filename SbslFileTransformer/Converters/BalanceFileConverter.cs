@@ -177,9 +177,11 @@ namespace SbslFileTransformer.Converters
                     $"GLAccounts_{fileDate:yyyyMMdd}_FCO_SUS_{Entity}.txt");
 
             if (filePath.ToLower().Contains("clearing"))
+            {
+                var curr = filePath.ToLower().Contains("lcy") ? "LCY" : "FCY";
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
-                    $"GLAccounts_{fileDate:yyyyMMdd}_CLEAR_{Entity}.txt");
-
+                    $"GLAccounts_{fileDate:yyyyMMdd}_CLEAR_{curr}_{Entity}.txt");
+            }
             if (filePath.ToLower().Contains("mg_sus"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_MG_{Entity}.txt");
