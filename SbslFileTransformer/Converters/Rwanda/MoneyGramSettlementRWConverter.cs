@@ -332,7 +332,7 @@ namespace SbslFileTransformer.Converters.Kenya
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
-            WriteToFile(list, outputFile);
+            WriteToFile(finalList, outputFile);
         }
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)
