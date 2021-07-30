@@ -70,7 +70,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    //var files = Directory.GetFiles(prodFolder, "*.txt", options).ToList();
+                   
 
                     var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt"))
                     .ToList();
