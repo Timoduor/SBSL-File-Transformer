@@ -1,7 +1,5 @@
 ﻿using CsvHelper;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
@@ -13,8 +11,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
@@ -55,52 +51,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
                 return config;
             }
-        }
-
-        /// <summary>
-        ///     Download individual report using the report's ID and save to the specified path
-        /// </summary>
-        /// <param name="reportId"></param>
-        /// <param name="config"></param>
-        /// <param name="savePath"></param>
-        /// <param name="token"></param>
-        /// <param name="logger"></param>
-        /// <returns></returns>
-        public async Task<bool> DownloadReport(long reportId, ReportConfigModel config, string savePath, string token,
-            ILogger<ScheduledReporterJob> logger)
-        {
-            var reportToDownload =
-                @$"https://{config.EnvironmentUrl}.{config.BaseUrl}/completedqueryrun/{reportId}/{config.ExportType}";
-            try
-            {
-                using (var client = new HttpClient())
-                {
-                    client.Timeout = TimeSpan.FromMinutes(10);
-
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-                    var response = await client.GetAsync(reportToDownload);
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var result = await response.Content.ReadAsStreamAsync();
-
-                        using (var fs = File.Create(savePath))
-                        {
-                            result.Seek(0, SeekOrigin.Begin);
-                            result.CopyTo(fs);
-                        }
-
-                        return true;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, ex.Message);
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -165,6 +115,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             return daysRange;
         }
 
+        /// <summary>
+        /// Get emails that should get the report based on country/sprint/category
+        /// </summary>
         public static IEnumerable<string> GetEmails(int duration, Country country, Sprint sprint,
             ReportCategory category, IServiceScopeFactory serviceScopeFactory)
         {
@@ -189,112 +142,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
                 return emails;
             }
-        }
-
-        /// <summary>
-        ///     Get login tokens for downloading reports from blackline
-        /// </summary>
-        /// <param name="config"></param>
-        /// <param name="logger"></param>
-        /// <returns></returns>
-        public static async Task<List<string>> GetLoginTokens(ReportConfigModel config,
-            ILogger<ScheduledReporterJob> logger)
-        {
-            var tokens = new List<string>();
-
-            foreach (var user in config.UserNamesAndPasswords)
-            {
-                try
-                {
-                    using (var client = new HttpClient())
-                    {
-                        client.Timeout = TimeSpan.FromMinutes(10);
-
-                        var content = new List<KeyValuePair<string, string>>
-                        {
-                            new KeyValuePair<string, string>("grant_type", "password"),
-                            new KeyValuePair<string, string>("scope", config.Scope),
-                            new KeyValuePair<string, string>("username", user.Key),
-                            new KeyValuePair<string, string>("password", user.Value),
-                            new KeyValuePair<string, string>("client_id", config.ClientId),
-                            new KeyValuePair<string, string>("client_secret", config.ClientSecret)
-                        };
-
-                        var formdata = new FormUrlEncodedContent(content);
-
-                        var response = await client.PostAsync(config.TokenUrl, formdata);
-
-                        if (response.IsSuccessStatusCode)
-                        {
-                            var respContent = await response.Content.ReadAsStringAsync();
-
-                            var data = JObject.Parse(respContent);
-
-                            tokens.Add((string)data.SelectToken("access_token"));
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, ex.Message);
-                }
-            }
-
-            return tokens;
-        }
-
-        /// <summary>
-        ///     Get latest reports from blackline website
-        /// </summary>
-        /// <param name="config"></param>
-        /// <param name="token"></param>
-        /// <param name="logger"></param>
-        /// <returns></returns>
-        public static async Task<IEnumerable<ReportModel>> GetRecentReports(ReportConfigModel config, string token,
-            ILogger<ScheduledReporterJob> logger)
-        {
-            var reportsUrl = @$"https://{config.EnvironmentUrl}.{config.BaseUrl}/queryruns";
-
-            var reports = new List<ReportModel>();
-
-            try
-            {
-                using (var client = new HttpClient())
-                {
-                    client.Timeout = TimeSpan.FromMinutes(10);
-
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-                    var response = await client.GetAsync(reportsUrl);
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var result = await response.Content.ReadAsStringAsync();
-
-                        dynamic data = JArray.Parse(result);
-
-                        foreach (var item in data)
-                            reports.Add(new ReportModel
-                            {
-                                Creator = item.creatorFirstAndLastName,
-                                EndTime = item.endTime,
-                                Message = item.endTime,
-                                Name = item.name,
-                                Notes = item.notes,
-                                ReportId = item.id,
-                                StartTime = item.startTime,
-                                Status = item.status,
-                                UserToken = token
-                            });
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, ex.Message);
-            }
-
-            return reports;
         }
 
         /// <summary>

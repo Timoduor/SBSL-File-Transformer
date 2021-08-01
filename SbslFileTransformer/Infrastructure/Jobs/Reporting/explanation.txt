@@ -1,0 +1,10 @@
+﻿This is not good coding practice but since this code was written in a hurry and need major refactoring I will explain it
+
+1. Get report login tokens foreach report user from blackline using the report connection params stored in DB
+2. Download reports for each user
+3. Check if DB if report has been previously processed and ignore it if it exists
+4. Process reports that do not exist and send email
+	a. Get emails for users who should receive the specific report
+	b. Calculate/add any columns required
+	c. Send the newly processed report to the emails
+	d. Save the sent report in the DB to avoid resending it in the future

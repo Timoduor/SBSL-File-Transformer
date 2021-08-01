@@ -47,6 +47,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             await _timer.DisposeAsync();
         }
 
+        /// <summary>
+        /// This is the main method that does everything
+        /// </summary>
         private async Task ProcessNewReports()
         {
             try
@@ -155,7 +158,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                                                                            report.Name.ToLower().Contains("proofing"))
                                 outputFile = await AdjustBalanceValue(results.Item1);
 
-                            await _emailSender.SendMessage(GetEmails(r, report.Country, report.Sprint, report.Category),
+                            await _emailSender.SendMessage(GetEmails(r, report.Country, report.Sprint, report.Category, _serviceScopeFactory),
                                 config.EmailHeader,
                                 config.EmailBody + Environment.NewLine +
                                 $"Report Name {report.Name}" + Environment.NewLine +
@@ -179,32 +182,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             }
         }
 
-        private IEnumerable<string> GetEmails(int duration, Country country, Sprint sprint, ReportCategory category)
-        {
-            var emails = new List<string>();
-
-            using (var scope = _serviceScopeFactory.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-
-                var groups = dbContext.EmailGroups.Where(g =>
-                    g.AgeAlertDuration == duration && g.Country == country && g.Sprint == sprint &&
-                    g.Category == category && g.IsActive);
-
-                //no subcategories is provided
-                if (category == ReportCategory.Default)
-                    groups = dbContext.EmailGroups.Where(g =>
-                        g.AgeAlertDuration == duration && g.Country == country && g.Sprint == sprint && g.IsActive);
-
-                var groupEmails = groups.ToList().Select(g => g.Emails);
-
-                foreach (var group in groupEmails)
-                    emails.AddRange(group.Split(new[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries));
-
-                return emails;
-            }
-        }
-
+        /// <summary>
+        /// Set the report filters so that we can know which emails to send to
+        /// </summary>
         private static void SetReportFilters(ReportModel report, string entity)
         {
             var country = Country.Kenya;
@@ -249,6 +229,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             report.Country = country;
         }
 
+        /// <summary>
+        /// Save the report if successfully processed to avoid resending it in the future
+        /// </summary>
         private async Task SaveToDb(ReportModel report, ApplicationDbContext dbContext, ReportConfigModel config)
         {
             dbContext.ProcessedReports.Add(new ProcessedReport
@@ -270,7 +253,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
         }
 
         /// <summary>
-        ///     Process the content in the downloaded report file
+        ///     Process the content in the downloaded report file including calculating days overdue
         /// </summary>
         /// <param name="savedFile"></param>
         /// <returns>List of key: email group name and value: list of files to send to them</returns>
