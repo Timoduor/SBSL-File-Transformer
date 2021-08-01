@@ -99,7 +99,7 @@ namespace SbslFileTransformer.Converters
                             var multiplyBy = exemptAccs.Contains(accNo) ? 1 : -1;
 
                             if (filePath.ToLower().Contains("_sus") && Entity == "IMRW") multiplyBy = 1;
-                           
+
                             var toAppend =
                                 $"{Entity}\t{accNo}\t{functionalArea}\t\t\t\t\t\t\t\t{GetAccountName(accNo, lookUp)}\t{functionalArea}\tA\tAsset\tTRUE\tTRUE\t\t{currency}\t{ContentHelpers.GetLastDayOfTheMonth(date2):MM/dd/yyyy}\t\t\t{multiplyBy * DorC2 * closingBalance}\n";
 
@@ -205,6 +205,13 @@ namespace SbslFileTransformer.Converters
             if (filePath.ToLower().Contains("ops_sus"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_OPS_{Entity}.txt");
+
+            if (filePath.ToLower().Contains("treasurybills") || filePath.ToLower().Contains("treasurybonds"))
+            {
+                var curr = filePath.ToLower().Contains("bonds") ? "TBonds" : "TBills";
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath),
+                    $"GLAccounts_{fileDate:yyyyMMdd}_{curr}_{Entity}.txt");
+            }
 
             return outputPath;
         }
