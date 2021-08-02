@@ -12,6 +12,10 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
             var content = File.ReadAllText(file);
 
             if (string.IsNullOrEmpty(outputFolder)) outputFolder = Path.GetDirectoryName(file);
+            outputFolder = outputFolder + "\\conv";
+            if (!Directory.Exists(outputFolder))
+                Directory.CreateDirectory(outputFolder);
+
 
             var sDet = File.ReadAllLines(file);
             var scontent = "";
@@ -22,8 +26,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
 
                 archive = Path.Combine(Path.GetDirectoryName(file) + "\\MT300", "FAILED",
                     DateTime.Now.ToString("yyMMdd") + "\\RTGSMT300");
-                if (!Directory.Exists(archive))
-                    Directory.CreateDirectory(archive);
+               
 
 
                 try
@@ -54,165 +57,68 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                 var seq15E = new MandatorySequenceE();
 
 
-                var l = GetRtgsDetails_MT300_15A(sDet);
-                var lb = GetRtgsDetails_MT300_15B(sDet);
-                var lc = GetRtgsDetails_MT300_15C(sDet);
-                var le = GetRtgsDetails_MT300_15E(sDet);
+                List<string> l = GetRtgsDetails_MT300_15A(sDet);
+                List<string> lb = GetRtgsDetails_MT300_15B(sDet);
+                List<string> lc = GetRtgsDetails_MT300_15C(sDet);
+                List<string> le = GetRtgsDetails_MT300_15E(sDet);
 
                 seq15A.NewSequenceA = "";
                 seq15A.SenderRef15A = l.First(p => p.StartsWith("20:")).Split('|')[1].ToString();
-                seq15A.RelatedRef15A = l.Any(p => p.StartsWith("21:"))
-                    ? l.First(p => p.StartsWith("21:")).Substring(4).Replace("|", "")
-                    : "";
-                seq15A.TypeofOperation15A = l.Any(p => p.StartsWith("22A:"))
-                    ? l.First(p => p.StartsWith("22A:")).Split('|')[1].ToString()
-                    : "";
-                seq15A.ScopeofOperation15A = l.Any(p => p.StartsWith("94A:"))
-                    ? l.First(p => p.StartsWith("94A:")).Split('|')[1].ToString()
-                    : "";
-                seq15A.CommonReference15A = l.Any(p => p.StartsWith("22C:"))
-                    ? l.First(p => p.StartsWith("22C:")).Split('|')[1].ToString()
-                    : "";
-                seq15A.BlockTradeIndicator15A = l.Any(p => p.StartsWith("17T:"))
-                    ? l.First(p => p.StartsWith("17T:")).Split('|')[1].ToString()
-                    : "";
-                seq15A.SplitSettlementIndicator15A = l.Any(p => p.StartsWith("17U:"))
-                    ? l.First(p => p.StartsWith("17U:")).Split('|')[1].ToString()
-                    : "";
-                seq15A.PaymentversusPaymentSettlementIndicator15A = l.Any(p => p.StartsWith("17I:"))
-                    ? l.First(p => p.StartsWith("17I:")).Split('|')[1].ToString()
-                    : "";
-                seq15A.PartyA15A = l.Any(p => p.StartsWith("82A:"))
-                    ? l.First(p => p.StartsWith("82A:")).Split('|')[1].ToString()
-                    : "";
-                seq15A.PartyB15A = l.Any(p => p.StartsWith("87A:"))
-                    ? l.First(p => p.StartsWith("87A:")).Split('|')[1].ToString()
-                    : "";
-                seq15A.TypeDateVersionoftheAgreement15A = l.Any(p => p.StartsWith("77H:"))
-                    ? l.First(p => p.StartsWith("77H:")).Split('|')[1].ToString()
-                    : "";
-                seq15A.TermsandConditions15A = l.Any(p => p.StartsWith("77D:"))
-                    ? l.First(p => p.StartsWith("77D:")).Split('|')[1].ToString()
-                    : "";
-                seq15A.YearofDefinitions15A = l.Any(p => p.StartsWith("14C:"))
-                    ? l.First(p => p.StartsWith("14C:")).Split('|')[1].ToString()
-                    : "";
-                seq15A.NonDeliverableIndicator15A = l.Any(p => p.StartsWith("17F:"))
-                    ? l.First(p => p.StartsWith("17F:")).Split('|')[1].ToString()
-                    : "";
-                seq15A.NDFOpenIndicator15A = l.Any(p => p.StartsWith("17O:"))
-                    ? l.First(p => p.StartsWith("17O:")).Split('|')[1].ToString()
-                    : "";
-                seq15A.SettlementCurrency15A = l.Any(p => p.StartsWith("32E:"))
-                    ? l.First(p => p.StartsWith("32E:")).Split('|')[1].ToString().Split(':')[1].Trim().Substring(0, 3)
-                    : "";
-                seq15A.ValuationDate15A = l.Any(p => p.StartsWith("30U:"))
-                    ? l.First(p => p.StartsWith("30U:")).Split('|')[1].ToString()
-                    : "";
-                seq15A.SettlementRateSource15A = l.Any(p => p.StartsWith("14S:"))
-                    ? l.First(p => p.StartsWith("14S:")).Split('|')[1].ToString()
-                    : "";
-                seq15A.ReferencetoOpeningConfirmation5A = l.Any(p => p.StartsWith("21A:"))
-                    ? l.First(p => p.StartsWith("21A:")).Split('|')[1].ToString()
-                    : "";
-                seq15A.ClearingorSettlementSession5A = l.Any(p => p.StartsWith("14E:"))
-                    ? l.First(p => p.StartsWith("14E:")).Split('|')[1].ToString()
-                    : "";
+                seq15A.RelatedRef15A = l.Any(p => p.StartsWith("21:")) ? l.First(p => p.StartsWith("21:")).Substring(4).Replace("|", "") : "";
+                seq15A.TypeofOperation15A = l.Any(p => p.StartsWith("22A:")) ? l.First(p => p.StartsWith("22A:")).Split('|')[1].ToString() : "";
+                seq15A.ScopeofOperation15A = l.Any(p => p.StartsWith("94A:")) ? l.First(p => p.StartsWith("94A:")).Split('|')[1].ToString() : "";
+                seq15A.CommonReference15A = l.Any(p => p.StartsWith("22C:")) ? l.First(p => p.StartsWith("22C:")).Split('|')[1].ToString() : "";
+                seq15A.BlockTradeIndicator15A = l.Any(p => p.StartsWith("17T:")) ? l.First(p => p.StartsWith("17T:")).Split('|')[1].ToString() : "";
+                seq15A.SplitSettlementIndicator15A = l.Any(p => p.StartsWith("17U:")) ? l.First(p => p.StartsWith("17U:")).Split('|')[1].ToString() : "";
+                seq15A.PaymentversusPaymentSettlementIndicator15A = l.Any(p => p.StartsWith("17I:")) ? l.First(p => p.StartsWith("17I:")).Split('|')[1].ToString() : "";
+                seq15A.PartyA15A = l.Any(p => p.StartsWith("82A:")) ? l.First(p => p.StartsWith("82A:")).Split('|')[1].ToString() : "";
+                seq15A.PartyB15A = l.Any(p => p.StartsWith("87A:")) ? l.First(p => p.StartsWith("87A:")).Split('|')[1].ToString() : "";
+                seq15A.TypeDateVersionoftheAgreement15A = l.Any(p => p.StartsWith("77H:")) ? l.First(p => p.StartsWith("77H:")).Split('|')[1].ToString() : "";
+                seq15A.TermsandConditions15A = l.Any(p => p.StartsWith("77D:")) ? l.First(p => p.StartsWith("77D:")).Split('|')[1].ToString() : "";
+                seq15A.YearofDefinitions15A = l.Any(p => p.StartsWith("14C:")) ? l.First(p => p.StartsWith("14C:")).Split('|')[1].ToString() : "";
+                seq15A.NonDeliverableIndicator15A = l.Any(p => p.StartsWith("17F:")) ? l.First(p => p.StartsWith("17F:")).Split('|')[1].ToString() : "";
+                seq15A.NDFOpenIndicator15A = l.Any(p => p.StartsWith("17O:")) ? l.First(p => p.StartsWith("17O:")).Split('|')[1].ToString() : "";
+                seq15A.SettlementCurrency15A = l.Any(p => p.StartsWith("32E:")) ? l.First(p => p.StartsWith("32E:")).Split('|')[1].ToString().Split(':')[1].Trim().Substring(0, 3) : "";
+                seq15A.ValuationDate15A = l.Any(p => p.StartsWith("30U:")) ? l.First(p => p.StartsWith("30U:")).Split('|')[1].ToString() : "";
+                seq15A.SettlementRateSource15A = l.Any(p => p.StartsWith("14S:")) ? l.First(p => p.StartsWith("14S:")).Split('|')[1].ToString() : "";
+                seq15A.ReferencetoOpeningConfirmation5A = l.Any(p => p.StartsWith("21A:")) ? l.First(p => p.StartsWith("21A:")).Split('|')[1].ToString() : "";
+                seq15A.ClearingorSettlementSession5A = l.Any(p => p.StartsWith("14E:")) ? l.First(p => p.StartsWith("14E:")).Split('|')[1].ToString() : "";
 
 
                 seq15B.NewSequenceB = "";
-                seq15B.TradeDate15B = lb.Any(p => p.StartsWith("30T:"))
-                    ? lb.First(p => p.StartsWith("30T:")).Split('|')[1].ToString()
-                    : "";
-                seq15B.ValueDate15B = lb.Any(p => p.StartsWith("30V:"))
-                    ? lb.First(p => p.StartsWith("30V:")).Split('|')[1].ToString()
-                    : "";
-                seq15B.ExchangeRate15B = lb.Any(p => p.StartsWith("36:"))
-                    ? lb.First(p => p.StartsWith("36:")).Split('|')[1].ToString().Replace(',', '.')
-                    : "";
-                seq15B.CurrencyAmountbought15B = lb.Any(p => p.StartsWith("32B:"))
-                    ? lb.First(p => p.StartsWith("32B:")).Split('|')[1].ToString().Split(':')[1].Trim().Substring(0, 3)
-                    : "";
-                seq15B.Amountbought15B = lb.Any(p => p.StartsWith("32B:"))
-                    ? lb.First(p => p.StartsWith("32B:")).Split('|')[2].ToString().Trim().Split(',')[1]
-                        .Replace("#", "") == ""
-                        ?
-                        lb.First(p => p.StartsWith("32B:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')[0]
-                            .Replace("#", "")
-                        : lb.First(p => p.StartsWith("32B:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')
-                              [0].Replace("#", "") + "." +
-                          lb.First(p => p.StartsWith("32B:")).Split('|')[2].ToString().Split(':')[1].Trim()
-                              .Split(',')[1]
-                              .Replace("#", "")
-                    : "";
-                seq15B.IntermediaryAmountbought15B = lb.Any(p => p.StartsWith("56A:"))
-                    ? lb.First(p => p.StartsWith("56A:")).Split('|')[1].ToString()
-                    : "";
-                seq15B.ReceivingAgentAmountbought15B = lb.Any(p => p.StartsWith("57A:"))
-                    ? lb.First(p => p.StartsWith("57A:")).Split('|')[1].ToString()
-                    : "";
-                seq15B.CurrencyAmountSold15B = lb.Any(p => p.StartsWith("33B:"))
-                    ? lb.First(p => p.StartsWith("33B:")).Split('|')[1].ToString().Split(':')[1].Trim().Substring(0, 3)
-                    : "";
-                seq15B.AmountSold15B = lb.Any(p => p.StartsWith("33B:"))
-                    ? lb.First(p => p.StartsWith("33B:")).Split('|')[2].ToString().Trim().Split(',')[1]
-                        .Replace("#", "") == ""
-                        ?
-                        lb.First(p => p.StartsWith("33B:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')[0]
-                            .Replace("#", "")
-                        : lb.First(p => p.StartsWith("33B:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')
-                              [0].Replace("#", "") + "." +
-                          lb.First(p => p.StartsWith("33B:")).Split('|')[2].ToString().Split(':')[1].Trim()
-                              .Split(',')[1]
-                              .Replace("#", "")
-                    : "";
-                seq15B.DeliveryAgentAmountSold15B = lb.Any(p => p.StartsWith("53A:"))
-                    ? lb.First(p => p.StartsWith("53A:")).Split('|')[1].ToString()
-                    : "";
-                seq15B.IntermediaryAmountSold15B = lb.Any(p => p.StartsWith("56A:"))
-                    ? lb.First(p => p.StartsWith("56A:")).Split('~')[1].ToString()
-                    : "";
-                seq15B.ReceivingAgentAmountSold15B = lb.Any(p => p.StartsWith("T57A:"))
-                    ? lb.First(p => p.StartsWith("T57A:")).Split('~')[1].ToString()
-                    : "";
-                seq15B.BeneficiaryInstitutionAmountSold15B = lb.Any(p => p.StartsWith("58A:"))
-                    ? lb.First(p => p.StartsWith("58A:")).Split('|')[1].ToString()
-                    : "";
+                seq15B.TradeDate15B = lb.Any(p => p.StartsWith("30T:")) ? lb.First(p => p.StartsWith("30T:")).Split('|')[1].ToString() : "";
+                seq15B.ValueDate15B = lb.Any(p => p.StartsWith("30V:")) ? lb.First(p => p.StartsWith("30V:")).Split('|')[1].ToString() : "";
+                seq15B.ExchangeRate15B = lb.Any(p => p.StartsWith("36:")) ? lb.First(p => p.StartsWith("36:")).Split('|')[1].ToString().Replace(',', '.') : "";
+                seq15B.CurrencyAmountbought15B = lb.Any(p => p.StartsWith("32B:")) ? lb.First(p => p.StartsWith("32B:")).Split('|')[1].ToString().Split(':')[1].Trim().Substring(0, 3) : "";
+                seq15B.Amountbought15B = lb.Any(p => p.StartsWith("32B:")) ? lb.First(p => p.StartsWith("32B:")).Split('|')[2].ToString().Trim().Split(',')[1].Replace("#", "") == "" ? lb.First(p => p.StartsWith("32B:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')[0].Replace("#", "") : lb.First(p => p.StartsWith("32B:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')[0].Replace("#", "") + "." + lb.First(p => p.StartsWith("32B:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')[1].Replace("#", "") : "";
+                seq15B.IntermediaryAmountbought15B = lb.Any(p => p.StartsWith("56A:")) ? lb.First(p => p.StartsWith("56A:")).Split('|')[1].ToString() : "";
+                seq15B.ReceivingAgentAmountbought15B = lb.Any(p => p.StartsWith("57A:")) ? lb.First(p => p.StartsWith("57A:")).Split('|')[1].ToString() : "";
+                seq15B.CurrencyAmountSold15B = lb.Any(p => p.StartsWith("33B:")) ? lb.First(p => p.StartsWith("33B:")).Split('|')[1].ToString().Split(':')[1].Trim().Substring(0, 3) : "";
+                seq15B.AmountSold15B = lb.Any(p => p.StartsWith("33B:")) ? lb.First(p => p.StartsWith("33B:")).Split('|')[2].ToString().Trim().Split(',')[1].Replace("#", "") == "" ? lb.First(p => p.StartsWith("33B:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')[0].Replace("#", "") : lb.First(p => p.StartsWith("33B:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')[0].Replace("#", "") + "." + lb.First(p => p.StartsWith("33B:")).Split('|')[2].ToString().Split(':')[1].Trim().Split(',')[1].Replace("#", "") : "";
+                seq15B.DeliveryAgentAmountSold15B = lb.Any(p => p.StartsWith("53A:")) ? lb.First(p => p.StartsWith("53A:")).Split('|')[1].ToString() : "";
+                seq15B.IntermediaryAmountSold15B = lb.Any(p => p.StartsWith("56A:")) ? lb.First(p => p.StartsWith("56A:")).Split('~')[1].ToString() : "";
+                seq15B.ReceivingAgentAmountSold15B = lb.Any(p => p.StartsWith("T57A:")) ? lb.First(p => p.StartsWith("T57A:")).Split('~')[1].ToString() : "";
+                seq15B.BeneficiaryInstitutionAmountSold15B = lb.Any(p => p.StartsWith("58A:")) ? lb.First(p => p.StartsWith("58A:")).Split('~')[1].ToString() : "";
 
 
                 seq15C.NewSequenceC = "";
-                seq15C.DealingMethod15C = lc.Any(p => p.StartsWith("24D:"))
-                    ? lc.First(p => p.StartsWith("24D:")).Split('|')[1].ToString()
-                    : "";
+                seq15C.DealingMethod15C = lc.Any(p => p.StartsWith("24D:")) ? lc.First(p => p.StartsWith("24D:")).Split('|')[1].ToString() : "";
 
                 seq15E.NewSequenceE = "";
-                seq15E.ExecutionVenue15E = le.Any(p => p.StartsWith("22V:"))
-                    ? le.First(p => p.StartsWith("22V:")).Split('|')[1].ToString()
-                    : "";
-                seq15E.ExecutionTimestamp15E = le.Any(p => p.StartsWith("98D:"))
-                    ? le.First(p => p.StartsWith("98D:")).Split('|')[1].ToString()
-                    : "";
+                seq15E.ExecutionVenue15E = le.Any(p => p.StartsWith("22V:")) ? le.First(p => p.StartsWith("22V:")).Split('|')[1].ToString() : "";
+                seq15E.ExecutionTimestamp15E = le.Any(p => p.StartsWith("98D:")) ? le.First(p => p.StartsWith("98D:")).Split('|')[1].ToString() : "";
 
-                scontent =
-                    " New Sequence A, Sender's Reference,Type of Operation,Scope of Operation,Common Reference ,  " +
-                    "Split Settlement Indicator,Party A - BIC, Party B - BIC, Non - Deliverable Indicator,New Sequence B,   " +
-                    " Trade Date,Value Date,Exchange Rate,Currency,Amount,Receiving Agent - FI BIC,Currency,Amount, " +
-                    " Delivery Agent - FI BIC ,Receiving Agent - FI BIC," +
-                    " New Sequence C,Dealing Method,New Sequence E,Execution Venue,Execution Timestamp" +
-                    Environment.NewLine;
-                scontent += seq15A.NewSequenceA + "," + seq15A.SenderRef15A + "," + seq15A.TypeofOperation15A + "," +
-                            seq15A.ScopeofOperation15A + "," + seq15A.CommonReference15A + "," +
-                            seq15A.SplitSettlementIndicator15A + "," + seq15A.PartyA15A + "," + seq15A.PartyB15A + "," +
-                            seq15A.NonDeliverableIndicator15A;
-                scontent += "," + seq15B.NewSequenceB + "," + seq15B.TradeDate15B + "," + seq15B.ValueDate15B + "," +
-                            seq15B.ExchangeRate15B + "," + seq15B.CurrencyAmountbought15B;
-                scontent += "," + seq15B.Amountbought15B + "," + seq15B.ReceivingAgentAmountbought15B + "," +
-                            seq15B.CurrencyAmountSold15B + "," + seq15B.AmountSold15B + "," +
-                            seq15B.DeliveryAgentAmountSold15B + "," + seq15B.ReceivingAgentAmountSold15B;
-                scontent += "," + seq15C.NewSequenceC + "," + seq15C.DealingMethod15C + "," + seq15E.NewSequenceE +
-                            "," + seq15E.ExecutionVenue15E + "," + seq15E.ExecutionTimestamp15E;
-                WriteFile(outputFolder + "\\Converted_MT300_" + Path.GetFileNameWithoutExtension(file) + ".csv",
-                    scontent); // DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff")
+                scontent = " New Sequence A, Sender's Reference,Type of Operation,Scope of Operation,Common Reference ,  " +
+                             "Split Settlement Indicator,Party A - BIC, Party B - BIC, Non - Deliverable Indicator,New Sequence B,   " +
+                             " Trade Date,Value Date,Exchange Rate,Currency,Amount,Receiving Agent - FI BIC,Currency,Amount, " +
+                            " Delivery Agent - FI BIC ,Receiving Agent - FI BIC," +
+                            " New Sequence C,Dealing Method,New Sequence E,Execution Venue,Execution Timestamp" + Environment.NewLine;
+                scontent += seq15A.NewSequenceA + "," + seq15A.SenderRef15A + "," + seq15A.TypeofOperation15A + "," + seq15A.ScopeofOperation15A + "," + seq15A.CommonReference15A + "," + seq15A.SplitSettlementIndicator15A + "," + seq15A.PartyA15A + "," + seq15A.PartyB15A + "," + seq15A.NonDeliverableIndicator15A;
+                scontent += "," + seq15B.NewSequenceB + "," + seq15B.TradeDate15B + "," + seq15B.ValueDate15B + "," + seq15B.ExchangeRate15B + "," + seq15B.CurrencyAmountbought15B;
+                scontent += "," + seq15B.Amountbought15B + "," + seq15B.ReceivingAgentAmountbought15B + "," + seq15B.CurrencyAmountSold15B + "," + seq15B.AmountSold15B + "," + seq15B.DeliveryAgentAmountSold15B + "," + seq15B.ReceivingAgentAmountSold15B;
+                scontent += "," + seq15C.NewSequenceC + "," + seq15C.DealingMethod15C + "," + seq15E.NewSequenceE + "," + seq15E.ExecutionVenue15E + "," + seq15E.ExecutionTimestamp15E;
+               
+                WriteFile(outputFolder + "\\Converted_MT300_" + Path.GetFileNameWithoutExtension(file) + ".csv",scontent); // DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff")
             }
         }
 
