@@ -16,7 +16,9 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
             {
                 outputFolder = Path.GetDirectoryName(file);
             }
-
+            outputFolder = outputFolder + "\\conv";
+            if (!Directory.Exists(outputFolder))
+                Directory.CreateDirectory(outputFolder);
             string[] sDet = File.ReadAllLines(file);
             string scontent = "";
             string sType = content.Split(':')[6].ToString().Trim().Substring(4, 3);
@@ -119,7 +121,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                 scontent += "," + seq15B.NewSequenceB + "," + seq15B.PartyAsRole15B + "," + seq15B.TradeDate15B + "," + seq15B.ValueDate15B + "," + seq15B.MaturityDate15B + "," + seq15B.CurrencyPrincipalAmount15B + "," + seq15B.PrincipalAmount15B + "," + seq15B.NextInterestDueDate15B + "," + seq15B.CurrencyInterestAmount15B + "," + seq15B.InterestAmount15B + "," + seq15B.InterestRate15B + "," + seq15B.DayCountFraction15B;
                 scontent += "," + seq15C.NewSequenceC + "," + seq15C.DeliveryAgent15C + "," + seq15C.ReceivingAgent15C;
                 scontent += "," + seq15D.NewSequenceD + "," + seq15D.DeliveryAgent15D + "," + seq15D.ReceivingAgent15D;
-
+               
                 WriteFile(outputFolder + "\\Converted_MT320_" + Path.GetFileNameWithoutExtension(file) + ".csv", scontent);
             }
         }

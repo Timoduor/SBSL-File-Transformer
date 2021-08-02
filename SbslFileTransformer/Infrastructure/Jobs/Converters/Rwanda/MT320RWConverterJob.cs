@@ -71,22 +71,23 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.BKP", options).ToList();
+
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".bkp")).ToList();
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".bkp")));
 
 
                     var mt320Converter = new Mt320Converter();
 
                     foreach (var file in files)
                         //FILE PATH SHOULD HAVE FOLDER NAME MT300 SOMEWHERE IN IT
-                        if (file.ToLower().Contains("mt320") && file.ToLower().Contains("imrw"))
+                        if (file.ToLower().Contains("imrw") && file.ToLower().Contains("treasury") && file.ToLower().Contains("money_market") && file.ToLower().Contains("mt320"))
                         {
-                            var fileToProcess =
-                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
-                                    f.FilePath.ToLower() == file.ToLower());
+                            var fileToProcess =await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
                                     mt320Converter.ProcessMt320File(file);
+                                    fileToProcess.Converted = true;
                                 }
                                 catch (Exception ex)
                                 {
@@ -117,7 +118,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 finally
                                 {
 
-                                    fileToProcess.Converted = true;
+                                  
 
                                     fileToProcess.ConvertedBy = nameof(MT320RWConverterJob);
 
