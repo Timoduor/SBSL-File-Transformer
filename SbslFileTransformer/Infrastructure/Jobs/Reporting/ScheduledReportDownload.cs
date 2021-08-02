@@ -1,9 +1,14 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
+using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Models;
+using SbslFileTransformer.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -12,6 +17,42 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 {
     public partial class ScheduledReporterJob
     {
+        public ReportConfigModel GetConfiguration(IServiceScopeFactory serviceScopeFactory)
+        {
+            using (var scope = serviceScopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                var encryptionManager = scope.ServiceProvider.GetService<EncryptionManager>();
+
+                var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Report)
+                    .ToList();
+
+                var userLogins = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.ReportUser)
+                    .ToList();
+
+                var config = new ReportConfigModel
+                {
+                    BaseUrl = configurations.FirstOrDefault(c => c.Key == "BaseUrl")?.Value,
+                    EnvironmentUrl = configurations.FirstOrDefault(c => c.Key == "EnvironmentUrl")?.Value,
+                    UserToken = configurations.FirstOrDefault(c => c.Key == "UserToken")?.Value,
+                    EmailBody = configurations.FirstOrDefault(c => c.Key == "EmailBody")?.Value,
+                    EmailHeader = configurations.FirstOrDefault(c => c.Key == "EmailHeader")?.Value,
+                    ExportType = configurations.FirstOrDefault(c => c.Key == "ExportType")?.Value,
+                    Scope = configurations.FirstOrDefault(c => c.Key == "Scope")?.Value,
+                    TokenUrl = configurations.FirstOrDefault(c => c.Key == "TokenUrl")?.Value,
+                    ClientId = configurations.FirstOrDefault(c => c.Key == "ClientId")?.Value,
+                    ClientSecret = configurations.FirstOrDefault(c => c.Key == "ClientSecret")?.Value
+                };
+
+                config.UserNamesAndPasswords = new Dictionary<string, string>();
+
+                foreach (var login in userLogins) config.UserNamesAndPasswords.Add(login.Key, login.Value);
+
+                return config;
+            }
+        }
+
         /// <summary>
         ///     Download individual report using the report's ID and save to the specified path
         /// </summary>

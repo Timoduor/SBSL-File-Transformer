@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using OfficeOpenXml;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
@@ -17,42 +16,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 {
     public partial class ScheduledReporterJob
     {
-        public ReportConfigModel GetConfiguration(IServiceScopeFactory serviceScopeFactory)
-        {
-            using (var scope = serviceScopeFactory.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-
-                var encryptionManager = scope.ServiceProvider.GetService<EncryptionManager>();
-
-                var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Report)
-                    .ToList();
-
-                var userLogins = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.ReportUser)
-                    .ToList();
-
-                var config = new ReportConfigModel
-                {
-                    BaseUrl = configurations.FirstOrDefault(c => c.Key == "BaseUrl")?.Value,
-                    EnvironmentUrl = configurations.FirstOrDefault(c => c.Key == "EnvironmentUrl")?.Value,
-                    UserToken = configurations.FirstOrDefault(c => c.Key == "UserToken")?.Value,
-                    EmailBody = configurations.FirstOrDefault(c => c.Key == "EmailBody")?.Value,
-                    EmailHeader = configurations.FirstOrDefault(c => c.Key == "EmailHeader")?.Value,
-                    ExportType = configurations.FirstOrDefault(c => c.Key == "ExportType")?.Value,
-                    Scope = configurations.FirstOrDefault(c => c.Key == "Scope")?.Value,
-                    TokenUrl = configurations.FirstOrDefault(c => c.Key == "TokenUrl")?.Value,
-                    ClientId = configurations.FirstOrDefault(c => c.Key == "ClientId")?.Value,
-                    ClientSecret = configurations.FirstOrDefault(c => c.Key == "ClientSecret")?.Value
-                };
-
-                config.UserNamesAndPasswords = new Dictionary<string, string>();
-
-                foreach (var login in userLogins) config.UserNamesAndPasswords.Add(login.Key, login.Value);
-
-                return config;
-            }
-        }
-
         /// <summary>
         ///     Get DateTime from Excel serial date value
         /// </summary>
