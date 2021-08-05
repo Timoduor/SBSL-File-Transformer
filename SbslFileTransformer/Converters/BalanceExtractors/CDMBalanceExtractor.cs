@@ -144,7 +144,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             {
                 var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                var curr = dbContext.Accounts.FirstOrDefault(a => a.Number == account).Currency;
+                var curr = dbContext.Accounts.FirstOrDefault(a => a.Number == account)?.Currency;
 
                 currency = string.IsNullOrEmpty(curr) ? currency : curr;
             }

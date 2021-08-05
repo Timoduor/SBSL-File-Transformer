@@ -2,8 +2,9 @@
 using Renci.SshNet;
 using Renci.SshNet.Sftp;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Encryption;
+using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Jobs;
+using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
 using System.Collections.Generic;
@@ -18,12 +19,14 @@ namespace SbslFileTransformer.Infrastructure.Sftp
         private readonly SftpConfig _config;
         private readonly ApplicationDbContext _dbContext;
         private readonly ILogger<SftpManager> _logger;
+        private readonly EmailSender _emailSender;
 
         public SftpManager(ILogger<SftpManager> logger, ApplicationDbContext dbContext,
-            EncryptionManager encryptionManager)
+            EmailSender emailSender)
         {
             _logger = logger;
             _dbContext = dbContext;
+            _emailSender = emailSender;
 
             var configurations = _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
 
@@ -38,8 +41,6 @@ namespace SbslFileTransformer.Infrastructure.Sftp
 
         public IEnumerable<SftpFile> ListAllFiles(SftpClient client, string remoteDirectory = ".")
         {
-            //using var client = new SftpClient(_config.Host, _config.Port == 0 ? 22 : _config.Port, _config.UserName, _config.Password);
-
             try
             {
                 return client.ListDirectory(remoteDirectory);
@@ -76,6 +77,8 @@ namespace SbslFileTransformer.Infrastructure.Sftp
                 catch (Exception exception)
                 {
                     client.Disconnect();
+
+                    EmailHelpers.SendEmails(_dbContext, "Problem Converting CDM Balance files", $"\n\n {exception.Message}", new[] { localFilePath }, _emailSender).GetAwaiter().GetResult();
 
                     _logger.LogError(exception, $"Failed in uploading file [{localFilePath}] to [{remoteFilePath}]");
                 }

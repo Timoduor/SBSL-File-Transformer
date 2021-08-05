@@ -170,16 +170,16 @@ namespace SbslFileTransformer.Converters
             IServiceScopeFactory serviceScopeFactory, ILogger logger)
         {
             logger.LogInformation("Running MT Balance file extractor");
-
-            try
+            using (var scope = serviceScopeFactory.CreateScope())
             {
-                await SemaphoreExtractor.WaitAsync();
-
-                var loc = location.ToString();
-
-                using (var scope = serviceScopeFactory.CreateScope())
+                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                var emailSender = scope.ServiceProvider.GetService<EmailSender>();
+                List<string> filesInDirectoryToProcess = new List<string>();
+                try
                 {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                    await SemaphoreExtractor.WaitAsync();
+
+                    var loc = location.ToString();
 
                     var entity = dbContext.Configurations
                         .FirstOrDefault(f => f.Key == "Entity" && f.ConfigType == ConfigurationType.Setting).Value;
@@ -210,7 +210,7 @@ namespace SbslFileTransformer.Converters
 
                         var filesInDirectory = Directory.GetFiles(loc, "*.*", options).ToList();
 
-                        var filesInDirectoryToProcess = filesInDirectory
+                        filesInDirectoryToProcess = filesInDirectory
                             .Where(f => paths.Any(p => f.ToLower() == p.ToLower()))
                             .OrderBy(f => new FileInfo(f).LastWriteTime).ToList();
 
@@ -254,15 +254,18 @@ namespace SbslFileTransformer.Converters
 
                         logger.LogInformation($"Finished running balance file extractor on {paths.Count()} files");
                     }
+
                 }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, ex.Message);
-            }
-            finally
-            {
-                SemaphoreExtractor.Release();
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, ex.Message);
+
+                    await EmailHelpers.SendEmails(dbContext, "Problem Converting CDM Balance files", $"\n\n {ex.Message}", filesInDirectoryToProcess, emailSender);
+                }
+                finally
+                {
+                    SemaphoreExtractor.Release();
+                }
             }
         }
 
