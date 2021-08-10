@@ -138,7 +138,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         private string GetAccountCurrency(string account)
         {
-            var currency = "KES";
+            var currency = Entity == "IMKE" ? "KES" : Entity == "IMTZ" ? "TZS" : "RWF";
 
             using (var scope = ServiceScopeFactory.CreateScope())
             {

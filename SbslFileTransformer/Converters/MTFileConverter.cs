@@ -282,34 +282,42 @@ namespace SbslFileTransformer.Converters
             using (var scope = serviceScopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                var logger = scope.ServiceProvider.GetService<ILogger<MTFileConverter>>();
 
                 foreach (var file in filesToProcess)
                 {
-                    var lines = File.ReadAllLines(file);
-
-                    var bal = lines.FirstOrDefault(l => l.Contains(":62F:"));
-
-                    if (bal == null) continue;
-
-                    var account = lines.FirstOrDefault(l => l.Contains(":25:"))?.Split(":").Last().Trim();
-
-                    var balParts = bal.Split(":").Last();
-
-                    var sign = balParts[0] == 'C' ? 1 : -1;
-                    var date = DateTime.ParseExact(balParts.Substring(1, 6), "yyMMdd", null);
-                    var currency = balParts.Substring(7, 3);
-                    var amount = Convert.ToDouble(balParts.Substring(10).Replace(',', '.'));
-
-                    var balance = new Balance
+                    try
                     {
-                        Account = account,
-                        Date = date,
-                        Currency = currency,
-                        Entity = entity,
-                        Amount = amount * sign
-                    };
+                        var lines = File.ReadAllLines(file);
 
-                    balances.Add(balance);
+                        var bal = lines.FirstOrDefault(l => l.Contains(":62F:"));
+
+                        if (bal == null) continue;
+
+                        var account = lines.FirstOrDefault(l => l.Contains(":25:"))?.Split(":").Last().Trim();
+
+                        var balParts = bal.Split(":").Last();
+
+                        var sign = balParts[0] == 'C' ? 1 : -1;
+                        var date = DateTime.ParseExact(balParts.Substring(1, 6), "yyMMdd", null);
+                        var currency = balParts.Substring(7, 3);
+                        var amount = Convert.ToDouble(balParts.Substring(10).Replace(',', '.'));
+
+                        var balance = new Balance
+                        {
+                            Account = account,
+                            Date = date,
+                            Currency = currency,
+                            Entity = entity,
+                            Amount = amount * sign
+                        };
+
+                        balances.Add(balance);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, ex.Message);
+                    }
                 }
 
                 var maxValues = balances.Where(b =>
