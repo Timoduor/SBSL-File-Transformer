@@ -81,8 +81,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     var ATMJournalConverter = new TZ_ATMJournalConverter();
 
                     foreach (var file in files)
-                        //FILE PATH SHOULD HAVE FOLDER NAME MT300 SOMEWHERE IN IT JRN_ATM
-                        if (file.ToLower().Contains("cards_atm") && file.ToLower().Contains("jrn_atm") && file.ToLower().Contains("imtz"))
+                        //FILE PATH SHOULD IMTZ/Cards_ATM/JRN_ATM
+                        if (file.ToLower().Contains("imtz") && file.ToLower().Contains("cards_atm") && file.ToLower().Contains("jrn_atm"))
                         {
                             var fileToProcess =
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
