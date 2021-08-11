@@ -83,7 +83,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         if ((file.ToLower().Contains("mpesa") && !file.ToLower().Contains("lookup") &&
                              !file.ToLower().Contains("lipa") && !file.ToLower().Contains("merchant")
                              || file.ToLower().Contains("bank to till b2c") ||
-                             file.ToLower().Contains("banktotillb2c") ||
+                             file.ToLower().Contains("banktotillb2c") || file.ToLower().Contains("credit_receivable") ||
                              file.ToLower().Contains("mmf") && (file.ToLower().Contains("elma_paybill") ||
                                                                 file.ToLower().Contains("omni_paybill") ||
                                                                 file.ToLower().Contains("pyt_serv_paybill")))
