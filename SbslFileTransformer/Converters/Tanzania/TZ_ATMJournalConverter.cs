@@ -116,6 +116,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     }
                 }
+                //HIGH AMOUNT
+
+                if (d[i].Contains("HIGH AMOUNT"))
+                {
+                    gotamount = false;
+                }
                 //CRD:
                 if (d[i].Contains("0DN"))
                 {
