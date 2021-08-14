@@ -9,15 +9,20 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
     {
         public void ProcessATMjournalFile(string inputFile)
         {
+            string outputFile = "";
             string outputFolder = null;
 
-            var content = File.ReadAllText(inputFile);
-
-            if (string.IsNullOrEmpty(outputFolder)) outputFolder = Path.GetDirectoryName(inputFile);
+            if (string.IsNullOrEmpty(outputFolder))
+            {
+                outputFolder = Path.GetDirectoryName(inputFile);
+            }
+            outputFolder = Path.GetFullPath(Path.Combine(outputFolder, @"..\")) + "Conv";// outputFolder + "\\conv";
+            if (!Directory.Exists(outputFolder))
+                Directory.CreateDirectory(outputFolder);
 
 
             string[] sDet = File.ReadAllLines(inputFile);
-            
+            string content = File.ReadAllText(inputFile);
             string[] sGrp = content.Split("-> TRANSACTION START");
             string scontent = "";
 
@@ -65,8 +70,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     }
 
                 }
-                // WriteFile(outputFile, scontent);
-                WriteFile(outputFolder + "\\Converted_ATMjrn_" + Path.GetFileNameWithoutExtension(inputFile) + ".csv", scontent);
+
+                outputFile = outputFolder + "\\Converted_ATMJournal_" + Path.GetFileNameWithoutExtension(inputFile) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".csv";
+                WriteFile(outputFile, scontent);
 
             }
         }
@@ -90,6 +96,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             bool gotResp = false;
             bool gotATM = false;
             bool gotATHNO = false;
+            string currentRESP = "";
+            string currentDESC = "";
+            string currenAMount = "";
 
             var l = new List<string>();
             for (var i = 1; i < d.Length - 1; i++)
@@ -146,11 +155,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     }
 
                 }
+
                 if (d[i].Contains("DISP:"))
                 {
+                    if (d[i].Trim() != currenAMount && currenAMount != "")
+                    {
+                        l.Remove(currenAMount);
+                        gotamount = false;
+                    }
                     if (gotamount != true)
                     {
                         l.Add("AMOUNT:" + d[i].Replace("DISP:", "").Trim());
+                        currenAMount = "AMOUNT:" + d[i].Replace("DISP:", "").Trim();
                         gotamount = true;
 
                     }
@@ -165,42 +181,82 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     }
                 }
-                if (d[i].Contains("BALANCE ENQUIRY"))
+                //TXN:
+                if (d[i].Contains("TXN:"))
                 {
+                    if (d[i] != currentDESC && currentDESC != "")
+                    {
+                        string sd = "";
+                        l.Remove(currentDESC);
+                        gotRC = false;
+                    }
                     if (gotRC != true)
                     {
-                        l.Add("DESC:" + " BALANCE ENQUIRY");
+                        l.Add("DESC:" + d[i].Trim().Split(":")[1]);
+                        currentDESC = "DESC:" + d[i].Trim().Split(":")[1];
+                        gotRC = true;
+
+                    }
+                }
+                if (d[i].Contains("BALANCE ENQUIRY"))
+                {
+                    if (d[i] != currentDESC && currentDESC != "")
+                    {
+                        string sd = "";
+                        l.Remove(currentDESC);
+                        gotRC = false;
+                    }
+                    if (gotRC != true)
+                    {
+                        l.Add("DESC:" + d[i].Trim().Split(":")[1]);
+                        currentDESC = "DESC:" + d[i].Trim().Split(":")[1];
                         gotRC = true;
 
                     }
                 }
                 if (d[i].Contains("DESC:"))
                 {
+                    if (d[i] != currentDESC && currentDESC != "")
+                    {
+                        string sd = "";
+                        l.Remove(currentDESC);
+                        gotRC = false;
+                    }
                     if (gotRC != true)
                     {
                         l.Add(d[i].Trim());
+                        currentDESC = d[i].Trim();
                         gotRC = true;
 
                     }
                 }
                 if (d[i].Contains("RESP:"))
                 {
-                    if (gotcashtaken != true)
+                    if (d[i].Trim() != currentRESP && currentRESP != "")
+                    {
+
+                        l.Remove(currentRESP);
+                        gotRC = false;
+                    }
+                    if (gotRC != true)
                     {
                         if (d[i].Split(':')[1].Trim() == "00")
                         {
-                            //l.Add(d[i] + "|");
-                            gotResp = false;
+                            l.Add(d[i].Trim());
+                            currentRESP = d[i].Trim();
+                            gotRC = true;
                         }
                         if (d[i].Split(':')[1].Trim() == "01")
                         {
-                            l.Add(d[i] + "|");
-                            gotResp = false;
+                            l.Add(d[i]);
+                            currentRESP = d[i].Trim();
+                            gotRC = true;
                         }
                         else
                         {
-                            l.Add(d[i] + "|");
-                            gotResp = false;
+                            l.Add(d[i]);
+                            currentRESP = d[i].Trim();
+                            gotRC = true;
                         }
                     }
 
@@ -246,6 +302,23 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         else
                         {
                             l.Add(d[i].Split("\r\n")[0] + "|");
+                            gotcashtaken = true;
+                        }
+                    }
+
+                }
+                if (d[i].Contains("CASH RETRACTED"))
+                {
+                    if (gotcashtaken != true)
+                    {
+                        if (d[i].Split("\r\n")[0].Length < 20)
+                        {
+                            l.Add("DESC:" + d[i].Split("\r\n")[0].Substring(9, 10) + "|");
+                            gotcashtaken = true;
+                        }
+                        else
+                        {
+                            l.Add("DESC:" + "CASH RETRACTED");
                             gotcashtaken = true;
                         }
                     }

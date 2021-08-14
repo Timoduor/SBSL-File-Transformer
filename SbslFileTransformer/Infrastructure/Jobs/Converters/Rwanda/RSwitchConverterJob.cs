@@ -77,8 +77,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     foreach (var file in files)
                         //SPECIFY FOLDER and file extension above PENDING
 
-                        if (file.Contains("ATMs-OFF-US") && file.Contains("IMRW") &&
-                            !file.Contains("Conv"))
+                        if (file.Contains("ATMs-OFF-US") && file.Contains("IMRW") && !file.Contains("Conv"))
                         {
                             var fileToProcess =
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>

@@ -21,7 +21,7 @@ namespace SbslFileTransformer.Converters.Rwanda
             if (string.IsNullOrEmpty(outputFolder))
             {
                 outputFolder = Path.GetDirectoryName(inputFile);
-                //outputFolder = outputFolder + "\\conv";
+                outputFolder = outputFolder + "\\conv";
 
                 if (!Directory.Exists(outputFolder))
                 {
