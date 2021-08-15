@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Renci.SshNet;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Helpers;
@@ -189,7 +188,7 @@ namespace SbslFileTransformer.Converters
                     var notProcessed = dbContext.UploadedFiles.Where(u =>
                         u.ProcessFor62F == false && u.FilePath.ToLower().Contains("statement"));
 
-                    var paths = notProcessed.Select(f => f.FilePath).ToList();
+                    var pathForNotProcessed = notProcessed.Select(f => f.FilePath).ToList();
 
                     var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
                         .ToList();
@@ -203,56 +202,36 @@ namespace SbslFileTransformer.Converters
                         KeyFilesPath = configurations.FirstOrDefault(c => c.Key == "KeyFilesPath")?.Value
                     };
 
-                    if (paths.Count() > 0)
+                    if (pathForNotProcessed.Count() > 0)
                     {
                         var options = new EnumerationOptions
-                        { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
+                        {
+                            RecurseSubdirectories = true,
+                            MatchCasing = MatchCasing.CaseInsensitive
+                        };
 
                         var filesInDirectory = Directory.GetFiles(loc, "*.*", options).ToList();
 
                         filesInDirectoryToProcess = filesInDirectory
-                            .Where(f => paths.Any(p => f.ToLower() == p.ToLower()))
+                            .Where(f => pathForNotProcessed.Any(p => f.ToLower() == p.ToLower()) && f.ToLower().Contains(entity.ToLower()))
                             .OrderBy(f => new FileInfo(f).LastWriteTime).ToList();
 
-                        var resultFile = await ProcessFilesBalance(filesInDirectoryToProcess, sandboxOrProdFolder,
+                        var multiCurrFile = await ProcessFilesBalance(filesInDirectoryToProcess, sandboxOrProdFolder,
                             entity, serviceScopeFactory);
 
-                        if (File.Exists(resultFile))
+                        if (File.Exists(multiCurrFile))
                         {
-                            var md5 = encryptionManager.GetMd5(resultFile);
+                            foreach (var file in notProcessed.OrderBy(f => f.UploadedDate))
+                                if (filesInDirectoryToProcess.Contains(file.FilePath,
+                                    StringComparer.OrdinalIgnoreCase))
+                                    file.ProcessFor62F = true;
 
-                            ConnectionInfo connectionInfo = string.IsNullOrEmpty(sftpConfig.Password?.Trim())
-                                ? connectionInfo = new ConnectionInfo(sftpConfig.Host, sftpConfig.Port,
-                                    sftpConfig.UserName, new NoneAuthenticationMethod(sftpConfig.UserName))
-                                : new ConnectionInfo(sftpConfig.Host, sftpConfig.Port, sftpConfig.UserName,
-                                    new PasswordAuthenticationMethod(sftpConfig.UserName, sftpConfig.Password));
+                            dbContext.UpdateRange(notProcessed);
 
-                            if (!string.IsNullOrEmpty(sftpConfig.KeyFilesPath?.Trim()))
-                            {
-                                var keyFiles = Directory.GetFiles(sftpConfig.KeyFilesPath)
-                                    .Select(f => new PrivateKeyFile(f)).ToArray();
-
-                                connectionInfo = new ConnectionInfo(sftpConfig.Host, sftpConfig.Port,
-                                    sftpConfig.UserName,
-                                    new PrivateKeyAuthenticationMethod(sftpConfig.UserName, keyFiles));
-                            }
-
-                            if (await FileHelpers.UploadFilesToSftp(new List<string> { resultFile }, isProduction,
-                                Path.GetFileName(resultFile),
-                                serviceScopeFactory, logger, connectionInfo))
-                            {
-                                foreach (var file in notProcessed.OrderBy(f => f.UploadedDate))
-                                    if (filesInDirectoryToProcess.Contains(file.FilePath,
-                                        StringComparer.OrdinalIgnoreCase))
-                                        file.ProcessFor62F = true;
-
-                                dbContext.UpdateRange(notProcessed);
-
-                                await dbContext.SaveChangesAsync();
-                            }
+                            await dbContext.SaveChangesAsync();
                         }
 
-                        logger.LogInformation($"Finished running balance file extractor on {paths.Count()} files");
+                        logger.LogInformation($"Finished running balance file extractor on {pathForNotProcessed.Count()} files");
                     }
 
                 }
@@ -333,8 +312,6 @@ namespace SbslFileTransformer.Converters
 
                 if (!string.IsNullOrEmpty(output.ToString()))
                     File.WriteAllText(outputPath, output.ToString());
-
-                //await Task.Delay(200);
             }
 
             return outputPath;
@@ -345,7 +322,9 @@ namespace SbslFileTransformer.Converters
             var account = (await dbContext.Accounts.FirstOrDefaultAsync(a =>
                 a.Account.ToLower() == accNo.ToLower() || a.Account.ToLower().Contains(accNo.ToLower())))?.Number;
 
-            if (!string.IsNullOrEmpty(account)) return account;
+            if (!string.IsNullOrEmpty(account))
+                return account;
+
             return accNo;
         }
 

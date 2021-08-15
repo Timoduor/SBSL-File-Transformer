@@ -38,7 +38,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
             GetConfiguration(out config);
 
-            var loopTime = 10;
+            var loopTime = 7;
 
             if (config.IncludeProduction)
             {
