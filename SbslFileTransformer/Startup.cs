@@ -130,12 +130,15 @@ namespace SbslFileTransformer
 
             services.AddHostedService<OUTMT300ConverterJob>();
             services.AddHostedService<OUTMT320ConverterJob>();
-
             services.AddHostedService<TZ_ATMJournalConverterjob>();
             services.AddHostedService<ATMjournalConverterJob>();
             services.AddHostedService<Tz_Blotter_filesjob>();
             services.AddHostedService<RSwitchConverterJob>();
+
+           
             services.AddHostedService<EOD_DealsJob>();
+            services.AddHostedService<ATMBalanceExtractorJob>(); 
+            services.AddHostedService<Sumtreasuryfxposjob>();
 
             services.AddHostedService<FileNetworkCopyJob>();
             services.AddHostedService<ImsBalanceExtractorJob>();
