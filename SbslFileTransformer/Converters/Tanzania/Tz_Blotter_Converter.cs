@@ -88,7 +88,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         excelCol.Col15 = row[15].ToString();
                         excelCol.Col16 = row[16].ToString();
                         excelCol.Col17 = row[17].ToString();
-                        excelCol.Col20 = sheet2.TableName.Replace("$", "");
+                        excelCol.Col20 = sheet2.TableName;
 
                         //if(excelCol.Col0 != null)
                         //{
@@ -119,7 +119,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         excelCol.Col15 = row[15].ToString();
                         excelCol.Col16 = row[16].ToString();
                         excelCol.Col17 = row[17].ToString();
-                        excelCol.Col20 = sheet3.TableName.Replace("$", "");
+                        excelCol.Col20 = sheet3.TableName;
                         //if (excelCol.Col0 == null)
                         //{
                         //    continue;
@@ -151,7 +151,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         excelCol.Col17 = row[17].ToString();
                         excelCol.Col18 = row[18].ToString();
 
-                        excelCol.Col20 = sheet4.TableName.Replace("$", "");
+                        excelCol.Col20 = sheet4.TableName;
                         list4.Add(excelCol);
                     }
 
@@ -178,7 +178,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         excelCol.Col17 = row[17].ToString();
                         excelCol.Col18 = row[18].ToString();
 
-                        excelCol.Col20 = sheet5.TableName.Replace("$", "");
+                        excelCol.Col20 = sheet5.TableName;
                         list5.Add(excelCol);
                     }
 
@@ -205,7 +205,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         excelCol.Col17 = row[17].ToString();
                         excelCol.Col18 = row[18].ToString();
 
-                        excelCol.Col20 = sheet6.TableName.Replace("$", "");
+                        excelCol.Col20 = sheet6.TableName;
                         list6.Add(excelCol);
                     }
 
@@ -232,7 +232,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         excelCol.Col17 = row[17].ToString();
                         excelCol.Col18 = row[18].ToString();
 
-                        excelCol.Col20 = sheet7.TableName.Replace("$", "");
+                        excelCol.Col20 = sheet7.TableName;
 
                         list7.Add(excelCol);
                     }
@@ -260,7 +260,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         excelCol.Col17 = row[17].ToString();
                         excelCol.Col18 = row[18].ToString();
 
-                        excelCol.Col20 = sheet8.TableName.Replace("$", "");
+                        excelCol.Col20 = sheet8.TableName;
 
                         if (excelCol.Col0 == null)
                         {
@@ -293,7 +293,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         excelCol.Col17 = row[17].ToString();
                         excelCol.Col18 = row[18].ToString();
 
-                        excelCol.Col20 = sheet9.TableName.Replace("$", "");
+                        excelCol.Col20 = sheet9.TableName;
 
                         list9.Add(excelCol);
                     }
@@ -321,7 +321,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         excelCol.Col17 = row[17].ToString();
                         excelCol.Col18 = row[18].ToString();
 
-                        excelCol.Col20 = sheet10.TableName.Replace("$", "");
+                        excelCol.Col20 = sheet10.TableName;
 
                         list10.Add(excelCol);
                     }
@@ -349,7 +349,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         excelCol.Col17 = row[17].ToString();
                         excelCol.Col18 = row[18].ToString();
 
-                        excelCol.Col20 = sheet11.TableName.Replace("$", "");
+                        excelCol.Col20 = sheet11.TableName;
 
                         list11.Add(excelCol);
                     }
@@ -377,7 +377,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         excelCol.Col17 = row[17].ToString();
                         excelCol.Col18 = row[18].ToString();
 
-                        excelCol.Col20 = sheet12.TableName.Replace("$", "");
+                        excelCol.Col20 = sheet12.TableName;
 
                         list12.Add(excelCol);
                     }
@@ -405,7 +405,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         excelCol.Col17 = row[17].ToString();
                         excelCol.Col18 = row[18].ToString();
 
-                        excelCol.Col20 = sheet13.TableName.Replace("$", "");
+                        excelCol.Col20 = sheet13.TableName;
 
                         list13.Add(excelCol);
                     }
