@@ -123,6 +123,7 @@ namespace SbslFileTransformer.Converters.Kenya
                 }
                 else
                 {
+                    row.Col20 = Path.GetFileNameWithoutExtension(inputFile);
                     var value = line.Replace("\n", "");
 
                     if (value.StartsWith(":15A:"))
@@ -224,7 +225,7 @@ namespace SbslFileTransformer.Converters.Kenya
                     }
                     else if (value.StartsWith(":88D:"))
                     {
-                        row.Col20 = value.Split(':')[2].Replace("\n", "");
+                        row.Col20 = row.Col20 + " " +  value.Split(':')[2].Replace("\n", "");
                     }
 
 

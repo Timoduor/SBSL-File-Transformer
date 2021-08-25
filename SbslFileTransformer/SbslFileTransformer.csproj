@@ -39,6 +39,10 @@
     <FileVersion>1.0.0.2354</FileVersion>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <Optimize>False</Optimize>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Remove="LicenseVerify.cer" />
     <None Remove="sbsletl.db-shm" />

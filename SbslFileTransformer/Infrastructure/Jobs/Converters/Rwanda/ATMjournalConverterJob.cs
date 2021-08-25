@@ -73,7 +73,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                    
 
                     var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt")).ToList();
-
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt")));
 
         

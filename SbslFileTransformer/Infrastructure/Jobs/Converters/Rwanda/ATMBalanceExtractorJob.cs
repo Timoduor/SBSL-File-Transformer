@@ -92,6 +92,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                     {
                                         var atmbalConverter = new ATMBalConverterRwanda();
                                         await atmbalConverter.ConvertFile(file, rootFolder, Entity);
+                                        fileToProcess.Converted = true;
                                     }
 
                                 }
@@ -106,14 +107,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    fileToProcess.Converted = true;
-
+                                    
+                                    if (fileToProcess.Converted==true)
+                                    { 
                                     if (Entity == "IMRW") fileToProcess.ConvertedBy = nameof(ATMBalConverterRwanda);
                                     if (Entity == "IMKE") fileToProcess.ConvertedBy = nameof(ATMBalConverterRwanda);
 
                                     dbContext.Update(fileToProcess);
 
                                     await dbContext.SaveChangesAsync();
+                                    }
                                 }
                         }
                 }

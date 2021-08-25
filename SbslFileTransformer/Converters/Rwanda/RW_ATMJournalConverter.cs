@@ -135,26 +135,26 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         }
                         if (hascashcount != true)
                         {
-                            if (ATMflds.ReasonCode != "" && ATMflds.AMOUNT != "0")
+                            if (ATMflds.ReasonCode != "" && ATMflds.AMOUNT != "0" && ATMflds.SUCCESSFUL.Trim()== "APPROVED")
                             {
                                 if (scontent_sup == "")
                                 {
 
-                                    scontent_sup += ATMflds.CARDNo + "," + ATMflds.trnDATE + "," + ATMflds.AMOUNT + "," + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + "," + ATMflds.ReasonCode + "," + ATMflds.AUTHNO + "," + ATMflds.AtmNo + Environment.NewLine;
+                                    scontent_sup += ATMflds.CARDNo.Trim() + "," + ATMflds.trnDATE.Trim() + "," + ATMflds.AMOUNT + "," + ATMflds.UTRNNO.Trim() + "," + ATMflds.SUCCESSFUL + "," + ATMflds.ReasonCode.Trim() + "," + ATMflds.AUTHNO.Trim() + "," + ATMflds.AtmNo.Trim() + Environment.NewLine;
 
                                 }
                                 else
                                 {
-                                    scontent_sup += ATMflds.CARDNo + "," + ATMflds.trnDATE + "," + ATMflds.AMOUNT + "," + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + "," + ATMflds.ReasonCode + "," + ATMflds.AUTHNO + "," + ATMflds.AtmNo + Environment.NewLine;
+                                    scontent_sup += ATMflds.CARDNo.Trim() + "," + ATMflds.trnDATE.Trim() + "," + ATMflds.AMOUNT + "," + ATMflds.UTRNNO.Trim() + "," + ATMflds.SUCCESSFUL + "," + ATMflds.ReasonCode.Trim() + "," + ATMflds.AUTHNO.Trim() + "," + ATMflds.AtmNo.Trim() + Environment.NewLine;
 
                                 }
                                 if (ATMflds.AMOUNT_REMAINING != "0")
                                 {
-                                    scontent_sup += ATMflds.CARDNo + "," + ATMflds.trnDATE + "," + ATMflds.AMOUNT_REMAINING + "," + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + ",CASH LOADED AT ATM," + ATMflds.AUTHNO + "," + ATMflds.AtmNo + Environment.NewLine;
+                                    scontent_sup += ATMflds.CARDNo.Trim() + "," + ATMflds.trnDATE.Trim() + "," + ATMflds.AMOUNT_REMAINING + "," + ATMflds.UTRNNO.Trim() + "," + ATMflds.SUCCESSFUL + ",CASH LOADED AT ATM," + ATMflds.AUTHNO + "," + ATMflds.AtmNo.Trim() + Environment.NewLine;
 
                                     if (ATMflds.AMOUNT != ATMflds.AMOUNT_REMAINING)
                                     {
-                                        scontent_sup += ATMflds.CARDNo + "," + ATMflds.trnDATE + "," + (Convert.ToDecimal(ATMflds.AMOUNT) - Convert.ToDecimal(ATMflds.AMOUNT_REMAINING)) + "," + ATMflds.UTRNNO + "," + ATMflds.SUCCESSFUL + ",CASH REMAINING DIFFERENCE," + ATMflds.AUTHNO + "," + ATMflds.AtmNo + Environment.NewLine;
+                                        scontent_sup += ATMflds.CARDNo.Trim() + "," + ATMflds.trnDATE.Trim() + "," + (Convert.ToDecimal(ATMflds.AMOUNT) - Convert.ToDecimal(ATMflds.AMOUNT_REMAINING)) + "," + ATMflds.UTRNNO.Trim() + "," + ATMflds.SUCCESSFUL + ",CASH REMAINING DIFFERENCE," + ATMflds.AUTHNO.Trim() + "," + ATMflds.AtmNo.Trim() + Environment.NewLine;
                                     }
                                 }
                                 hascashcount = false;
@@ -260,7 +260,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     if (gotdate != true)
                     {
-                        if (d[i + 1].ToString().Length < 40)
+                        if (d[i + 1].ToString().Length < 45)
                         {
                             l.Add("DATE:" + d[i].Substring(0, 8).Replace(".", "/") + " " + d[i].Substring(9, 5));
                             gotdate = true;
@@ -282,7 +282,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     if (gotdate != true)
                     {
-                        if (d[i].ToString().Length < 40)
+                        if (d[i].ToString().Length < 45)
                         {
                             l.Add("DATE:" + d[i].Substring(5, 8).Replace(".", "/") + " " + d[i].Substring(19, 5));
                             gotdate = true;
@@ -474,7 +474,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             { type1 = Convert.ToDecimal(d[i + 1].Split("TYPE")[1].Split('≈')[1].Trim()) * 1000; }
                             try
                             {
-                                if (ATMNo_ == "ATN07013")
+                                if ((ATMNo_ == "ATN07013" ) || (ATMNo_ == "ATN07006") || (ATMNo_ == "ATN07008") || (ATMNo_ == "ATN07025") || (ATMNo_ == "ATN07106") || (ATMNo_ == "ATW07012") || (ATMNo_ == "ATW07024") || (ATMNo_ == "ATN07001") || (ATMNo_ == "ATW07018"))
                                 {
                                     type2 = Convert.ToDecimal(d[i + 1].Split("TYPE")[2].Split('=')[1].Trim()) * 2000;
                                 }
@@ -485,7 +485,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             catch (Exception xc)
                             {
 
-                                if (ATMNo_ == "ATN07013")
+                                if ((ATMNo_ == "ATN07013") || (ATMNo_ == "ATN07006") || (ATMNo_ == "ATN07008") || (ATMNo_ == "ATN07025") || (ATMNo_ == "ATN07106") || (ATMNo_ == "ATW07012") || (ATMNo_ == "ATW07024") || (ATMNo_ == "ATN07001") || (ATMNo_ == "ATW07018"))
                                 {
                                     type2 = Convert.ToDecimal(d[i + 1].Split("TYPE")[2].Split('≈')[1].Trim()) * 2000;
                                 }
@@ -517,8 +517,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             l.Add("RESPONSE CODE:" + d[i].Split("\r\n")[0] + "|");
                             gotRC = true;
                         }
-                        //RESPONSE CODE:
-                        //l.Add(d[i]);
+                   
                         gotATM = true;
 
                     }
@@ -566,7 +565,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             l.Add("AMOUNTR:" + (type1_s + type2_s + type3_s + type4_s));
                             currenAMount_x = "AMOUNTR:" + (type1_s + type2_s + type3_s + type4_s);
                             currenAMount_s = d[i + 1].Trim();
-                            // l.Add("AMOUNT:" + (((Convert.ToDecimal(d[i + 1].Split("TYPE")[1].Split('=')[1].Trim())) + (((Convert.ToDecimal(d[i + 2].Split("TYPE")[1].Split('=')[2].Trim())) * 5000)) + (Convert.ToDecimal(d[i + 2].Split("TYPE")[1].Split('=')[1].Trim()) * 5000) * (Convert.ToDecimal(d[i + 2].Split("TYPE")[2].Split('=')[1].Trim()) * 5000)));
                             gotamount_s = true;
                         }
                         if (gotcashtaken_s == false)

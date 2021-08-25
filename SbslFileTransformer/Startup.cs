@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SbslFileTransformer.Converters.Rwanda;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Helpers;
@@ -135,10 +136,13 @@ namespace SbslFileTransformer
             services.AddHostedService<Tz_Blotter_filesjob>();
             services.AddHostedService<RSwitchConverterJob>();
 
-           
+
+
             services.AddHostedService<EOD_DealsJob>();
             services.AddHostedService<ATMBalanceExtractorJob>(); 
             services.AddHostedService<Sumtreasuryfxposjob>();
+            services.AddHostedService<FxposfcdailyJob>();
+            services.AddHostedService<FxposftdailyJob>();
 
             services.AddHostedService<FileNetworkCopyJob>();
             services.AddHostedService<ImsBalanceExtractorJob>();

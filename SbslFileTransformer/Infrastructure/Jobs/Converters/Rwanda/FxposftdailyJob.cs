@@ -16,12 +16,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters
+namespace SbslFileTransformer.Converters.Rwanda
 {
-    public class Sumtreasuryfxposjob : ConverterJobBase<Sumtreasuryfxposjob>, IHostedService
+    public class FxposftdailyJob : ConverterJobBase<FxposftdailyJob>, IHostedService
     {
 
-        public Sumtreasuryfxposjob(ILogger<Sumtreasuryfxposjob> logger, IServiceScopeFactory serviceScopeFactory,
+        public FxposftdailyJob(ILogger<FxposftdailyJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {
             _logger = logger;
@@ -37,23 +37,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting fx_pos_ft_sum Converter Job");
+            _logger.LogInformation("Starting Fxposfcdaily  Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await SumfxposConverter(), null,
+            _timer = new Timer(async state => await fxposftdailyConverter(), null,
                 TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
-
-        private async Task SumfxposConverter()
+        private async Task fxposftdailyConverter()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running RSwitch Converter RW job");
+                _logger.LogInformation("Running fxposftdaily  Converter RW job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -79,20 +78,20 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")));
 
-                    var fx_posConverter = new FxposftsumConverter();
+                    var ft_Converter = new ft_dailyConverter();
 
                     foreach (var file in files)
                         //SPECIFY FOLDER and file extension above PENDING
-
-                        if (file.ToLower().Contains("imrw") && file.ToLower().Contains("treasury") && file.ToLower().Contains("fx_pos") && file.ToLower().Contains("fx_pos_ft_sum") && !file.ToLower().Contains("conv"))
+                        //imrw\treasury\fx_pos\fx_pos_ft_daily
+                        if (file.ToLower().Contains("imrw") && file.ToLower().Contains("treasury") && file.ToLower().Contains("fx_pos") && file.ToLower().Contains("fx_pos_ft_daily"))//&& !file.ToLower().Contains("conv")
                         {
-                            var fileToProcess =
-                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>f.FilePath.ToLower() == file.ToLower());
+                            var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    fx_posConverter.ConvertFile(file);
+                                    ft_Converter.ConvertFile(file);
+                                    fileToProcess.Converted = true;
                                 }
                                 catch (Exception ex)
                                 {
@@ -105,9 +104,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    fileToProcess.Converted = true;
 
-                                    fileToProcess.ConvertedBy = nameof(RSwitchConverterJob);
+
+                                    fileToProcess.ConvertedBy = nameof(ft_dailyConverter);
 
                                     dbContext.Update(fileToProcess);
 
@@ -132,6 +131,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                 }
                         }
+
+
+
                 }
             }
             catch (Exception ex)
@@ -143,7 +145,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 _semaphore.Release();
             }
         }
-
 
     }
 }
