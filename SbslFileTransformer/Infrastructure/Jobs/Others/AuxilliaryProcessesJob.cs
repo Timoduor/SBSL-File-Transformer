@@ -71,9 +71,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 _logger.LogInformation("Running file Archive Job");
 
-                //do it only afternoons or at night
-                if (DateTime.Now.Hour >= 22 && DateTime.Now.Hour <= 23 ||
-                    DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 4)
+                //do it only at night
+                if (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 3)
                     using (var scope = _serviceScopeFactory.CreateScope())
                     {
                         var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
@@ -112,8 +111,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                         {
                             var props = new FileInfo(file);
 
-                            if (props.LastWriteTime < DateTime.Now.AddDays(-period) ||
-                                props.CreationTime < DateTime.Now.AddDays(-period))
+                            if (props.LastWriteTime < DateTime.Now.AddDays(-period))
                             {
                                 var destination = Path.Combine(backUpPath, Path.GetFileName(file));
 
