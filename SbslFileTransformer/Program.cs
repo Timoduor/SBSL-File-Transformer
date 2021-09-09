@@ -101,8 +101,7 @@ namespace SbslFileTransformer
                         retentionPeriod: TimeSpan.FromDays(10), rollOver: false, maxDatabaseSize: 20480)
                     .WriteTo.Console()
                     .WriteTo.RollingFile(formatter,
-                        Path.Combine(Directory.GetCurrentDirectory(), Path.Combine(logPathFiles, "{Date}-SBSLETL.log")),
-                        fileSizeLimitBytes: 10485760)
+                        Path.Combine(Directory.GetCurrentDirectory(), Path.Combine(logPathFiles, "{Date}-SBSLETL.log")))
                     .CreateLogger();
 
                 ChangeServiceStartParams();

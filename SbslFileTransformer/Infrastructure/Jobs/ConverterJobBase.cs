@@ -33,6 +33,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         public virtual async Task ProcessFileAsync(string filePath)
         {
             //code for call the converter goes here
+            await Task.CompletedTask;
         }
 
         //default predicate check it has any of the required extensions and it is in the required path

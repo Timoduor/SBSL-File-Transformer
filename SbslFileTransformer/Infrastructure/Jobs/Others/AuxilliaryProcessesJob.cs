@@ -87,7 +87,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                             b.ConfigType == ConfigurationType.Setting && b.Key == "BackUpAllFilesPeriod")).Value;
 
                         var oldUploadedFiles =
-                            dbContext.UploadedFiles.Where(f => f.UploadedDate < DateTime.Now.AddDays(-7));
+                            dbContext.UploadedFiles.Where(f => f.UploadedDate < DateTime.Now.AddDays(-10));
 
                         foreach (var file in oldUploadedFiles)
                         {
@@ -103,7 +103,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                             MatchCasing = MatchCasing.CaseInsensitive
                         };
 
-                        double period = 7;
+                        double period = 30;
 
                         double.TryParse(backUpAllFilesPeriod, out period);
 
