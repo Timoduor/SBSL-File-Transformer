@@ -119,6 +119,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 inputFile.ToLower().Contains("till"))
                 return "19990126505064";
 
+            if (inputFile.ToLower().Contains("credit_receivable"))
+                return "18000126505014";
+
             return "";
         }
     }

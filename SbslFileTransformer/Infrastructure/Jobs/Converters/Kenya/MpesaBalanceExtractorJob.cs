@@ -80,7 +80,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     var mpesaConverter = new MpesaBalanceExtractor();
 
                     foreach (var file in files)
-                        if (file.ToLower().Contains("mpesa") && file.Contains("Conv") &&
+                        if (((file.ToLower().Contains("mpesa") && file.Contains("Conv")) || file.ToLower().Contains("credit_receivable")) &&
                             file.ToLower().Contains("imke"))
                         {
                             var fileToProcess =

@@ -2,8 +2,13 @@
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Messaging;
+using SbslFileTransformer.Models.Enums;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs
 {
@@ -14,21 +19,102 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         protected ILogger<T> _logger;
         protected IServiceScopeFactory _serviceScopeFactory;
         protected Timer _timer;
+        protected string _entity;
+        protected string JobName { get; set; }
+        protected int RunInterval { get; set; } = 10; //in minutes
 
-        public virtual List<string> ReqPaths { get; set; }
-        public virtual List<string> OptPaths { get; set; }
+        //to specify any extra validations
+        protected Predicate<string> FileMeetsConditions { get; set; }
+
+        public virtual string RequiredPath { get; set; }
         public virtual List<string> FileExts { get; set; }
 
-        public virtual void LoadContents(ApplicationDbContext dbContext, int jobId)
+        //this method should be abstract to force the actual specific implementation per job
+        public virtual async Task ProcessFileAsync(string filePath)
         {
-            //var job = dbContext.Jobs.FirstOrDefault(j => j.Id == jobId);
+            //code for call the converter goes here
+        }
 
-            //if (job != null)
-            //{
-            //    ReqPaths = job.RequiredPaths.Split(',').ToList();
-            //    FileExts = job.FileExtensions.Split(',').ToList();
-            //    OptPaths = job.OptionalPaths.Split(',').ToList();
-            //}
+        //default predicate check it has any of the required extensions and it is in the required path
+        private bool FilePathCheck(string file)
+        {
+            return FileExts.Any(f => file.Contains(f)) && File.Exists(file) && file.ToLower().Contains(RequiredPath.ToLower());
+        }
+
+        public virtual async Task RunJob()
+        {
+            try
+            {
+                await _semaphore.WaitAsync();
+
+                if (!ValidateInput(out string missingMessage))
+                    throw new MissingFieldException($"{missingMessage}");
+
+                _logger.LogInformation($"Running {JobName} job");
+
+                var prodFolder = string.Empty;
+                var sbFolder = string.Empty;
+                var Entity = string.Empty;
+
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
+                        .ToList();
+
+                    Entity = dbContext.Configurations
+                        .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
+                    prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
+                    sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
+
+                    var options = new EnumerationOptions
+                    { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
+
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).ToList();
+
+                    foreach (var file in files)
+                    {
+                        if (!FilePathCheck(file))
+                            return;
+                        if (FileMeetsConditions != null && !FileMeetsConditions(file))
+                            return;
+                        await ProcessFileAsync(file);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        private bool ValidateInput(out string missingMessage)
+        {
+            bool isValid = true;
+            missingMessage = string.Empty;
+
+            if (string.IsNullOrEmpty(JobName))
+            {
+                missingMessage += "JobName is required, ";
+                isValid = false;
+            }
+            if (string.IsNullOrEmpty(RequiredPath))
+            {
+                missingMessage += "Required folder path is not provided, ";
+                isValid = false;
+            }
+            if (FileExts.Count() <= 0)
+            {
+                missingMessage += "At least one file extension should be provided, ";
+                isValid = false;
+            }
+
+            return isValid;
         }
     }
 }
