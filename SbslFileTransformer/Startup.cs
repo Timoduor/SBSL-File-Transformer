@@ -137,12 +137,15 @@ namespace SbslFileTransformer
             services.AddHostedService<RSwitchConverterJob>();
 
 
-
+            //Sprint 5
             services.AddHostedService<EOD_DealsJob>();
             services.AddHostedService<ATMBalanceExtractorJob>(); 
             services.AddHostedService<Sumtreasuryfxposjob>();
             services.AddHostedService<FxposfcdailyJob>();
             services.AddHostedService<FxposftdailyJob>();
+            services.AddHostedService<TZEpinConverterJob>();
+            services.AddHostedService<TZ_EP75ConverterJob>();
+
 
             services.AddHostedService<FileNetworkCopyJob>();
             services.AddHostedService<ImsBalanceExtractorJob>();
