@@ -74,59 +74,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                     foreach (var file in files)
                     {
-                        if (Entity == "IMKE" && !file.ToUpper().Contains("IMKE")) continue;
+                        //if in Kenya do not process files for other countries
+                        if (Entity == "IMKE" && !file.ToUpper().Contains("IMKE"))
+                            continue;
 
-                        if ((file.ToLower().Contains("_balance".ToLower()) ||
-                             file.ToLower().Contains("_bal".ToLower())) && Path.GetExtension(file.ToLower()) != ".txt")
-                            try
-                            {
-                                if (
-                                    file.ToLower().Contains("util_balance".ToLower()) ||
-                                    file.ToLower().Contains("mb_balance".ToLower())
-                                    || file.ToLower().Contains("selcom_balance".ToLower()) ||
-                                    file.ToLower().Contains("selcomdisb_balance") ||
-                                    file.ToLower().Contains("float_balance".ToLower())
-                                    || file.ToLower().Contains("b2w_balance".ToLower()) ||
-                                    file.ToLower().Contains("w2b_balance".ToLower()))
-                                    await converter.Execute(file, "Mobile banking");
-
-                                else if (file.ToLower().Contains("br_sus"))
-                                    await converter.Execute(file, "Branch Suspense");
-
-                                else if (file.ToLower().Contains("mg_sus"))
-                                    await converter.Execute(file, "Moneygram");
-
-                                else if (file.ToLower().Contains("wu_sus") || file.ToLower().Contains("westernunion_balance"))
-                                    await converter.Execute(file, "Western Union");
-
-                                else if (file.ToLower().Contains("treasury_sus"))
-                                    await converter.Execute(file, "Treasury");
-
-                                else if (file.ToLower().Contains("ops_sus"))
-                                    await converter.Execute(file, "Operations");
-
-                                else if (file.ToLower().Contains("cre_sus"))
-                                    await converter.Execute(file, "Credit");
-
-                                else if (file.ToLower().Contains("fin_sus"))
-                                    await converter.Execute(file, "Finance");
-
-                                else if (file.ToLower().Contains("clearing_balance"))
-                                    await converter.Execute(file, "Clearing");
-
-                                else if (file.ToLower().Contains("rswitch_balance"))
-                                    await converter.Execute(file, "RSwitch");
-
-                                else if (file.ToLower().Contains("treasurybills") || file.ToLower().Contains("treasurybonds"))
-                                    await converter.Execute(file, "Treasury Bills/Bonds");
-
-                                else
-                                    await converter.Execute(file);
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogError(ex, ex.Message);
-                            }
+                        await ProcessFile(file, converter);
                     }
                 }
             }
@@ -137,6 +89,63 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
             finally
             {
                 _semaphore.Release();
+            }
+        }
+
+        private async Task ProcessFile(string file, BalanceFileConverter converter)
+        {
+            if ((file.ToLower().Contains("_balance".ToLower()) ||
+                 file.ToLower().Contains("_bal".ToLower())) && Path.GetExtension(file.ToLower()) != ".txt")
+            {
+                try
+                {
+                    if (
+                        file.ToLower().Contains("util_balance".ToLower()) ||
+                        file.ToLower().Contains("mb_balance".ToLower())
+                        || file.ToLower().Contains("selcom_balance".ToLower()) ||
+                        file.ToLower().Contains("selcomdisb_balance") ||
+                        file.ToLower().Contains("float_balance".ToLower())
+                        || file.ToLower().Contains("b2w_balance".ToLower()) ||
+                        file.ToLower().Contains("w2b_balance".ToLower()))
+                        await converter.Execute(file, "Mobile banking");
+
+                    else if (file.ToLower().Contains("br_sus"))
+                        await converter.Execute(file, "Branch Suspense");
+
+                    else if (file.ToLower().Contains("mg_sus"))
+                        await converter.Execute(file, "Moneygram");
+
+                    else if (file.ToLower().Contains("wu_sus") || file.ToLower().Contains("westernunion_balance"))
+                        await converter.Execute(file, "Western Union");
+
+                    else if (file.ToLower().Contains("treasury_sus"))
+                        await converter.Execute(file, "Treasury");
+
+                    else if (file.ToLower().Contains("ops_sus"))
+                        await converter.Execute(file, "Operations");
+
+                    else if (file.ToLower().Contains("cre_sus"))
+                        await converter.Execute(file, "Credit");
+
+                    else if (file.ToLower().Contains("fin_sus"))
+                        await converter.Execute(file, "Finance");
+
+                    else if (file.ToLower().Contains("clearing_balance"))
+                        await converter.Execute(file, "Clearing");
+
+                    else if (file.ToLower().Contains("rswitch_balance"))
+                        await converter.Execute(file, "RSwitch");
+
+                    else if (file.ToLower().Contains("treasurybills") || file.ToLower().Contains("treasurybonds"))
+                        await converter.Execute(file, "Treasury Bills/Bonds");
+
+                    else
+                        await converter.Execute(file);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, ex.Message);
+                }
             }
         }
     }

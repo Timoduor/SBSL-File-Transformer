@@ -75,21 +75,26 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
             if (list.Count > 0)
             {
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
-
-                var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
-
-                var outputFile = Path.Combine(outputFolder,
-                    $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_MpesaKE.txt");
-
-                var lastRow = list.OrderByDescending(i => i.BalDate)
-                    .FirstOrDefault(c => c.BalDate == list.Max(r => r.BalDate));
-
-                var toAppend =
-                    $"IMKE\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.BalDate):MM/dd/yyyy}\t\t\t\t{-lastRow.Amount}\tKES\n";
-
-                if (!string.IsNullOrEmpty(toAppend)) File.WriteAllText(outputFile, toAppend);
+                CreateMultiCurrFile(inputFile, outputFolder, list);
             }
+        }
+
+        private static void CreateMultiCurrFile(string inputFile, string outputFolder, List<MpesaBalCols> list)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(inputFile);
+
+            var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
+
+            var outputFile = Path.Combine(outputFolder,
+                $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_MpesaKE.txt");
+
+            var lastRow = list.OrderByDescending(i => i.BalDate)
+                .FirstOrDefault(c => c.BalDate == list.Max(r => r.BalDate));
+
+            var toAppend =
+                $"IMKE\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.BalDate):MM/dd/yyyy}\t\t\t\t{-lastRow.Amount}\tKES\n";
+
+            if (!string.IsNullOrEmpty(toAppend)) File.WriteAllText(outputFile, toAppend);
         }
 
         /// check file path if it contains Mpesa C2B Chango    Mpesa B2C Elma      Mpesa B2C Chango      Mpesa C2B and specify account numbers
