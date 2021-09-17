@@ -26,8 +26,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         //to specify any extra validations
         protected Predicate<string> FileMeetsConditions { get; set; }
 
-        public virtual string RequiredPath { get; set; }
-        public virtual List<string> FileExts { get; set; }
+        protected string RequiredPath { get; set; }
+        protected List<string> FileExts { get; set; }
+
+        protected string Entity { get; set; }
 
         //this method should be abstract to force the actual specific implementation per job
         public virtual async Task ProcessFileAsync(string filePath)
@@ -55,7 +57,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
-                var Entity = string.Empty;
 
                 using (var scope = _serviceScopeFactory.CreateScope())
                 {
@@ -72,7 +73,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.*", options)
+                                    .Where(f => FileExts.Any(e => Path.GetExtension(f).ToLower() == e.ToLower()))
+                                    .ToList();
 
                     foreach (var file in files)
                     {

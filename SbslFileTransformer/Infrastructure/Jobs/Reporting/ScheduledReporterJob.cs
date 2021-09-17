@@ -58,11 +58,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
                 _logger.LogInformation("Running reporting job...");
 
-                var config = GetConfiguration(_serviceScopeFactory);
+                var config = GetDowloadConfiguration(_serviceScopeFactory);
 
                 _logger.LogInformation($"Fetching tokens for {config.UserNamesAndPasswords.Count} users");
 
-                var tokens = await GetLoginTokens(config, _logger);
+                var tokens = await GetDownloadLoginTokens(config, _logger);
 
                 _logger.LogInformation($"Successfully fetched report tokens for {tokens.Count} users");
 

@@ -17,7 +17,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 {
     public partial class ScheduledReporterJob
     {
-        public ReportConfigModel GetConfiguration(IServiceScopeFactory serviceScopeFactory)
+        public ReportConfigModel GetDowloadConfiguration(IServiceScopeFactory serviceScopeFactory)
         {
             using (var scope = serviceScopeFactory.CreateScope())
             {
@@ -99,7 +99,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
         /// <param name="config"></param>
         /// <param name="logger"></param>
         /// <returns></returns>
-        public static async Task<List<string>> GetLoginTokens(ReportConfigModel config,
+        public static async Task<List<string>> GetDownloadLoginTokens(ReportConfigModel config,
             ILogger<ScheduledReporterJob> logger)
         {
             var tokens = new List<string>();
@@ -146,7 +146,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
         }
 
         /// <summary>
-        ///     Get latest reports from blackline website
+        ///     Fetch recently created reports from blackline website
         /// </summary>
         /// <param name="config"></param>
         /// <param name="token"></param>
