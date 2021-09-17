@@ -48,7 +48,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 await _semaphore.WaitAsync();
 
-                if (!ValidateInput(out string missingMessage))
+                if (!ValidateJobInputParams(out string missingMessage))
                     throw new MissingFieldException($"{missingMessage}");
 
                 _logger.LogInformation($"Running {JobName} job");
@@ -94,7 +94,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
         }
 
-        private bool ValidateInput(out string missingMessage)
+        private bool ValidateJobInputParams(out string missingMessage)
         {
             bool isValid = true;
             missingMessage = string.Empty;
