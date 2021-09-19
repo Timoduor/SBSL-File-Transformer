@@ -17,6 +17,8 @@
         public decimal TranAmount { get; set; }
         public string Currency { get; set; }
         public string SettledAmount { get; set; }
+
+        public string DrCr { get; set; }
         public string Terminal { get; set; }
     }
 }

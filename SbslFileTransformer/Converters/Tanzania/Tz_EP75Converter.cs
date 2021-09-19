@@ -41,7 +41,8 @@ namespace SbslFileTransformer.Converters
                         RspCode = lines[i].Substring(97, 4).Trim(),
                         TranAmount = decimal.Parse(amount),
                         Currency = lines[i].Substring(114, 4).Trim(),
-                        SettledAmount = lines[i].Substring(118, 15).Trim(),
+                        SettledAmount = lines[i].Substring(118, 12).Trim(),
+                        DrCr = lines[i].Substring(130, 2).Trim(),
                         Terminal = lines[i + 1].Substring(63, 22).Trim()
                     };
 

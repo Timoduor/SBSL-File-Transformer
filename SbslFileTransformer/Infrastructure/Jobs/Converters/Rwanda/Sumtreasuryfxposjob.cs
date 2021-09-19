@@ -71,6 +71,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
+                    var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
+                    var rootFolder = isProd ? prodFolder : sbFolder;
 
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
@@ -83,8 +85,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     foreach (var file in files)
                         //SPECIFY FOLDER and file extension above PENDING
-
-                        if (file.ToLower().Contains("imrw") && file.ToLower().Contains("treasury") && file.ToLower().Contains("fx_pos") && file.ToLower().Contains("fx_pos_ft_sum") && !file.ToLower().Contains("conv"))
+                        //TREASURY\FX_POS\FX_POS_FT_SUM
+                        if (file.ToLower().Contains("imrw") && file.ToLower().Contains("treasury") && file.ToLower().Contains("fx_pos") && file.ToLower().Contains("fx_pos_ft_sum"))// && !file.ToLower().Contains("conv")
                         {
                             var fileToProcess =
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>f.FilePath.ToLower() == file.ToLower());
@@ -92,7 +94,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    fx_posConverter.ConvertFile(file);
+                                    fx_posConverter.ConvertFile(file, rootFolder);
                                 }
                                 catch (Exception ex)
                                 {
@@ -107,7 +109,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 {
                                     fileToProcess.Converted = true;
 
-                                    fileToProcess.ConvertedBy = nameof(RSwitchConverterJob);
+                                    fileToProcess.ConvertedBy = nameof(FxposftsumConverter);
 
                                     dbContext.Update(fileToProcess);
 

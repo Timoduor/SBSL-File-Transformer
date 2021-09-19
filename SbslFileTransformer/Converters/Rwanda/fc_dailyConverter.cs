@@ -23,11 +23,11 @@ namespace SbslFileTransformer.Converters.Rwanda
             return new DateTime(date.Year, date.Month, 1).AddMonths(1).AddDays(-1);
         }
 
-        public void ConvertFile(string inputFile)
+        public void ConvertFile(string inputFile, string outputFolder = "")
         {
             var list = new List<ExcelCols>();
             string outputFile = "";
-            string outputFolder = null;
+             
             if (string.IsNullOrEmpty(outputFolder))
             {
                 outputFolder = Path.GetDirectoryName(inputFile);
@@ -107,8 +107,8 @@ namespace SbslFileTransformer.Converters.Rwanda
                 }
 
                 scontent = scontentl2;
-                outputFile = outputFolder + "\\Converted_FC_DAILY_" + Path.GetFileNameWithoutExtension(inputFile) + ".csv";
-
+                //outputFile = outputFolder + "\\Converted_FC_DAILY_" + Path.GetFileNameWithoutExtension(inputFile) + ".csv";
+                outputFile = Path.Combine(outputFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{Path.GetFileNameWithoutExtension(inputFile)}_fxdaily_{"IMRW"}.txt");
                 WriteFile(outputFile, scontent);
             }
         }

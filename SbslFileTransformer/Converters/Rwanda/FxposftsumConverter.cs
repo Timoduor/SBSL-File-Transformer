@@ -22,19 +22,19 @@ namespace SbslFileTransformer.Converters.Rwanda
             return new DateTime(date.Year, date.Month, 1).AddMonths(1).AddDays(-1);
         }
 
-        public void ConvertFile(string inputFile)
+        public void ConvertFile(string inputFile,string outputFolder = "")
         {
             var list = new List<ExcelCols>();
             string outputFile = "";
-            string outputFolder = null;
+            //string outputFolder = null;
             if (string.IsNullOrEmpty(outputFolder))
             {
                 outputFolder = Path.GetDirectoryName(inputFile);
-                outputFolder = outputFolder + "\\conv";
+                //outputFile = outputFile + "\\conv";
 
-                if (!Directory.Exists(outputFolder))
+                if (!Directory.Exists(outputFile))
                 {
-                    Directory.CreateDirectory(outputFolder);
+                    Directory.CreateDirectory(outputFile);
                 }
 
             }
@@ -126,7 +126,8 @@ namespace SbslFileTransformer.Converters.Rwanda
                     }
                 }
             }
-            outputFile = outputFolder + "\\Converted_" + Path.GetFileNameWithoutExtension(inputFile) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".txt";
+              outputFile = Path.Combine(outputFolder,$"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{Path.GetFileNameWithoutExtension(inputFile)}_fxpostsum_{"IMRW"}.txt");
+            //outputFile = outputFile + "\\Converted_" + Path.GetFileNameWithoutExtension(inputFile) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".txt";
             WriteToFile(list, outputFile);
         }
 

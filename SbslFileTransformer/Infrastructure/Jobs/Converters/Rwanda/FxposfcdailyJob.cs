@@ -63,8 +63,7 @@ namespace SbslFileTransformer.Converters.Rwanda
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
-                        .ToList();
+                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
 
                     Entity = dbContext.Configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
@@ -78,8 +77,9 @@ namespace SbslFileTransformer.Converters.Rwanda
                     var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")).ToList();
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")));
-
                     var fc_Converter = new fc_dailyConverter ();
+                    var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
+                    var rootFolder = isProd ? prodFolder : sbFolder;
 
                     foreach (var file in files)
                         //SPECIFY FOLDER and file extension above PENDING
@@ -91,7 +91,7 @@ namespace SbslFileTransformer.Converters.Rwanda
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    fc_Converter.ConvertFile(file);
+                                    fc_Converter.ConvertFile(file, rootFolder);
                                     fileToProcess.Converted = true;
                                 }
                                 catch (Exception ex)

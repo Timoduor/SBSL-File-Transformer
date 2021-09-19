@@ -70,6 +70,8 @@ namespace SbslFileTransformer.Converters.Rwanda
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
+                    var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
+                    var rootFolder = isProd ? prodFolder : sbFolder;
 
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
@@ -90,7 +92,7 @@ namespace SbslFileTransformer.Converters.Rwanda
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    ft_Converter.ConvertFile(file);
+                                    ft_Converter.ConvertFile(file, rootFolder);
                                     fileToProcess.Converted = true;
                                 }
                                 catch (Exception ex)
