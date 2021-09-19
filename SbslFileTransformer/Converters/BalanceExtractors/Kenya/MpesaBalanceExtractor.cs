@@ -100,6 +100,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         /// check file path if it contains Mpesa C2B Chango    Mpesa B2C Elma      Mpesa B2C Chango      Mpesa C2B and specify account numbers
         private string GetAccountNumber(string inputFile)
         {
+            if (inputFile.ToLower().Contains("credit_receivable"))
+                return "18000126505014";
+
             if (inputFile.ToLower().Contains("mpesa") && inputFile.ToLower().Contains("c2b") &&
                 inputFile.ToLower().Contains("chango"))
                 return "19990126512001";
@@ -123,9 +126,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             if (inputFile.ToLower().Contains("mpesa") && inputFile.ToLower().Contains("to") &&
                 inputFile.ToLower().Contains("till"))
                 return "19990126505064";
-
-            if (inputFile.ToLower().Contains("credit_receivable"))
-                return "18000126505014";
 
             return "";
         }

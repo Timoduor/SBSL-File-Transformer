@@ -97,7 +97,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
             WriteToFile(list, outputFile);
 
-            if (inputFile.ToLower().Contains("mmf")) GenerateMultiCurr(list.Skip(6).First(), inputFile, rootFolder);
+            if (inputFile.ToLower().Contains("mmf") && !inputFile.ToLower().Contains("credit_receivable"))
+                GenerateMultiCurr(list.Skip(6).First(), inputFile, rootFolder);
         }
 
 
@@ -120,7 +121,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
             var account = "19990126507010"; //payment
 
-            if (inputFile.ToLower().Contains("omni")) account = "19990126505016";
+            if (inputFile.ToLower().Contains(""))
+
+                if (inputFile.ToLower().Contains("omni")) account = "19990126505016";
 
             if (inputFile.ToLower().Contains("elma")) account = "19990126505009";
 

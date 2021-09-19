@@ -211,6 +211,22 @@ namespace SbslFileTransformer.Converters
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_OPS_{Entity}.txt");
 
+            if (filePath.ToLower().Contains("cards_kenya"))
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath),
+                    $"GLAccounts_{fileDate:yyyyMMdd}_CARDS_{Entity}.txt");
+
+            if (filePath.ToLower().Contains("mobile_money"))
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath),
+                    $"GLAccounts_{fileDate:yyyyMMdd}_MBMKE_{Entity}.txt");
+
+            if (filePath.ToLower().Contains("mobile_utility"))
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath),
+                    $"GLAccounts_{fileDate:yyyyMMdd}_MBUKE_{Entity}.txt");
+
+            if (filePath.ToLower().Contains("branch_suspense"))
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath),
+                    $"GLAccounts_{fileDate:yyyyMMdd}_BRSUSKE_{Entity}.txt");
+
             if (filePath.ToLower().Contains("treasurybills") || filePath.ToLower().Contains("treasurybonds"))
             {
                 var curr = filePath.ToLower().Contains("bonds") ? "TBonds" : "TBills";

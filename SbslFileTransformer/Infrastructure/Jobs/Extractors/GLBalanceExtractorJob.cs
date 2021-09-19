@@ -136,6 +136,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                     else if (file.ToLower().Contains("rswitch_balance"))
                         await converter.Execute(file, "RSwitch");
 
+                    else if (file.ToLower().Contains("cards_kenya"))
+                        await converter.Execute(file, "Cards Kenya");
+
+                    else if (file.ToLower().Contains("mobile_money"))
+                        await converter.Execute(file, "Mobile Banking");
+
+                    else if (file.ToLower().Contains("mobile_utility"))
+                        await converter.Execute(file, "Mobile Banking");
+
+                    else if (file.ToLower().Contains("branch_suspense"))
+                        await converter.Execute(file, "Branch Suspense");
+
                     else if (file.ToLower().Contains("treasurybills") || file.ToLower().Contains("treasurybonds"))
                         await converter.Execute(file, "Treasury Bills/Bonds");
 
