@@ -80,7 +80,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
                         foreach (var report in allReports)
                         {
-                            if (dbContext.ProcessedReports.Any(r => r.ReportId == report.ReportId)) continue;
+                            if (dbContext.ProcessedReports.Any(r => r.ReportId == report.ReportId))
+                                continue;
 
                             _logger.LogInformation($"Processing report {report.Name} with ID {report.ReportId}");
 
