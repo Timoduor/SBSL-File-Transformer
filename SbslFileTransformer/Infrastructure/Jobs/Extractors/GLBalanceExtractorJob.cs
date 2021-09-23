@@ -151,6 +151,27 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                     else if (file.ToLower().Contains("treasurybills") || file.ToLower().Contains("treasurybonds"))
                         await converter.Execute(file, "Treasury Bills/Bonds");
 
+                    else if (file.ToLower().Contains("tresuspense"))
+                        await converter.Execute(file, "Treasury Suspense");
+
+                    else if (file.ToLower().Contains("trepmoneymarket"))
+                        await converter.Execute(file, "PLACEMENT/BORROWING ACCT");
+
+                    else if (file.ToLower().Contains("trecontiliab"))
+                        await converter.Execute(file, "ContingentLiability");
+
+                    else if (file.ToLower().Contains("trecontiasset"))
+                        await converter.Execute(file, "ContingentAsset");
+
+                    else if (file.ToLower().Contains("treintexp"))
+                        await converter.Execute(file, "GL Entries Interest Expense");
+
+                    else if (file.ToLower().Contains("treintinc"))
+                        await converter.Execute(file, "GL Entries Interest Income");
+
+                    else if (file.ToLower().Contains("treposition"))
+                        await converter.Execute(file, "Position Account");
+
                     else
                         await converter.Execute(file);
                 }
