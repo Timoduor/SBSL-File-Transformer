@@ -23,7 +23,7 @@
         <div class="card-header">
             <strong>Uploaded Files</strong>
             <div class="float-right">
-                <label><b>Search:</b></label>
+                <label>Search Uploaded Files:</label>
                 <input id="search" placeholder="Type details of Uploaded File here..." style="width:350px;height:35px" />
             </div>
         </div>
@@ -57,13 +57,7 @@
                             Conversion Failed
                         </th>
                         <th>
-                            Converted
-                        </th>
-                        <th>
-                            Processed For 62F
-                        </th>
-                        <th>
-                            Balance Extracted
+                            Processed
                         </th>
                         <th>
                             Sequence No
@@ -71,13 +65,10 @@
                         <th>
                             Statement No
                         </th>
-                        <th>
-                            Account No
-                        </th>
 
                     </tr>
                     </thead>
-                    <tbody id="searchReplace">
+                    <tbody>
                     @foreach (var item in Model)
                     {
                         <tr class="@(item.IsProduction ? "bg-warning" : "bg-light")">
@@ -108,20 +99,11 @@
                             <td>
                                 @Html.DisplayFor(modelItem => item.Converted)
                             </td>
-                             <td>
-                                @Html.DisplayFor(modelItem => item.ProcessFor62F)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.BalanceExtracted)
-                            </td>
                             <td>
                                 @Html.DisplayFor(modelItem => item.MtSequenceNo)
                             </td>
                             <td>
                                 @Html.DisplayFor(modelItem => item.MtStatementNo)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.MtAccountNo)
                             </td>
                         </tr>
                     }
@@ -144,69 +126,15 @@
         $('.alert').alert();
 
         let timeoutID = null;
-        let endpoint = '/Logs/SearchUploadedFile';
 
-        function findUploadedFile(str) {            
-            console.log('search: ' + str);
-            $.ajax({
-                url: endpoint + "?search=" + str,
-                contentType: "application/json",
-                dataType: 'json',
-                success: function(response){
-                    console.log('search results are: ');
-                    console.log(response);
-                    
-                    if(response.length > 0 || str.length > 0){
-
-                        var htmlToAppend = '';
-
-                        $.each(response, function(key, value) {
-
-                            htmlToAppend += 
-                             '<tr><td>'
-                                    + value.name + 
-                                '</td><td>'
-                                   + value.uploadedDate +
-                                '</td><td>'
-                                    + value.size +
-                                '</td><td>'
-                                    + value.md5 +
-                                '</td><td>'
-                                    + value.isProduction + 
-                                '</td><td>'
-                                    + value.filePath +
-                                '</td><td>'
-                                     + value.convertedBy +
-                                '</td><td>'
-                                     + value.failed +
-                                '</td><td>'
-                                     + value.converted +
-                                '</td><td>'
-                                     + value.processFor62F +
-                                '</td><td>'
-                                    + value.balanceExtracted +
-                                '</td><td>'
-                                     + value.mtSequenceNo +
-                                '</td><td>'
-                                     + value.mtStatementNo +
-                                '</td><td>'
-                                     + value.mtAccountNo +
-                                '</td></tr>';                            
-                        }); 
-
-                        $('#searchReplace').html(htmlToAppend);
-                    }
-                    else{
-                        window.location.reload();
-                    }
-                }
-            });
+        function findVisonRecord(str) {
+          console.log('search: ' + str)
         }
 
         $('#search').keyup(function(e) {
           clearTimeout(timeoutID);
-          const value = e.target.value;
-          timeoutID = setTimeout(() => findUploadedFile(value), 1000)
+          const value = e.target.value
+          timeoutID = setTimeout(() => findVisonRecord(value), 1000)
         });
     </script>
 }
