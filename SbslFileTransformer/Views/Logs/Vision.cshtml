@@ -1,6 +1,6 @@
 ﻿@using X.PagedList.Mvc.Core
 @using X.PagedList.Mvc.Core.Common
-@model X.PagedList.IPagedList<SftpUploadedFile>
+@model X.PagedList.IPagedList<VisionRecord>
 
 @{
     ViewData["Title"] = "Logs";
@@ -33,77 +33,88 @@
                     <thead class="thead-dark">
                     <tr>
                         <th>
-                            Name
+                            Banking Date
                         </th>
                         <th>
-                            Uploaded Date
+                            Trans Details
                         </th>
                         <th>
-                            Size
+                            Trans ID
                         </th>
                         <th>
-                            Md5
+                            Reference No
                         </th>
                         <th>
-                            Is Production
+                            Gl Trans Code
                         </th>
                         <th>
-                            File Path
+                            Card Number
                         </th>
                         <th>
-                            Converted By
+                            Debit Amount
                         </th>
                         <th>
-                            Conversion Failed
+                            Credit Amount
                         </th>
                         <th>
-                            Processed
+                            Customer Name
                         </th>
                         <th>
-                            Sequence No
+                            Contract Number
                         </th>
                         <th>
-                            Statement No
+                            Account Number
                         </th>
-
+                        <th>
+                            FileName
+                        </th>
+                        <th>
+                            Date Processed
+                        </th>
                     </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="searchReplace">
                     @foreach (var item in Model)
                     {
-                        <tr class="@(item.IsProduction ? "bg-warning" : "bg-light")">
+                        <tr>
                             <td class="bg-">
-                                @Html.DisplayFor(modelItem => item.Name)
+                                @Html.DisplayFor(modelItem => item.BankingDate)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.UploadedDate)
+                                @Html.DisplayFor(modelItem => item.TransDetails)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.Size)
+                                @Html.DisplayFor(modelItem => item.TransID)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.Md5)
+                                @Html.DisplayFor(modelItem => item.ReferenceNumber)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.IsProduction)
+                                @Html.DisplayFor(modelItem => item.GLTransCode)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.FilePath)
+                                @Html.DisplayFor(modelItem => item.CardNumber)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.ConvertedBy)
+                                @Html.DisplayFor(modelItem => item.DebitAmount)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.Failed)
+                                @Html.DisplayFor(modelItem => item.CreditAmount)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.Converted)
+                                @Html.DisplayFor(modelItem => item.CustomerName)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.MtSequenceNo)
+                                @Html.DisplayFor(modelItem => item.ContractNumber)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.MtStatementNo)
+                                @Html.DisplayFor(modelItem => item.AccountNumber)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.FileName)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.DateProcessed)
                             </td>
                         </tr>
                     }
@@ -126,15 +137,67 @@
         $('.alert').alert();
 
         let timeoutID = null;
+        let endpoint = '/Logs/SearchVisionRecord';
 
-        function findVisonRecord(str) {
-          console.log('search: ' + str)
+        function findVisionRecord(str) {            
+            console.log('search: ' + str);
+            $.ajax({
+                url: endpoint + "?search=" + str,
+                contentType: "application/json",
+                dataType: 'json',
+                success: function(response){
+                    console.log('search results are: ');
+                    console.log(response);
+                    
+                    if(response.length > 0 || str.length > 0){
+
+                        var htmlToAppend = '';
+
+                        $.each(response, function(key, value) {
+
+                            htmlToAppend += 
+                             '<tr><td>'
+                                    + value.bankingDate + 
+                                '</td><td>'
+                                   + value.transDetails +
+                                '</td><td>'
+                                    + value.transID +
+                                '</td><td>'
+                                    + value.referenceNumber +
+                                '</td><td>'
+                                    + value.gLTransCode + 
+                                '</td><td>'
+                                    + value.cardNumber +
+                                '</td><td>'
+                                     + value.debitAmount +
+                                '</td><td>'
+                                     + value.creditAmount +
+                                '</td><td>'
+                                     + value.customerName +
+                                '</td><td>'
+                                     + value.contractNumber +
+                                '</td><td>'
+                                    + value.accountNumber +
+                                '</td><td>'
+                                     + value.fileName +
+                                '</td><td>'
+                                     + value.dateProcessed +
+                                '</td><td>';                            
+                        }); 
+
+                        $('#searchReplace').html(htmlToAppend);
+                    }
+                    else{
+                        window.location.reload();
+                    }
+                }
+            });
         }
 
         $('#search').keyup(function(e) {
           clearTimeout(timeoutID);
-          const value = e.target.value
-          timeoutID = setTimeout(() => findVisonRecord(value), 1000)
+          const value = e.target.value;
+          timeoutID = setTimeout(() => findVisionRecord(value), 1000)
         });
     </script>
 }

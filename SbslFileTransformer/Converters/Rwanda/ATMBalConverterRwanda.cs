@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
+using SbslFileTransformer.Infrastructure.Jobs.Converters;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -10,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters
+namespace SbslFileTransformer.Converters.Rwanda
 {
     public class ATMBalConverterRwanda
     {
@@ -116,9 +117,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     var account = success ? result.ToString() : row.Account;
 
-                    toAppend.Append( $"{Entity}\t{account}\tATM\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t\t{row.AmountMC}\t{GetAccountCurrency(row.Account)}\n");
+                    toAppend.Append($"{Entity}\t{account}\tATM\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t\t{row.AmountMC}\t{GetAccountCurrency(row.Account)}\n");
 
-                    toAppendGL.Append(  $"{Entity}\t{account}\tATM\t\t\t\t\t\t\t\t{GetAccountName(row.Account, lookUp)}\tATM\tA\tAsset\tTRUE\tTRUE\t\t{GetAccountCurrency(row.Account)}\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t{row.AmountGL}\n");
+                    toAppendGL.Append($"{Entity}\t{account}\tATM\t\t\t\t\t\t\t\t{GetAccountName(row.Account, lookUp)}\tATM\tA\tAsset\tTRUE\tTRUE\t\t{GetAccountCurrency(row.Account)}\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t{row.AmountGL}\n");
                 }
 
                 //write multicurr file

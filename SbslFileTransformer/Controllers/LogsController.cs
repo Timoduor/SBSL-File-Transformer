@@ -60,6 +60,17 @@ namespace SbslFileTransformer.Controllers
             return Json(uploadedFiles);
         }
 
+        public IActionResult SearchVisionRecord(string search)
+        {
+            var uploadedFiles = _dbContext.VisionRecords
+                        .Where(f => f.TransDetails.Contains(search) || f.TransID.Contains(search) || f.GLTransCode.Contains(search)
+                        || f.FileName.Contains(search) || f.ReferenceNumber.Contains(search) || f.CardNumber.Contains(search)
+                        || f.ContractNumber.Contains(search) || f.CustomerName.Contains(search) || f.AccountNumber.Contains(search))
+                    .OrderByDescending(f => f.DateProcessed).Take(50).ToList();
+
+            return Json(uploadedFiles);
+        }
+
         public IActionResult Entries(int page = 1)
         {
             try
@@ -166,12 +177,12 @@ namespace SbslFileTransformer.Controllers
                 var count = 0;
                 var itemsPerPage = 10;
 
-                var uploadedFiles = _dbContext.UploadedFiles.OrderByDescending(f => f.UploadedDate)
-                    .Skip((page - 1) * itemsPerPage).OrderByDescending(f => f.UploadedDate).Take(itemsPerPage).ToList();
+                var visionRecords = _dbContext.VisionRecords.OrderByDescending(f => f.DateProcessed)
+                    .Skip((page - 1) * itemsPerPage).OrderByDescending(f => f.DateProcessed).Take(itemsPerPage).ToList();
 
-                count = _dbContext.UploadedFiles.Count();
+                count = _dbContext.VisionRecords.Count();
 
-                var pagedList = new StaticPagedList<SftpUploadedFile>(uploadedFiles, page, itemsPerPage, count);
+                var pagedList = new StaticPagedList<VisionRecord>(visionRecords, page, itemsPerPage, count);
 
                 return View(pagedList);
             }

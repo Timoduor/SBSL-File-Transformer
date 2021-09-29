@@ -4,12 +4,13 @@ namespace SbslFileTransformer.Models
 {
     public class VisionRecord
     {
+        public Guid Id { get; set; }
         public DateTime BankingDate { get; set; }
         public string TransDetails { get; set; }
         public string TransID { get; set; }
-        public string ReferenceNo { get; set; }
+        public string ReferenceNumber { get; set; }
         public string GLTransCode { get; set; }
-        public string CardNo { get; set; }
+        public string CardNumber { get; set; }
         public double CreditAmount { get; set; }
         public double DebitAmount { get; set; }
         public string CustomerName { get; set; }

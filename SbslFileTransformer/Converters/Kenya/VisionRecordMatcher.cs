@@ -1,35 +1,33 @@
 ﻿using CsvHelper;
 using ExcelDataReader;
-using SbslFileTransformer.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 
 namespace SbslFileTransformer.Converters.Kenya
 {
-    public class RecordMatcherExtractor
+    public class VisionRecordMatcher
     {
         public void MatchFiles(string glFile, string finacleFile, string outputPath)
         {
-            List<VisionRecord> glRecs = GetRecordsFromGLCmsFile(glFile);
-            List<FinacleRec> cmsRecs = GetRecordsFromFinacleFile(finacleFile);
+            ////List<VisionRecord> glRecs = GetVisionRecordsFromDb(glFile);
+            //List<FinacleRec> cmsRecs = GetRecordsFromFinacleFile(finacleFile);
 
-            foreach (var glRec in glRecs)
-            {
-                IEnumerable<FinacleRec> selectedRecs = cmsRecs.Where(c => c.RefNum == glRec.ReferenceNo);
+            ////foreach (var glRec in glRecs)
+            //{
+            //    //IEnumerable<FinacleRec> selectedRecs = cmsRecs.Where(c => c.RefNum == glRec.ReferenceNumber);
 
-                double sumOfCmsCredit = selectedRecs.Select(c => c.Credit).Sum();
-                double sumOfCmsDebit = selectedRecs.Select(c => c.Debit).Sum();
+            //    double sumOfCmsCredit = selectedRecs.Select(c => c.Credit).Sum();
+            //    double sumOfCmsDebit = selectedRecs.Select(c => c.Debit).Sum();
 
-                if (glRec.DebitAmount == sumOfCmsDebit && glRec.CreditAmount == sumOfCmsDebit)
-                {
-                    var outputFilePath = Path.Combine(outputPath, Path.ChangeExtension(Path.GetFileName(glFile), ".csv"));
+            //    //if (glRec.DebitAmount == sumOfCmsDebit && glRec.CreditAmount == sumOfCmsDebit)
+            //    {
+            //        var outputFilePath = Path.Combine(outputPath, Path.ChangeExtension(Path.GetFileName(glFile), ".csv"));
 
-                    GenerateFileForSelectedRecords(selectedRecs, outputFilePath);
-                }
-            }
+            //        GenerateFileForSelectedRecords(selectedRecs, outputFilePath);
+            //    }
+            //}
         }
 
         private void GenerateFileForSelectedRecords(IEnumerable<FinacleRec> rows, string outputFile)
@@ -90,52 +88,7 @@ namespace SbslFileTransformer.Converters.Kenya
             return finacleRecs;
         }
 
-        private List<VisionRecord> GetRecordsFromGLCmsFile(string glFile)
-        {
-            var glCmsRecs = new List<VisionRecord>();
 
-            using (var stream = File.Open(glFile, FileMode.Open, FileAccess.Read))
-            {
-                IExcelDataReader reader;
-
-                if (Path.GetExtension(glFile).ToLower().Contains("csv"))
-                    reader = ExcelReaderFactory.CreateCsvReader(stream);
-                else
-                    reader = ExcelReaderFactory.CreateReader(stream);
-
-                using (reader)
-                {
-                    int count = 0;
-
-                    while (reader.Read())
-                    {
-                        if (count <= 10)
-                        {
-                            count++;
-                            continue;
-                        }
-
-                        var glRec = new VisionRecord();
-
-                        glRec.BankingDate = reader.GetDateTime(0);
-                        glRec.TransDetails = reader.GetString(1);
-                        glRec.TransID = reader.GetString(2);
-                        glRec.ReferenceNo = reader.GetString(3);
-                        glRec.GLTransCode = reader.GetString(4);
-                        glRec.CardNo = reader.GetString(5);
-                        glRec.CreditAmount = reader.GetDouble(6);
-                        glRec.DebitAmount = reader.GetDouble(7);
-                        glRec.CustomerName = reader.GetString(8);
-                        glRec.ContractNumber = reader.GetString(9);
-                        glRec.AccountNumber = reader.GetString(10);
-
-                        glCmsRecs.Add(glRec);
-                    }
-                }
-            }
-
-            return glCmsRecs;
-        }
 
         public class FinacleRec
         {

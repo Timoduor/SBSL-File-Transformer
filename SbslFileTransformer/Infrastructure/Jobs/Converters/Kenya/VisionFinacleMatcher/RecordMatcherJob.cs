@@ -70,7 +70,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     files.AddRange(
                         Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls") || f.ToLower().EndsWith(".xlsx")));
 
-                    var mpesaConverter = new RecordMatcherExtractor();
+                    var mpesaConverter = new VisionRecordMatcher();
 
                     foreach (var file in files)
                     {
@@ -132,8 +132,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                     fileToProcessGL.Converted = true;
                                     fileToProcessCMS.Converted = true;
 
-                                    fileToProcessGL.ConvertedBy = nameof(RecordMatcherExtractor);
-                                    fileToProcessCMS.ConvertedBy = nameof(RecordMatcherExtractor);
+                                    fileToProcessGL.ConvertedBy = nameof(VisionRecordMatcher);
+                                    fileToProcessCMS.ConvertedBy = nameof(VisionRecordMatcher);
 
                                     dbContext.Update(fileToProcessGL);
                                     dbContext.Update(fileToProcessCMS);
