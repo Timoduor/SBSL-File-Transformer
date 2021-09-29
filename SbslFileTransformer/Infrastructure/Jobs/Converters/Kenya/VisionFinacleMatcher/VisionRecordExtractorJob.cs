@@ -1,10 +1,13 @@
 ﻿using ExcelDataReader;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
+using SbslFileTransformer.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -30,14 +33,96 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
             _semaphore = new SemaphoreSlim(1, 1);
 
             _timer = new Timer(async state => await VisionRecordExtractor(), null,
-                TimeSpan.FromSeconds(new Random().Next(15, 60)), TimeSpan.FromMinutes(5));
+                TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
         private async Task VisionRecordExtractor()
         {
+            try
+            {
+                await _semaphore.WaitAsync();
 
+                _logger.LogInformation("Running Record Matcher Extractor job");
+
+                var prodFolder = string.Empty;
+                var sbFolder = string.Empty;
+                var Entity = string.Empty;
+
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
+                        .ToList();
+
+                    Entity = dbContext.Configurations
+                        .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
+                    prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
+                    sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
+
+
+                    var options = new EnumerationOptions
+                    { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
+
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx"))
+                       .ToList();
+
+                    files.AddRange(
+                        Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")));
+
+                    foreach (var file in files)
+                    {
+                        if (file.ToLower().Contains("cards") && file.ToLower().Contains("credit_card")
+                            && file.ToLower().Contains("collections_cms") && file.ToLower().Contains("imke"))
+                        {
+                            var fileToProcess =
+                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
+                                    f.FilePath.ToLower() == file.ToLower());
+
+
+
+                            if (fileToProcess != null && fileToProcess.Converted == false)
+                            {
+                                try
+                                {
+                                    var records = GetRecordsFromVisionFile(file);
+
+                                    await InsertRecordsToDb(records, dbContext);
+                                }
+                                catch (Exception ex)
+                                {
+                                    fileToProcess.Failed = true;
+
+                                    _logger.LogError(ex, ex.Message);
+
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Extracting records from Vision files",
+                                        $"{file} \n\n {ex.Message}", new[] { file }, _emailSender);
+                                }
+                                finally
+                                {
+                                    fileToProcess.Converted = true;
+
+                                    fileToProcess.ConvertedBy = nameof(VisionRecordExtractorJob);
+
+                                    dbContext.Update(fileToProcess);
+
+                                    await dbContext.SaveChangesAsync();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
         }
 
         private List<VisionRecord> GetRecordsFromVisionFile(string glFile)
@@ -67,7 +152,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
 
                         var glRec = new VisionRecord();
 
-                        glRec.BankingDate = reader.GetDateTime(0);
+                        glRec.BankingDate = Convert.ToDateTime(reader.GetString(0));
                         glRec.TransDetails = reader.GetString(1);
                         glRec.TransID = reader.GetString(2);
                         glRec.ReferenceNumber = reader.GetString(3);
@@ -79,7 +164,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                         glRec.ContractNumber = reader.GetString(9);
                         glRec.AccountNumber = reader.GetString(10);
                         glRec.FileName = glFile;
-                        glRec.DateProcessed = DateTime.Now;
+                        glRec.DateExtracted = DateTime.Now;
 
                         glCmsRecs.Add(glRec);
                     }

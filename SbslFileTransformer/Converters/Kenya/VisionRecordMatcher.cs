@@ -9,7 +9,7 @@ namespace SbslFileTransformer.Converters.Kenya
 {
     public class VisionRecordMatcher
     {
-        public void MatchFiles(string glFile, string finacleFile, string outputPath)
+        public void MatchFiles(string finacleFile, string outputPath)
         {
             ////List<VisionRecord> glRecs = GetVisionRecordsFromDb(glFile);
             //List<FinacleRec> cmsRecs = GetRecordsFromFinacleFile(finacleFile);

@@ -16,7 +16,9 @@ namespace SbslFileTransformer.Models
         public string CustomerName { get; set; }
         public string ContractNumber { get; set; }
         public string AccountNumber { get; set; }
+        public bool Matched { get; set; }
         public string FileName { get; set; }
-        public DateTime DateProcessed { get; set; }
+        public DateTime DateExtracted { get; set; }
+        public DateTime? DateMatched { get; set; }
     }
 }

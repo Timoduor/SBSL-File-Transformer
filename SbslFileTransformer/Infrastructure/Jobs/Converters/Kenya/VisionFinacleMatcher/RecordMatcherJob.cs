@@ -77,66 +77,39 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                         if (file.ToLower().Contains("cards") && file.ToLower().Contains("credit_card")
                             && file.ToLower().Contains("collections_gl") && file.ToLower().Contains("imke"))
                         {
-                            var fileToProcessGL =
+                            var fileToProcess =
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
                                     f.FilePath.ToLower() == file.ToLower());
 
-                            var glFilePath = fileToProcessGL.FilePath;
-                            var cmsFilePath = Path.ChangeExtension(glFilePath.Replace("Collections_GL", "Collections_CMS"), ".xls");
 
-                            var fileToProcessCMS =
-                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
-                                    f.FilePath.ToLower() == cmsFilePath.ToLower());
-
-                            if (!File.Exists(cmsFilePath))
-                            {
-                                await EmailHelpers.SendEmails(dbContext, $"Missing Expected CMS file {cmsFilePath}",
-                                    $"Expected {cmsFilePath} but was not found for balance check. Please place the file with a matching Collections_GL file",
-                                    new[] { file }, _emailSender);
-                                continue;
-                            }
-
-                            if (!File.Exists(glFilePath))
-                            {
-                                await EmailHelpers.SendEmails(dbContext, $"Missing Expected GL file {glFilePath}",
-                                    $"Expected {glFilePath} but was not found for balance check. Please place the file with a matching Collections_CMS file",
-                                    new[] { file }, _emailSender);
-                                continue;
-                            }
-
-                            if (fileToProcessGL != null && fileToProcessGL.Converted == false
-                                && fileToProcessCMS != null && fileToProcessCMS.Converted == false)
+                            if (fileToProcess != null && fileToProcess.Converted == false)
                             {
 
-                                string path = Path.GetDirectoryName(glFilePath);
+                                string path = Path.GetDirectoryName(file);
                                 string outputPath = Path.Combine(Path.GetFullPath(Path.Combine(path, @"..\")), "Conv");
 
                                 Directory.CreateDirectory(outputPath);
 
                                 try
                                 {
-                                    mpesaConverter.MatchFiles(glFilePath, cmsFilePath, outputPath);
+                                    mpesaConverter.MatchFiles(file, outputPath);
                                 }
                                 catch (Exception ex)
                                 {
-                                    fileToProcessGL.Failed = true;
-                                    fileToProcessCMS.Failed = true;
+                                    fileToProcess.Failed = true;
 
                                     _logger.LogError(ex, ex.Message);
 
                                     await EmailHelpers.SendEmails(dbContext, "Problem Converting Omni Lookup files",
-                                        $"{glFilePath},{cmsFilePath} \n\n {ex.Message}", new[] { glFilePath, cmsFilePath }, _emailSender);
+                                        $"{file} \n\n {ex.Message}", new[] { file }, _emailSender);
                                 }
                                 finally
                                 {
-                                    fileToProcessGL.Converted = true;
-                                    fileToProcessCMS.Converted = true;
+                                    fileToProcess.Converted = true;
 
-                                    fileToProcessGL.ConvertedBy = nameof(VisionRecordMatcher);
-                                    fileToProcessCMS.ConvertedBy = nameof(VisionRecordMatcher);
+                                    fileToProcess.ConvertedBy = nameof(VisionRecordMatcher);
 
-                                    dbContext.Update(fileToProcessGL);
-                                    dbContext.Update(fileToProcessCMS);
+                                    dbContext.Update(fileToProcess);
 
                                     await dbContext.SaveChangesAsync();
                                 }

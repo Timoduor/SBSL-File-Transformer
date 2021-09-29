@@ -55,7 +55,7 @@ namespace SbslFileTransformer.Controllers
         public IActionResult SearchUploadedFile(string search)
         {
             var uploadedFiles = _dbContext.UploadedFiles.Where(f => f.Name.Contains(search) || f.FilePath.Contains(search) || f.Md5.Contains(search))
-                    .OrderByDescending(f => f.UploadedDate).Take(25).ToList();
+                    .OrderByDescending(f => f.UploadedDate).Take(200).ToList();
 
             return Json(uploadedFiles);
         }
@@ -66,7 +66,7 @@ namespace SbslFileTransformer.Controllers
                         .Where(f => f.TransDetails.Contains(search) || f.TransID.Contains(search) || f.GLTransCode.Contains(search)
                         || f.FileName.Contains(search) || f.ReferenceNumber.Contains(search) || f.CardNumber.Contains(search)
                         || f.ContractNumber.Contains(search) || f.CustomerName.Contains(search) || f.AccountNumber.Contains(search))
-                    .OrderByDescending(f => f.DateProcessed).Take(50).ToList();
+                    .OrderByDescending(f => f.DateExtracted).Take(500).ToList();
 
             return Json(uploadedFiles);
         }
@@ -177,8 +177,8 @@ namespace SbslFileTransformer.Controllers
                 var count = 0;
                 var itemsPerPage = 10;
 
-                var visionRecords = _dbContext.VisionRecords.OrderByDescending(f => f.DateProcessed)
-                    .Skip((page - 1) * itemsPerPage).OrderByDescending(f => f.DateProcessed).Take(itemsPerPage).ToList();
+                var visionRecords = _dbContext.VisionRecords.OrderByDescending(f => f.DateExtracted)
+                    .Skip((page - 1) * itemsPerPage).OrderByDescending(f => f.DateExtracted).Take(itemsPerPage).ToList();
 
                 count = _dbContext.VisionRecords.Count();
 

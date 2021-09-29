@@ -66,10 +66,16 @@
                             Account Number
                         </th>
                         <th>
+                            Matched
+                        </th>
+                        <th>
                             FileName
                         </th>
                         <th>
-                            Date Processed
+                            Date Extracted
+                        </th>
+                        <th>
+                            Date Matched
                         </th>
                     </tr>
                     </thead>
@@ -111,16 +117,22 @@
                                 @Html.DisplayFor(modelItem => item.AccountNumber)
                             </td>
                             <td>
+                                @Html.DisplayFor(modelItem => item.Matched)
+                            </td>
+                            <td>
                                 @Html.DisplayFor(modelItem => item.FileName)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.DateProcessed)
+                                @Html.DisplayFor(modelItem => item.DateExtracted)
+                            </td>
+                             <td>
+                                @Html.DisplayFor(modelItem => item.DateMatched)
                             </td>
                         </tr>
                     }
                     </tbody>
                 </table>
-                @Html.PagedListPager(Model, page => Url.Action("Index", new {page}),
+                @Html.PagedListPager(Model, page => Url.Action("Vision", new {page}),
                     new PagedListRenderOptions
                     {
                         LiElementClasses = new List<string> {"btn", "btn-light mb-5"}
@@ -165,7 +177,7 @@
                                 '</td><td>'
                                     + value.referenceNumber +
                                 '</td><td>'
-                                    + value.gLTransCode + 
+                                    + value.glTransCode + 
                                 '</td><td>'
                                     + value.cardNumber +
                                 '</td><td>'
@@ -179,9 +191,13 @@
                                 '</td><td>'
                                     + value.accountNumber +
                                 '</td><td>'
+                                    + value.matched +
+                                '</td><td>'
                                      + value.fileName +
                                 '</td><td>'
-                                     + value.dateProcessed +
+                                     + value.dateExtracted +
+                                '</td><td>'
+                                    + value.dateMatched +
                                 '</td><td>';                            
                         }); 
 
