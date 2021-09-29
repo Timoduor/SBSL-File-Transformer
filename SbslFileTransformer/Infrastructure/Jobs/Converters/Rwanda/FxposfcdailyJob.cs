@@ -1,10 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters.CDM;
-using SbslFileTransformer.Converters.Rwanda;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Jobs;
@@ -29,12 +26,6 @@ namespace SbslFileTransformer.Converters.Rwanda
             _emailSender = emailSender;
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _semaphore.Dispose();
-            _timer.Dispose();
-            return Task.CompletedTask;
-        }
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting Fxposfcdaily  Converter Job");
@@ -77,7 +68,7 @@ namespace SbslFileTransformer.Converters.Rwanda
                     var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")).ToList();
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")));
-                    var fc_Converter = new fc_dailyConverter ();
+                    var fc_Converter = new fc_dailyConverter();
                     var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
                     var rootFolder = isProd ? prodFolder : sbFolder;
 
@@ -105,7 +96,7 @@ namespace SbslFileTransformer.Converters.Rwanda
                                 }
                                 finally
                                 {
-                                    
+
 
                                     fileToProcess.ConvertedBy = nameof(fc_dailyConverter);
 

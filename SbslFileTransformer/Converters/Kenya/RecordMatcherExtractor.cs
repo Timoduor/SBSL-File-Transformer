@@ -1,5 +1,6 @@
 ﻿using CsvHelper;
 using ExcelDataReader;
+using SbslFileTransformer.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -12,7 +13,7 @@ namespace SbslFileTransformer.Converters.Kenya
     {
         public void MatchFiles(string glFile, string finacleFile, string outputPath)
         {
-            List<GLCmsRec> glRecs = GetRecordsFromGLCmsFile(glFile);
+            List<VisionRecord> glRecs = GetRecordsFromGLCmsFile(glFile);
             List<FinacleRec> cmsRecs = GetRecordsFromFinacleFile(finacleFile);
 
             foreach (var glRec in glRecs)
@@ -89,9 +90,9 @@ namespace SbslFileTransformer.Converters.Kenya
             return finacleRecs;
         }
 
-        private List<GLCmsRec> GetRecordsFromGLCmsFile(string glFile)
+        private List<VisionRecord> GetRecordsFromGLCmsFile(string glFile)
         {
-            var glCmsRecs = new List<GLCmsRec>();
+            var glCmsRecs = new List<VisionRecord>();
 
             using (var stream = File.Open(glFile, FileMode.Open, FileAccess.Read))
             {
@@ -114,7 +115,7 @@ namespace SbslFileTransformer.Converters.Kenya
                             continue;
                         }
 
-                        var glRec = new GLCmsRec();
+                        var glRec = new VisionRecord();
 
                         glRec.BankingDate = reader.GetDateTime(0);
                         glRec.TransDetails = reader.GetString(1);
@@ -134,21 +135,6 @@ namespace SbslFileTransformer.Converters.Kenya
             }
 
             return glCmsRecs;
-        }
-
-        public class GLCmsRec
-        {
-            public DateTime BankingDate { get; set; }
-            public string TransDetails { get; set; }
-            public string TransID { get; set; }
-            public string ReferenceNo { get; set; }
-            public string GLTransCode { get; set; }
-            public string CardNo { get; set; }
-            public double CreditAmount { get; set; }
-            public double DebitAmount { get; set; }
-            public string CustomerName { get; set; }
-            public string ContractNumber { get; set; }
-            public string AccountNumber { get; set; }
         }
 
         public class FinacleRec

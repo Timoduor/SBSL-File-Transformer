@@ -1,10 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters.CDM;
-using SbslFileTransformer.Converters.Rwanda;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Jobs;
@@ -29,12 +26,6 @@ namespace SbslFileTransformer.Converters.Rwanda
             _emailSender = emailSender;
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _semaphore.Dispose();
-            _timer.Dispose();
-            return Task.CompletedTask;
-        }
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting Fxposfcdaily  Converter Job");

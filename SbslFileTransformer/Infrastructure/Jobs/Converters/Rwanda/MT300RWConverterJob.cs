@@ -37,11 +37,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             return Task.CompletedTask;
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            await _timer.DisposeAsync();
-        }
-
         private async Task ConvertMT300File()
         {
             try
@@ -80,11 +75,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         //FILE PATH SHOULD HAVE FOLDER NAME MT300 SOMEWHERE IN IT
                         if (file.ToLower().Contains("imrw") && file.ToLower().Contains("treasury") && file.ToLower().Contains("fx_confirmation") && file.ToLower().Contains("mt300"))
                         {
-                            var fileToProcess =await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
+                            var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
                             var outputfile = Path.GetDirectoryName(file) + "\\Converted_MT300_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".csv";
-                         
+
                             if (fileToProcess != null && fileToProcess.Converted == false)
-                             
+
                                 try
                                 {
                                     mt300Converter.ProcessMt300File(file);
@@ -113,11 +108,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                     {
                                     }
 
-                                    await EmailHelpers.SendEmails(dbContext, "Error in MT300 file conversion",$"Problem with  file {file} \n\n {ex.Message}", new[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Error in MT300 file conversion", $"Problem with  file {file} \n\n {ex.Message}", new[] { file }, _emailSender);
                                 }
                                 finally
                                 {
-                                
+
 
                                     fileToProcess.ConvertedBy = nameof(MT300RWConverterJob);
 
@@ -125,7 +120,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                     await dbContext.SaveChangesAsync();
 
-                                
+
                                 }
                             //}
                         }

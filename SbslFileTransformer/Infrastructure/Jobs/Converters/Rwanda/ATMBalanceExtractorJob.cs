@@ -1,12 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters.CDM;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
-using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
@@ -39,13 +36,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             return Task.CompletedTask;
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _semaphore.Dispose();
-            _timer.Dispose();
-            return Task.CompletedTask;
-        }
-
         private async Task ConvertATMBALFile()
         {
             try
@@ -67,7 +57,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     Entity = dbContext.Configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
-                    var isProd = Convert.ToBoolean(  configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
+                    var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
 
                     var rootFolder = isProd ? prodFolder : sbFolder;
 
@@ -81,7 +71,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     foreach (var file in files)
                         //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
-                        if (file.ToLower().Contains("imrw") || file.ToLower().Contains("atms") &&   file.ToLower().Contains("balances") )
+                        if (file.ToLower().Contains("imrw") || file.ToLower().Contains("atms") && file.ToLower().Contains("balances"))
                         {
                             var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
@@ -107,15 +97,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    
-                                    if (fileToProcess.Converted==true)
-                                    { 
-                                    if (Entity == "IMRW") fileToProcess.ConvertedBy = nameof(ATMBalConverterRwanda);
-                                    if (Entity == "IMKE") fileToProcess.ConvertedBy = nameof(ATMBalConverterRwanda);
 
-                                    dbContext.Update(fileToProcess);
+                                    if (fileToProcess.Converted == true)
+                                    {
+                                        if (Entity == "IMRW") fileToProcess.ConvertedBy = nameof(ATMBalConverterRwanda);
+                                        if (Entity == "IMKE") fileToProcess.ConvertedBy = nameof(ATMBalConverterRwanda);
 
-                                    await dbContext.SaveChangesAsync();
+                                        dbContext.Update(fileToProcess);
+
+                                        await dbContext.SaveChangesAsync();
                                     }
                                 }
                         }

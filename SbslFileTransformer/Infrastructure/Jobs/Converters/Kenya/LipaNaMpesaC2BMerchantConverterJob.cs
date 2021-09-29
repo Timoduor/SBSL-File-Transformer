@@ -38,13 +38,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             return Task.CompletedTask;
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _semaphore.Dispose();
-            _timer.Dispose();
-            return Task.CompletedTask;
-        }
-
         private async Task LipaNaMpesaConverter()
         {
             try

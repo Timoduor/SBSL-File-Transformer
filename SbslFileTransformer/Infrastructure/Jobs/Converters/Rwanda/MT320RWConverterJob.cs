@@ -37,12 +37,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             return Task.CompletedTask;
         }
 
-
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            await _timer.DisposeAsync();
-        }
-
         private async Task ConvertMT320File()
         {
             try
@@ -82,7 +76,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         //FILE PATH SHOULD HAVE FOLDER NAME MT300 SOMEWHERE IN IT
                         if (file.ToLower().Contains("imrw") && file.ToLower().Contains("treasury") && file.ToLower().Contains("money_market") && file.ToLower().Contains("mt320"))
                         {
-                            var fileToProcess =await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
+                            var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
@@ -118,7 +112,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 finally
                                 {
 
-                                  
+
 
                                     fileToProcess.ConvertedBy = nameof(MT320RWConverterJob);
 

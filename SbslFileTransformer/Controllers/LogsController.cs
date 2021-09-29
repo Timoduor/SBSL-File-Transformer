@@ -195,7 +195,6 @@ namespace SbslFileTransformer.Controllers
             }
         }
 
-
         private IEnumerable<FileInfo> GetLogFiles(int page, int itemsPerPage, out int totalCount)
         {
             var logPathFiles = Path.Combine(_logsFolder, "log_files");

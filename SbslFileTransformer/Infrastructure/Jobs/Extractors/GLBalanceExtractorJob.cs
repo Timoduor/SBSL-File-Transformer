@@ -30,11 +30,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
             return Task.CompletedTask;
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            await _timer.DisposeAsync();
-        }
-
         private async Task ExtractGLBalances()
         {
             try

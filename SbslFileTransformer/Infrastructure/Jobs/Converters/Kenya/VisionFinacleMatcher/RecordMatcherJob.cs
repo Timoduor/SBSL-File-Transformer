@@ -154,12 +154,5 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                 _semaphore.Release();
             }
         }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _semaphore.Dispose();
-            _timer.Dispose();
-            return Task.CompletedTask;
-        }
     }
 }

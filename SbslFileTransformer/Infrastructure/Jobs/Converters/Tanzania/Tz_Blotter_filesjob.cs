@@ -36,11 +36,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             return Task.CompletedTask;
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            await _timer.DisposeAsync();
-        }
-
         private async Task ConvertBlotterFile()
         {
             try
@@ -87,41 +82,41 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             var fileToProcess =
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
                                     f.FilePath.ToLower() == file.ToLower());
-                        if (fileToProcess != null && fileToProcess.Converted == false)
-                           try
-                            {
-                                Blotter_Converter.Convert_Blotter_file(file);
+                            if (fileToProcess != null && fileToProcess.Converted == false)
+                                try
+                                {
+                                    Blotter_Converter.Convert_Blotter_file(file);
                                     fileToProcess.Converted = true;
                                 }
-                            catch (Exception ex)
-                            {
+                                catch (Exception ex)
+                                {
                                     fileToProcess.Failed = true;
 
                                     _logger.LogError(ex, ex.Message);
 
-                                var archive = "";
+                                    var archive = "";
 
-                                archive = Path.Combine(Path.GetDirectoryName(file) + "\\blotter", "FAILED",
-                                    DateTime.Now.ToString("yyMMdd") + "\\blotter");
-                                if (!Directory.Exists(archive))
-                                    Directory.CreateDirectory(archive);
+                                    archive = Path.Combine(Path.GetDirectoryName(file) + "\\blotter", "FAILED",
+                                        DateTime.Now.ToString("yyMMdd") + "\\blotter");
+                                    if (!Directory.Exists(archive))
+                                        Directory.CreateDirectory(archive);
 
 
-                                try
-                                {
-                                    File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".err");
-                                    File.Delete(file);
+                                    try
+                                    {
+                                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".err");
+                                        File.Delete(file);
+                                    }
+                                    catch (Exception xc)
+                                    {
+                                    }
+
+                                    await EmailHelpers.SendEmails(dbContext, "Error in Blotter file conversion",
+                                        $"Problem with  file {file} \n\n {ex.Message}", new[] { file }, _emailSender);
                                 }
-                                catch (Exception xc)
+                                finally
                                 {
-                                }
 
-                                await EmailHelpers.SendEmails(dbContext, "Error in Blotter file conversion",
-                                    $"Problem with  file {file} \n\n {ex.Message}", new[] { file }, _emailSender);
-                            }
-                            finally
-                            {
-                                    
 
                                     fileToProcess.ConvertedBy = nameof(Tz_Blotter_Converter);
 
@@ -131,22 +126,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                     var archive = "";
 
-                                archive = Path.Combine(Path.GetDirectoryName(file), "ARCHIVE",
-                                    DateTime.Now.ToString("yyMMdd"));
-                                if (!Directory.Exists(archive))
-                                    Directory.CreateDirectory(archive);
+                                    archive = Path.Combine(Path.GetDirectoryName(file), "ARCHIVE",
+                                        DateTime.Now.ToString("yyMMdd"));
+                                    if (!Directory.Exists(archive))
+                                        Directory.CreateDirectory(archive);
 
 
-                                try
-                                {
-                                    File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".blt");
-                                    File.Delete(file);
+                                    try
+                                    {
+                                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".blt");
+                                        File.Delete(file);
+                                    }
+                                    catch (Exception xc)
+                                    {
+                                        _logger.LogError(xc, xc.Message);
+                                    }
                                 }
-                                catch (Exception xc)
-                                {
-                                    _logger.LogError(xc, xc.Message);
-                                }
-                            }
                         }
                 }
             }

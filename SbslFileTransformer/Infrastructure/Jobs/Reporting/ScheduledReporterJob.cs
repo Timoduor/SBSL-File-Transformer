@@ -41,12 +41,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             return Task.CompletedTask;
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogWarning("Scheduled reporter has been stopped");
-            await _timer.DisposeAsync();
-        }
-
         /// <summary>
         /// This is the main method that does everything
         /// </summary>

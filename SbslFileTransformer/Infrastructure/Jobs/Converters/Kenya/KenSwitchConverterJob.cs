@@ -37,13 +37,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             return Task.CompletedTask;
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogInformation("Stopping KS converter job");
-
-            await _timer.DisposeAsync();
-        }
-
         private async Task ConvertKenSwitchPdfs()
         {
             try
