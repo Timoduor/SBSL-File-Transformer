@@ -120,5 +120,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
             return isValid;
         }
+
+        public virtual Task StopAsync(CancellationToken cancellationToken)
+        {
+            _semaphore.Dispose();
+            _timer.Dispose();
+            return Task.CompletedTask;
+        }
     }
 }

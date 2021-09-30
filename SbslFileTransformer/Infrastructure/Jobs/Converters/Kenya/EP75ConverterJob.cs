@@ -37,12 +37,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             return Task.CompletedTask;
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _timer.Dispose();
-            return Task.CompletedTask;
-        }
-
         private async Task ConvertEP75File()
         {
             try

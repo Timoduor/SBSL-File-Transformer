@@ -1,13 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters.CDM;
 using SbslFileTransformer.Converters.Rwanda;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
-using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
@@ -29,12 +26,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             _emailSender = emailSender;
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _semaphore.Dispose();
-            _timer.Dispose();
-            return Task.CompletedTask;
-        }
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting fx_pos_ft_sum Converter Job");
@@ -89,7 +80,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         if (file.ToLower().Contains("imrw") && file.ToLower().Contains("treasury") && file.ToLower().Contains("fx_pos") && file.ToLower().Contains("fx_pos_ft_sum"))// && !file.ToLower().Contains("conv")
                         {
                             var fileToProcess =
-                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>f.FilePath.ToLower() == file.ToLower());
+                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try

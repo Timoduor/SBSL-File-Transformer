@@ -145,10 +145,5 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 _semaphore.Release();
             }
         }
-
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            await _timer.DisposeAsync();
-        }
     }
 }

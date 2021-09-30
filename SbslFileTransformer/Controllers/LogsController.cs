@@ -37,7 +37,7 @@ namespace SbslFileTransformer.Controllers
                 var itemsPerPage = 10;
 
                 var uploadedFiles = _dbContext.UploadedFiles.OrderByDescending(f => f.UploadedDate)
-                    .Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToList().OrderByDescending(f => f.UploadedDate);
+                    .Skip((page - 1) * itemsPerPage).OrderByDescending(f => f.UploadedDate).Take(itemsPerPage).ToList();
 
                 count = _dbContext.UploadedFiles.Count();
 
@@ -50,6 +50,25 @@ namespace SbslFileTransformer.Controllers
                 _logger.LogError(ex, ex.Message);
                 return RedirectToAction("Index", "Home");
             }
+        }
+
+        public IActionResult SearchUploadedFile(string search)
+        {
+            var uploadedFiles = _dbContext.UploadedFiles.Where(f => f.Name.Contains(search) || f.FilePath.Contains(search) || f.Md5.Contains(search))
+                    .OrderByDescending(f => f.UploadedDate).Take(200).ToList();
+
+            return Json(uploadedFiles);
+        }
+
+        public IActionResult SearchVisionRecord(string search)
+        {
+            var uploadedFiles = _dbContext.VisionRecords
+                        .Where(f => f.TransDetails.Contains(search) || f.TransID.Contains(search) || f.GLTransCode.Contains(search)
+                        || f.FileName.Contains(search) || f.ReferenceNumber.Contains(search) || f.CardNumber.Contains(search)
+                        || f.ContractNumber.Contains(search) || f.CustomerName.Contains(search) || f.AccountNumber.Contains(search))
+                    .OrderByDescending(f => f.DateExtracted).Take(500).ToList();
+
+            return Json(uploadedFiles);
         }
 
         public IActionResult Entries(int page = 1)
@@ -151,6 +170,29 @@ namespace SbslFileTransformer.Controllers
             }
         }
 
+        public IActionResult Vision(int page = 1)
+        {
+            try
+            {
+                var count = 0;
+                var itemsPerPage = 10;
+
+                var visionRecords = _dbContext.VisionRecords.OrderByDescending(f => f.DateExtracted)
+                    .Skip((page - 1) * itemsPerPage).OrderByDescending(f => f.DateExtracted).Take(itemsPerPage).ToList();
+
+                count = _dbContext.VisionRecords.Count();
+
+                var pagedList = new StaticPagedList<VisionRecord>(visionRecords, page, itemsPerPage, count);
+
+                return View(pagedList);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return RedirectToAction("Index", "Home");
+            }
+        }
+
         private byte[] ReadAllBytes2(string filePath, FileAccess fileAccess = FileAccess.Read,
             FileShare shareMode = FileShare.ReadWrite)
         {
@@ -163,7 +205,6 @@ namespace SbslFileTransformer.Controllers
                 }
             }
         }
-
 
         private IEnumerable<FileInfo> GetLogFiles(int page, int itemsPerPage, out int totalCount)
         {

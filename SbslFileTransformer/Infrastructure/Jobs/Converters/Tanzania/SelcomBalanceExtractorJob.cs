@@ -37,13 +37,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             return Task.CompletedTask;
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _semaphore.Dispose();
-            _timer.Dispose();
-            return Task.CompletedTask;
-        }
-
         private async Task SelcomFileBalanceExtractor()
         {
             try
@@ -82,7 +75,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     foreach (var file in files)
                         if (file.ToLower().Contains("mb") && file.ToLower().Contains("imtz") &&
-                            (file.ToLower().Contains("selcom") || file.ToLower().Contains("b2w") 
+                            (file.ToLower().Contains("selcom") || file.ToLower().Contains("b2w")
                             || file.ToLower().Contains("w2b") || file.ToLower().Contains("spenn")))
                         {
                             var fileToProcess =

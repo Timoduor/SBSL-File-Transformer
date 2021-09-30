@@ -234,6 +234,34 @@ namespace SbslFileTransformer.Converters
                     $"GLAccounts_{fileDate:yyyyMMdd}_{curr}_{Entity}.txt");
             }
 
+            if (filePath.ToLower().Contains("tresuspense"))
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath),
+                    $"GLAccounts_{fileDate:yyyyMMdd}_TRESUS_{Entity}.txt");
+
+            if (filePath.ToLower().Contains("trepmoneymarket"))
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath),
+                    $"GLAccounts_{fileDate:yyyyMMdd}_TREMONMK_{Entity}.txt");
+
+            if (filePath.ToLower().Contains("trecontiliab"))
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath),
+                    $"GLAccounts_{fileDate:yyyyMMdd}_TRECOLIAB_{Entity}.txt");
+
+            if (filePath.ToLower().Contains("trecontiasset"))
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath),
+                    $"GLAccounts_{fileDate:yyyyMMdd}_TRECOASS_{Entity}.txt");
+
+            if (filePath.ToLower().Contains("treintexp"))
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath),
+                    $"GLAccounts_{fileDate:yyyyMMdd}_TREINEXP_{Entity}.txt");
+
+            if (filePath.ToLower().Contains("treintinc"))
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath),
+                    $"GLAccounts_{fileDate:yyyyMMdd}_TREININC_{Entity}.txt");
+
+            if (filePath.ToLower().Contains("treposition"))
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath),
+                    $"GLAccounts_{fileDate:yyyyMMdd}_TREPOS_{Entity}.txt");
+
             return outputPath;
         }
 

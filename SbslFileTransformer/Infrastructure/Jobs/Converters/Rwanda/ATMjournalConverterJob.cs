@@ -36,12 +36,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             return Task.CompletedTask;
         }
 
-
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            await _timer.DisposeAsync();
-        }
-
         private async Task RWConvertATMJournal()
         {
             try
@@ -70,13 +64,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                   
-
                     var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt")).ToList();
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt")));
-
-        
-
 
                     var ATMJournalConverter = new RW_ATMJournalConverter();
 
@@ -102,7 +91,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    
+
 
                                     fileToProcess.ConvertedBy = nameof(ATMjournalConverterJob);
 

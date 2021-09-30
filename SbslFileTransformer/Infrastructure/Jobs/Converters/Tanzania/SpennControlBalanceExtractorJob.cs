@@ -37,11 +37,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
             return Task.CompletedTask;
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            await _timer.DisposeAsync();
-        }
-
         private async Task GenerateMultiCurrFile()
         {
             try

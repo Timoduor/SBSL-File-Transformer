@@ -36,11 +36,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             return Task.CompletedTask;
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            await _timer.DisposeAsync();
-        }
-
         private async Task ConvertATMJournal()
         {
             try
@@ -88,39 +83,39 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
                                     f.FilePath.ToLower() == file.ToLower());
                             if (fileToProcess != null && fileToProcess.Converted == false)
-                            try
-                            {
-                                ATMJournalConverter.ProcessATMjournalFile(file);
-                                    fileToProcess.Converted = true;
-                                }
-                            catch (Exception ex)
-                            {
-                                //fileToProcess.Failed = true;
-
-                                _logger.LogError(ex, ex.Message);
-
-                                var archive = "";
-
-                                archive = Path.Combine(Path.GetDirectoryName(file) + "\\ATMJournal", "FAILED",
-                                    DateTime.Now.ToString("yyMMdd") + "\\ATMJournal");
-                                if (!Directory.Exists(archive))
-                                    Directory.CreateDirectory(archive);
-
-
                                 try
                                 {
-                                    File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".err");
-                                    File.Delete(file);
+                                    ATMJournalConverter.ProcessATMjournalFile(file);
+                                    fileToProcess.Converted = true;
                                 }
-                                catch (Exception xc)
+                                catch (Exception ex)
                                 {
-                                }
+                                    //fileToProcess.Failed = true;
 
-                                await EmailHelpers.SendEmails(dbContext, "Error in ATMJournal file conversion",
-                                    $"Problem with  file {file} \n\n {ex.Message}", new[] { file }, _emailSender);
-                            }
-                            finally
-                            {
+                                    _logger.LogError(ex, ex.Message);
+
+                                    var archive = "";
+
+                                    archive = Path.Combine(Path.GetDirectoryName(file) + "\\ATMJournal", "FAILED",
+                                        DateTime.Now.ToString("yyMMdd") + "\\ATMJournal");
+                                    if (!Directory.Exists(archive))
+                                        Directory.CreateDirectory(archive);
+
+
+                                    try
+                                    {
+                                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".err");
+                                        File.Delete(file);
+                                    }
+                                    catch (Exception xc)
+                                    {
+                                    }
+
+                                    await EmailHelpers.SendEmails(dbContext, "Error in ATMJournal file conversion",
+                                        $"Problem with  file {file} \n\n {ex.Message}", new[] { file }, _emailSender);
+                                }
+                                finally
+                                {
 
 
                                     fileToProcess.ConvertedBy = nameof(TZ_ATMJournalConverter);
@@ -130,22 +125,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                     await dbContext.SaveChangesAsync();
                                     var archive = "";
 
-                                archive = Path.Combine(Path.GetDirectoryName(file), "ARCHIVE",
-                                    DateTime.Now.ToString("yyMMdd"));
-                                if (!Directory.Exists(archive))
-                                    Directory.CreateDirectory(archive);
+                                    archive = Path.Combine(Path.GetDirectoryName(file), "ARCHIVE",
+                                        DateTime.Now.ToString("yyMMdd"));
+                                    if (!Directory.Exists(archive))
+                                        Directory.CreateDirectory(archive);
 
 
-                                try
-                                {
-                                    File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".atm");
-                                    File.Delete(file);
+                                    try
+                                    {
+                                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".atm");
+                                        File.Delete(file);
+                                    }
+                                    catch (Exception xc)
+                                    {
+                                        _logger.LogError(xc, xc.Message);
+                                    }
                                 }
-                                catch (Exception xc)
-                                {
-                                    _logger.LogError(xc, xc.Message);
-                                }
-                            }
                         }
                 }
             }

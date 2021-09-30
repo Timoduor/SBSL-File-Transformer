@@ -41,12 +41,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             return Task.CompletedTask;
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogWarning("Scheduled reporter has been stopped");
-            await _timer.DisposeAsync();
-        }
-
         /// <summary>
         /// This is the main method that does everything
         /// </summary>
@@ -80,7 +74,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
                         foreach (var report in allReports)
                         {
-                            if (dbContext.ProcessedReports.Any(r => r.ReportId == report.ReportId)) continue;
+                            if (dbContext.ProcessedReports.Any(r => r.ReportId == report.ReportId))
+                                continue;
 
                             _logger.LogInformation($"Processing report {report.Name} with ID {report.ReportId}");
 

@@ -1,6 +1,6 @@
 ﻿@using X.PagedList.Mvc.Core
 @using X.PagedList.Mvc.Core.Common
-@model X.PagedList.IPagedList<SftpUploadedFile>
+@model X.PagedList.IPagedList<VisionRecord>
 
 @{
     ViewData["Title"] = "Logs";
@@ -21,10 +21,10 @@
 
     <div class="card card-light small">
         <div class="card-header">
-            <strong>Uploaded Files</strong>
+            <strong>Vision records</strong>
             <div class="float-right">
-                <label><b>Search:</b></label>
-                <input id="search" placeholder="Type details of Uploaded File here..." style="width:350px;height:35px" />
+                <label>Search:</label>
+                <input id="search" placeholder="Type details of Vision record here..." style="width:350px;height:35px" />
             </div>
         </div>
         <div class="card-body">
@@ -33,101 +33,106 @@
                     <thead class="thead-dark">
                     <tr>
                         <th>
-                            Name
+                            Banking Date
                         </th>
                         <th>
-                            Uploaded Date
+                            Trans Details
                         </th>
                         <th>
-                            Size
+                            Trans ID
                         </th>
                         <th>
-                            Md5
+                            Reference No
                         </th>
                         <th>
-                            Is Production
+                            Gl Trans Code
                         </th>
                         <th>
-                            File Path
+                            Card Number
                         </th>
                         <th>
-                            Converted By
+                            Debit Amount
                         </th>
                         <th>
-                            Conversion Failed
+                            Credit Amount
                         </th>
                         <th>
-                            Converted
+                            Customer Name
                         </th>
                         <th>
-                            Processed For 62F
+                            Contract Number
                         </th>
                         <th>
-                            Balance Extracted
+                            Account Number
                         </th>
                         <th>
-                            Sequence No
+                            Matched
                         </th>
                         <th>
-                            Statement No
+                            FileName
                         </th>
                         <th>
-                            Account No
+                            Date Extracted
                         </th>
-
+                        <th>
+                            Date Matched
+                        </th>
                     </tr>
                     </thead>
                     <tbody id="searchReplace">
                     @foreach (var item in Model)
                     {
-                        <tr class="@(item.IsProduction ? "bg-warning" : "bg-light")">
+                        <tr>
                             <td class="bg-">
-                                @Html.DisplayFor(modelItem => item.Name)
+                                @Html.DisplayFor(modelItem => item.BankingDate)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.UploadedDate)
+                                @Html.DisplayFor(modelItem => item.TransDetails)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.Size)
+                                @Html.DisplayFor(modelItem => item.TransID)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.Md5)
+                                @Html.DisplayFor(modelItem => item.ReferenceNumber)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.IsProduction)
+                                @Html.DisplayFor(modelItem => item.GLTransCode)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.FilePath)
+                                @Html.DisplayFor(modelItem => item.CardNumber)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.ConvertedBy)
+                                @Html.DisplayFor(modelItem => item.DebitAmount)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.Failed)
+                                @Html.DisplayFor(modelItem => item.CreditAmount)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.Converted)
+                                @Html.DisplayFor(modelItem => item.CustomerName)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.ContractNumber)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.AccountNumber)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Matched)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.FileName)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.DateExtracted)
                             </td>
                              <td>
-                                @Html.DisplayFor(modelItem => item.ProcessFor62F)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.BalanceExtracted)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.MtSequenceNo)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.MtStatementNo)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.MtAccountNo)
+                                @Html.DisplayFor(modelItem => item.DateMatched)
                             </td>
                         </tr>
                     }
                     </tbody>
                 </table>
-                @Html.PagedListPager(Model, page => Url.Action("Index", new {page}),
+                @Html.PagedListPager(Model, page => Url.Action("Vision", new {page}),
                     new PagedListRenderOptions
                     {
                         LiElementClasses = new List<string> {"btn", "btn-light mb-5"}
@@ -144,9 +149,9 @@
         $('.alert').alert();
 
         let timeoutID = null;
-        let endpoint = '/Logs/SearchUploadedFile';
+        let endpoint = '/Logs/SearchVisionRecord';
 
-        function findUploadedFile(str) {            
+        function findVisionRecord(str) {            
             console.log('search: ' + str);
             $.ajax({
                 url: endpoint + "?search=" + str,
@@ -164,34 +169,36 @@
 
                             htmlToAppend += 
                              '<tr><td>'
-                                    + value.name + 
+                                    + value.bankingDate + 
                                 '</td><td>'
-                                   + value.uploadedDate +
+                                   + value.transDetails +
                                 '</td><td>'
-                                    + value.size +
+                                    + value.transID +
                                 '</td><td>'
-                                    + value.md5 +
+                                    + value.referenceNumber +
                                 '</td><td>'
-                                    + value.isProduction + 
+                                    + value.glTransCode + 
                                 '</td><td>'
-                                    + value.filePath +
+                                    + value.cardNumber +
                                 '</td><td>'
-                                     + value.convertedBy +
+                                     + value.debitAmount +
                                 '</td><td>'
-                                     + value.failed +
+                                     + value.creditAmount +
                                 '</td><td>'
-                                     + value.converted +
+                                     + value.customerName +
                                 '</td><td>'
-                                     + value.processFor62F +
+                                     + value.contractNumber +
                                 '</td><td>'
-                                    + value.balanceExtracted +
+                                    + value.accountNumber +
                                 '</td><td>'
-                                     + value.mtSequenceNo +
+                                    + value.matched +
                                 '</td><td>'
-                                     + value.mtStatementNo +
+                                     + value.fileName +
                                 '</td><td>'
-                                     + value.mtAccountNo +
-                                '</td></tr>';                            
+                                     + value.dateExtracted +
+                                '</td><td>'
+                                    + value.dateMatched +
+                                '</td><td>';                            
                         }); 
 
                         $('#searchReplace').html(htmlToAppend);
@@ -206,7 +213,7 @@
         $('#search').keyup(function(e) {
           clearTimeout(timeoutID);
           const value = e.target.value;
-          timeoutID = setTimeout(() => findUploadedFile(value), 1000)
+          timeoutID = setTimeout(() => findVisionRecord(value), 1000)
         });
     </script>
 }

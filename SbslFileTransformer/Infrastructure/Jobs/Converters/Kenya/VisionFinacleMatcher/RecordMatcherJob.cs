@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters.Tanzania;
+using SbslFileTransformer.Converters.Kenya;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
@@ -13,37 +13,36 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
+namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
-    public class SuspenseTachBalanceExtractorJob : ConverterJobBase<SuspenseTachBalanceExtractorJob>, IHostedService
+    public class RecordMatcherJob : ConverterJobBase<RecordMatcherJob>, IHostedService
     {
-        public SuspenseTachBalanceExtractorJob(ILogger<SuspenseTachBalanceExtractorJob> logger,
-            IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+        public RecordMatcherJob(ILogger<RecordMatcherJob> logger, IServiceScopeFactory serviceScopeFactory,
+            EmailSender emailSender)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
             _emailSender = emailSender;
         }
-
         public Task StartAsync(CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Starting Record Matcher Extractor Job");
+
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _logger.LogInformation("Starting Suspense Balance Extractor job");
-
-            _timer = new Timer(async state => await GenerateMultiCurrFile(), null,
-                TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
+            _timer = new Timer(async state => await RecordMatcherExtractorConverter(), null,
+                TimeSpan.FromSeconds(new Random().Next(15, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task GenerateMultiCurrFile()
+        private async Task RecordMatcherExtractorConverter()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running Suspense Balance Extractor job");
+                _logger.LogInformation("Running Record Matcher Extractor job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -61,33 +60,39 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
-                    var isProd =
-                        Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ??
-                                          false.ToString());
 
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.xls", options).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls") || f.ToLower().EndsWith(".xlsx"))
+                       .ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.xls", options));
+                    files.AddRange(
+                        Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls") || f.ToLower().EndsWith(".xlsx")));
 
-                    var pdfConverter = new SuspenseTachBalanceExtractor(Entity);
+                    var mpesaConverter = new VisionRecordMatcher();
 
                     foreach (var file in files)
-                        if (file.ToLower().Contains("clearing_suspense") && file.ToLower().Contains("imtz") &&
-                            file.ToLower().Contains("tachbalances"))
+                    {
+                        if (file.ToLower().Contains("cards") && file.ToLower().Contains("credit_card")
+                            && file.ToLower().Contains("collections_gl") && file.ToLower().Contains("imke"))
                         {
                             var fileToProcess =
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
                                     f.FilePath.ToLower() == file.ToLower());
 
+
                             if (fileToProcess != null && fileToProcess.Converted == false)
+                            {
+
+                                string path = Path.GetDirectoryName(file);
+                                string outputPath = Path.Combine(Path.GetFullPath(Path.Combine(path, @"..\")), "Conv");
+
+                                Directory.CreateDirectory(outputPath);
+
                                 try
                                 {
-                                    var rootFolder = isProd ? prodFolder : sbFolder;
-
-                                    pdfConverter.ConvertFile(file, rootFolder);
+                                    mpesaConverter.MatchFiles(file, outputPath);
                                 }
                                 catch (Exception ex)
                                 {
@@ -95,21 +100,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext,
-                                        "Problem running Suspense Balance Extractor files", $"{file} \n\n {ex.Message}",
-                                        new[] { file }, _emailSender);
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting Omni Lookup files",
+                                        $"{file} \n\n {ex.Message}", new[] { file }, _emailSender);
                                 }
                                 finally
                                 {
                                     fileToProcess.Converted = true;
 
-                                    fileToProcess.ConvertedBy = nameof(SuspenseTachBalanceExtractor);
+                                    fileToProcess.ConvertedBy = nameof(VisionRecordMatcher);
 
                                     dbContext.Update(fileToProcess);
 
                                     await dbContext.SaveChangesAsync();
                                 }
+                            }
                         }
+                    }
                 }
             }
             catch (Exception ex)

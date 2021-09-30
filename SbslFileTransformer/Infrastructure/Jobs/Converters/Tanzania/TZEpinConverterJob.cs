@@ -39,12 +39,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             return Task.CompletedTask;
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _timer.Dispose();
-            return Task.CompletedTask;
-        }
-
         private async Task ConvertEPINFile()
         {
             try
@@ -83,7 +77,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         if (file.ToLower().Contains("epin") && file.ToLower().Contains("imtz") && file.ToLower().Contains("cards"))
                         {
                             var fileToProcess =
-                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>f.FilePath.ToLower() == file.ToLower());
+                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try

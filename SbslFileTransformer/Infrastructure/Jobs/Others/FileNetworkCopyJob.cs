@@ -31,15 +31,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
             return Task.CompletedTask;
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogInformation("Copy files to network folder service stopped!");
-
-            _timer.Dispose();
-
-            return Task.CompletedTask;
-        }
-
         private async Task CopyFilesToNetworkPath()
         {
             try
