@@ -145,6 +145,7 @@ namespace SbslFileTransformer
             services.AddHostedService<FxposftdailyJob>();
             services.AddHostedService<TZEpinConverterJob>();
             services.AddHostedService<TZ_EP75ConverterJob>();
+            services.AddHostedService<Repo2_ConverterJob>();
 
 
             services.AddHostedService<FileNetworkCopyJob>();

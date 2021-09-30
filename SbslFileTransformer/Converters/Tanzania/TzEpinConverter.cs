@@ -23,7 +23,8 @@ namespace SbslFileTransformer.Converters
             {
                 outputDirectory = Path.GetDirectoryName(file);
             }
-            outputDirectory = Path.GetFullPath(Path.Combine(outputDirectory, @"..\")) + "Conv";
+            outputDirectory= Path.GetFullPath(file) + "\\Conv";
+            //outputDirectory = Path.GetFullPath(Path.Combine(outputDirectory, @"..\")) + "Conv";
             if (!Directory.Exists(outputDirectory))
                 Directory.CreateDirectory(outputDirectory);
 
