@@ -1,38 +1,70 @@
 ﻿using CsvHelper;
 using ExcelDataReader;
+using SbslFileTransformer.Data;
+using SbslFileTransformer.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Converters.Kenya
 {
     public class VisionRecordMatcher
     {
-        public void MatchFiles(string finacleFile, string outputPath)
+        private ApplicationDbContext _dbContext;
+
+        public VisionRecordMatcher(ApplicationDbContext dbContext)
         {
-            ////List<VisionRecord> glRecs = GetVisionRecordsFromDb(glFile);
-            //List<FinacleRec> cmsRecs = GetRecordsFromFinacleFile(finacleFile);
-
-            ////foreach (var glRec in glRecs)
-            //{
-            //    //IEnumerable<FinacleRec> selectedRecs = cmsRecs.Where(c => c.RefNum == glRec.ReferenceNumber);
-
-            //    double sumOfCmsCredit = selectedRecs.Select(c => c.Credit).Sum();
-            //    double sumOfCmsDebit = selectedRecs.Select(c => c.Debit).Sum();
-
-            //    //if (glRec.DebitAmount == sumOfCmsDebit && glRec.CreditAmount == sumOfCmsDebit)
-            //    {
-            //        var outputFilePath = Path.Combine(outputPath, Path.ChangeExtension(Path.GetFileName(glFile), ".csv"));
-
-            //        GenerateFileForSelectedRecords(selectedRecs, outputFilePath);
-            //    }
-            //}
+            _dbContext = dbContext;
         }
 
-        private void GenerateFileForSelectedRecords(IEnumerable<FinacleRec> rows, string outputFile)
+        public async Task MatchFiles(string finacleFile, string outputPath)
         {
+            List<FinacleRec> finacleRecords = GetRecordsFromFinacleFile(finacleFile);
 
+            IEnumerable<VisionRecord> unmatchedVisionRecords = GetUnmatchedVisionRecords();
+
+            List<VisionRecord> matchedRecords = new List<VisionRecord>();
+
+            foreach (var finRec in finacleRecords)
+            {
+                if (unmatchedVisionRecords.Any(u => u.ReferenceNumber == finRec.ReferenceNumber))
+                {
+                    IEnumerable<VisionRecord> matchedRecs = unmatchedVisionRecords.Where(u => u.ReferenceNumber == finRec.ReferenceNumber);
+
+                    matchedRecords.AddRange(matchedRecs);
+
+                    CreateFileForReferenceNumber(matchedRecs, finRec.ReferenceNumber, outputPath);
+                }
+            }
+
+            matchedRecords.ForEach(v => v.Matched = true);
+
+            _dbContext.VisionRecords.UpdateRange(matchedRecords);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        private void CreateFileForReferenceNumber(IEnumerable<VisionRecord> matchedRecs, string referenceNumber, string outputPath)
+        {
+            string outputFile = Path.Combine(outputPath, referenceNumber + ".csv");
+
+            if (File.Exists(outputFile))
+            {
+                throw new Exception($"Vision ref no. {referenceNumber} file {outputFile} already exists");
+            }
+
+            GenerateFileForSelectedRecords(matchedRecs, outputFile);
+        }
+
+        private IEnumerable<VisionRecord> GetUnmatchedVisionRecords()
+        {
+            return _dbContext.VisionRecords.Where(v => v.Matched);
+        }
+
+        private void GenerateFileForSelectedRecords(IEnumerable<VisionRecord> rows, string outputFile)
+        {
             using (var writer = new StreamWriter(outputFile))
             {
                 using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
@@ -65,20 +97,28 @@ namespace SbslFileTransformer.Converters.Kenya
                     {
                         var finacleRec = new FinacleRec();
 
-                        finacleRec.TransDate = reader.GetDateTime(0);
-                        finacleRec.TransTime = reader.GetString(1);
-                        finacleRec.ValueDate = reader.GetDateTime(2);
-                        finacleRec.TransID = reader.GetString(3);
-                        finacleRec.TranParticular = reader.GetString(4);
-                        finacleRec.TranRemarks = reader.GetString(5);
-                        finacleRec.RefNum = reader.GetString(6);
-                        finacleRec.Stan = reader.GetString(7);
-                        finacleRec.TermID = reader.GetString(8);
-                        finacleRec.DebitCredit = reader.GetString(9);
-                        finacleRec.Credit = reader.GetDouble(10);
-                        finacleRec.Debit = reader.GetDouble(11);
-                        finacleRec.Outstanding = reader.GetDouble(12);
-                        finacleRec.CustomerAccount = reader.GetString(13);
+                        finacleRec.AccountNumber = reader.GetString(0);
+                        finacleRec.Currency = reader.GetString(1);
+                        finacleRec.ReferenceNumber = reader.GetString(2);
+                        finacleRec.CardNumber = reader.GetString(3);
+                        finacleRec.TransDate = reader.GetString(4);
+                        finacleRec.ValueDate = Convert.ToDateTime(reader.GetString(5));
+                        finacleRec.TransactionTime = reader.GetString(6);
+                        finacleRec.Ref1 = reader.GetString(7);
+                        finacleRec.Ref2 = reader.GetString(8);
+                        finacleRec.Ref3 = reader.GetString(9);
+                        finacleRec.Ref4 = reader.GetString(10);
+                        finacleRec.DebitCredit = reader.GetString(11);
+                        finacleRec.Amount = Convert.ToDouble(reader.GetString(12));
+                        finacleRec.TransactionParticular = reader.GetString(13);
+                        finacleRec.TransactionID = reader.GetString(14);
+                        if (DateTime.TryParseExact(reader.GetString(15), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime transDate))
+                        {
+                            finacleRec.TransactionDate = transDate;
+                        }
+                        finacleRec.Time = reader.GetString(16);
+                        finacleRec.Ref5 = reader.GetString(17);
+                        finacleRec.Branch = reader.GetString(18);
 
                         finacleRecs.Add(finacleRec);
                     }
@@ -92,20 +132,25 @@ namespace SbslFileTransformer.Converters.Kenya
 
         public class FinacleRec
         {
-            public DateTime TransDate { get; set; }
-            public string TransTime { get; set; }
+            public string AccountNumber { get; set; }
+            public string Currency { get; set; }
+            public string ReferenceNumber { get; set; }
+            public string CardNumber { get; set; }
+            public string TransDate { get; set; }
             public DateTime ValueDate { get; set; }
-            public string TransID { get; set; }
-            public string TranParticular { get; set; }
-            public string TranRemarks { get; set; }
-            public string RefNum { get; set; }
-            public string Stan { get; set; }
-            public string TermID { get; set; }
+            public string TransactionTime { get; set; }
+            public string Ref1 { get; set; }
+            public string Ref2 { get; set; }
+            public string Ref3 { get; set; }
+            public string Ref4 { get; set; }
             public string DebitCredit { get; set; }
-            public double Credit { get; set; }
-            public double Debit { get; set; }
-            public double Outstanding { get; set; }
-            public string CustomerAccount { get; set; }
+            public double Amount { get; set; }
+            public string TransactionParticular { get; set; }
+            public string TransactionID { get; set; }
+            public DateTime TransactionDate { get; set; }
+            public string Time { get; set; }
+            public string Ref5 { get; set; }
+            public string Branch { get; set; }
         }
     }
 }

@@ -158,8 +158,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                         glRec.ReferenceNumber = reader.GetString(3);
                         glRec.GLTransCode = reader.GetString(4);
                         glRec.CardNumber = reader.GetString(5);
-                        glRec.CreditAmount = reader.GetDouble(6);
-                        glRec.DebitAmount = reader.GetDouble(7);
+                        glRec.CreditAmount = Convert.ToDouble(reader.GetString(6));
+                        glRec.DebitAmount = Convert.ToDouble(reader.GetString(7));
                         glRec.CustomerName = reader.GetString(8);
                         glRec.ContractNumber = reader.GetString(9);
                         glRec.AccountNumber = reader.GetString(10);
