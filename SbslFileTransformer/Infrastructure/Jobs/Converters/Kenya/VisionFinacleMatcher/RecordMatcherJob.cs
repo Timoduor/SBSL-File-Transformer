@@ -64,13 +64,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls") || f.ToLower().EndsWith(".xlsx"))
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv"))
                        .ToList();
 
                     files.AddRange(
-                        Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls") || f.ToLower().EndsWith(".xlsx")));
+                        Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")));
 
-                    var mpesaConverter = new VisionRecordMatcher();
+                    var mpesaConverter = new VisionRecordMatcher(dbContext);
 
                     foreach (var file in files)
                     {
@@ -92,7 +92,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                                 try
                                 {
-                                    mpesaConverter.MatchFiles(file, outputPath);
+                                    await mpesaConverter.MatchFiles(file, outputPath);
                                 }
                                 catch (Exception ex)
                                 {
