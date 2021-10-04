@@ -123,10 +123,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         excelCol.Col16 = row[16].ToString();
                         excelCol.Col17 = row[17].ToString();
                         excelCol.Col20 = sheet3.TableName;
-                        //if (excelCol.Col0 == null)
-                        //{
-                        //    continue;
-                        //}
+                       
 
                         list3.Add(excelCol);
                     }
