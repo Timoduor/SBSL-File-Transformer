@@ -16,6 +16,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             {
                 outputFolder = Path.GetDirectoryName(inputFile);
             }
+            outputFolder = Path.GetFullPath(Path.Combine(outputFolder, @"..\")) + "Conv";
+            if (!Directory.Exists(outputFolder))
+                Directory.CreateDirectory(outputFolder);
 
             var list2 = new List<ExcelCols>();
             var list3 = new List<ExcelCols>();

@@ -38,7 +38,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         baldate = DateTime.Parse(sGrp[i].Split('|')[1].Replace("Customer FX P&L for ", ""));
                     }
                 }
-                    for (var i = 1; i < sGrp.Length-1; i++)
+                    for (var i = 0; i < sGrp.Length-1; i++)
                     {
                     if(sGrp[i].Split('|')[2].Trim() !="")
                     {
@@ -60,9 +60,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                    
                 }
 
-                  outputFile = Path.Combine(outputFolder, $"GLAccounts_{baldate:yyyyMMdd}_{"Repo2_IMKE"}.txt");// Path.GetFileNameWithoutExtension(inputFile).Substring(Math.Max(0, inputFile.Length - 13)).Replace(" ", "");
-
-                //outputFile  = Path.Combine(outputFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_Repo2_KE.txt");
+                  outputFile = Path.Combine(outputFolder, $"GLAccounts_{baldate:yyyyMMdd}_{"Repo2_IMKE"}.txt"); 
+                
                 WriteFile(outputFile, toAppend);
             }
         }
