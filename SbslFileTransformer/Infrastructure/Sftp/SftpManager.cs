@@ -77,8 +77,9 @@ namespace SbslFileTransformer.Infrastructure.Sftp
                 catch (Exception exception)
                 {
                     client.Disconnect();
+                    client.Dispose();
 
-                    EmailHelpers.SendEmails(_dbContext, "Problem Converting CDM Balance files", $"\n\n {exception.Message}", new[] { localFilePath }, _emailSender).GetAwaiter().GetResult();
+                    EmailHelpers.SendEmails(_dbContext, "Problem uploading file", $"\n\n {exception.Message}", new[] { localFilePath }, _emailSender).GetAwaiter().GetResult();
 
                     _logger.LogError(exception, $"Failed in uploading file [{localFilePath}] to [{remoteFilePath}]");
                 }

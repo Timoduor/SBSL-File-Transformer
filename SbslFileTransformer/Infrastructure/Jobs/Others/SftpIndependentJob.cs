@@ -149,9 +149,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                         new PrivateKeyAuthenticationMethod(config.UserName, keyFiles));
                 }
 
-                if (config.UseUnicode) connectionInfo.Encoding = Encoding.UTF8;
+                if (config.UseUnicode)
+                    connectionInfo.Encoding = Encoding.UTF8;
 
-
+                connectionInfo.MaxSessions = 1;
+                connectionInfo.RetryAttempts = 2;
 
                 if (string.IsNullOrEmpty(path) || !Directory.Exists(path) || !File.Exists(path))
                 {
