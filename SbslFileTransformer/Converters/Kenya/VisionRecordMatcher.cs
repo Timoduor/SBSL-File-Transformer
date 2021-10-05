@@ -28,27 +28,55 @@ namespace SbslFileTransformer.Converters.Kenya
 
             List<VisionRecord> matchedRecords = new List<VisionRecord>();
 
-            foreach (var finRec in finacleRecords)
-            {
-                if (unmatchedVisionRecords.Any(u => u.ReferenceNumber == finRec.ReferenceNumber))
-                {
-                    IEnumerable<VisionRecord> matchedRecs = unmatchedVisionRecords.Where(u => u.ReferenceNumber == finRec.ReferenceNumber);
+            IEnumerable<string> finacleRefs = finacleRecords.Select(f => f.ReferenceNumber).Distinct();
 
+            foreach (var finRef in finacleRefs)
+            {
+                if (finRef.Length != 20)
+                    continue;
+
+                if (!IsDigitsOnly(finRef))
+                {
+                    continue;
+                }
+
+                double finacleSumCredits = finacleRecords.Where(f => f.ReferenceNumber == finRef && f.DebitCredit == "Credit").Sum(f => f.Amount);
+                double finacleSumDebits = finacleRecords.Where(f => f.ReferenceNumber == finRef && f.DebitCredit == "Debit").Sum(f => f.Amount);
+
+                double finacleDiff = finacleSumCredits - finacleSumDebits;
+
+                IEnumerable<VisionRecord> matchedRecs = unmatchedVisionRecords.Where(v => v.ReferenceNumber == finRef).ToList();
+
+                double visionDiff = matchedRecs.Sum(v => v.CreditAmount - v.DebitAmount);
+
+                if (Math.Abs(Math.Round(finacleDiff, 2)) == Math.Abs(Math.Round(visionDiff, 2)) && matchedRecs.Count() > 0)
+                {
                     matchedRecords.AddRange(matchedRecs);
 
-                    CreateFileForReferenceNumber(matchedRecs, finRec.ReferenceNumber, outputPath);
+                    CreateFileForReferenceNumber(matchedRecs, finRef, outputPath);
+
+                    matchedRecords.ForEach(v => v.Matched = true);
+
+                    _dbContext.VisionRecords.UpdateRange(matchedRecords);
+                    await _dbContext.SaveChangesAsync();
                 }
             }
+        }
 
-            matchedRecords.ForEach(v => v.Matched = true);
+        private bool IsDigitsOnly(string str)
+        {
+            foreach (char c in str)
+            {
+                if (c < '0' || c > '9')
+                    return false;
+            }
 
-            _dbContext.VisionRecords.UpdateRange(matchedRecords);
-            await _dbContext.SaveChangesAsync();
+            return true;
         }
 
         private void CreateFileForReferenceNumber(IEnumerable<VisionRecord> matchedRecs, string referenceNumber, string outputPath)
         {
-            string outputFile = Path.Combine(outputPath, referenceNumber + ".csv");
+            string outputFile = Path.Combine(outputPath, $"{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}_{referenceNumber}.csv");
 
             if (File.Exists(outputFile))
             {
@@ -60,7 +88,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private IEnumerable<VisionRecord> GetUnmatchedVisionRecords()
         {
-            return _dbContext.VisionRecords.Where(v => v.Matched);
+            return _dbContext.VisionRecords.Where(v => v.Matched == false);
         }
 
         private void GenerateFileForSelectedRecords(IEnumerable<VisionRecord> rows, string outputFile)

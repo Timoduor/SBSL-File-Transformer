@@ -31,7 +31,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             _semaphore = new SemaphoreSlim(1, 1);
 
             _timer = new Timer(async state => await RecordMatcherExtractorConverter(), null,
-                TimeSpan.FromSeconds(new Random().Next(15, 60)), TimeSpan.FromMinutes(10));
+                TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
@@ -105,7 +105,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 }
                                 finally
                                 {
-                                    fileToProcess.Converted = true;
+                                    //fileToProcess.Converted = true;
 
                                     fileToProcess.ConvertedBy = nameof(VisionRecordMatcher);
 

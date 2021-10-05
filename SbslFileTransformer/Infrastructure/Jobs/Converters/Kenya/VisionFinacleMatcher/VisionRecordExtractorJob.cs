@@ -33,7 +33,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
             _semaphore = new SemaphoreSlim(1, 1);
 
             _timer = new Timer(async state => await VisionRecordExtractor(), null,
-                TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(10));
+                TimeSpan.FromSeconds(new Random().Next(15, 30)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
@@ -158,8 +158,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                         glRec.ReferenceNumber = reader.GetString(3);
                         glRec.GLTransCode = reader.GetString(4);
                         glRec.CardNumber = reader.GetString(5);
-                        glRec.CreditAmount = Convert.ToDouble(reader.GetString(6));
-                        glRec.DebitAmount = Convert.ToDouble(reader.GetString(7));
+                        glRec.CreditAmount = reader.GetDouble(6);
+                        glRec.DebitAmount = reader.GetDouble(7);
                         glRec.CustomerName = reader.GetString(8);
                         glRec.ContractNumber = reader.GetString(9);
                         glRec.AccountNumber = reader.GetString(10);
