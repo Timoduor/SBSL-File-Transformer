@@ -102,7 +102,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                         File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".out");
                                         File.Delete(file);
                                     }
-                                    catch (Exception xc)
+                                    catch (Exception)
                                     {
                                     }
 

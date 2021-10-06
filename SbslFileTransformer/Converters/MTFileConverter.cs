@@ -165,7 +165,7 @@ namespace SbslFileTransformer.Converters
             }
         }
 
-        public static async Task RunMTBalanceExtractor(object location, bool isProduction, string sandboxOrProdFolder,
+        public static async Task RunMTBalanceExtractor(object location, string sandboxOrProdFolder,
             IServiceScopeFactory serviceScopeFactory, ILogger logger)
         {
             logger.LogInformation("Running MT Balance file extractor");

@@ -112,13 +112,15 @@ namespace SbslFileTransformer
                 //move corrupt sqlite log file to old files
                 File.Move(Path.Combine(logPathSqlite, "sbsletl_logs.db"),
                     Path.Combine(logPathSqlite, "Old",
-                        $"sbsletl_logs_{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}.db"));
+                        $"sbsletl_logs_{DateTime.Now:yyyy_MM_dd_HH_mm_ss}.db"));
                 //log the incident
                 File.AppendAllText(Path.Combine(logPathSqlite, "SQLite Problems.txt"),
-                    $"Sqlite Log file Delete due to corruption {DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}\n\n");
+                    $"Sqlite Log file Delete due to corruption {DateTime.Now:yyyy_MM_dd_HH_mm_ss}\n\n");
                 //restart the service
-                var eventLog = new EventLog();
-                eventLog.Source = "SBSL ETL Service";
+                var eventLog = new EventLog
+                {
+                    Source = "SBSL ETL Service"
+                };
                 eventLog.WriteEntry($"SBSL ETL Service Startup Log - {ex.Message}", EventLogEntryType.Error);
 
                 Environment.Exit(1);

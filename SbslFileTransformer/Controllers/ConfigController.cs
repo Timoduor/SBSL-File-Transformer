@@ -50,7 +50,7 @@ namespace SbslFileTransformer.Controllers
             if (string.IsNullOrEmpty(serviceName))
                 serviceName = "SBSL ETL Service";
 
-            FileHelpers.RestartService(serviceName);
+            FileHelpers.RestartService();
 
             return RedirectToAction("Index");
         }

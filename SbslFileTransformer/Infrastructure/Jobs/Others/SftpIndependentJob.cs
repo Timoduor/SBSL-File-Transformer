@@ -3,7 +3,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Renci.SshNet;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
@@ -22,16 +21,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         private static SemaphoreSlim _semaphore;
         private readonly ILogger<SftpIndependentJob> _logger;
         private readonly IServiceScopeFactory _serviceScopeFactory;
-        private EncryptionManager _encryptionManager;
         private readonly List<Timer> _timers = new List<Timer>();
-        private string Entity;
 
-        public SftpIndependentJob(IServiceScopeFactory serviceScopeFactory, ILogger<SftpIndependentJob> logger,
-            EncryptionManager encryptionManager)
+        public SftpIndependentJob(IServiceScopeFactory serviceScopeFactory, ILogger<SftpIndependentJob> logger)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
-            _encryptionManager = encryptionManager;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -42,10 +37,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 _semaphore = new SemaphoreSlim(1, 1);
 
-                SftpConfigModel config;
-                int prodTimeSpan, sbTimeSpan;
-
-                GetConfiguration(out config, out prodTimeSpan, out sbTimeSpan);
+                GetConfiguration(out SftpConfigModel config, out int prodTimeSpan, out int sbTimeSpan);
 
                 if (config.IncludeProduction)
                 {
@@ -118,7 +110,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     .FirstOrDefault(c => c.Key == "ProductionTimeSpanCheck")?.Value);
                 sbTimeSpan = Convert.ToInt32(dbContext.Configurations
                     .FirstOrDefault(c => c.Key == "SandboxTimeSpanCheck")?.Value);
-                Entity = configurations.FirstOrDefault(c => c.Key == "Entity")?.Value;
             }
         }
 

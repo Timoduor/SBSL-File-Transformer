@@ -20,10 +20,6 @@ namespace SbslFileTransformer.Converters.Kenya
 
             var lines = File.ReadAllLines(inputFile);
 
-            var previousIs82A_1 = false;
-
-            var previousIs87A_1 = false;
-
             var previousIs53A_1 = false;
 
             var previousIs53A_2 = false;
@@ -194,14 +190,14 @@ namespace SbslFileTransformer.Converters.Kenya
                     //check change
                     else if (value.StartsWith(":82A:"))
                     {
-                        previousIs82A_1 = true;
+                        bool previousIs82A_1 = true;
                         row.Col7 = value.Split(':')[2].Replace("\n", "");
                         continue;
                     }
                     //check change
                     else if (value.StartsWith(":87A:"))
                     {
-                        previousIs87A_1 = true;
+                        bool previousIs87A_1 = true;
                         row.Col8 = value.Split(':')[2].Replace("\n", "");
                         continue;
                     }
@@ -286,7 +282,7 @@ namespace SbslFileTransformer.Converters.Kenya
                     else if (value.StartsWith(":57A:") && first57AProcessed)
                     {
                         previousIs57A_2 = true;
-                        row.Col26 = row.Col26 + " " +  value.Split(':')[2].Replace("\n", "");
+                        row.Col26 = row.Col26 + " " + value.Split(':')[2].Replace("\n", "");
                         continue;
                     }
 

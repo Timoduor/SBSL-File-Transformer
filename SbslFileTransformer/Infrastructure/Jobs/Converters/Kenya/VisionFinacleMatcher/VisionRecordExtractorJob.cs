@@ -150,21 +150,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                             continue;
                         }
 
-                        var glRec = new VisionRecord();
-
-                        glRec.BankingDate = Convert.ToDateTime(reader.GetString(0));
-                        glRec.TransDetails = reader.GetString(1);
-                        glRec.TransID = reader.GetString(2);
-                        glRec.ReferenceNumber = reader.GetString(3);
-                        glRec.GLTransCode = reader.GetString(4);
-                        glRec.CardNumber = reader.GetString(5);
-                        glRec.CreditAmount = reader.GetDouble(6);
-                        glRec.DebitAmount = reader.GetDouble(7);
-                        glRec.CustomerName = reader.GetString(8);
-                        glRec.ContractNumber = reader.GetString(9);
-                        glRec.AccountNumber = reader.GetString(10);
-                        glRec.FileName = glFile;
-                        glRec.DateExtracted = DateTime.Now;
+                        VisionRecord glRec = new VisionRecord
+                        {
+                            BankingDate = Convert.ToDateTime(reader.GetString(0)),
+                            TransDetails = reader.GetString(1),
+                            TransID = reader.GetString(2),
+                            ReferenceNumber = reader.GetString(3),
+                            GLTransCode = reader.GetString(4),
+                            CardNumber = reader.GetString(5),
+                            CreditAmount = reader.GetDouble(6),
+                            DebitAmount = reader.GetDouble(7),
+                            CustomerName = reader.GetString(8),
+                            ContractNumber = reader.GetString(9),
+                            AccountNumber = reader.GetString(10),
+                            FileName = glFile,
+                            DateExtracted = DateTime.Now
+                        };
 
                         glCmsRecs.Add(glRec);
                     }

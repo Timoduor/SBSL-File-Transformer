@@ -63,7 +63,7 @@ namespace SbslFileTransformer.Infrastructure.Sftp
 
                     using (var s = File.OpenRead(localFilePath))
                     {
-                        client.UploadFile(s, remoteFilePath, true);// Reponse);
+                        client.UploadFile(s, remoteFilePath, true);
                     }
 
                     return true;
@@ -77,10 +77,6 @@ namespace SbslFileTransformer.Infrastructure.Sftp
             return false;
         }
 
-        private void Reponse(ulong obj)
-        {
-            _logger.LogInformation($"Response from server for upload is {obj}");
-        }
 
         private void CreateAllDirectories(SftpClient client, string path)
         {

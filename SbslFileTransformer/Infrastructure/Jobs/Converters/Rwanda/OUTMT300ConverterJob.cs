@@ -103,7 +103,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                         File.Delete(file);
 
                                     }
-                                    catch (Exception xc)
+                                    catch (Exception)
                                     {
                                     }
                                     await EmailHelpers.SendEmails(dbContext, "Error in  OUTMT300 file conversion", $"Problem with  file {file} \n\n {ex.Message}", new string[] { file }, _emailSender);
@@ -125,7 +125,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                         File.Delete(file);
 
                                     }
-                                    catch (Exception xc)
+                                    catch (Exception)
                                     {
                                     }
                                 }

@@ -69,10 +69,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f =>
                         f.ToLower().EndsWith(".csv") || f.ToLower().EndsWith(".xlsx")));
 
-                    var mpesaConverter = new CDMBalanceExtractor();
-
-                    mpesaConverter.ServiceScopeFactory = _serviceScopeFactory;
-                    mpesaConverter.Entity = Entity;
+                    var mpesaConverter = new CDMBalanceExtractor
+                    {
+                        ServiceScopeFactory = _serviceScopeFactory,
+                        Entity = Entity
+                    };
 
                     foreach (var file in files)
                         if (file.ToLower().Contains("cdm") && file.ToLower().Contains("bal") ||

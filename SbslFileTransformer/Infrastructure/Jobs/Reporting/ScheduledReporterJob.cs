@@ -271,9 +271,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                         var col3 = reader.GetValue(3)?.ToString();
                         if (string.IsNullOrEmpty(col3)) continue;
 
-                        DateTime postedDate;
-
-                        if (DateTime.TryParse(col3, out postedDate))
+                        if (DateTime.TryParse(col3, out DateTime postedDate))
                             try
                             {
                                 var daysOverdue =

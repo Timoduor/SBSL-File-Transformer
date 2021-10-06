@@ -26,7 +26,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
 
                 archive = Path.Combine(Path.GetDirectoryName(file) + "\\MT300", "FAILED",
                     DateTime.Now.ToString("yyMMdd") + "\\RTGSMT300");
-               
+
 
 
                 try
@@ -42,7 +42,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                         File.Delete(file);
                     }
                 }
-                catch (Exception xc)
+                catch (Exception)
                 {
                 }
 
@@ -117,8 +117,8 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                 scontent += "," + seq15B.NewSequenceB + "," + seq15B.TradeDate15B + "," + seq15B.ValueDate15B + "," + seq15B.ExchangeRate15B + "," + seq15B.CurrencyAmountbought15B;
                 scontent += "," + seq15B.Amountbought15B + "," + seq15B.ReceivingAgentAmountbought15B + "," + seq15B.CurrencyAmountSold15B + "," + seq15B.AmountSold15B + "," + seq15B.DeliveryAgentAmountSold15B + "," + seq15B.ReceivingAgentAmountSold15B;
                 scontent += "," + seq15C.NewSequenceC + "," + seq15C.DealingMethod15C + "," + seq15E.NewSequenceE + "," + seq15E.ExecutionVenue15E + "," + seq15E.ExecutionTimestamp15E;
-               
-                WriteFile(outputFolder + "\\Converted_MT300_" + Path.GetFileNameWithoutExtension(file) + ".csv",scontent); // DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff")
+
+                WriteFile(outputFolder + "\\Converted_MT300_" + Path.GetFileNameWithoutExtension(file) + ".csv", scontent); // DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff")
             }
         }
 

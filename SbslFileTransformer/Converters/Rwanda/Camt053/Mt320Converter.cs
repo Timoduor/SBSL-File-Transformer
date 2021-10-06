@@ -46,7 +46,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
 
 
                 }
-                catch (Exception xc)
+                catch (Exception)
                 {
 
                 }
@@ -75,7 +75,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
 
                 seq15A.NewSequenceA = "";
                 seq15A.SenderRef15A = l.First(p => p.StartsWith("20:")).Split('|')[1].ToString();
-                try { seq15A.RelatedRef15A = l.Any(p => p.StartsWith("21:")) ? l.First(p => p.StartsWith("21:")).Split('|')[1].ToString() : ""; } catch (Exception ex) { }
+                try { seq15A.RelatedRef15A = l.Any(p => p.StartsWith("21:")) ? l.First(p => p.StartsWith("21:")).Split('|')[1].ToString() : ""; } catch (Exception) { }
 
                 seq15A.TypeofOperation15A = l.Any(p => p.StartsWith("22A:")) ? l.First(p => p.StartsWith("22A:")).Split('|')[1].ToString() : "";
                 seq15A.ScopeofOperation15A = l.Any(p => p.StartsWith("94A:")) ? l.First(p => p.StartsWith("94A:")).Split('|')[1].ToString() : "";
@@ -121,7 +121,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                 scontent += "," + seq15B.NewSequenceB + "," + seq15B.PartyAsRole15B + "," + seq15B.TradeDate15B + "," + seq15B.ValueDate15B + "," + seq15B.MaturityDate15B + "," + seq15B.CurrencyPrincipalAmount15B + "," + seq15B.PrincipalAmount15B + "," + seq15B.NextInterestDueDate15B + "," + seq15B.CurrencyInterestAmount15B + "," + seq15B.InterestAmount15B + "," + seq15B.InterestRate15B + "," + seq15B.DayCountFraction15B;
                 scontent += "," + seq15C.NewSequenceC + "," + seq15C.DeliveryAgent15C + "," + seq15C.ReceivingAgent15C;
                 scontent += "," + seq15D.NewSequenceD + "," + seq15D.DeliveryAgent15D + "," + seq15D.ReceivingAgent15D;
-               
+
                 WriteFile(outputFolder + "\\Converted_MT320_" + Path.GetFileNameWithoutExtension(file) + ".csv", scontent);
             }
         }
@@ -372,7 +372,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                         }
                     }
 
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         if (d[i + 2].Trim().Split(':')[1].Trim().Substring(0, 3) == "USD" || d[i + 2].Trim().Split(':')[1].Trim().Substring(0, 3) == "RWF" || d[i + 2].Trim().Split(':')[1].Trim().Substring(0, 3) == "GBP" || d[i + 2].Trim().Split(':')[1].Trim().Substring(0, 3) == "KES")
                         {

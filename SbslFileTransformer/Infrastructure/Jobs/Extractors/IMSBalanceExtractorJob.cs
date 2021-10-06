@@ -72,10 +72,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                     files.AddRange(
                         Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")));
 
-                    var mpesaConverter = new ImsBalanceExtractor();
-
-                    mpesaConverter.Entity = Entity;
-                    mpesaConverter.ServiceScopeFactory = _serviceScopeFactory;
+                    var mpesaConverter = new ImsBalanceExtractor
+                    {
+                        Entity = Entity,
+                        ServiceScopeFactory = _serviceScopeFactory
+                    };
 
                     foreach (var file in files)
                         if (file.ToLower().Contains("ims") && file.ToLower().Contains("imke") &&

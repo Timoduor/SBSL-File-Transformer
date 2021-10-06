@@ -103,15 +103,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                             MatchCasing = MatchCasing.CaseInsensitive
                         };
 
-                        double period = 30;
 
-                        double.TryParse(backUpAllFilesPeriod, out period);
+                        double.TryParse(backUpAllFilesPeriod, out double period);
 
                         foreach (var file in Directory.GetFiles(productionFolder, "*.*", searchOptions))
                         {
                             var props = new FileInfo(file);
 
-                            if (props.LastWriteTime < DateTime.Now.AddDays(-period))
+                            if (props.LastWriteTime < DateTime.Now.AddDays(-30))
                             {
                                 var destination = Path.Combine(backUpPath, Path.GetFileName(file));
 

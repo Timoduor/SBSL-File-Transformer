@@ -22,7 +22,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
         private static readonly object _locker = new object();
         private static int delay = 0;
 
-        public static void RestartService(string serviceName)
+        public static void RestartService()
         {
             //https://stackoverflow.com/questions/28431621/how-to-restart-windows-service-by-itself-c-sharp
             // has to be 1 so that the service sees it as a failure and restarts itself

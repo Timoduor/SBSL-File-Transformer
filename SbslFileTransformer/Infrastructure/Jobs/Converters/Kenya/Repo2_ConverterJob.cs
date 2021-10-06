@@ -27,12 +27,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             _emailSender = emailSender;
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _semaphore.Dispose();
-            _timer.Dispose();
-            return Task.CompletedTask;
-        }
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting Repo2 Balance Extractor Converter Job");

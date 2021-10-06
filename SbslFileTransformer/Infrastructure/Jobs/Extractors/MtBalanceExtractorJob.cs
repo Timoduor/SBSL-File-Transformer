@@ -34,9 +34,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
         {
             _logger.LogInformation("Starting MT Balance Extractor...");
 
-            SftpConfigModel config;
-
-            GetConfiguration(out config);
+            GetConfiguration(out SftpConfigModel config);
 
             var loopTime = 7;
 
@@ -50,7 +48,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                 //sync all folders every hours
                 var timerProduction = new Timer(async state =>
-                        await MTFileConverter.RunMTBalanceExtractor(statementFolderProd, true, config.ProductionFolder,
+                        await MTFileConverter.RunMTBalanceExtractor(statementFolderProd, config.ProductionFolder,
                             _serviceScopeFactory, _logger)
                     , null, TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromMinutes(loopTime));
 
@@ -66,7 +64,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                 if (!Directory.Exists(statementFolder)) Directory.CreateDirectory(statementFolder);
 
                 var timerSandbox = new Timer(async state =>
-                        await MTFileConverter.RunMTBalanceExtractor(statementFolder, false, config.SandboxFolder,
+                        await MTFileConverter.RunMTBalanceExtractor(statementFolder, config.SandboxFolder,
                             _serviceScopeFactory, _logger)
                     , null, TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromMinutes(loopTime));
 
