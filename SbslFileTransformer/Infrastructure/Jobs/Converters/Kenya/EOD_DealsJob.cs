@@ -32,7 +32,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             _semaphore = new SemaphoreSlim(1, 1);
 
             _timer = new Timer(async state => await EOD_DealsConverter(), null,
-                TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(10));
+                TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
@@ -72,12 +72,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                     var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")).ToList();
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")));
-                    var EODDealConverter = new EODDealsKEConverter();                    
+                    var EODDealConverter = new EODDealsKEConverter();
 
                     foreach (var file in files)
                         //SPECIFY FOLDER and file extension above PENDING
 
-                        if ( file.ToLower().Contains("gl_entries") && file.ToLower().Contains("imke") && !file.Contains("Conv"))
+                        if (file.ToLower().Contains("gl_entries") && file.ToLower().Contains("imke") && !file.Contains("Conv"))
                         {
                             var fileToProcess =
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>

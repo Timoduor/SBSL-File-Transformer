@@ -31,7 +31,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             _semaphore = new SemaphoreSlim(1, 1);
 
             _timer = new Timer(async state => await ConvertMpesaB2CnC2BFile(), null,
-                TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
+                TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }

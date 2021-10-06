@@ -79,7 +79,7 @@ namespace SbslFileTransformer.Converters
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
                     var uploadedToday = dbContext.UploadedFiles.Where(u =>
-                        u.UploadedDate.Date == DateTime.Now.Date && u.MtAccountNo != null);
+                        u.UploadedDate.Date == DateTime.Now.Date && u.MtAccountNo != null).ToList();
 
                     var dict = uploadedToday.GroupBy(u => u.MtAccountNo)
                         .Select(u => new { Account = u.Key, Max = u.Max(u => u.MtSequenceNo) }).ToList();
@@ -188,7 +188,7 @@ namespace SbslFileTransformer.Converters
                     var notProcessed = dbContext.UploadedFiles.Where(u =>
                         u.ProcessFor62F == false && u.FilePath.ToLower().Contains("statement"));
 
-                    var pathForNotProcessed = notProcessed.Select(f => f.FilePath).ToList();
+                    var pathsForNotProcessed = notProcessed.Select(f => f.FilePath).ToList();
 
                     var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
                         .ToList();
@@ -202,7 +202,7 @@ namespace SbslFileTransformer.Converters
                         KeyFilesPath = configurations.FirstOrDefault(c => c.Key == "KeyFilesPath")?.Value
                     };
 
-                    if (pathForNotProcessed.Count() > 0)
+                    if (pathsForNotProcessed.Count() > 0)
                     {
                         var options = new EnumerationOptions
                         {
@@ -213,7 +213,7 @@ namespace SbslFileTransformer.Converters
                         var filesInDirectory = Directory.GetFiles(loc, "*.*", options).ToList();
 
                         filesInDirectoryToProcess = filesInDirectory
-                            .Where(f => pathForNotProcessed.Any(p => f.ToLower() == p.ToLower()) && f.ToLower().Contains(entity.ToLower()))
+                            .Where(f => pathsForNotProcessed.Any(p => f.ToLower() == p.ToLower()) && f.ToLower().Contains(entity.ToLower()))
                             .OrderBy(f => new FileInfo(f).LastWriteTime).ToList();
 
                         var multiCurrFile = await ProcessFilesBalance(filesInDirectoryToProcess, sandboxOrProdFolder,
@@ -231,7 +231,7 @@ namespace SbslFileTransformer.Converters
                             await dbContext.SaveChangesAsync();
                         }
 
-                        logger.LogInformation($"Finished running balance file extractor on {pathForNotProcessed.Count()} files");
+                        logger.LogInformation($"Finished running balance file extractor on {pathsForNotProcessed.Count()} files");
                     }
 
                 }

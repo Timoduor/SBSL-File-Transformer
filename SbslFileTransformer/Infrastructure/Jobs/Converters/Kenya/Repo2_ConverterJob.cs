@@ -1,13 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters.CDM;
 using SbslFileTransformer.Converters.Rwanda;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
-using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
@@ -43,7 +40,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             _semaphore = new SemaphoreSlim(1, 1);
 
             _timer = new Timer(async state => await Repo2_Converter(), null,
-                TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(10));
+                TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
@@ -82,12 +79,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".lst")));
 
-                    var Repo2Converter = new Repo2Converter ();
+                    var Repo2Converter = new Repo2Converter();
 
                     foreach (var file in files)
                         //SPECIFY FOLDER and file extension above PENDING
                         ///prod/imke/gl_entries/rep02
-                        if (file.ToLower().Contains("imke") && file.ToLower().Contains("gl_entries") && file.ToLower().Contains("rep02") )// && !file.ToLower().Contains("conv")
+                        if (file.ToLower().Contains("imke") && file.ToLower().Contains("gl_entries") && file.ToLower().Contains("rep02"))// && !file.ToLower().Contains("conv")
                         {
                             var fileToProcess =
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());

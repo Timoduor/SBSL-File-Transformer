@@ -44,11 +44,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             _timers.Add(timerArchive);
 
             var timerBackup = new Timer(async state => await BackupDb(), null,
-                TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromHours(0.5));
+                TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromHours(0.5));
             _timers.Add(timerBackup);
 
             var timerClearTemp = new Timer(async state => await ClearTempFolder(), null,
-                TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromHours(0.5));
+                TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromHours(0.5));
             _timers.Add(timerClearTemp);
 
             return Task.CompletedTask;

@@ -53,30 +53,34 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
                     client.Connect();
 
-                    foreach (var filePath in filePaths)
+                    var currentlyUploaded = new Dictionary<string, string>();
+                    var uploadedFiles = new List<SftpUploadedFile>();
+
+                    using (var scope = serviceScopeFactory.CreateScope())
                     {
-                        try
-                        {
-                            lock (_locker)
-                            {
-                                MTFileValidation newFileName = ValidateMTFile(filePath, logger);
+                        var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                        currentlyUploaded = dbContext.UploadedFiles.ToList().GroupBy(x => x.Md5).Select(f => f.FirstOrDefault()).ToDictionary(f => f.Md5, f => f.Name);
 
-                                var previouslyUploaded = FileHasBeenUploadedBefore(filePath, isProduction, serviceScopeFactory);
-
-                                if (previouslyUploaded.Uploaded)
-                                {
-                                    continue;
-                                }
-
-                                logger.LogInformation($"Uploading file {filePath} to SFTP site at {DateTime.Now}!");
-
-                                using (var scope = serviceScopeFactory.CreateScope())
-                                {
-                                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-
-                                    var useUnicode = Convert.ToBoolean(dbContext.Configurations
+                        var useUnicode = Convert.ToBoolean(dbContext.Configurations
                                         .FirstOrDefault(u => u.ConfigType == ConfigurationType.Sftp && u.Key == "UseUnicode")
                                         .Value);
+
+                        foreach (var filePath in filePaths)
+                        {
+                            try
+                            {
+                                lock (_locker)
+                                {
+                                    MTFileValidation newFileName = ValidateMTFile(filePath, logger);
+
+                                    var previouslyUploaded = FileHasBeenUploadedBefore(filePath, currentlyUploaded);
+
+                                    if (previouslyUploaded.Uploaded)
+                                    {
+                                        continue;
+                                    }
+
+                                    logger.LogInformation($"Uploading file {filePath} to SFTP site at {DateTime.Now}!");
 
                                     var sftpManager = scope.ServiceProvider.GetService<SftpManager>();
 
@@ -96,7 +100,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
                                     if (sftpManager.UploadFile(filePath, remotePath, client))
                                     {
-                                        dbContext.UploadedFiles.Add(new SftpUploadedFile
+                                        uploadedFiles.Add(new SftpUploadedFile
                                         {
                                             FilePath = filePath,
                                             IsProduction = isProduction,
@@ -109,26 +113,29 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                                             MtSequenceNo = string.Join(",", newFileName.Sequences)
                                         });
 
-                                        dbContext.SaveChanges();
-
                                         succeeded.Add(filePath);
 
-                                        logger.LogInformation($"Uploaded file to SFTP {remotePath} site successfully!");
+                                        logger.LogInformation($"Uploaded file {filePath} to SFTP remote path {remotePath} site successfully!");
                                     }
                                 }
+
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.LogError(ex, $"Error uploading file {filePath} {ex.Message}");
                             }
                         }
-                        catch (Exception ex)
-                        {
-                            logger.LogError(ex, $"Error uploading file {ex.Message}");
-                        }
+
+                        dbContext.UploadedFiles.AddRange(uploadedFiles);
+
+                        dbContext.SaveChanges();
+
+                        client.Disconnect();
+
+                        delay = 0;
+
+                        return true;
                     }
-
-                    client.Disconnect();
-
-                    delay = 0;
-
-                    return true;
                 }
             }
             catch (Exception ex)
@@ -165,8 +172,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
             }
         }
 
-        public static UploadCheckResult FileHasBeenUploadedBefore(string filePath, bool isProduction,
-            IServiceScopeFactory serviceScopeFactory)
+        public static UploadCheckResult FileHasBeenUploadedBefore(string filePath, Dictionary<string, string> currentlyUploadedMd5Name)
         {
             lock (_locker)
             {
@@ -179,19 +185,13 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                     Uploaded = false
                 };
 
-                using (var scope = serviceScopeFactory.CreateScope())
+                //check if md5/filename exists
+                if (currentlyUploadedMd5Name.Any(f =>
+                    f.Key.ToUpper() == md5.ToUpper() || f.Value.ToLower() == name.ToLower()))
                 {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-
-                    //code to ignore duplicates for special scenarios goes here
-
-                    //check if md5/filename exists
-                    if (dbContext.UploadedFiles.Any(f =>
-                        f.Md5.ToUpper() == md5.ToUpper() || f.Name.ToLower() == name.ToLower()))
-                    {
-                        uploadCheckResult.Uploaded = true;
-                    }
+                    uploadCheckResult.Uploaded = true;
                 }
+
 
                 return uploadCheckResult;
             }

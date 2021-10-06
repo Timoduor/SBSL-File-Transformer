@@ -33,7 +33,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
             _semaphore = new SemaphoreSlim(1, 1);
 
             _timer = new Timer(async state => await ImsBalanceExtractor(), null,
-                TimeSpan.FromSeconds(new Random().Next(10, 60)), TimeSpan.FromMinutes(10));
+                TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }

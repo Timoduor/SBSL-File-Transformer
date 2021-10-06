@@ -2,9 +2,7 @@
 using Renci.SshNet;
 using Renci.SshNet.Sftp;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Jobs;
-using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
 using System.Collections.Generic;
@@ -19,14 +17,11 @@ namespace SbslFileTransformer.Infrastructure.Sftp
         private readonly SftpConfig _config;
         private readonly ApplicationDbContext _dbContext;
         private readonly ILogger<SftpManager> _logger;
-        private readonly EmailSender _emailSender;
 
-        public SftpManager(ILogger<SftpManager> logger, ApplicationDbContext dbContext,
-            EmailSender emailSender)
+        public SftpManager(ILogger<SftpManager> logger, ApplicationDbContext dbContext)
         {
             _logger = logger;
             _dbContext = dbContext;
-            _emailSender = emailSender;
 
             var configurations = _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
 
@@ -68,19 +63,13 @@ namespace SbslFileTransformer.Infrastructure.Sftp
 
                     using (var s = File.OpenRead(localFilePath))
                     {
-                        client.UploadFile(s, remoteFilePath, true, Reponse);
+                        client.UploadFile(s, remoteFilePath, true);// Reponse);
                     }
 
-                    _logger.LogInformation($"Finished uploading file [{localFilePath}] to [{remoteFilePath}]");
                     return true;
                 }
                 catch (Exception exception)
                 {
-                    client.Disconnect();
-                    client.Dispose();
-
-                    EmailHelpers.SendEmails(_dbContext, $"Problem uploading file{Path.GetFileName(localFilePath)} to SFTP", $"\n\n {exception.Message}", new[] { localFilePath }, _emailSender).GetAwaiter().GetResult();
-
                     _logger.LogError(exception, $"Failed in uploading file [{localFilePath}] to [{remoteFilePath}]");
                 }
             }

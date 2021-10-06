@@ -1,13 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters.CDM;
-using SbslFileTransformer.Converters.Rwanda;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
-using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
@@ -43,7 +39,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             _semaphore = new SemaphoreSlim(1, 1);
 
             _timer = new Timer(async state => await PrepaidAuthrpt_Converter(), null,
-                TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(10));
+                TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
@@ -85,7 +81,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     var PrepaidAuthrpt_conv = new PrepaidAuthrpt_converter();
 
                     foreach (var file in files)
-                        
+
                         if (file.ToLower().Contains("imtz") && file.ToLower().Contains("cards_atm") && file.ToLower().Contains("floatcms") && file.ToLower().Contains("prepaid") && !file.ToLower().Contains("conv"))// 
                         {
                             var fileToProcess =
