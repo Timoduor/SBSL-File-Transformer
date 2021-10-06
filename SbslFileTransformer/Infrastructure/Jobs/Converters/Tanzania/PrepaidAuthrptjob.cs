@@ -85,9 +85,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     var PrepaidAuthrpt_conv = new PrepaidAuthrpt_converter();
 
                     foreach (var file in files)
-                        //SPECIFY FOLDER and file extension above PENDING
-                        ///prod/imke/gl_entries/rep02
-                        if (file.ToLower().Contains("imtz") && file.ToLower().Contains("cards_atm") && file.ToLower().Contains("floatcms") && file.ToLower().Contains("prepaid"))// && !file.ToLower().Contains("conv")
+                        
+                        if (file.ToLower().Contains("imtz") && file.ToLower().Contains("cards_atm") && file.ToLower().Contains("floatcms") && file.ToLower().Contains("prepaid") && !file.ToLower().Contains("conv"))// 
                         {
                             var fileToProcess =
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
@@ -110,7 +109,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 {
                                     fileToProcess.Converted = true;
 
-                                    fileToProcess.ConvertedBy = nameof(FxposftsumConverter);
+                                    fileToProcess.ConvertedBy = nameof(PrepaidAuthrpt_converter);
 
                                     dbContext.Update(fileToProcess);
 

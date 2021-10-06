@@ -47,10 +47,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             {
                 if (sGrp.Length != 0)
                 {
-                    if (ATMflds.CARDNo== "476835XXXX063528")
-                    {
-
-                    }
+                    
                     for (var i = 1; i < sGrp.Length-1; i++)
                     {
 
@@ -130,7 +127,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         List<string> ly = GetJournalDetails_supervisor(sGrp_s[i].Split("\n"), ATMNO);
                         if (ly != null)
                         {
-                            //hascashcount = ly.Any(p => p.StartsWith("CASH COUNTS CLEARED")) ? true : false; //"CASH COUNTS CLEARED"
+                            
                             ATMflds.CARDNo = ly.Any(p => p.StartsWith("CARDNO:")) ? ly.First(p => p.StartsWith("CARDNO:")).Split(':')[1].ToString().Replace("|", "") : "";
                             ATMflds.trnDATE = ly.Any(p => p.StartsWith("DATE:")) ? ly.First(p => p.StartsWith("DATE:")).Replace("DATE:", "") : "";
                             ATMflds.AMOUNT = ly.Any(p => p.StartsWith("AMOUNT:")) ? ly.First(p => p.StartsWith("AMOUNT:")).Split(":")[1].Trim().Split(" ")[0] : "0";

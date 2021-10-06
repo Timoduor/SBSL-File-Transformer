@@ -60,7 +60,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                    
                 }
 
-                  outputFile = Path.Combine(outputFolder, $"GLAccounts_{baldate:yyyyMMdd}_{"Repo2_IMKE"}.txt"); 
+                  outputFile = Path.Combine(outputFolder, $"MultiCur_{baldate:yyyyMMdd}_{"Repo2_IMKE"}.txt"); 
                 
                 WriteFile(outputFile, toAppend);
             }

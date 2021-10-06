@@ -148,6 +148,7 @@ namespace SbslFileTransformer
             services.AddHostedService<TZ_EP75ConverterJob>();
             services.AddHostedService<Repo2_ConverterJob>();
             services.AddHostedService<PrepaidAuthrptjob>();
+            services.AddHostedService<PrepaidCardbalanceJob>();
 
             //special scenario jobs
             services.AddHostedService<RecordMatcherJob>();

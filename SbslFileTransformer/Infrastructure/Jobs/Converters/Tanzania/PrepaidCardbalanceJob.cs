@@ -1,13 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters.CDM;
-using SbslFileTransformer.Converters.Rwanda;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
-using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
@@ -18,11 +14,10 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class Repo2_ConverterJob : ConverterJobBase<Repo2_ConverterJob>, IHostedService
+    public class PrepaidCardbalanceJob : ConverterJobBase<PrepaidCardbalanceJob>, IHostedService
     {
 
-
-        public Repo2_ConverterJob(ILogger<Repo2_ConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
+        public PrepaidCardbalanceJob(ILogger<PrepaidCardbalanceJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {
             _logger = logger;
@@ -38,23 +33,23 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting Repo2 Balance Extractor Converter Job");
+            _logger.LogInformation("Starting Prepaid Authorization report Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await Repo2_Converter(), null,
+            _timer = new Timer(async state => await Prepaidbalance_Converter(), null,
                 TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task Repo2_Converter()
+        private async Task Prepaidbalance_Converter()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running Repo2 Balance Extractor KE job");
+                _logger.LogInformation("Running Prepaid Authorization report TZ job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -78,16 +73,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".lst")).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".lst")));
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")));
 
-                    var Repo2Converter = new Repo2Converter ();
+                    var Prepaidbal = new PrepaidBal_converter();
 
                     foreach (var file in files)
-                        //SPECIFY FOLDER and file extension above PENDING
-                        ///prod/imke/gl_entries/rep02
-                        if (file.ToLower().Contains("imke") && file.ToLower().Contains("gl_entries") && file.ToLower().Contains("rep02") )// && !file.ToLower().Contains("conv")
+                        //IMTZ\CARDS_ATM\FloatCMS\Balances
+                        if (file.ToLower().Contains("imtz") && file.ToLower().Contains("cards_atm") && file.ToLower().Contains("floatcms") && file.ToLower().Contains("balances"))//&& !file.ToLower().Contains("conv")
                         {
                             var fileToProcess =
                                 await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
@@ -95,7 +89,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    Repo2Converter.ConvertFile(file, rootFolder);
+                                    Prepaidbal.ConvertFile(file, rootFolder);
                                 }
                                 catch (Exception ex)
                                 {
@@ -103,14 +97,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                     _logger.LogError(ex, ex.Message);
 
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting  KE Repo2 files",
+                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting  Prepaid Authorization report  files",
                                         $"{file} \n\n {ex.Message}", new[] { file }, _emailSender);
                                 }
                                 finally
                                 {
                                     fileToProcess.Converted = true;
 
-                                    fileToProcess.ConvertedBy = nameof(FxposftsumConverter);
+                                    fileToProcess.ConvertedBy = nameof(PrepaidBal_converter);
 
                                     dbContext.Update(fileToProcess);
 
@@ -125,7 +119,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                     try
                                     {
-                                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".fx");
+                                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".cms");
                                         File.Delete(file);
                                     }
                                     catch (Exception xc)
@@ -146,7 +140,5 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 _semaphore.Release();
             }
         }
-
-
     }
 }

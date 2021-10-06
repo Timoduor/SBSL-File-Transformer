@@ -11,7 +11,7 @@ namespace SbslFileTransformer.Converters
     {
         public  void ConvertEPINFile(string file, string outputDirectory="")
         {
-            var rowFilter = new string[] { "0500", "0700", "0600", "0620", "2500", "2700" }.ToList();
+            var rowFilter = new string[] { "0500", "0700" }.ToList();//, "0600", "0620", "2500", "2700"
 
             var lines = File.ReadAllLines(file).ToList();
 
@@ -23,7 +23,7 @@ namespace SbslFileTransformer.Converters
             {
                 outputDirectory = Path.GetDirectoryName(file);
             }
-            outputDirectory= Path.GetFullPath(file) + "\\Conv";
+            outputDirectory= Path.GetDirectoryName(file) + "\\Conv";
             //outputDirectory = Path.GetFullPath(Path.Combine(outputDirectory, @"..\")) + "Conv";
             if (!Directory.Exists(outputDirectory))
                 Directory.CreateDirectory(outputDirectory);
