@@ -53,24 +53,33 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
                     client.Connect();
 
-                    var currentlyUploaded = new Dictionary<string, string>();
-                    var uploadedFiles = new List<SftpUploadedFile>();
-
                     using (var scope = serviceScopeFactory.CreateScope())
                     {
-                        var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-                        currentlyUploaded = dbContext.UploadedFiles.ToList().GroupBy(x => x.Md5).Select(f => f.FirstOrDefault()).ToDictionary(f => f.Md5, f => f.Name);
-
-                        var useUnicode = Convert.ToBoolean(dbContext.Configurations
-                                        .FirstOrDefault(u => u.ConfigType == ConfigurationType.Sftp && u.Key == "UseUnicode")
-                                        .Value);
-
-                        foreach (var filePath in filePaths)
+                        lock (_locker)
                         {
-                            try
+                            var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                            var currentlyUploaded = new Dictionary<string, string>();
+                            var uploadedFiles = new List<SftpUploadedFile>();
+
+                            var uploadedFilesInDB = dbContext.UploadedFiles.ToList();
+
+                            currentlyUploaded = uploadedFilesInDB.GroupBy(x => x.Md5).Select(f => f.FirstOrDefault()).ToDictionary(f => f.Md5, f => f.Name);
+
+                            var useUnicode = Convert.ToBoolean(dbContext.Configurations
+                                            .FirstOrDefault(u => u.ConfigType == ConfigurationType.Sftp && u.Key == "UseUnicode")
+                                            .Value);
+
+                            var filePathsToCheck = filePaths.Except(uploadedFilesInDB.Select(f => f.FilePath));
+
+                            SftpManager sftpManager = scope.ServiceProvider.GetService<SftpManager>();
+
+
+                            foreach (var filePath in filePathsToCheck)
                             {
-                                lock (_locker)
+                                try
                                 {
+
                                     MTFileValidation newFileName = ValidateMTFile(filePath, logger);
 
                                     var previouslyUploaded = FileHasBeenUploadedBefore(filePath, currentlyUploaded);
@@ -81,8 +90,6 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                                     }
 
                                     logger.LogInformation($"Uploading file {filePath} to SFTP site at {DateTime.Now}!");
-
-                                    var sftpManager = scope.ServiceProvider.GetService<SftpManager>();
 
                                     var remotePath = isProduction ? "/PROD/" : "/SB/";
 
@@ -118,17 +125,17 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                                         logger.LogInformation($"Uploaded file {filePath} to SFTP remote path {remotePath} site successfully!");
                                     }
                                 }
+                                catch (Exception ex)
+                                {
+                                    logger.LogError(ex, $"Error uploading file {filePath} {ex.Message}");
+                                }
+                            }
 
-                            }
-                            catch (Exception ex)
-                            {
-                                logger.LogError(ex, $"Error uploading file {filePath} {ex.Message}");
-                            }
+                            dbContext.UploadedFiles.AddRange(uploadedFiles);
+                            dbContext.SaveChanges();
+
+                            filePaths = filePathsToCheck;
                         }
-
-                        dbContext.UploadedFiles.AddRange(uploadedFiles);
-
-                        dbContext.SaveChanges();
 
                         client.Disconnect();
 
