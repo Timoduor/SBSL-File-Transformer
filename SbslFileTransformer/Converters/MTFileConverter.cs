@@ -29,7 +29,7 @@ namespace SbslFileTransformer.Converters
 
             var validation = new MTFileValidation
             {
-                Statement = originalFile,
+                Statement = Path.GetFileName(originalFile),
                 Account = string.Empty,
                 Sequences = new string[0].ToList(),
             };
@@ -51,7 +51,7 @@ namespace SbslFileTransformer.Converters
                     {
                         var toRet = pair.Split("/");
 
-                        validation.Statement = originalFile;
+                        validation.Statement = Path.GetFileName(originalFile);
                         validation.Account = account;
                         validation.Sequences = toRet.ToList();
 

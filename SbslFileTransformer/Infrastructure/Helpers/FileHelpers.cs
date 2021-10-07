@@ -44,6 +44,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
              IServiceScopeFactory serviceScopeFactory, ILogger logger, ConnectionInfo connectionInfo)
         {
             List<string> succeeded = new List<string>();
+            IEnumerable<string> filePathsToCheck = new List<string>();
 
             try
             {
@@ -57,84 +58,27 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                     {
                         lock (_locker)
                         {
-                            var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                            ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                            var currentlyUploaded = new Dictionary<string, string>();
-                            var uploadedFiles = new List<SftpUploadedFile>();
-
-                            var uploadedFilesInDB = dbContext.UploadedFiles.ToList();
-
-                            currentlyUploaded = uploadedFilesInDB.GroupBy(x => x.Md5).Select(f => f.FirstOrDefault()).ToDictionary(f => f.Md5, f => f.Name);
-
-                            var useUnicode = Convert.ToBoolean(dbContext.Configurations
+                            bool useUnicode = Convert.ToBoolean(dbContext.Configurations
                                             .FirstOrDefault(u => u.ConfigType == ConfigurationType.Sftp && u.Key == "UseUnicode")
                                             .Value);
 
-                            var filePathsToCheck = filePaths.Except(uploadedFilesInDB.Select(f => f.FilePath));
+                            List<SftpUploadedFile> uploadedFilesInDB = dbContext.UploadedFiles.ToList();
+
+                            Dictionary<string, string> currentlyUploaded = uploadedFilesInDB.GroupBy(x => x.Md5).Select(f => f.FirstOrDefault())
+                                .ToDictionary(f => f.Md5, f => f.Name);
+
+                            filePathsToCheck = filePaths.Except(uploadedFilesInDB.Select(f => f.FilePath));
 
                             SftpManager sftpManager = scope.ServiceProvider.GetService<SftpManager>();
+                            var uploadedFiles = new List<SftpUploadedFile>();
 
-
-                            foreach (var filePath in filePathsToCheck)
-                            {
-                                try
-                                {
-
-                                    MTFileValidation newFileName = ValidateMTFile(filePath, logger);
-
-                                    var previouslyUploaded = FileHasBeenUploadedBefore(filePath, currentlyUploaded);
-
-                                    if (previouslyUploaded.Uploaded)
-                                    {
-                                        continue;
-                                    }
-
-                                    logger.LogInformation($"Uploading file {filePath} to SFTP site at {DateTime.Now}!");
-
-                                    var remotePath = isProduction ? "/PROD/" : "/SB/";
-
-                                    //connecting to local cygwin SFTP server
-                                    if (useUnicode)
-                                    {
-                                        remotePath = "/cygdrive/e/Recon_Files/Files" + remotePath;
-
-                                        client.ConnectionInfo.Encoding = Encoding.Unicode;
-                                    }
-
-                                    var relativePath = Path.GetRelativePath(productionOrSandboxFolder, filePath);
-
-                                    remotePath = Path.Combine(remotePath, relativePath.Replace('\\', '/'));
-
-                                    if (sftpManager.UploadFile(filePath, remotePath, client))
-                                    {
-                                        uploadedFiles.Add(new SftpUploadedFile
-                                        {
-                                            FilePath = filePath,
-                                            IsProduction = isProduction,
-                                            Md5 = previouslyUploaded.Md5,
-                                            Name = Path.GetFileName(filePath),
-                                            Size = new FileInfo(filePath).Length,
-                                            UploadedDate = DateTime.Now,
-                                            MtAccountNo = newFileName.Account,
-                                            MtStatementNo = newFileName.Statement,
-                                            MtSequenceNo = string.Join(",", newFileName.Sequences)
-                                        });
-
-                                        succeeded.Add(filePath);
-
-                                        logger.LogInformation($"Uploaded file {filePath} to SFTP remote path {remotePath} site successfully!");
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    logger.LogError(ex, $"Error uploading file {filePath} {ex.Message}");
-                                }
-                            }
+                            UploadFilesToRemoteServer(isProduction, productionOrSandboxFolder, logger, succeeded, client, currentlyUploaded,
+                                                            uploadedFiles, useUnicode, filePathsToCheck, sftpManager);
 
                             dbContext.UploadedFiles.AddRange(uploadedFiles);
                             dbContext.SaveChanges();
-
-                            filePaths = filePathsToCheck;
                         }
 
                         client.Disconnect();
@@ -154,10 +98,70 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
                 logger.LogWarning($"Delaying for {delay} ms");
 
-                logger.LogWarning($"Failed to upload files {string.Join(Environment.NewLine, filePaths.Except(succeeded))}");
+                logger.LogWarning($"Failed to upload files {string.Join(Environment.NewLine, filePathsToCheck.Except(succeeded))}");
             }
 
             return false;
+        }
+
+        private static void UploadFilesToRemoteServer(bool isProduction, string productionOrSandboxFolder, ILogger logger, List<string> succeeded,
+            SftpClient client, Dictionary<string, string> currentlyUploaded, List<SftpUploadedFile> uploadedFiles, bool useUnicode,
+            IEnumerable<string> filePathsToCheck, SftpManager sftpManager)
+        {
+            foreach (var filePath in filePathsToCheck)
+            {
+                try
+                {
+                    MTFileValidation newFileName = ValidateMTFile(filePath, logger);
+
+                    var previouslyUploaded = FileHasBeenUploadedBefore(filePath, currentlyUploaded);
+
+                    if (previouslyUploaded.Uploaded)
+                    {
+                        continue;
+                    }
+
+                    logger.LogInformation($"Uploading file {filePath} to SFTP site at {DateTime.Now}!");
+
+                    var remotePath = isProduction ? "/PROD/" : "/SB/";
+
+                    //connecting to local cygwin SFTP server
+                    if (useUnicode)
+                    {
+                        remotePath = "/cygdrive/e/Recon_Files/Files" + remotePath;
+
+                        client.ConnectionInfo.Encoding = Encoding.Unicode;
+                    }
+
+                    var relativePath = Path.GetRelativePath(productionOrSandboxFolder, filePath);
+
+                    remotePath = Path.Combine(remotePath, relativePath.Replace('\\', '/'));
+
+                    if (sftpManager.UploadFile(filePath, remotePath, client))
+                    {
+                        uploadedFiles.Add(new SftpUploadedFile
+                        {
+                            FilePath = filePath,
+                            IsProduction = isProduction,
+                            Md5 = previouslyUploaded.Md5,
+                            Name = Path.GetFileName(filePath),
+                            Size = new FileInfo(filePath).Length,
+                            UploadedDate = DateTime.Now,
+                            MtAccountNo = newFileName.Account,
+                            MtStatementNo = newFileName.Statement,
+                            MtSequenceNo = string.Join(",", newFileName.Sequences)
+                        });
+
+                        succeeded.Add(filePath);
+
+                        logger.LogInformation($"Uploaded file {filePath} to SFTP remote path {remotePath} site successfully!");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Error uploading file {filePath} {ex.Message}");
+                }
+            }
         }
 
         private static void DelayUploadAttemptDueToFailure()
