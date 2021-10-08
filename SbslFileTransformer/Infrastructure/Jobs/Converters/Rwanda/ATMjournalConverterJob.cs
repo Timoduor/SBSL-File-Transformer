@@ -64,8 +64,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt")).ToList();
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt")));
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".jrn")).ToList();
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".jrn")));
+
+
+                    var files_ = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".log")).ToList();
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".log")));
 
                     var ATMJournalConverter = new RW_ATMJournalConverter();
 
@@ -99,8 +103,85 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                     await dbContext.SaveChangesAsync();
 
+
+                                    await dbContext.SaveChangesAsync();
+                                    var archive = "";
+
+                                    archive = Path.Combine(Path.GetDirectoryName(file), "ARCHIVE",
+                                        DateTime.Now.ToString("yyMMdd"));
+                                    if (!Directory.Exists(archive))
+                                        Directory.CreateDirectory(archive);
+
+
+                                    try
+                                    {
+                                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".cor");
+                                        File.Delete(file);
+                                    }
+                                    catch (Exception xc)
+                                    {
+                                        _logger.LogError(xc, xc.Message);
+                                    }
+
+
                                 }
                         }
+
+
+
+                    foreach (var file in files_)
+                        //FILE PATH SHOULD HAVE FOLDER NAME MT300 SOMEWHERE IN IT
+                        if (file.Contains("ATMs") && file.Contains("E-JRN"))
+                        {
+                            var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
+                            if (fileToProcess != null && fileToProcess.Converted == false)
+                                try
+                                {
+                                    ATMJournalConverter.ConvertFile_WinkaATMjrn(file);
+                                    fileToProcess.Converted = true;
+                                }
+                                catch (Exception ex)
+                                {
+                                    fileToProcess.Failed = true;
+
+                                    _logger.LogError(ex, ex.Message);
+
+                                    await EmailHelpers.SendEmails(dbContext, "Error in ATMJournal file conversion",
+                                    $"Problem with  file {file} \n\n {ex.Message}", new[] { file }, _emailSender);
+                                }
+                                finally
+                                {
+
+
+                                    fileToProcess.ConvertedBy = nameof(ATMjournalConverterJob);
+
+                                    dbContext.Update(fileToProcess);
+
+                                    await dbContext.SaveChangesAsync();
+
+                                    await dbContext.SaveChangesAsync();
+                                    var archive = "";
+
+                                    archive = Path.Combine(Path.GetDirectoryName(file), "ARCHIVE",
+                                        DateTime.Now.ToString("yyMMdd"));
+                                    if (!Directory.Exists(archive))
+                                        Directory.CreateDirectory(archive);
+
+
+                                    try
+                                    {
+                                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".ncr");
+                                        File.Delete(file);
+                                    }
+                                    catch (Exception xc)
+                                    {
+                                        _logger.LogError(xc, xc.Message);
+                                    }
+
+
+                                }
+                        }
+
                 }
             }
             catch (Exception ex)

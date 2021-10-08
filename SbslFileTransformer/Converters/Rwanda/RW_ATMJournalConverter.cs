@@ -21,6 +21,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             {
                 outputFolder = Path.GetDirectoryName(inputFile);
             }
+
+            outputFolder = Path.GetFullPath(Path.Combine(outputFolder, @"..\")) + "Conv";
+            if (!Directory.Exists(outputFolder))
+                Directory.CreateDirectory(outputFolder);
+
             string[] sDet = File.ReadAllLines(inputFile);
             try
             {
@@ -221,10 +226,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             var l = new List<string>();
             for (var i = 1; i < d.Length - 1; i++)
             {
-                if (d[i].Contains("476835XXXX784541"))
-                {
-
-                }
+                
                 try
                 {
                     if (d[i].Contains("REFUSED TRANSACTION"))
