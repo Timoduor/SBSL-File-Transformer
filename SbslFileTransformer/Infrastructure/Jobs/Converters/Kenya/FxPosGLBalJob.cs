@@ -116,7 +116,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                                     try
                                     {
-                                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".fx");
+                                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".fxp");
                                         File.Delete(file);
                                     }
                                     catch (Exception xc)
