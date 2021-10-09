@@ -35,7 +35,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             _semaphore = new SemaphoreSlim(1, 1);
 
             _timer = new Timer(async state => await AirtelFileBalanceExtractor(), null,
-                TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromMinutes(10));
+                TimeSpan.FromSeconds(new Random().Next(60, 200)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }

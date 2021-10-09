@@ -25,7 +25,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _timer = new Timer(async state => await ExtractGLBalances(), null,
-                TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromMinutes(10));
+                TimeSpan.FromSeconds(new Random().Next(60, 200)), TimeSpan.FromMinutes(10));
 
             _semaphore = new SemaphoreSlim(1, 1);
 

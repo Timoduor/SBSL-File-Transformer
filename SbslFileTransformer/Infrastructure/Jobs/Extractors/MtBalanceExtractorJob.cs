@@ -50,7 +50,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                 var timerProduction = new Timer(async state =>
                         await MTFileConverter.RunMTBalanceExtractor(statementFolderProd, config.ProductionFolder,
                             _serviceScopeFactory, _logger)
-                    , null, TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromMinutes(loopTime));
+                    , null, TimeSpan.FromSeconds(new Random().Next(60, 200)), TimeSpan.FromMinutes(loopTime));
 
                 _timers.Add(timerProduction);
             }
@@ -66,7 +66,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                 var timerSandbox = new Timer(async state =>
                         await MTFileConverter.RunMTBalanceExtractor(statementFolder, config.SandboxFolder,
                             _serviceScopeFactory, _logger)
-                    , null, TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromMinutes(loopTime));
+                    , null, TimeSpan.FromSeconds(new Random().Next(60, 200)), TimeSpan.FromMinutes(loopTime));
 
                 _timers.Add(timerSandbox);
             }
@@ -74,7 +74,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
             var timedValidator = new Timer(
                 async state =>
                     await MTFileConverter.RunMtSequenceValidationCheck(_serviceScopeFactory, _logger, _emailSender),
-                null, TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromHours(12)); //TODO
+                null, TimeSpan.FromSeconds(new Random().Next(60, 200)), TimeSpan.FromHours(12)); //TODO
 
             _timers.Add(timedValidator);
 

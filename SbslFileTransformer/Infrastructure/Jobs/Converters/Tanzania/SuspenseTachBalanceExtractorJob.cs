@@ -34,7 +34,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
             _logger.LogInformation("Starting Suspense Balance Extractor job");
 
             _timer = new Timer(async state => await GenerateMultiCurrFile(), null,
-                TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromMinutes(10));
+                TimeSpan.FromSeconds(new Random().Next(60, 200)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
