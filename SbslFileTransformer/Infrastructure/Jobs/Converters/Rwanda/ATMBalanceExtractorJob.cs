@@ -99,7 +99,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 finally
                                 {
 
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(ATMBalConverterRwanda));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(ATMBalConverterRwanda));
                                 }
                         }
                     }

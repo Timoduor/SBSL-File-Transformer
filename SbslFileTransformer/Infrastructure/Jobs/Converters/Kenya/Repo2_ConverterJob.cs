@@ -100,7 +100,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(Repo2Converter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(Repo2Converter));
                                 }
                         }
                     }

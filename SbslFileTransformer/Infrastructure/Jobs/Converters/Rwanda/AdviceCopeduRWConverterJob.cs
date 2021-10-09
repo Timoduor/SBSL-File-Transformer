@@ -101,7 +101,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(AdviceKopeduRWConverter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(AdviceKopeduRWConverter));
                                 }
                         }
                     }

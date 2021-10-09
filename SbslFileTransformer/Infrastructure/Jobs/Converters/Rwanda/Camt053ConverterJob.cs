@@ -96,7 +96,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(Camt053Converter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(Camt053Converter));
                                 }
                         }
                     }

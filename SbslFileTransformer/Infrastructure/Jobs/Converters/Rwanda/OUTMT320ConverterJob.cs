@@ -89,7 +89,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(OUTMt320Converter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(OUTMt320Converter));
                                 }
 
                         }

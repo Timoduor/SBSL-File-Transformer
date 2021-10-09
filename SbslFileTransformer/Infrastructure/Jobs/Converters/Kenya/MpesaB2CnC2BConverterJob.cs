@@ -109,7 +109,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(MpesaB2CnC2BConverter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(MpesaB2CnC2BConverter));
                                 }
                         }
                     }

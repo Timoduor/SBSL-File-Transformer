@@ -100,7 +100,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(OmniLookupConverter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(OmniLookupConverter));
                                 }
                         }
                     }

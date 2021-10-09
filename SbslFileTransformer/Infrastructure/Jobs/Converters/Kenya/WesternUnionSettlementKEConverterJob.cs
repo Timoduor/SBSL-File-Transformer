@@ -97,7 +97,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(WesternUnionSettlementKEConverter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(WesternUnionSettlementKEConverter));
                                 }
                         }
                     }

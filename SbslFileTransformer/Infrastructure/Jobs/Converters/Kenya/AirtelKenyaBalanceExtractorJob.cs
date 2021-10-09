@@ -103,7 +103,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(AirtelKenyaBalanceExtractor));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(AirtelKenyaBalanceExtractor));
                                 }
                         }
                     }

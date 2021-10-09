@@ -102,7 +102,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(BnrStatementConverter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(BnrStatementConverter));
                                 }
                         }
                     }

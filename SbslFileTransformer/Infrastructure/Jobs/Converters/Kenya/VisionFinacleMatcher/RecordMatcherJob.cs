@@ -103,7 +103,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(VisionRecordMatcher));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(VisionRecordMatcher));
                                 }
                             }
                         }

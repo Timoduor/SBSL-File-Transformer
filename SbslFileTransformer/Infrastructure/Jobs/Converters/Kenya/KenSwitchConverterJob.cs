@@ -95,7 +95,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(KenSwitchConverter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(KenSwitchConverter));
                                 }
                         }
                     }

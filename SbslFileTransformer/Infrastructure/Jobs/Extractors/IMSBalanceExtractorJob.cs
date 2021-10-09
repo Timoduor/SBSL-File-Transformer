@@ -109,7 +109,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(ImsBalanceExtractor));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(ImsBalanceExtractor));
                                 }
                             }
                         }

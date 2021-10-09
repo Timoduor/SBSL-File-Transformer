@@ -100,7 +100,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(WeeklyMonthlyElmaOmniSettlementConverter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(WeeklyMonthlyElmaOmniSettlementConverter));
                                 }
                         }
                         await SaveProcessedFilesStatuses(dbContext, updatedFiles);

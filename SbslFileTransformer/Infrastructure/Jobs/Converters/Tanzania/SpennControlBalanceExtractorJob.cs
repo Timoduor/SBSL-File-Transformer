@@ -101,7 +101,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(SpennControlExtractor));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(SpennControlExtractor));
                                 }
                         }
                     }

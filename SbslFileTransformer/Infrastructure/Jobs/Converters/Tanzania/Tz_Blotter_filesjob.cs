@@ -101,7 +101,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(Tz_Blotter_Converter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(Tz_Blotter_Converter));
                                 }
                         }
                     }

@@ -100,7 +100,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(FxposftsumConverter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(FxposftsumConverter));
                                 }
                         }
                     }

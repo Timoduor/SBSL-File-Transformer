@@ -97,7 +97,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(MpesaCharRemover));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(MpesaCharRemover));
                                 }
                         }
                     }

@@ -97,7 +97,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(FDICleaner));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(FDICleaner));
                                 }
                         }
                     }

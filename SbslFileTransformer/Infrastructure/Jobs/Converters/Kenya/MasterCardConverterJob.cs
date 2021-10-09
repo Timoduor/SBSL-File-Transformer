@@ -95,7 +95,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(MasterCardConverter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(MasterCardConverter));
                                 }
                         }
                     }

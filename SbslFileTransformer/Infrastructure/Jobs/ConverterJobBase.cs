@@ -139,11 +139,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 $"Problem with  file {file} \n\n {ex.Message}", new[] { file }, _emailSender);
         }
 
-        protected void CompleteFileProcessing(List<SftpUploadedFile> updatedFiles, SftpUploadedFile fileToProcess, Type type)
+        protected void CompleteFileProcessing(List<SftpUploadedFile> updatedFiles, SftpUploadedFile fileToProcess, string converter)
         {
             fileToProcess.Converted = true;
 
-            fileToProcess.ConvertedBy = nameof(type);
+            fileToProcess.ConvertedBy = converter;
 
             updatedFiles.Add(fileToProcess);
         }

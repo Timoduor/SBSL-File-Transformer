@@ -100,7 +100,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(MoneyGramActivityKEConverter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(MoneyGramActivityKEConverter));
                                 }
                         }
                     }

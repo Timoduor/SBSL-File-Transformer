@@ -106,7 +106,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(SpennRwandaBalanceExtractor));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(SpennRwandaBalanceExtractor));
                                 }
                         }
                     }

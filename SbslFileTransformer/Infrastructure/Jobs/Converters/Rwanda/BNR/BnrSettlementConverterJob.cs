@@ -96,7 +96,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(SettlementConverter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(SettlementConverter));
                                 }
                         }
                     }

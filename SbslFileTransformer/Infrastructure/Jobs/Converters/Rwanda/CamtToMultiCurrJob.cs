@@ -93,7 +93,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(CamtToMultiCurrJob));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(CamtToMultiCurrJob));
                                 }
                         }
                     }

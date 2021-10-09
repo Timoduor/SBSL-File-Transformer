@@ -108,7 +108,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(CDMBalanceExtractor));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(CDMBalanceExtractor));
                                 }
                         }
                     }

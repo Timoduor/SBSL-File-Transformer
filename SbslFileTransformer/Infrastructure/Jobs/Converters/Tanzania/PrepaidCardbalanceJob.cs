@@ -97,7 +97,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(PrepaidBal_converter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(PrepaidBal_converter));
                                 }
                         }
                     }

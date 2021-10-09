@@ -106,7 +106,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(DtbPdfToMTFilesConverter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(DtbPdfToMTFilesConverter));
                                 }
                         }
                     }

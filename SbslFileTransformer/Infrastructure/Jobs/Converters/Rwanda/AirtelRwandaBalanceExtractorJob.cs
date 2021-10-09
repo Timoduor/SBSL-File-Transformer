@@ -105,7 +105,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(AirtelRwandaBalanceExtractor));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(AirtelRwandaBalanceExtractor));
                                 }
                         }
                     }

@@ -104,7 +104,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(Mt300sKEConverterJob));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(Mt300sKEConverterJob));
                                 }
                         }
                     }

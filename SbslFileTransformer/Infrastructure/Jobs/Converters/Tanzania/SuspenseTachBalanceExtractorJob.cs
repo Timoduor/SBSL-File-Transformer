@@ -102,7 +102,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(SuspenseTachBalanceExtractor));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(SuspenseTachBalanceExtractor));
                                 }
                         }
                     }

@@ -95,7 +95,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(EP75Converter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(EP75Converter));
                                 }
                         }
                     }

@@ -97,7 +97,7 @@ namespace SbslFileTransformer.Converters.Rwanda
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(Fc_dailyConverter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(Fc_dailyConverter));
                                 }
                         }
                     }

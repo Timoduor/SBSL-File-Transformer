@@ -98,7 +98,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(SelcomDisbConverter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(SelcomDisbConverter));
                                 }
                         }
                     }

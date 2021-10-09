@@ -97,7 +97,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(TZ_ATMJournalConverter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(TZ_ATMJournalConverter));
                                 }
                         }
                     }

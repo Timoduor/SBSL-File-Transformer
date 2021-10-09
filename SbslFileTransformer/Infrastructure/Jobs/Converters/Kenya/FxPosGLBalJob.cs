@@ -99,7 +99,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(FxPosGLBalConverter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(FxPosGLBalConverter));
                                 }
                         }
                     }
