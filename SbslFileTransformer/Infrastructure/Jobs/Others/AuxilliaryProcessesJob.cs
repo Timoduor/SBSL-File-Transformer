@@ -40,15 +40,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             _timers.Add(timer);
 
             var timerArchive = new Timer(async state => await ArchiveOldFiles(), null,
-                TimeSpan.FromSeconds(new Random().Next(60, 300)), TimeSpan.FromHours(2));
+                TimeSpan.FromSeconds(new Random().Next(60, 600)), TimeSpan.FromHours(2));
             _timers.Add(timerArchive);
 
             var timerBackup = new Timer(async state => await BackupDb(), null,
-                TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromHours(0.5));
+                TimeSpan.FromSeconds(new Random().Next(60, 600)), TimeSpan.FromHours(1));
             _timers.Add(timerBackup);
 
             var timerClearTemp = new Timer(async state => await ClearTempFolder(), null,
-                TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromHours(0.5));
+                TimeSpan.FromSeconds(new Random().Next(60, 600)), TimeSpan.FromHours(1));
             _timers.Add(timerClearTemp);
 
             return Task.CompletedTask;

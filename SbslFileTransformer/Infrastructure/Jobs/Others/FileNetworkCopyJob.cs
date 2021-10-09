@@ -26,7 +26,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
             _logger.LogInformation("Starting network file transfer job");
 
             _timer = new Timer(async state => await CopyFilesToNetworkPath(), null,
-                TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromMinutes(10));
+                TimeSpan.FromSeconds(new Random().Next(60, 600)), TimeSpan.FromMinutes(20));
 
             return Task.CompletedTask;
         }

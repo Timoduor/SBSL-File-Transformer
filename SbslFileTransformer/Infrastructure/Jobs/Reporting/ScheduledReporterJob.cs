@@ -36,7 +36,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             _semaphore = new SemaphoreSlim(1, 1);
 
             _timer = new Timer(async state => await ProcessNewReports(), null,
-                TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromMinutes(15));
+                TimeSpan.FromSeconds(new Random().Next(60, 300)), TimeSpan.FromMinutes(15));
 
             return Task.CompletedTask;
         }
