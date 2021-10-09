@@ -22,41 +22,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
             string[] sDet = File.ReadAllLines(file);
             string scontent = "";
             string sType = content.Split(':')[6].ToString().Trim().Substring(4, 3);
-            if (content.Split(':')[6].ToString().Trim().Substring(0, 7) != "FIN 320")
-            {
-                string archive = "";
-
-                archive = Path.Combine(Path.GetDirectoryName(file) + "\\MT320", "FAILED", DateTime.Now.ToString("yyMMdd") + "\\RTGSMT300");
-                if (!Directory.Exists(archive))
-                    Directory.CreateDirectory(archive);
-
-
-                try
-                {
-                    if (sType == "300")
-                    {
-                        File.Copy(file, archive + "\\300_" + Path.GetFileName(file));
-                        File.Delete(file);
-                    }
-                    else
-                    {
-                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".out");
-                        File.Delete(file);
-                    }
-
-
-                }
-                catch (Exception)
-                {
-
-                }
-
-                return;
-
-
-            }
-
-
+            
             if (sDet.Length != 0)
             {
                 var seq15A = new MandatorySequence320A();

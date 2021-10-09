@@ -86,8 +86,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                         var backUpAllFilesPeriod = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
                             b.ConfigType == ConfigurationType.Setting && b.Key == "BackUpAllFilesPeriod")).Value;
 
-                        var oldUploadedFiles =
-                            dbContext.UploadedFiles.Where(f => f.UploadedDate < DateTime.Now.AddDays(-7));
+                        var oldUploadedFiles = await
+                            dbContext.UploadedFiles.Where(f => f.UploadedDate < DateTime.Now.AddDays(-7)).ToListAsync();
 
                         foreach (var file in oldUploadedFiles)
                         {

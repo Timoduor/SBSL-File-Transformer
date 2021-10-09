@@ -86,7 +86,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 try
                                 {
                                     mt320Converter.ProcessMt320File(file);
-                                    fileToProcess.Converted = true;
                                 }
                                 catch (Exception ex)
                                 {

@@ -82,14 +82,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         if (file.ToLower().Contains("imrw") && file.ToLower().Contains("treasury") && file.ToLower().Contains("fx_confirmation") && file.ToLower().Contains("mt300"))
                         {
                             var fileToProcess = uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
-                            var outputfile = Path.GetDirectoryName(file) + "\\Converted_MT300_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".csv";
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
-
+                            { 
                                 try
                                 {
                                     mt300Converter.ProcessMt300File(file);
-                                    fileToProcess.Converted = true;
                                 }
                                 catch (Exception ex)
                                 {
@@ -99,7 +97,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 {
                                     CompleteFileProcessing(updatedFiles, fileToProcess, typeof(Mt300Converter));
                                 }
-                            //}
+                            }
                         }
                     }
                     await SaveProcessedFilesStatuses(dbContext, updatedFiles);
