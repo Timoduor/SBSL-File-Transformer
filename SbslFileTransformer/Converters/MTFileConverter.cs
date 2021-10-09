@@ -145,13 +145,15 @@ namespace SbslFileTransformer.Converters
                         message.AppendLine();
                     }
 
-                    var config = await dbContext.Configurations.FirstOrDefaultAsync(c =>
+                    var configurations = await dbContext.Configurations.ToListAsync();
+
+                    var config = configurations.FirstOrDefault(c =>
                         c.ConfigType == ConfigurationType.Email && c.Key == "Recipients");
 
                     var recipients = config.Value.Split(new[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
                     if (!string.IsNullOrEmpty(message.ToString().Trim()))
-                        await EmailHelpers.SendEmails(dbContext, "Possible Missing Closing Balances & Sequence Numbers",
+                        await EmailHelpers.SendEmails(configurations, "Possible Missing Closing Balances & Sequence Numbers",
                             message.ToString(), null, emailSender);
                 }
             }
@@ -173,6 +175,9 @@ namespace SbslFileTransformer.Converters
             {
                 var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
                 var emailSender = scope.ServiceProvider.GetService<EmailSender>();
+
+                var configurations = await dbContext.Configurations.ToListAsync();
+
                 List<string> filesInDirectoryToProcess = new List<string>();
                 try
                 {
@@ -180,7 +185,9 @@ namespace SbslFileTransformer.Converters
 
                     var loc = location.ToString();
 
-                    var entity = dbContext.Configurations
+                    
+
+                    var entity = configurations
                         .FirstOrDefault(f => f.Key == "Entity" && f.ConfigType == ConfigurationType.Setting).Value;
 
                     var encryptionManager = scope.ServiceProvider.GetService<EncryptionManager>();
@@ -189,9 +196,6 @@ namespace SbslFileTransformer.Converters
                         u.ProcessFor62F == false && u.FilePath.ToLower().Contains("statement"));
 
                     var pathsForNotProcessed = notProcessed.Select(f => f.FilePath).ToList();
-
-                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
-                        .ToList();
 
                     var sftpConfig = new SftpConfig
                     {
@@ -239,7 +243,7 @@ namespace SbslFileTransformer.Converters
                 {
                     logger.LogError(ex, ex.Message);
 
-                    await EmailHelpers.SendEmails(dbContext, "Problem Converting CDM Balance files", $"\n\n {ex.Message}", filesInDirectoryToProcess, emailSender);
+                    await EmailHelpers.SendEmails(configurations, "Problem Converting CDM Balance files", $"\n\n {ex.Message}", filesInDirectoryToProcess, emailSender);
                 }
                 finally
                 {

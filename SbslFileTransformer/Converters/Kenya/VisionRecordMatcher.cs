@@ -45,7 +45,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 double finacleDiff = finacleSumCredits - finacleSumDebits;
 
-                IEnumerable<VisionRecord> matchedRecs = unmatchedVisionRecords.Where(v => v.ReferenceNumber == finRef).ToList();
+                IEnumerable<VisionRecord> matchedRecs = unmatchedVisionRecords.Where(v => v.ReferenceNumber == finRef);
 
                 double visionDiff = matchedRecs.Sum(v => v.CreditAmount - v.DebitAmount);
 
@@ -88,7 +88,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private IEnumerable<VisionRecord> GetUnmatchedVisionRecords()
         {
-            return _dbContext.VisionRecords.Where(v => v.Matched == false);
+            return _dbContext.VisionRecords.Where(v => v.Matched == false).ToList();
         }
 
         private void GenerateFileForSelectedRecords(IEnumerable<VisionRecord> rows, string outputFile)

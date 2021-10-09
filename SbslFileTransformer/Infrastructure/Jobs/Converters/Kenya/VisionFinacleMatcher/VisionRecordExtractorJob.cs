@@ -54,10 +54,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
-                        .ToList();
+                    var configurations = dbContext.Configurations.ToList();
 
-                    Entity = dbContext.Configurations
+                    Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
@@ -72,13 +71,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                     files.AddRange(
                         Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")));
 
+                    List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
+
+                    var updatedFiles = new List<SftpUploadedFile>();
+
                     foreach (var file in files)
                     {
                         if (file.ToLower().Contains("cards") && file.ToLower().Contains("credit_card")
                             && file.ToLower().Contains("collections_cms") && file.ToLower().Contains("imke"))
                         {
                             var fileToProcess =
-                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
+                                uploadedFiles.FirstOrDefault(f =>
                                     f.FilePath.ToLower() == file.ToLower());
 
 
@@ -93,26 +96,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                                 }
                                 catch (Exception ex)
                                 {
-                                    fileToProcess.Failed = true;
-
-                                    _logger.LogError(ex, ex.Message);
-
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Extracting records from Vision files",
-                                        $"{file} \n\n {ex.Message}", new[] { file }, _emailSender);
+                                    await ProcessFileFailure(configurations, file, fileToProcess, ex);
                                 }
                                 finally
                                 {
-                                    fileToProcess.Converted = true;
-
-                                    fileToProcess.ConvertedBy = nameof(VisionRecordExtractorJob);
-
-                                    dbContext.Update(fileToProcess);
-
-                                    await dbContext.SaveChangesAsync();
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(VisionRecordExtractorJob));
                                 }
                             }
                         }
                     }
+                    await SaveProcessedFilesStatuses(dbContext, updatedFiles);
                 }
             }
             catch (Exception ex)

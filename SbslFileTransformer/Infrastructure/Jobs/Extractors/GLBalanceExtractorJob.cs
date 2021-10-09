@@ -3,8 +3,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters;
 using SbslFileTransformer.Data;
+using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -44,24 +46,24 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                 using (var scope = _serviceScopeFactory.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
-                        .ToList();
+                    List<Configuration> configurations = dbContext.Configurations.ToList();
 
-                    Entity = dbContext.Configurations
-                        .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
-                    var isProd =
+                    Entity = configurations
+                        .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
+                    
+                    bool isProd =
                         Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ??
                                           false.ToString());
 
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = false, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.csv", options).ToList();
+                    List<string> files = Directory.GetFiles(prodFolder, "*.csv", options).ToList();
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.csv", options));
 

@@ -6,8 +6,10 @@ using SbslFileTransformer.Converters.CDM;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
+using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -53,10 +55,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = await dbContext.Configurations
-                        .Where(c => c.ConfigType == ConfigurationType.Sftp).ToListAsync();
+                    var configurations = await dbContext.Configurations.ToListAsync();
 
-                    Entity = dbContext.Configurations
+                    Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
@@ -69,14 +70,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.xls", options));
 
+                    List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
+
+                    var updatedFiles = new List<SftpUploadedFile>();
 
                     foreach (var file in files)
+                    {
                         //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
                         if (file.ToLower().Contains("cdm") || file.ToLower().Contains("cash") &&
                             file.ToLower().Contains("deposit") && file.ToLower().Contains("machine"))
                         {
-                            var fileToProcess =
-                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
+                            var fileToProcess = uploadedFiles.FirstOrDefault(f =>
                                     f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
@@ -96,12 +100,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 catch (Exception ex)
                                 {
-                                    fileToProcess.Failed = true;
-
-                                    _logger.LogError(ex, ex.Message);
-
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting CDM files",
-                                        $"{file} \n\n {ex.Message}", new[] { file }, _emailSender);
+                                    await ProcessFileFailure(configurations, file, fileToProcess, ex);
                                 }
                                 finally
                                 {
@@ -110,11 +109,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                     if (Entity == "IMRW") fileToProcess.ConvertedBy = nameof(CdmConverterRwanda);
                                     if (Entity == "IMKE") fileToProcess.ConvertedBy = nameof(CdmFileConverter);
 
-                                    dbContext.Update(fileToProcess);
-
-                                    await dbContext.SaveChangesAsync();
+                                    updatedFiles.Add(fileToProcess);
                                 }
                         }
+                    }
+                    await SaveProcessedFilesStatuses(dbContext, updatedFiles);
                 }
             }
             catch (Exception ex)

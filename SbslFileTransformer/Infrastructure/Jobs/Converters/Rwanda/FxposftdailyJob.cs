@@ -6,8 +6,10 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Infrastructure.Messaging;
+using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -53,10 +55,9 @@ namespace SbslFileTransformer.Converters.Rwanda
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
-                        .ToList();
+                    var configurations = dbContext.Configurations.ToList();
 
-                    Entity = dbContext.Configurations
+                    Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
@@ -71,62 +72,36 @@ namespace SbslFileTransformer.Converters.Rwanda
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")));
 
-                    var ft_Converter = new ft_dailyConverter();
+                    var ft_Converter = new Ft_dailyConverter();
+
+                    List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
+
+                    var updatedFiles = new List<SftpUploadedFile>();
 
                     foreach (var file in files)
+                    {
                         //SPECIFY FOLDER and file extension above PENDING
                         //imrw\treasury\fx_pos\fx_pos_ft_daily
                         if (file.ToLower().Contains("imrw") && file.ToLower().Contains("treasury") && file.ToLower().Contains("fx_pos") && file.ToLower().Contains("fx_pos_ft_daily"))//&& !file.ToLower().Contains("conv")
                         {
-                            var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
+                            var fileToProcess = uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
                                     ft_Converter.ConvertFile(file, rootFolder);
-                                    fileToProcess.Converted = true;
                                 }
                                 catch (Exception ex)
                                 {
-                                    fileToProcess.Failed = true;
-
-                                    _logger.LogError(ex, ex.Message);
-
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting  fx_pos_ft_sum files",
-                                        $"{file} \n\n {ex.Message}", new[] { file }, _emailSender);
+                                    await ProcessFileFailure(configurations, file, fileToProcess, ex);
                                 }
                                 finally
                                 {
-
-
-                                    fileToProcess.ConvertedBy = nameof(ft_dailyConverter);
-
-                                    dbContext.Update(fileToProcess);
-
-                                    await dbContext.SaveChangesAsync();
-                                    var archive = "";
-
-                                    archive = Path.Combine(Path.GetDirectoryName(file), "ARCHIVE",
-                                        DateTime.Now.ToString("yyMMdd"));
-                                    if (!Directory.Exists(archive))
-                                        Directory.CreateDirectory(archive);
-
-
-                                    try
-                                    {
-                                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".fx");
-                                        File.Delete(file);
-                                    }
-                                    catch (Exception xc)
-                                    {
-                                        _logger.LogError(xc, xc.Message);
-                                    }
-
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(Ft_dailyConverter));
                                 }
                         }
-
-
-
+                    }
+                    await SaveProcessedFilesStatuses(dbContext, updatedFiles);
                 }
             }
             catch (Exception ex)

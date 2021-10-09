@@ -6,8 +6,10 @@ using SbslFileTransformer.Converters.Rwanda;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
+using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -53,9 +55,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = await dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToListAsync();
+                    var configurations = await dbContext.Configurations.ToListAsync();
 
-                    Entity = dbContext.Configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
+                    Entity = configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
                     var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
@@ -69,12 +71,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.xlsx", options));
 
+                    List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
+
+                    var updatedFiles = new List<SftpUploadedFile>();
 
                     foreach (var file in files)
+                    {
                         //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
                         if (file.ToLower().Contains("imrw") || file.ToLower().Contains("atms") && file.ToLower().Contains("balances"))
                         {
-                            var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
+                            var fileToProcess = uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
@@ -83,33 +89,21 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                     {
                                         var atmbalConverter = new ATMBalConverterRwanda();
                                         await atmbalConverter.ConvertFile(file, rootFolder, Entity);
-                                        fileToProcess.Converted = true;
                                     }
 
                                 }
                                 catch (Exception ex)
                                 {
-                                    fileToProcess.Failed = true;
-
-                                    _logger.LogError(ex, ex.Message);
-
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting ATM Balance files",
-                                        $"{file} \n\n {ex.Message}", new[] { file }, _emailSender);
+                                    await ProcessFileFailure(configurations, file, fileToProcess, ex);
                                 }
                                 finally
                                 {
 
-                                    if (fileToProcess.Converted == true)
-                                    {
-                                        if (Entity == "IMRW") fileToProcess.ConvertedBy = nameof(ATMBalConverterRwanda);
-                                        if (Entity == "IMKE") fileToProcess.ConvertedBy = nameof(ATMBalConverterRwanda);
-
-                                        dbContext.Update(fileToProcess);
-
-                                        await dbContext.SaveChangesAsync();
-                                    }
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(ATMBalConverterRwanda));
                                 }
                         }
+                    }
+                    await SaveProcessedFilesStatuses(dbContext, updatedFiles);
                 }
             }
             catch (Exception ex)

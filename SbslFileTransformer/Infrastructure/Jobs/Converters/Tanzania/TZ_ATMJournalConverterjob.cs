@@ -5,8 +5,10 @@ using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
+using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -52,10 +54,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = await dbContext.Configurations
-                        .Where(c => c.ConfigType == ConfigurationType.Sftp).ToListAsync();
+                    var configurations = await dbContext.Configurations.ToListAsync();
 
-                    Entity = dbContext.Configurations
+                    Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
@@ -64,7 +65,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    //var files = Directory.GetFiles(prodFolder, "*.jrn", options).ToList();
+                    List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
+
+                    var updatedFiles = new List<SftpUploadedFile>();
 
                     var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".jrn"))
                     .ToList();
@@ -72,76 +75,33 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     files.AddRange(
                         Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".jrn")));
 
-
                     var ATMJournalConverter = new TZ_ATMJournalConverter();
 
                     foreach (var file in files)
+                    {
                         //FILE PATH SHOULD IMTZ/Cards_ATM/JRN_ATM
                         if (file.ToLower().Contains("imtz") && file.ToLower().Contains("cards_atm") && file.ToLower().Contains("jrn_atm"))
                         {
                             var fileToProcess =
-                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
+                                uploadedFiles.FirstOrDefault(f =>
                                     f.FilePath.ToLower() == file.ToLower());
+
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
                                     ATMJournalConverter.ProcessATMjournalFile(file);
-                                    fileToProcess.Converted = true;
                                 }
                                 catch (Exception ex)
                                 {
-                                    //fileToProcess.Failed = true;
-
-                                    _logger.LogError(ex, ex.Message);
-
-                                    var archive = "";
-
-                                    archive = Path.Combine(Path.GetDirectoryName(file) + "\\ATMJournal", "FAILED",
-                                        DateTime.Now.ToString("yyMMdd") + "\\ATMJournal");
-                                    if (!Directory.Exists(archive))
-                                        Directory.CreateDirectory(archive);
-
-
-                                    try
-                                    {
-                                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".err");
-                                        File.Delete(file);
-                                    }
-                                    catch (Exception)
-                                    {
-                                    }
-
-                                    await EmailHelpers.SendEmails(dbContext, "Error in ATMJournal file conversion",
-                                        $"Problem with  file {file} \n\n {ex.Message}", new[] { file }, _emailSender);
+                                    await ProcessFileFailure(configurations, file, fileToProcess, ex);
                                 }
                                 finally
                                 {
-
-
-                                    fileToProcess.ConvertedBy = nameof(TZ_ATMJournalConverter);
-
-                                    dbContext.Update(fileToProcess);
-
-                                    await dbContext.SaveChangesAsync();
-                                    var archive = "";
-
-                                    archive = Path.Combine(Path.GetDirectoryName(file), "ARCHIVE",
-                                        DateTime.Now.ToString("yyMMdd"));
-                                    if (!Directory.Exists(archive))
-                                        Directory.CreateDirectory(archive);
-
-
-                                    try
-                                    {
-                                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + ".atm");
-                                        File.Delete(file);
-                                    }
-                                    catch (Exception xc)
-                                    {
-                                        _logger.LogError(xc, xc.Message);
-                                    }
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(TZ_ATMJournalConverter));
                                 }
                         }
+                    }
+                    await SaveProcessedFilesStatuses(dbContext, updatedFiles);
                 }
             }
             catch (Exception ex)
@@ -153,7 +113,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 _semaphore.Release();
             }
         }
+
+        
     }
-
-
 }

@@ -5,8 +5,10 @@ using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
+using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -52,10 +54,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = await dbContext.Configurations
-                        .Where(c => c.ConfigType == ConfigurationType.Sftp).ToListAsync();
+                    var configurations = await dbContext.Configurations.ToListAsync();
 
-                    Entity = dbContext.Configurations
+                    Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
@@ -73,115 +74,56 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     var ATMJournalConverter = new RW_ATMJournalConverter();
 
+                    List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
+
+                    var updatedFiles = new List<SftpUploadedFile>();
+
                     foreach (var file in files)
+                    {
                         //FILE PATH SHOULD HAVE FOLDER NAME MT300 SOMEWHERE IN IT
                         if (file.Contains("ATMs") && file.Contains("E-JRN"))
                         {
-                            var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
+                            var fileToProcess = uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    ATMJournalConverter.ConvertFile_WinkaATMjrn(file);
-                                    fileToProcess.Converted = true;
+                                    ATMJournalConverter.ConvertFile_WinkaATMjrn(file);                                    
                                 }
                                 catch (Exception ex)
                                 {
-                                    fileToProcess.Failed = true;
-
-                                    _logger.LogError(ex, ex.Message);
-
-                                    await EmailHelpers.SendEmails(dbContext, "Error in ATMJournal file conversion",
-                                    $"Problem with  file {file} \n\n {ex.Message}", new[] { file }, _emailSender);
+                                    await ProcessFileFailure(configurations, file, fileToProcess, ex);
                                 }
                                 finally
                                 {
-
-
-                                    fileToProcess.ConvertedBy = nameof(ATMjournalConverterJob);
-
-                                    dbContext.Update(fileToProcess);
-
-                                    await dbContext.SaveChangesAsync();
-
-
-                                    await dbContext.SaveChangesAsync();
-                                    var archive = "";
-
-                                    archive = Path.Combine(Path.GetDirectoryName(file), "ARCHIVE",
-                                        DateTime.Now.ToString("yyMMdd"));
-                                    if (!Directory.Exists(archive))
-                                        Directory.CreateDirectory(archive);
-
-
-                                    try
-                                    {
-                                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".cor");
-                                        File.Delete(file);
-                                    }
-                                    catch (Exception xc)
-                                    {
-                                        _logger.LogError(xc, xc.Message);
-                                    }
-
-
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(RW_ATMJournalConverter));
                                 }
                         }
-
-
+                    }
 
                     foreach (var file in files_)
+                    {
                         //FILE PATH SHOULD HAVE FOLDER NAME MT300 SOMEWHERE IN IT
                         if (file.Contains("ATMs") && file.Contains("E-JRN"))
                         {
-                            var fileToProcess = await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
+                            var fileToProcess = uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
                                     ATMJournalConverter.ConvertFile_WinkaATMjrn(file);
-                                    fileToProcess.Converted = true;
+                                    
                                 }
                                 catch (Exception ex)
                                 {
-                                    fileToProcess.Failed = true;
-
-                                    _logger.LogError(ex, ex.Message);
-
-                                    await EmailHelpers.SendEmails(dbContext, "Error in ATMJournal file conversion",
-                                    $"Problem with  file {file} \n\n {ex.Message}", new[] { file }, _emailSender);
+                                    await ProcessFileFailure(configurations, file, fileToProcess, ex);
                                 }
                                 finally
                                 {
-
-
-                                    fileToProcess.ConvertedBy = nameof(ATMjournalConverterJob);
-
-                                    dbContext.Update(fileToProcess);
-
-                                    await dbContext.SaveChangesAsync();
-
-                                    await dbContext.SaveChangesAsync();
-                                    var archive = "";
-
-                                    archive = Path.Combine(Path.GetDirectoryName(file), "ARCHIVE",
-                                        DateTime.Now.ToString("yyMMdd"));
-                                    if (!Directory.Exists(archive))
-                                        Directory.CreateDirectory(archive);
-
-
-                                    try
-                                    {
-                                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".ncr");
-                                        File.Delete(file);
-                                    }
-                                    catch (Exception xc)
-                                    {
-                                        _logger.LogError(xc, xc.Message);
-                                    }
-
-
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(RW_ATMJournalConverter));
                                 }
                         }
+                    }
 
+                    await SaveProcessedFilesStatuses(dbContext, updatedFiles);
                 }
             }
             catch (Exception ex)

@@ -6,8 +6,10 @@ using SbslFileTransformer.Converters;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
+using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -53,9 +55,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = await dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToListAsync();
+                    var configurations = await dbContext.Configurations.ToListAsync();
+
                     var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
-                    Entity = dbContext.Configurations
+                    Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity")?.Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
@@ -70,12 +73,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     var tzepinConverter = new Tz_EP75Converter();
 
+                    List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
+
+                    var updatedFiles = new List<SftpUploadedFile>();
+
                     foreach (var file in files)
+                    {
                         if (file.ToLower().Contains("ep75") && file.ToLower().Contains("imtz") &&
                             file.ToLower().Contains("cards"))
                         {
                             var fileToProcess =
-                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
+                                uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
@@ -84,24 +92,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 catch (Exception ex)
                                 {
-                                    fileToProcess.Failed = true;
-
-                                    _logger.LogError(ex, ex.Message);
-
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting TZ EP75 files",
-                                        $"{file} \n\n {ex.Message}", new[] { file }, _emailSender);
+                                    await ProcessFileFailure(configurations, file, fileToProcess, ex);
                                 }
                                 finally
                                 {
-                                    fileToProcess.Converted = true;
-
-                                    fileToProcess.ConvertedBy = nameof(TZ_EP75ConverterJob);
-
-                                    dbContext.Update(fileToProcess);
-
-                                    await dbContext.SaveChangesAsync();
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(Tz_EP75Converter));
                                 }
                         }
+                    }
+                    await SaveProcessedFilesStatuses(dbContext, updatedFiles);
                 }
             }
             catch (Exception ex)

@@ -10,9 +10,9 @@ using System.Text;
 
 namespace SbslFileTransformer.Converters.Rwanda
 { 
-    public class fc_dailyConverter
+    public class Fc_dailyConverter
     {
-        public fc_dailyConverter()
+        public Fc_dailyConverter()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }

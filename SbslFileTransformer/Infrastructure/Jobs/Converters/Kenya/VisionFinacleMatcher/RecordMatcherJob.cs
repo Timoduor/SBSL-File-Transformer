@@ -6,8 +6,10 @@ using SbslFileTransformer.Converters.Kenya;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
+using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -50,12 +52,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                 using (var scope = _serviceScopeFactory.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
-                        .ToList();
+                    List<Configuration> configurations = dbContext.Configurations.ToList();
 
-                    Entity = dbContext.Configurations
+                    Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
@@ -64,7 +65,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv"))
+                    List<string> files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv"))
                        .ToList();
 
                     files.AddRange(
@@ -72,17 +73,19 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                     var mpesaConverter = new VisionRecordMatcher(dbContext);
 
-                    foreach (var file in files)
+                    List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
+
+                    List<SftpUploadedFile> updatedFiles = new List<SftpUploadedFile>();
+
+                    foreach (string file in files)
                     {
                         if (file.ToLower().Contains("cards") && file.ToLower().Contains("credit_card")
                             && file.ToLower().Contains("collections_gl") && file.ToLower().Contains("imke"))
                         {
-                            var fileToProcess =
-                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
+                            SftpUploadedFile fileToProcess =uploadedFiles.FirstOrDefault(f =>
                                     f.FilePath.ToLower() == file.ToLower());
 
-
-                            if (fileToProcess != null && fileToProcess.Converted == false)
+                            if (fileToProcess != null)// not checked for processed because new records might be added that match
                             {
 
                                 string path = Path.GetDirectoryName(file);
@@ -96,26 +99,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 }
                                 catch (Exception ex)
                                 {
-                                    fileToProcess.Failed = true;
-
-                                    _logger.LogError(ex, ex.Message);
-
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting Omni Lookup files",
-                                        $"{file} \n\n {ex.Message}", new[] { file }, _emailSender);
+                                    await ProcessFileFailure(configurations, file, fileToProcess, ex);
                                 }
                                 finally
                                 {
-                                    //fileToProcess.Converted = true;
-
-                                    fileToProcess.ConvertedBy = nameof(VisionRecordMatcher);
-
-                                    dbContext.Update(fileToProcess);
-
-                                    await dbContext.SaveChangesAsync();
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(VisionRecordMatcher));
                                 }
                             }
                         }
                     }
+                    await SaveProcessedFilesStatuses(dbContext, updatedFiles);
                 }
             }
             catch (Exception ex)

@@ -7,8 +7,10 @@ using SbslFileTransformer.Converters.Tanzania;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
+using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -52,21 +54,20 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                 using (var scope = _serviceScopeFactory.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
-                        .ToList();
+                    List<Configuration> configurations = dbContext.Configurations.ToList();
 
-                    Entity = dbContext.Configurations
-                        .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
-
+                    Entity = configurations
+                        .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
+                    
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx"))
+                    List<string> files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx"))
                         .ToList();
 
                     files.AddRange(
@@ -78,45 +79,42 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                         ServiceScopeFactory = _serviceScopeFactory
                     };
 
-                    foreach (var file in files)
+                    List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
+
+                    var updatedFiles = new List<SftpUploadedFile>();
+
+                    foreach (string file in files)
+                    {
                         if (file.ToLower().Contains("ims") && file.ToLower().Contains("imke") &&
                             file.ToLower().Contains("balance") && file.ToLower().Contains("innova"))
                         {
-                            var fileToProcess =
-                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f =>
+                            SftpUploadedFile fileToProcess = uploadedFiles.FirstOrDefault(f =>
                                     f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
+                            {
                                 try
                                 {
-                                    var isProd = Convert.ToBoolean(
+                                    bool isProd = Convert.ToBoolean(
                                         configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ??
                                         false.ToString());
 
-                                    var rootFolder = isProd ? prodFolder : sbFolder;
+                                    string rootFolder = isProd ? prodFolder : sbFolder;
 
                                     await mpesaConverter.ConvertFile(file, rootFolder, Entity);
                                 }
                                 catch (Exception ex)
                                 {
-                                    fileToProcess.Failed = true;
-
-                                    _logger.LogError(ex, ex.Message);
-
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting IMS Balance files",
-                                        $"{file} \n\n {ex.Message}", new[] { file }, _emailSender);
+                                    await ProcessFileFailure(configurations, file, fileToProcess, ex);
                                 }
                                 finally
                                 {
-                                    fileToProcess.Converted = true;
-
-                                    fileToProcess.ConvertedBy = nameof(SelcomDisbConverter);
-
-                                    dbContext.Update(fileToProcess);
-
-                                    await dbContext.SaveChangesAsync();
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(ImsBalanceExtractor));
                                 }
+                            }
                         }
+                    }
+                    await SaveProcessedFilesStatuses(dbContext, updatedFiles);
                 }
             }
             catch (Exception ex)

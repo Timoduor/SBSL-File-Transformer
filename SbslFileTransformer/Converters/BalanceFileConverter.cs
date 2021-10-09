@@ -1,4 +1,5 @@
 ﻿using CsvHelper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
@@ -47,6 +48,9 @@ namespace SbslFileTransformer.Converters
             {
                 var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
                 var emailSender = scope.ServiceProvider.GetService<EmailSender>();
+
+                var configurations = await dbContext.Configurations.ToListAsync();
+
                 try
                 {
                     if (string.IsNullOrEmpty(Entity))
@@ -58,7 +62,7 @@ namespace SbslFileTransformer.Converters
 
                     var exemptAccs = new List<string>();
 
-                    if (!dbContext.Configurations.Any(c => c.Key == "GLExemptAccounts"))
+                    if (!configurations.Any(c => c.Key == "GLExemptAccounts"))
                     {
                         dbContext.Configurations.Add(new Configuration
                         {
@@ -69,13 +73,15 @@ namespace SbslFileTransformer.Converters
                         await dbContext.SaveChangesAsync();
                     }
 
-                    exemptAccs.AddRange(dbContext.Configurations.Where(c => c.Key == "GLExemptAccounts")
+                    exemptAccs.AddRange(configurations.Where(c => c.Key == "GLExemptAccounts")
                         .FirstOrDefault()?.Value.Split(","));
 
                     var pairs = dbContext.Accounts.Select(a => new { a.Number, a.Name });
 
-                    foreach (var acc in pairs) lookUp.TryAdd(acc.Number, acc.Name);
-
+                    foreach (var acc in pairs)
+                    {
+                        lookUp.TryAdd(acc.Number, acc.Name);
+                    }
 
                     if (Path.GetExtension(filePath).ToLower() != ".csv")
                         return false;
@@ -122,7 +128,7 @@ namespace SbslFileTransformer.Converters
                 {
                     Logger.LogError(ex, ex.Message);
 
-                    await EmailHelpers.SendEmails(dbContext, "Problem Converting CDM Balance files", $"\n\n {ex.Message}", new[] { filePath }, emailSender);
+                    await EmailHelpers.SendEmails(configurations, "Problem Converting CDM Balance files", $"\n\n {ex.Message}", new[] { filePath }, emailSender);
 
                     return false;
                 }

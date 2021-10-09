@@ -36,7 +36,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             _semaphore = new SemaphoreSlim(1, 1);
 
             _timer = new Timer(async state => await ProcessNewReports(), null,
-                TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromMinutes(10));
+                TimeSpan.FromSeconds(new Random().Next(60, 120)), TimeSpan.FromMinutes(15));
 
             return Task.CompletedTask;
         }
@@ -68,13 +68,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
                     using (var scope = _serviceScopeFactory.CreateScope())
                     {
-                        var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                        ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
                         var emailGroups = dbContext.EmailGroups.Where(g => g.IsActive).ToList();
 
+                        List<ProcessedReport> processedReports = dbContext.ProcessedReports.ToList();
+                        List<Configuration> configurations = dbContext.Configurations.ToList();
+
                         foreach (var report in allReports)
                         {
-                            if (dbContext.ProcessedReports.Any(r => r.ReportId == report.ReportId))
+                            if (processedReports.Any(r => r.ReportId == report.ReportId))
                                 continue;
 
                             _logger.LogInformation($"Processing report {report.Name} with ID {report.ReportId}");
@@ -83,7 +86,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                                 $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{report.Name}." +
                                 (config.ExportType == "Excel" ? "xlsx" : config.ExportType));
 
-                            var entity = dbContext.Configurations.FirstOrDefault(c =>
+                            var entity = configurations.FirstOrDefault(c =>
                                 c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
 
                             //if category does not exist set it to default and ignore it in the select filters after

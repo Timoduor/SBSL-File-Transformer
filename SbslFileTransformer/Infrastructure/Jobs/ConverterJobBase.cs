@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
+using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
 using System.Collections.Generic;
@@ -62,10 +64,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
-                        .ToList();
+                    var configurations = dbContext.Configurations.ToList();
 
-                    Entity = dbContext.Configurations
+                    Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
@@ -126,6 +127,32 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             _semaphore.Dispose();
             _timer.Dispose();
             return Task.CompletedTask;
+        }
+
+        protected async Task ProcessFileFailure(List<Configuration> configurations, string file, SftpUploadedFile fileToProcess, Exception ex, string header = "")
+        {
+            fileToProcess.Failed = true;
+
+            _logger.LogError(ex, ex.Message);
+
+            await EmailHelpers.SendEmails(configurations, string.IsNullOrEmpty(header) ? "Error in File Conversion" : header,
+                $"Problem with  file {file} \n\n {ex.Message}", new[] { file }, _emailSender);
+        }
+
+        protected void CompleteFileProcessing(List<SftpUploadedFile> updatedFiles, SftpUploadedFile fileToProcess, Type type)
+        {
+            fileToProcess.Converted = true;
+
+            fileToProcess.ConvertedBy = nameof(type);
+
+            updatedFiles.Add(fileToProcess);
+        }
+
+        protected async Task SaveProcessedFilesStatuses(ApplicationDbContext dbContext, List<SftpUploadedFile> updatedFiles)
+        {
+            dbContext.UploadedFiles.UpdateRange(updatedFiles);
+
+            await dbContext.SaveChangesAsync();
         }
     }
 }

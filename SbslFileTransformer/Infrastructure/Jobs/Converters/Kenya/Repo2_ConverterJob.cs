@@ -6,8 +6,10 @@ using SbslFileTransformer.Converters.Rwanda;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
+using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -55,10 +57,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
-                        .ToList();
+                    var configurations = dbContext.Configurations.ToList();
 
-                    Entity = dbContext.Configurations
+                    Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
@@ -75,13 +76,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     var Repo2Converter = new Repo2Converter();
 
+                    List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
+
+                    var updatedFiles = new List<SftpUploadedFile>();
+
                     foreach (var file in files)
+                    {
                         //SPECIFY FOLDER and file extension above PENDING
                         ///prod/imke/gl_entries/rep02
                         if (file.ToLower().Contains("imke") && file.ToLower().Contains("gl_entries") && file.ToLower().Contains("rep02"))// && !file.ToLower().Contains("conv")
                         {
                             var fileToProcess =
-                                await dbContext.UploadedFiles.FirstOrDefaultAsync(f => f.FilePath.ToLower() == file.ToLower());
+                                uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
@@ -90,42 +96,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 catch (Exception ex)
                                 {
-                                    fileToProcess.Failed = true;
-
-                                    _logger.LogError(ex, ex.Message);
-
-                                    await EmailHelpers.SendEmails(dbContext, "Problem Converting  KE Repo2 files",
-                                        $"{file} \n\n {ex.Message}", new[] { file }, _emailSender);
+                                    await ProcessFileFailure(configurations, file, fileToProcess, ex);
                                 }
                                 finally
                                 {
-                                    fileToProcess.Converted = true;
-
-                                    fileToProcess.ConvertedBy = nameof(FxposftsumConverter);
-
-                                    dbContext.Update(fileToProcess);
-
-                                    await dbContext.SaveChangesAsync();
-                                    var archive = "";
-
-                                    archive = Path.Combine(Path.GetDirectoryName(file), "ARCHIVE",
-                                        DateTime.Now.ToString("yyMMdd"));
-                                    if (!Directory.Exists(archive))
-                                        Directory.CreateDirectory(archive);
-
-
-                                    try
-                                    {
-                                        File.Copy(file, archive + "\\" + Path.GetFileNameWithoutExtension(file) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".fx");
-                                        File.Delete(file);
-                                    }
-                                    catch (Exception xc)
-                                    {
-                                        _logger.LogError(xc, xc.Message);
-                                    }
-
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, typeof(Repo2Converter));
                                 }
                         }
+                    }
+                    await SaveProcessedFilesStatuses(dbContext, updatedFiles);
                 }
             }
             catch (Exception ex)
