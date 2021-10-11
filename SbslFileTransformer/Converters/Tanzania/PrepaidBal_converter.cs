@@ -64,16 +64,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                
                 if (lines[i].Split(',').Length > 13)
                 {
-                  
-                    if (IsNumeric(lines[i].Split(',')[4].ToString())==true)
-                    {
-                        USDbal = USDbal + Convert.ToDouble(lines[i].Split(',')[6]);
-                        GBPbal = GBPbal + Convert.ToDouble(lines[i].Split(',')[7]);
-                        EURbal = EURbal + Convert.ToDouble(lines[i].Split(',')[8]);
-                        INRbal = INRbal + Convert.ToDouble(lines[i].Split(',')[10]);
-                        TZSbal = TZSbal + Convert.ToDouble(lines[i].Split(',')[13]);
+                  if (lines[i].Split(',')[2].ToString()!="")
+                    { 
+                        if (IsNumeric(lines[i].Split(',')[4].ToString())==true)
+                        {
+                            USDbal = USDbal + Convert.ToDouble(lines[i].Split(',')[6]);
+                            GBPbal = GBPbal + Convert.ToDouble(lines[i].Split(',')[7]);
+                            EURbal = EURbal + Convert.ToDouble(lines[i].Split(',')[8]);
+                            INRbal = INRbal + Convert.ToDouble(lines[i].Split(',')[10]);
+                            TZSbal = TZSbal + Convert.ToDouble(lines[i].Split(',')[13]);
 
 
+                        }
                     }
 
                 }
