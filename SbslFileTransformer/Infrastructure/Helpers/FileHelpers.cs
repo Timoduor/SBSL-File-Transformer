@@ -54,7 +54,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
                     client.Connect();
 
-                    using (var scope = serviceScopeFactory.CreateScope())
+                    using (IServiceScope scope = serviceScopeFactory.CreateScope())
                     {
                         lock (_locker)
                         {
@@ -108,22 +108,27 @@ namespace SbslFileTransformer.Infrastructure.Helpers
             SftpClient client, Dictionary<string, string> currentlyUploaded, List<SftpUploadedFile> uploadedFiles, bool useUnicode,
             IEnumerable<string> filePathsToCheck, SftpManager sftpManager)
         {
-            foreach (var filePath in filePathsToCheck)
+            foreach (string filePath in filePathsToCheck)
             {
                 try
                 {
                     MTFileValidation newFileName = ValidateMTFile(filePath, logger);
 
-                    var previouslyUploaded = FileHasBeenUploadedBefore(filePath, currentlyUploaded);
+                    UploadCheckResult previouslyUploaded = FileHasBeenUploadedBefore(filePath, currentlyUploaded);
 
                     if (previouslyUploaded.Uploaded)
                     {
                         continue;
                     }
 
+                    if(uploadedFiles.Any(f => f.Md5 == previouslyUploaded.Md5))
+                    {
+                        continue;
+                    }
+
                     logger.LogInformation($"Uploading file {filePath} to SFTP site at {DateTime.Now}!");
 
-                    var remotePath = isProduction ? "/PROD/" : "/SB/";
+                    string remotePath = isProduction ? "/PROD/" : "/SB/";
 
                     //connecting to local cygwin SFTP server
                     if (useUnicode)
@@ -133,7 +138,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                         client.ConnectionInfo.Encoding = Encoding.Unicode;
                     }
 
-                    var relativePath = Path.GetRelativePath(productionOrSandboxFolder, filePath);
+                    string relativePath = Path.GetRelativePath(productionOrSandboxFolder, filePath);
 
                     remotePath = Path.Combine(remotePath, relativePath.Replace('\\', '/'));
 
@@ -187,8 +192,8 @@ namespace SbslFileTransformer.Infrastructure.Helpers
         {
             lock (_locker)
             {
-                var md5 = GetMd5(filePath);
-                var name = Path.GetFileName(filePath);
+                string md5 = GetMd5(filePath);
+                string name = Path.GetFileName(filePath);
 
                 var uploadCheckResult = new UploadCheckResult
                 {
@@ -210,11 +215,11 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
         public static string GetMd5(string filePath)
         {
-            using (var md5 = MD5.Create())
+            using (MD5 md5 = MD5.Create())
             {
-                using (var stream = File.OpenRead(filePath))
+                using (FileStream stream = File.OpenRead(filePath))
                 {
-                    var hash = md5.ComputeHash(stream);
+                    byte[] hash = md5.ComputeHash(stream);
 
                     stream.Close();
 
@@ -227,7 +232,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
         {
             var backUpFolder = @"C:\SBSLETL_DbBackup";
 
-            using (var scope = serviceScopeFactory.CreateScope())
+            using (IServiceScope scope = serviceScopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
