@@ -16,10 +16,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 {
     public class GLBalanceExtractorJob : ConverterJobBase<GLBalanceExtractorJob>, IHostedService
     {
-        public GLBalanceExtractorJob(IServiceScopeFactory serviceScopeFactory, ILogger<GLBalanceExtractorJob> logger)
+        public GLBalanceExtractorJob(IServiceScopeFactory serviceScopeFactory, ILogger<GLBalanceExtractorJob> logger, JobManager jobManager)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
+            _jobManager = jobManager;
         }
 
         protected override string JobName { get; set; } = nameof(ImsBalanceExtractorJob);
@@ -50,6 +51,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                 {
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
+                    CurrentJobStatus = _jobManager.GetJobStatus(JobName);
+
+                    if (CurrentJobStatus == null)
+                    {
+                        CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Running };
+
+                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                    }
+
                     List<Configuration> configurations = dbContext.Configurations.ToList();
 
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
@@ -71,6 +81,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                     var converter = new BalanceFileConverter(_logger, _serviceScopeFactory, Entity);
 
+                    CurrentJobStatus.Status = JobState.Running;
+                    _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+
+                    int count = 0;
+                    int total = files.Count;
+
                     foreach (var file in files)
                     {
                         //if in Kenya do not process files for other countries
@@ -78,7 +94,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                             continue;
 
                         await ProcessFile(file, converter);
+
+                        count++;
+
+                        CurrentJobStatus.ProgressMessage = $"Currently processing {file}... {count} of {total}";
+                        CurrentJobStatus.SetProgress(count, total);
+                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
                     }
+
+                    CurrentJobStatus.Status = JobState.Completed;
+                    _jobManager.SetJobStatus(JobName, CurrentJobStatus);
                 }
             }
             catch (Exception ex)

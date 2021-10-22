@@ -21,11 +21,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
     {
         protected override string JobName { get; set; } = nameof(VisionRecordExtractorJob);
         public VisionRecordExtractorJob(ILogger<VisionRecordExtractorJob> logger, IServiceScopeFactory serviceScopeFactory,
-            EmailSender emailSender)
+            EmailSender emailSender, JobManager jobManager)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
             _emailSender = emailSender;
+            _jobManager = jobManager;
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
@@ -55,6 +56,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
+                    CurrentJobStatus = _jobManager.GetJobStatus(JobName);
+
+                    if (CurrentJobStatus == null)
+                    {
+                        CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Running };
+
+                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                    }
+
+                    CurrentJobStatus.Status = JobState.Running;
+                    _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+
                     var configurations = dbContext.Configurations.ToList();
 
                     Entity = configurations
@@ -75,6 +88,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
                     var updatedFiles = new List<SftpUploadedFile>();
+                    
+                    int count = 0;
+                    int total = files.Count;
 
                     foreach (var file in files)
                     {
@@ -84,8 +100,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                             var fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>
                                     f.FilePath.ToLower() == file.ToLower());
-
-
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                             {
@@ -105,8 +119,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                                 }
                             }
                         }
+                        CurrentJobStatus.ProgressMessage = $"Currently processing {file}... {count} of {total}";
+                        CurrentJobStatus.SetProgress(count, total);
+                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
                     }
                     await SaveProcessedFilesStatuses(dbContext, updatedFiles);
+
+                    CurrentJobStatus.Status = JobState.Completed;
+                    _jobManager.SetJobStatus(JobName, CurrentJobStatus);
                 }
             }
             catch (Exception ex)

@@ -131,6 +131,12 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
                     UploadCheckResult previouslyUploaded = FileHasBeenUploadedBefore(filePath, currentlyUploaded);
 
+                    count++;
+
+                    currentJobStatus.SetProgress(count, total);
+                    currentJobStatus.ProgressMessage = $"Currently uploading {filePath}... {count} of {total}";
+                    jobManager.SetJobStatus(nameof(SftpIndependentJob), currentJobStatus);
+
                     if (previouslyUploaded.Uploaded)
                     {
                         continue;
@@ -180,12 +186,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                 catch (Exception ex)
                 {
                     logger.LogError(ex, $"Error uploading file {filePath} {ex.Message}");
-                }
-                count++;
-
-                currentJobStatus.SetProgress(count, total);
-                currentJobStatus.ProgressMessage = $"Currently uploading {filePath}... {count} of {total}";
-                jobManager.SetJobStatus(nameof(SftpIndependentJob), currentJobStatus);
+                }                
             }
         }
 

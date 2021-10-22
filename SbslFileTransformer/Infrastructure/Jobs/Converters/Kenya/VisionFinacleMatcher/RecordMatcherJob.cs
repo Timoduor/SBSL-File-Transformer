@@ -21,11 +21,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
     {
         protected override string JobName { get; set; } = nameof(RecordMatcherJob);
         public RecordMatcherJob(ILogger<RecordMatcherJob> logger, IServiceScopeFactory serviceScopeFactory,
-            EmailSender emailSender)
+            EmailSender emailSender, JobManager jobManager)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
             _emailSender = emailSender;
+            _jobManager = jobManager;
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
@@ -55,6 +56,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                 {
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
+                    CurrentJobStatus = _jobManager.GetJobStatus(JobName);
+
+                    if (CurrentJobStatus == null)
+                    {
+                        CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Running };
+
+                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                    }
+
                     List<Configuration> configurations = dbContext.Configurations.ToList();
 
                     Entity = configurations
@@ -77,6 +87,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
                     List<SftpUploadedFile> updatedFiles = new List<SftpUploadedFile>();
+
+                    CurrentJobStatus.Status = JobState.Running;
+                    _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+
+                    int count = 0;
+                    int total = files.Count;
 
                     foreach (string file in files)
                     {
@@ -108,8 +124,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 }
                             }
                         }
+                        CurrentJobStatus.ProgressMessage = $"Currently processing {file}... {count} of {total}";
+                        CurrentJobStatus.SetProgress(count, total);
+                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
                     }
                     await SaveProcessedFilesStatuses(dbContext, updatedFiles);
+
+                    CurrentJobStatus.Status = JobState.Completed;
+                    _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+
                 }
             }
             catch (Exception ex)

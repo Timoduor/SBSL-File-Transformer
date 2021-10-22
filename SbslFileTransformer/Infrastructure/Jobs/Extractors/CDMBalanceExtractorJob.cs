@@ -19,11 +19,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
     public class CDMBalanceExtractorJob : ConverterJobBase<CDMBalanceExtractorJob>, IHostedService
     {
         public CDMBalanceExtractorJob(ILogger<CDMBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory,
-            EmailSender emailSender)
+            EmailSender emailSender, JobManager jobManager)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
             _emailSender = emailSender;
+            _jobManager = jobManager;
         }
 
         protected override string JobName { get; set; } = nameof(CDMBalanceExtractorJob);

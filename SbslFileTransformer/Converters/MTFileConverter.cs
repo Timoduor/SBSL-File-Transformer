@@ -5,6 +5,7 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Jobs;
+using SbslFileTransformer.Infrastructure.Jobs.Extractors;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models.Enums;
 using System;
@@ -175,8 +176,19 @@ namespace SbslFileTransformer.Converters
             {
                 var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
                 var emailSender = scope.ServiceProvider.GetService<EmailSender>();
+                var jobManager = scope.ServiceProvider.GetService<JobManager>();
+                var jobName = nameof(MtBalanceExtractorJob);
 
                 var configurations = await dbContext.Configurations.ToListAsync();
+
+                var currentJobStatus = jobManager.GetJobStatus(jobName);
+
+                if (currentJobStatus == null)
+                {
+                    currentJobStatus = new JobStatus(jobName) { Status = JobState.Starting };
+
+                    jobManager.SetJobStatus(jobName, currentJobStatus);
+                }
 
                 List<string> filesInDirectoryToProcess = new List<string>();
                 try
@@ -184,9 +196,7 @@ namespace SbslFileTransformer.Converters
                     await SemaphoreExtractor.WaitAsync();
 
                     var loc = location.ToString();
-
                     
-
                     var entity = configurations
                         .FirstOrDefault(f => f.Key == "Entity" && f.ConfigType == ConfigurationType.Setting).Value;
 
@@ -238,6 +248,9 @@ namespace SbslFileTransformer.Converters
                         logger.LogInformation($"Finished running balance file extractor on {pathsForNotProcessed.Count()} files");
                     }
 
+                    currentJobStatus.Status = JobState.Completed;
+                    jobManager.SetJobStatus(jobName, currentJobStatus);
+
                 }
                 catch (Exception ex)
                 {
@@ -266,6 +279,23 @@ namespace SbslFileTransformer.Converters
             {
                 var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
                 var logger = scope.ServiceProvider.GetService<ILogger<MTFileConverter>>();
+                var jobManager = scope.ServiceProvider.GetService<JobManager>();
+                var jobName = nameof(MtBalanceExtractorJob);
+
+                var currentJobStatus = jobManager.GetJobStatus(jobName);
+
+                if (currentJobStatus == null)
+                {
+                    currentJobStatus = new JobStatus(jobName) { Status = JobState.Starting };
+
+                    jobManager.SetJobStatus(jobName, currentJobStatus);
+                }
+
+                currentJobStatus.Status = JobState.Running;
+                jobManager.SetJobStatus(jobName, currentJobStatus);
+
+                int count = 0;
+                int total = filesToProcess.Count;
 
                 foreach (var file in filesToProcess)
                 {
@@ -301,6 +331,10 @@ namespace SbslFileTransformer.Converters
                     {
                         logger.LogError(ex, ex.Message);
                     }
+
+                    currentJobStatus.ProgressMessage = $"Currently processing {file}... {count} of {total}";
+                    currentJobStatus.SetProgress(count, total);
+                    jobManager.SetJobStatus(jobName, currentJobStatus);
                 }
 
                 var maxValues = balances.Where(b =>
