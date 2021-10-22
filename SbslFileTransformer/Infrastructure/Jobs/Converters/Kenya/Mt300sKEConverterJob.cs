@@ -19,6 +19,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
     public class Mt300sKEConverterJob : ConverterJobBase<Mt300sKEConverterJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(Mt300sKEConverterJob);
+
         public Mt300sKEConverterJob(ILogger<Mt300sKEConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {

@@ -21,6 +21,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class TZEpinConverterJob : ConverterJobBase<TZEpinConverterJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(TZEpinConverterJob);
 
         public TZEpinConverterJob(ILogger<TZEpinConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

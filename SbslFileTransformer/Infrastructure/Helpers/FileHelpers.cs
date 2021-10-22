@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Renci.SshNet;
 using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Infrastructure.Sftp;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
@@ -60,6 +61,17 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                         {
                             ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
+                            var jobManager = scope.ServiceProvider.GetService<JobManager>();
+                            var jobName = nameof(SftpIndependentJob);
+                            var currentJobStatus = jobManager.GetJobStatus(jobName);
+
+                            if (currentJobStatus == null)
+                            {
+                                currentJobStatus = new JobStatus(jobName) { Status = JobState.Running };
+
+                                jobManager.SetJobStatus(jobName, currentJobStatus);
+                            }
+
                             bool useUnicode = Convert.ToBoolean(dbContext.Configurations
                                             .FirstOrDefault(u => u.ConfigType == ConfigurationType.Sftp && u.Key == "UseUnicode")
                                             .Value);
@@ -75,7 +87,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                             var uploadedFiles = new List<SftpUploadedFile>();
 
                             UploadFilesToRemoteServer(isProduction, productionOrSandboxFolder, logger, succeeded, client, currentlyUploaded,
-                                                            uploadedFiles, useUnicode, filePathsToCheck, sftpManager);
+                                                            uploadedFiles, useUnicode, filePathsToCheck, sftpManager, jobManager, currentJobStatus);
 
                             dbContext.UploadedFiles.AddRange(uploadedFiles);
                             dbContext.SaveChanges();
@@ -106,8 +118,11 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
         private static void UploadFilesToRemoteServer(bool isProduction, string productionOrSandboxFolder, ILogger logger, List<string> succeeded,
             SftpClient client, Dictionary<string, string> currentlyUploaded, List<SftpUploadedFile> uploadedFiles, bool useUnicode,
-            IEnumerable<string> filePathsToCheck, SftpManager sftpManager)
+            IEnumerable<string> filePathsToCheck, SftpManager sftpManager, JobManager jobManager, JobStatus currentJobStatus)
         {
+            int count = 0;
+            int total = filePathsToCheck.Count();
+
             foreach (string filePath in filePathsToCheck)
             {
                 try
@@ -166,6 +181,11 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                 {
                     logger.LogError(ex, $"Error uploading file {filePath} {ex.Message}");
                 }
+                count++;
+
+                currentJobStatus.SetProgress(count, total);
+                currentJobStatus.ProgressMessage = $"Currently uploading {filePath}... {count} of {total}";
+                jobManager.SetJobStatus(nameof(SftpIndependentJob), currentJobStatus);
             }
         }
 

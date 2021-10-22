@@ -26,6 +26,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             _emailSender = emailSender;
         }
 
+        protected override string JobName { get; set; } = nameof(CDMBalanceExtractorJob);
+
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting MPesa Balance Extractor Job");

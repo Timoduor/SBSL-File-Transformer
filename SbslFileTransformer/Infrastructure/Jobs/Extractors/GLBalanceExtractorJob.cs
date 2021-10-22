@@ -22,6 +22,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
             _logger = logger;
         }
 
+        protected override string JobName { get; set; } = nameof(ImsBalanceExtractorJob);
+
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _timer = new Timer(async state => await ExtractGLBalances(), null,

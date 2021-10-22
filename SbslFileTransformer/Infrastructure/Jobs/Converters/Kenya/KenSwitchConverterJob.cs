@@ -27,6 +27,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             _emailSender = emailSender;
         }
 
+        protected override string JobName { get; set; } = nameof(KenSwitchConverterJob);
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting KenSwitch Converter Job");

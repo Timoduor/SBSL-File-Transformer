@@ -19,6 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class BnrSettlementConverterJob : ConverterJobBase<BnrSettlementConverterJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(BnrSettlementConverterJob);
         public BnrSettlementConverterJob(ILogger<BnrSettlementConverterJob> logger,
             IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

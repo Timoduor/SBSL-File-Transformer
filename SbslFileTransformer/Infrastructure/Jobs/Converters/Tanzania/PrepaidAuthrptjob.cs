@@ -19,7 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
     public class PrepaidAuthrptjob : ConverterJobBase<PrepaidAuthrptjob>, IHostedService
     {
 
-
+        protected override string JobName { get; set; } = nameof(PrepaidAuthrptjob);
         public PrepaidAuthrptjob(ILogger<PrepaidAuthrptjob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {

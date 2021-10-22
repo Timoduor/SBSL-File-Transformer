@@ -19,7 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class Sumtreasuryfxposjob : ConverterJobBase<Sumtreasuryfxposjob>, IHostedService
     {
-
+        protected override string JobName { get; set; } = nameof(Sumtreasuryfxposjob);
         public Sumtreasuryfxposjob(ILogger<Sumtreasuryfxposjob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {

@@ -19,7 +19,7 @@ namespace SbslFileTransformer.Converters.Rwanda
 {
     public class FxposfcdailyJob : ConverterJobBase<FxposfcdailyJob>, IHostedService
     {
-
+        protected override string JobName { get; set; } = nameof(FxposfcdailyJob);
         public FxposfcdailyJob(ILogger<FxposfcdailyJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {

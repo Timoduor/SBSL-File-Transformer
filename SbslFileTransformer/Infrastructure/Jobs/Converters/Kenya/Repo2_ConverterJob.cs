@@ -19,7 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class Repo2_ConverterJob : ConverterJobBase<Repo2_ConverterJob>, IHostedService
     {
-
+        protected override string JobName { get; set; } = nameof(Repo2_ConverterJob);
 
         public Repo2_ConverterJob(ILogger<Repo2_ConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)

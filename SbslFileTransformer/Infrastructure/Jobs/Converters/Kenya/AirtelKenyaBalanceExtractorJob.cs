@@ -26,6 +26,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             _emailSender = emailSender;
         }
 
+        protected override string JobName { get; set; } = nameof(AirtelKenyaBalanceExtractorJob);
+
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting Airtel Balance Extractor Job");

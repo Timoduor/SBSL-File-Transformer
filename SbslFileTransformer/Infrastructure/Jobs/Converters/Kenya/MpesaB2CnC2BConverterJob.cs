@@ -18,6 +18,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class MpesaB2CnC2BConverterJob : ConverterJobBase<MpesaB2CnC2BConverterJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(MpesaB2CnC2BConverterJob);
         public MpesaB2CnC2BConverterJob(ILogger<MpesaB2CnC2BConverterJob> logger,
             IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

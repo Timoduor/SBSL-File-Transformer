@@ -19,6 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 {
     public class SelcomDisbursementConverterJob : ConverterJobBase<SelcomDisbursementConverterJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(SelcomDisbursementConverterJob);
         public SelcomDisbursementConverterJob(ILogger<SelcomDisbursementConverterJob> logger,
             IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

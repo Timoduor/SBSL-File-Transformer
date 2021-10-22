@@ -22,7 +22,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         protected IServiceScopeFactory _serviceScopeFactory;
         protected Timer _timer;
         protected string _entity;
-        protected string JobName { get; set; }
+        protected abstract string JobName { get; set; }
         protected int RunInterval { get; set; } = 10; //in minutes
 
         //to specify any extra validations
@@ -32,6 +32,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         protected List<string> FileExts { get; set; }
 
         protected string Entity { get; set; }
+
+        protected JobManager _jobManager;
+        protected JobStatus CurrentJobStatus;
 
         //this method should be abstract to force the actual specific implementation per job
         public virtual async Task ProcessFileAsync(string filePath)

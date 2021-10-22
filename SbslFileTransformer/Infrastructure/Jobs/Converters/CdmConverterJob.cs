@@ -27,6 +27,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             _emailSender = emailSender;
         }
 
+        protected override string JobName { get; set; } = nameof(CdmConverterJob);
+
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting CDM Converter Job");

@@ -20,6 +20,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
     public class MTNPushPullRwandaBalanceExtractorJob : ConverterJobBase<MTNPushPullRwandaBalanceExtractorJob>,
         IHostedService
     {
+        protected override string JobName { get; set; } = nameof(MTNPushPullRwandaBalanceExtractorJob);
         public MTNPushPullRwandaBalanceExtractorJob(ILogger<MTNPushPullRwandaBalanceExtractorJob> logger,
             IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

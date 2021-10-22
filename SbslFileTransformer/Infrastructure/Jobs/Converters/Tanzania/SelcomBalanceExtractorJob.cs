@@ -19,6 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class SelcomBalanceExtractorJob : ConverterJobBase<SelcomBalanceExtractorJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(SelcomBalanceExtractorJob);
         public SelcomBalanceExtractorJob(ILogger<SelcomBalanceExtractorJob> logger,
             IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

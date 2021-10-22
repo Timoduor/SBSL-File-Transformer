@@ -19,6 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 {
     public class FxRatesTzConverterJob : ConverterJobBase<FxRatesTzConverterJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(FxRatesTzConverterJob);
         public FxRatesTzConverterJob(ILogger<FxRatesTzConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {

@@ -19,6 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
     public class WeeklyMonthlyElmaOmniConverterJob : ConverterJobBase<WeeklyMonthlyElmaOmniConverterJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(WeeklyMonthlyElmaOmniConverterJob);
         public WeeklyMonthlyElmaOmniConverterJob(ILogger<WeeklyMonthlyElmaOmniConverterJob> logger,
             IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

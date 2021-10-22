@@ -18,6 +18,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class CamtToMultiCurrJob : ConverterJobBase<CamtToMultiCurrJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(CamtToMultiCurrJob);
         public CamtToMultiCurrJob(ILogger<CamtToMultiCurrJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {

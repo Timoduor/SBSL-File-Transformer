@@ -19,6 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class MT320RWConverterJob : ConverterJobBase<MT320RWConverterJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(MT320RWConverterJob);
         public MT320RWConverterJob(ILogger<MT320RWConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {

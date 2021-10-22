@@ -20,6 +20,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
     public class WesternUnionSettlementRWConverterJob : ConverterJobBase<WesternUnionSettlementRWConverterJob>,
         IHostedService
     {
+        protected override string JobName { get; set; } = nameof(WesternUnionSettlementRWConverterJob);
         public WesternUnionSettlementRWConverterJob(ILogger<WesternUnionSettlementRWConverterJob> logger,
             IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

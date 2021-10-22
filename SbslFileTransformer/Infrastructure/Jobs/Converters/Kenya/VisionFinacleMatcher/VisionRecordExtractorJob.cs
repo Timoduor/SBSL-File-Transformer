@@ -19,6 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
 {
     public class VisionRecordExtractorJob : ConverterJobBase<VisionRecordExtractorJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(VisionRecordExtractorJob);
         public VisionRecordExtractorJob(ILogger<VisionRecordExtractorJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {

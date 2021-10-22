@@ -19,6 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
     public class MoneyGramSettlementKEConverterJob : ConverterJobBase<MoneyGramSettlementKEConverterJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(MoneyGramSettlementKEConverterJob);
         public MoneyGramSettlementKEConverterJob(ILogger<MoneyGramSettlementKEConverterJob> logger,
             IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
