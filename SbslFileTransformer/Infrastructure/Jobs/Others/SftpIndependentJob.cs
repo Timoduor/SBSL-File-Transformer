@@ -173,7 +173,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                         RecurseSubdirectories = true
                     };
 
-                    var files = Directory.GetFiles(productionOrSandboxFolder, "*", options);
+                    var files = Directory.GetFiles(productionOrSandboxFolder, "*", options).ToList();
 
                     result = await ProcessFileAndUpload(isProduction, productionOrSandboxFolder, files, connectionInfo);
                 }
@@ -200,7 +200,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
         }
 
-        private async Task<bool> ProcessFileAndUpload(bool isProduction, string productionOrSandboxFolder, IEnumerable<string> files,
+        private async Task<bool> ProcessFileAndUpload(bool isProduction, string productionOrSandboxFolder, List<string> files,
             ConnectionInfo connectionInfo)
         {
             try

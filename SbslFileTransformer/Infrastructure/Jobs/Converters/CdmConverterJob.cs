@@ -58,6 +58,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
+                    CurrentJobStatus = _jobManager.GetJobStatus(JobName);
+
+                    if (CurrentJobStatus == null)
+                    {
+                        CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Starting };
+
+                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                    }
+
                     var configurations = await dbContext.Configurations.ToListAsync();
 
                     Entity = configurations
@@ -76,6 +85,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
                     var updatedFiles = new List<SftpUploadedFile>();
+
+                    CurrentJobStatus.Status = JobState.Running;
+                    _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+
+                    int count = 0;
+                    int total = files.Count;
 
                     foreach (var file in files)
                     {
@@ -115,8 +130,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                     updatedFiles.Add(fileToProcess);
                                 }
                         }
+                        CurrentJobStatus.ProgressMessage = $"Currently processing {file}... {count} of {total}";
+                        CurrentJobStatus.SetProgress(count, total);
+                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
                     }
                     await SaveProcessedFilesStatuses(dbContext, updatedFiles);
+
+                    CurrentJobStatus.Status = JobState.Completed;
+                    _jobManager.SetJobStatus(JobName, CurrentJobStatus);
                 }
             }
             catch (Exception ex)
