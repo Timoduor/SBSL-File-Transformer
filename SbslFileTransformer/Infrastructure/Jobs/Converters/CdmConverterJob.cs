@@ -70,6 +70,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.xls", options));
 
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.xlsx", options));
+
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.xlsx", options));
+
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
                     var updatedFiles = new List<SftpUploadedFile>();
