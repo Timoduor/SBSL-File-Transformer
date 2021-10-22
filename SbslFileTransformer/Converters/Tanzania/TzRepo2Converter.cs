@@ -47,11 +47,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             Amount = Convert.ToDouble((sGrp[i].Split('|')[4].Trim()));
                             if (toAppend == "")
                             {
-                                toAppend = $"IMKE\t{Account}\t\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(baldate):MM-dd-yyyy}\t\t\t\t{-1*Amount}\t{sGrp[i].Split('|')[2]}\n";
+                                toAppend = $"IMTZ\t{Account}\t\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(baldate):MM-dd-yyyy}\t\t\t\t{-1*Amount}\t{sGrp[i].Split('|')[2]}\n";
                             }
                             else
                             {
-                                toAppend += $"IMKE\t{Account}\t\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(baldate):MM-dd-yyyy}\t\t\t\t{-1*Amount}\t{sGrp[i].Split('|')[2]}\n";
+                                toAppend += $"IMTZ\t{Account}\t\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(baldate):MM-dd-yyyy}\t\t\t\t{-1*Amount}\t{sGrp[i].Split('|')[2]}\n";
                             }
 
                         }

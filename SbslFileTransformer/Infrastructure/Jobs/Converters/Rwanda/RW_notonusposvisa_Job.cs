@@ -15,12 +15,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SbslFileTransformer.Converters.Rwanda
+namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
-    public class FxposfcdailyJob : ConverterJobBase<FxposfcdailyJob>, IHostedService
+    public class RW_notonusposvisa_Job : ConverterJobBase<RW_notonusposvisa_Job>, IHostedService
     {
 
-        public FxposfcdailyJob(ILogger<FxposfcdailyJob> logger, IServiceScopeFactory serviceScopeFactory,
+
+        public RW_notonusposvisa_Job(ILogger<RW_notonusposvisa_Job> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {
             _logger = logger;
@@ -30,23 +31,23 @@ namespace SbslFileTransformer.Converters.Rwanda
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting Fxposfcdaily  Converter Job");
+            _logger.LogInformation("Starting Not On us POS Visa RW Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await FxposfcdailyConverter(), null,
+            _timer = new Timer(async state => await posConverter(), null,
                 TimeSpan.FromSeconds(new Random().Next(60, 200)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task FxposfcdailyConverter()
+        private async Task posConverter()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running Fxposfcdaily Converter RW job");
+                _logger.LogInformation("Running Not On us POS Visa RW job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;
@@ -63,16 +64,17 @@ namespace SbslFileTransformer.Converters.Rwanda
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
+                    var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
+                    var rootFolder = isProd ? prodFolder : sbFolder;
 
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")).ToList();
 
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")));
-                    var fc_Converter = new Fc_dailyConverter();
-                    var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
-                    var rootFolder = isProd ? prodFolder : sbFolder;
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")));
+
+                    var visanotonus = new NotonusPOSConverter();
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
@@ -81,15 +83,16 @@ namespace SbslFileTransformer.Converters.Rwanda
                     foreach (var file in files)
                     {
                         //SPECIFY FOLDER and file extension above PENDING
-                        //imrw/treasury/fx_pos/fx_pos_fc_daily
-                        if (file.ToLower().Contains("imrw") && file.ToLower().Contains("treasury") && file.ToLower().Contains("fx_pos") && file.ToLower().Contains("fx_pos_fc_daily"))//&& !file.ToLower().Contains("conv")
+                        ///prod/imrw/cards/finacle IMRW\Cards\finacle
+                        if (file.ToLower().Contains("imrw") && file.ToLower().Contains("cards") && file.ToLower().Contains("finacle") && !file.Contains("Conv"))// 
                         {
-                            var fileToProcess = uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
+                            var fileToProcess =
+                                uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    fc_Converter.ConvertFile(file, rootFolder);
+                                    visanotonus.RW_Add_Extracol(file, rootFolder);
                                     
                                 }
                                 catch (Exception ex)
@@ -98,7 +101,7 @@ namespace SbslFileTransformer.Converters.Rwanda
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(Fc_dailyConverter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(NotonusPOSConverter));
                                 }
                         }
                     }

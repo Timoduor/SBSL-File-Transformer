@@ -151,6 +151,7 @@ namespace SbslFileTransformer
             services.AddHostedService<PrepaidCardbalanceJob>();
             services.AddHostedService<FxPosGLBalJob>();
             services.AddHostedService<TZRepo2_ConverterJob>();
+            services.AddHostedService<RW_notonusposvisa_Job>();
 
             //special scenario jobs
             services.AddHostedService<RecordMatcherJob>();
