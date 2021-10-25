@@ -19,6 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class CrdbPdfToMTFileJob : ConverterJobBase<CrdbPdfToMTFileJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(CrdbPdfToMTFileJob);
         public CrdbPdfToMTFileJob(ILogger<CrdbPdfToMTFileJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {

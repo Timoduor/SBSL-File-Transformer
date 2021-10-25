@@ -19,6 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class SpennRwandaBalanceExtractorJob : ConverterJobBase<SpennRwandaBalanceExtractorJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(SpennRwandaBalanceExtractorJob);
         public SpennRwandaBalanceExtractorJob(ILogger<SpennRwandaBalanceExtractorJob> logger,
             IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

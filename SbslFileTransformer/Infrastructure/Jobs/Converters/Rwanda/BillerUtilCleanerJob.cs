@@ -19,6 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class BillerUtilCleanerJob : ConverterJobBase<BillerUtilCleanerJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(BillerUtilCleanerJob);
         public BillerUtilCleanerJob(ILogger<BillerUtilCleanerJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {

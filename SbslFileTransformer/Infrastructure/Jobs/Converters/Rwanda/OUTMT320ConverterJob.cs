@@ -20,6 +20,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class OUTMT320ConverterJob : ConverterJobBase<OUTMT320ConverterJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(OUTMT320ConverterJob);
         public OUTMT320ConverterJob(ILogger<OUTMT320ConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             _logger = logger;

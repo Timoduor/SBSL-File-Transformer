@@ -18,6 +18,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class MpesaBalanceExtractorJob : ConverterJobBase<MpesaBalanceExtractorJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(MpesaBalanceExtractorJob);
         public MpesaBalanceExtractorJob(ILogger<MpesaBalanceExtractorJob> logger,
             IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

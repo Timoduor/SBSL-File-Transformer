@@ -19,6 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class Camt053ConverterJob : ConverterJobBase<Camt053ConverterJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(Camt053ConverterJob);
         public Camt053ConverterJob(ILogger<Camt053ConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {

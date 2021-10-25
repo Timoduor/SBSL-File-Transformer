@@ -13,6 +13,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
 {
     public class FileNetworkCopyJob : ConverterJobBase<FileNetworkCopyJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(FileNetworkCopyJob);
+
         public FileNetworkCopyJob(ILogger<FileNetworkCopyJob> logger, IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;

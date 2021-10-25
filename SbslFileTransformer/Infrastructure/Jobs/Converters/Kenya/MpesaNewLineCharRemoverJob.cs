@@ -19,6 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class MpesaNewLineCharRemoverJob : ConverterJobBase<MpesaNewLineCharRemoverJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(MpesaNewLineCharRemoverJob);
         public MpesaNewLineCharRemoverJob(ILogger<MpesaNewLineCharRemoverJob> logger,
             IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

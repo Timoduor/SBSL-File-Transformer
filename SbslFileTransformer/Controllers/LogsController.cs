@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.ViewModels;
 using System;
@@ -9,6 +11,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using X.PagedList;
 
 namespace SbslFileTransformer.Controllers
@@ -19,11 +22,13 @@ namespace SbslFileTransformer.Controllers
         private readonly ApplicationDbContext _dbContext;
         private readonly ILogger<LogsController> _logger;
         private readonly string _logsFolder;
+        private readonly JobManager _jobManager;
 
-        public LogsController(ILogger<LogsController> logger, ApplicationDbContext dbContext)
+        public LogsController(ILogger<LogsController> logger, ApplicationDbContext dbContext, JobManager jobManager)
         {
             _logger = logger;
             _dbContext = dbContext;
+            _jobManager = jobManager;
 
             _logsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 "SBSL_ETL", "logs");
@@ -168,6 +173,20 @@ namespace SbslFileTransformer.Controllers
                 _logger.LogError(ex, ex.Message);
                 return RedirectToAction("Files");
             }
+        }
+
+        public IActionResult CurrentJobStatuses()
+        {
+            IOrderedEnumerable<KeyValuePair<string, JobStatus>> jobs = _jobManager.GetJobStatuses().OrderByDescending(j => j.Key);
+
+            return Json(jobs);
+        }
+
+        public IActionResult JobStatus()
+        {
+            IOrderedEnumerable<KeyValuePair<string, JobStatus>> jobs = _jobManager.GetJobStatuses().OrderByDescending(j => j.Key);
+
+            return View(jobs);
         }
 
         public IActionResult Vision(int page = 1)

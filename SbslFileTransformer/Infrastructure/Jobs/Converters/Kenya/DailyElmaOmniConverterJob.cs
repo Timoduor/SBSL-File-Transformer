@@ -27,6 +27,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             _emailSender = emailSender;
         }
 
+        protected override string JobName { get; set; } = nameof(DailyElmaOmniConverterJob);
+
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting Daily Elma Omni Settlement Job");

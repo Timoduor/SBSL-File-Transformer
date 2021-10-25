@@ -18,6 +18,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class TZ_ATMJournalConverterjob : ConverterJobBase<TZ_ATMJournalConverterjob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(TZ_ATMJournalConverterjob);
         public TZ_ATMJournalConverterjob(ILogger<TZ_ATMJournalConverterjob> logger, IServiceScopeFactory serviceScopeFactory,
            EmailSender emailSender)
         {

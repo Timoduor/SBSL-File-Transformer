@@ -21,12 +21,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 {
     public partial class ScheduledReporterJob : ConverterJobBase<ScheduledReporterJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(ScheduledReporterJob);
         public ScheduledReporterJob(ILogger<ScheduledReporterJob> logger, EmailSender emailSender,
-            IServiceScopeFactory serviceScopeFactory)
+            IServiceScopeFactory serviceScopeFactory, JobManager jobManager)
         {
             _logger = logger;
             _emailSender = emailSender;
             _serviceScopeFactory = serviceScopeFactory;
+            _jobManager = jobManager;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -70,10 +72,25 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                     {
                         ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
+                        CurrentJobStatus = _jobManager.GetJobStatus(JobName);
+
+                        if (CurrentJobStatus == null)
+                        {
+                            CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Starting };
+
+                            _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                        }
+
                         var emailGroups = dbContext.EmailGroups.Where(g => g.IsActive).ToList();
 
                         List<ProcessedReport> processedReports = dbContext.ProcessedReports.ToList();
                         List<Configuration> configurations = dbContext.Configurations.ToList();
+
+                        CurrentJobStatus.Status = JobState.Running;
+                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+
+                        int count = 0;
+                        int total = allReports.Count;
 
                         foreach (var report in allReports)
                         {
@@ -96,9 +113,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                                 report.Category);
 
                             await DownloadReportAndSendEmails(config, token, dbContext, report, reportPath, daysRange);
-                        }
+
+                            count++;
+
+                            CurrentJobStatus.ProgressMessage = $"Currently processing {report.Name}... {count} of {total}";
+                            CurrentJobStatus.SetProgress(count, total);
+                            _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                        }                        
                     }
                 }
+
+                CurrentJobStatus.Status = JobState.Completed;
+                _jobManager.SetJobStatus(JobName, CurrentJobStatus);
             }
             catch (Exception ex)
             {

@@ -1,5 +1,6 @@
 ﻿extern alias MySqlDataAlias;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -77,6 +78,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     {
                         var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
+                        var memCache = scope.ServiceProvider.GetService<IMemoryCache>();
+
+                        memCache.Set(nameof(AuxilliaryProcessesJob), JobState.Starting);
+
                         var backUpPath = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
                             b.ConfigType == ConfigurationType.Sftp && b.Key == "BackUpFolder")).Value;
 
@@ -106,6 +111,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                         double.TryParse(backUpAllFilesPeriod, out double period);
 
+                        memCache.Set(nameof(AuxilliaryProcessesJob), JobState.Running);
+
                         foreach (var file in Directory.GetFiles(productionFolder, "*.*", searchOptions))
                         {
                             var props = new FileInfo(file);
@@ -117,6 +124,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                                 File.Move(file, destination, true);
                             }
                         }
+
+                        memCache.Set(nameof(AuxilliaryProcessesJob), JobState.Completed);
                     }
             }
             catch (Exception ex)
@@ -125,6 +134,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
             finally
             {
+                
                 _semaphore.Release();
             }
         }
@@ -185,9 +195,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 var backUpFolder = @"C:\SBSLETL_DbBackup";
 
+                IMemoryCache memCache;
+
                 using (var scope = _serviceScopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                    memCache = scope.ServiceProvider.GetService<IMemoryCache>();
+
+                    memCache.Set(nameof(AuxilliaryProcessesJob), JobState.Starting);
 
                     connectionString = dbContext.Database.GetDbConnection().ConnectionString;
 
@@ -224,6 +240,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                     MatchCasing = MatchCasing.CaseInsensitive
                 };
 
+                memCache?.Set(nameof(AuxilliaryProcessesJob), JobState.Running);
+
                 foreach (var file in Directory.GetFiles(backUpDirectory, "*.*", searchOptions))
                 {
                     var props = new FileInfo(file);
@@ -232,6 +250,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                         props.CreationTime < DateTime.Now.AddDays(-2))
                         File.Delete(file);
                 }
+
+                memCache?.Set(nameof(AuxilliaryProcessesJob), JobState.Completed);
             }
             catch (Exception ex)
             {

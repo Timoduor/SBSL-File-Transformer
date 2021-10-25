@@ -20,7 +20,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
     public class RW_notonusposvisa_Job : ConverterJobBase<RW_notonusposvisa_Job>, IHostedService
     {
 
-
+        protected override string JobName { get; set; } = nameof(RW_notonusposvisa_Job);
         public RW_notonusposvisa_Job(ILogger<RW_notonusposvisa_Job> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {

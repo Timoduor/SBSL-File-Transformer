@@ -27,6 +27,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             _emailSender = emailSender;
         }
 
+        protected override string JobName { get; set; } = nameof(EP75ConverterJob);
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting EP75 Converter Job");

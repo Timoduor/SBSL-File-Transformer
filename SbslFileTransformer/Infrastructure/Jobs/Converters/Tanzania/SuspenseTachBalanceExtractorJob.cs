@@ -19,6 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 {
     public class SuspenseTachBalanceExtractorJob : ConverterJobBase<SuspenseTachBalanceExtractorJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(SuspenseTachBalanceExtractorJob);
         public SuspenseTachBalanceExtractorJob(ILogger<SuspenseTachBalanceExtractorJob> logger,
             IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

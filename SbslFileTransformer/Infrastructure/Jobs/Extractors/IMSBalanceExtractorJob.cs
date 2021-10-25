@@ -21,12 +21,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
     public class ImsBalanceExtractorJob : ConverterJobBase<ImsBalanceExtractorJob>, IHostedService
     {
         public ImsBalanceExtractorJob(ILogger<ImsBalanceExtractorJob> logger,
-            IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
+            IServiceScopeFactory serviceScopeFactory, EmailSender emailSender, JobManager jobManager)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
             _emailSender = emailSender;
+            _jobManager = jobManager;
         }
+
+        protected override string JobName { get; set; } = nameof(ImsBalanceExtractorJob);
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
@@ -56,6 +59,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                 {
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
+                    CurrentJobStatus = _jobManager.GetJobStatus(JobName);
+
+                    if(CurrentJobStatus == null)
+                    {
+                        CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Running };
+
+                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                    }
+
                     List<Configuration> configurations = dbContext.Configurations.ToList();
 
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
@@ -83,6 +95,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                     var updatedFiles = new List<SftpUploadedFile>();
 
+                    CurrentJobStatus.Status = JobState.Running;
+                    _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+
+                    int count = 0;
+                    int total = files.Count;
+
                     foreach (string file in files)
                     {
                         if (file.ToLower().Contains("ims") && file.ToLower().Contains("imke") &&
@@ -109,12 +127,20 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(ImsBalanceExtractor));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, JobName);
                                 }
                             }
                         }
+                        count++;
+
+                        CurrentJobStatus.ProgressMessage = $"Currently processing {file}... {count} of {total}";
+                        CurrentJobStatus.SetProgress(count, total);
+                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
                     }
                     await SaveProcessedFilesStatuses(dbContext, updatedFiles);
+
+                    CurrentJobStatus.Status = JobState.Completed;
+                    _jobManager.SetJobStatus(JobName, CurrentJobStatus);
                 }
             }
             catch (Exception ex)

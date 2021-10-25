@@ -19,6 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class ATMBalanceExtractorJob : ConverterJobBase<ATMBalanceExtractorJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(ATMBalanceExtractorJob);
         public ATMBalanceExtractorJob(ILogger<ATMBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {

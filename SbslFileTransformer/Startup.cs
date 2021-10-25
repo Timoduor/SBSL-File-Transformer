@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
@@ -21,9 +22,11 @@ using SbslFileTransformer.Infrastructure.Jobs.Others;
 using SbslFileTransformer.Infrastructure.Jobs.Reporting;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Infrastructure.Sftp;
+using SbslFileTransformer.Models.Enums;
 using Serilog;
 using System;
 using System.IO;
+using System.Threading;
 
 namespace SbslFileTransformer
 {
@@ -56,11 +59,14 @@ namespace SbslFileTransformer
 
             services.AddControllersWithViews();
 
+            services.AddMemoryCache();
+
             services.AddRazorPages();
 #if DEBUG
             services.AddRazorPages().AddRazorRuntimeCompilation();
 #endif
 
+            services.AddTransient<JobManager>();
             services.AddTransient<SftpManager>();
             services.AddTransient<EncryptionManager>();
             services.AddTransient<EmailSender>();
@@ -164,8 +170,12 @@ namespace SbslFileTransformer
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider,
-            ILogger<Startup> logger)
+            ILogger<Startup> logger, IHostApplicationLifetime applicationLifetime, IMemoryCache cache)
         {
+            var appShutdownInput = new Tuple<IMemoryCache, ILogger<Startup>>(cache, logger);
+
+            applicationLifetime.ApplicationStopping.Register(i => { OnAppShutdown((Tuple<IMemoryCache, ILogger<Startup>>)i); }, appShutdownInput);
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -196,6 +206,22 @@ namespace SbslFileTransformer
             });
 
             ApplicationSeeding.CreateDatabase(serviceProvider, logger).Wait();
+        }
+
+        //if file upload job is running wait for completion
+        private void OnAppShutdown(Tuple<IMemoryCache, ILogger<Startup>> input)
+        {
+            //check for job state of upload job in memcache
+            //log if job is still running and wait for completion before continuing shutdown
+            if(input.Item1.TryGetValue(nameof(SftpIndependentJob), out JobState result))
+            {
+                while (result != JobState.Completed)
+                {
+                    Thread.Sleep(1000);
+                }
+            }
+
+            input.Item2.LogInformation("SBSL ETL Application Shutting down...");
         }
     }
 }

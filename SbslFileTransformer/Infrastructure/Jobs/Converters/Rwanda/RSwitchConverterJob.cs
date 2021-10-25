@@ -19,6 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class RSwitchConverterJob : ConverterJobBase<RSwitchConverterJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(RSwitchConverterJob);
         public RSwitchConverterJob(ILogger<RSwitchConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {

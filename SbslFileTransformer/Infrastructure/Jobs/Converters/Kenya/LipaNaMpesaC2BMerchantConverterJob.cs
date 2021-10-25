@@ -20,6 +20,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
     public class LipaNaMpesaC2BMerchantConverterJob : ConverterJobBase<LipaNaMpesaC2BMerchantConverterJob>,
         IHostedService
     {
+        protected override string JobName { get; set; } = nameof(LipaNaMpesaC2BMerchantConverterJob);
+
         public LipaNaMpesaC2BMerchantConverterJob(ILogger<LipaNaMpesaC2BMerchantConverterJob> logger,
             IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

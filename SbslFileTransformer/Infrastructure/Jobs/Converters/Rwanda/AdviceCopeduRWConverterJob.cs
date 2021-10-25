@@ -19,6 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
     public class AdviceCopeduRWConverterJob : ConverterJobBase<AdviceCopeduRWConverterJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(AdviceCopeduRWConverterJob);
         public AdviceCopeduRWConverterJob(ILogger<AdviceCopeduRWConverterJob> logger,
             IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {

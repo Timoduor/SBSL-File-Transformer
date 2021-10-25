@@ -19,6 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
     public class OmniLookupConverterJob : ConverterJobBase<OmniLookupConverterJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(OmniLookupConverterJob);
         public OmniLookupConverterJob(ILogger<OmniLookupConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {

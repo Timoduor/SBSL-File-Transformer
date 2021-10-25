@@ -23,15 +23,14 @@ namespace SbslFileTransformer.Converters.Kenya
         public async Task MatchFiles(string finacleFile, string outputPath)
         {
             List<FinacleRec> finacleRecords = GetRecordsFromFinacleFile(finacleFile);
-
-            IEnumerable<VisionRecord> unmatchedVisionRecords = GetUnmatchedVisionRecords();
-
-            List<VisionRecord> matchedRecords = new List<VisionRecord>();
-
+            
             IEnumerable<string> finacleRefs = finacleRecords.Select(f => f.ReferenceNumber).Distinct();
 
             foreach (var finRef in finacleRefs)
             {
+                IEnumerable<VisionRecord> unmatchedVisionRecords = GetUnmatchedVisionRecords();
+                List<VisionRecord> matchedRecords = new List<VisionRecord>();
+
                 if (finRef.Length != 20)
                     continue;
 

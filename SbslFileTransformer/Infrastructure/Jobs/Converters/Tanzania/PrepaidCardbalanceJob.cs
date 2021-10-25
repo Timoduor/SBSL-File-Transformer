@@ -18,6 +18,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
     public class PrepaidCardbalanceJob : ConverterJobBase<PrepaidCardbalanceJob>, IHostedService
     {
+        protected override string JobName { get; set; } = nameof(PrepaidCardbalanceJob);
 
         public PrepaidCardbalanceJob(ILogger<PrepaidCardbalanceJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)

@@ -27,6 +27,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             _emailSender = emailSender;
         }
 
+        protected override string JobName { get; set; } = nameof(EOD_DealsJob);
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting EOD Deals Converter Job");
