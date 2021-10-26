@@ -79,8 +79,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     foreach (var file in files)
                     {
-                        if (file.ToLower().Contains("bnr") && file.ToLower().Contains("imrw") &&
-                            file.ToLower().Contains("statements"))
+                        if (file.ToLower().Contains("bnr") && file.ToLower().Contains("imrw") && file.ToLower().Contains("statements"))
                         {
                             var fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>
@@ -94,8 +93,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                         false.ToString());
 
                                     var rootFolder = isProd ? prodFolder : sbFolder;
-
-                                    bnrConverter.ConvertFile(file, rootFolder);
+                                    if (Entity == "IMRW")
+                                    {
+                                        bnrConverter.ConvertFile(file, rootFolder);
+                                    }
                                 }
                                 catch (Exception ex)
                                 {

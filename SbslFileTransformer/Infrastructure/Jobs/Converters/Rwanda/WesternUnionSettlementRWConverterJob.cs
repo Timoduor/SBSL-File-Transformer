@@ -81,7 +81,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     foreach (var file in files)
                     {
                         if (!file.Contains("Conv") && file.ToLower().Contains("imrw") &&
-                            file.ToLower().Contains("wu") && file.ToLower().Contains("settlement") &&
+                            file.ToLower().Contains("wu") && file.ToLower().Contains("sett") &&
                             file.ToLower().Contains("portal"))
                         {
                             var fileToProcess =
