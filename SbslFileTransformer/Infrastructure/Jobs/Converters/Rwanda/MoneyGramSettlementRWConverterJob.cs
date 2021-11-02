@@ -46,7 +46,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running Lipa Na Mpesa C2B Merchant Converter job");
+                _logger.LogInformation("Running MoneyGram SettlementRW  Converter job");
 
                 var prodFolder = string.Empty;
                 var sbFolder = string.Empty;

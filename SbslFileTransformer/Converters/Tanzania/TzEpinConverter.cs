@@ -11,7 +11,7 @@ namespace SbslFileTransformer.Converters
     {
         public  void ConvertEPINFile(string file, string outputDirectory="")
         {
-            var rowFilter = new string[] { "0500", "0700" }.ToList();//, "0600", "0620", "2500", "2700"
+            var rowFilter = new string[] { "0500", "0700", "2500", "2700" }.ToList();//, "0600", "0620", "2500", "2700"
 
             var lines = File.ReadAllLines(file).ToList();
 
@@ -35,7 +35,8 @@ namespace SbslFileTransformer.Converters
                     TransCode = line.Substring(0, 4),
                     CardNo = line.Substring(4, 16),
                     Code1 = line.Substring(20, 4),
-                    RRN = line.Substring(49, 8),
+                    RefNo= line.Substring(26, 22),
+                    //RRN = line.Substring(49, 8),
                     Date = line.Substring(57, 4) + DateTime.Today.Year.ToString(),
                     TransAmount = $"{line.Substring(61, 10)}.{line.Substring(71, 2)}",
                     CurrencyCode = line.Substring(73, 3),
@@ -83,7 +84,8 @@ namespace SbslFileTransformer.Converters
             public string TransCode { get; set; }
             public string CardNo { get; set; }
             public string Code1 { get; set; }
-            public string RRN { get; set; }
+            //public string RRN { get; set; }
+            public string RefNo { get; set; }
             public string Date { get; set; }
             public string TransAmount { get; set; }
             public string CurrencyCode { get; set; }

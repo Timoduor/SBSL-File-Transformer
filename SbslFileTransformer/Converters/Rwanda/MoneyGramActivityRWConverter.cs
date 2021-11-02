@@ -20,7 +20,7 @@ namespace SbslFileTransformer.Converters.Kenya
             _logger = logger;
         }
 
-        public void ConvertFile(string inputFile, string outputFile = null)
+        public void ConvertFile(string inputFile, string outputFile=null)
         {
             var list = new List<ExcelCols>();
 
@@ -312,7 +312,6 @@ namespace SbslFileTransformer.Converters.Kenya
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
-
             WriteToFile(finalList, outputFile);
         }
 

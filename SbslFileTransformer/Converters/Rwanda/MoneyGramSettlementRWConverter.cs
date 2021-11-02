@@ -15,7 +15,7 @@ namespace SbslFileTransformer.Converters.Kenya
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
-        public void ConvertFile(string inputFile, string outputFile = null)
+        public void ConvertFile(string inputFile, string outputFile=null)
         {
             var list = new List<ExcelCols>();
 
@@ -304,11 +304,6 @@ namespace SbslFileTransformer.Converters.Kenya
                         //amount final
                         rows.Col22 = Math.Ceiling(Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col20) + Convert.ToDouble(rows.Col21) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
                     }
-                    //if (rows.Col6 == "REF" || rows.Col6 == "REC" || rows.Col1 == "COPEDU" || rows.Col1 == "GOSHEN" || rows.Col1 == "RIM LTD")
-                    //{
-                    //    //amount final
-                    //    rows.Col22 = Math.Floor(Convert.ToDouble(rows.Col12)).ToString();
-                    //}
                     else
                     {
                         //amount final
@@ -321,6 +316,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 }
             }
+
             if (string.IsNullOrEmpty(outputFile))
             {
                 var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
