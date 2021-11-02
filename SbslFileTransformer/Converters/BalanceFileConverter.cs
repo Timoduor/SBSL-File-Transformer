@@ -62,19 +62,11 @@ namespace SbslFileTransformer.Converters
 
                     var exemptAccs = new List<string>();
 
-                    if (!configurations.Any(c => c.Key == "GLExemptAccounts"))
-                    {
-                        dbContext.Configurations.Add(new Configuration
-                        {
-                            ConfigType = ConfigurationType.Account,
-                            Key = "GLExemptAccounts",
-                            Value = "25049787002,25049787004,20100243506064"
-                        });
-                        await dbContext.SaveChangesAsync();
-                    }
+                    var existingAccs = configurations.Where(c => c.Key == "GLExemptAccounts")
+                        .FirstOrDefault()?.Value.Split(",");
 
-                    exemptAccs.AddRange(configurations.Where(c => c.Key == "GLExemptAccounts")
-                        .FirstOrDefault()?.Value.Split(","));
+                    if(existingAccs != null)
+                        exemptAccs.AddRange(existingAccs);
 
                     var pairs = dbContext.Accounts.Select(a => new { a.Number, a.Name });
 

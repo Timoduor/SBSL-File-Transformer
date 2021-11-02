@@ -8,6 +8,8 @@ namespace SbslFileTransformer.Models.ViewModels
 
         public Dictionary<string, int> Reports { get; set; }
 
-        public Dictionary<string, int> UploadedFiles { get; set; }
+        public Dictionary<string, int> UploadedFilesPerDay { get; set; }
+        public Dictionary<string, int> UploadedFilesPerWeek { get; set; }
+        public Dictionary<string, int> UploadedFilesPerMonth { get; set; }
     }
 }

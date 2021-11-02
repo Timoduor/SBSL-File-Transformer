@@ -46,6 +46,8 @@ namespace SbslFileTransformer.Controllers
 
                 count = _dbContext.UploadedFiles.Count();
 
+                ViewBag.TotalCount = count;
+
                 var pagedList = new StaticPagedList<SftpUploadedFile>(uploadedFiles, page, itemsPerPage, count);
 
                 return View(pagedList);
@@ -85,6 +87,8 @@ namespace SbslFileTransformer.Controllers
 
                 var sqliteLogs = GetSqliteLogs(page, itemsPerPage, out count);
 
+                ViewBag.TotalCount = count;
+
                 sqliteLogs = sqliteLogs ?? new List<SqliteLog>().OrderByDescending(l => l.Id);
 
                 var pagedList = new StaticPagedList<SqliteLog>(sqliteLogs, page, itemsPerPage, count);
@@ -103,9 +107,11 @@ namespace SbslFileTransformer.Controllers
             try
             {
                 var count = 0;
-                var itemsPerPage = 10;
+                var itemsPerPage = 10;                
 
                 var latestFiles = GetLogFiles(page, itemsPerPage, out count);
+
+                ViewBag.TotalCount = count;
 
                 var fileInfos = latestFiles.OrderByDescending(f => f.LastWriteTime) ??
                                 new List<FileInfo>().OrderByDescending(f => f.LastWriteTime);
@@ -128,9 +134,13 @@ namespace SbslFileTransformer.Controllers
             {
                 var filesMaxDate = _dbContext.UploadedFiles.Select(d => d.UploadedDate).Max();
 
-                var files = _dbContext.UploadedFiles.ToList().Where(f => f.UploadedDate > filesMaxDate.AddDays(-7))
-                    .GroupBy(f => f.UploadedDate.Date).OrderByDescending(g => g.Key)
-                    .ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
+                var filesPerDay = _dbContext.UploadedFiles.ToList().Where(f => f.UploadedDate > filesMaxDate.AddDays(-14))
+                    .GroupBy(f => f.UploadedDate.Date)
+                    .ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd ddd"), g => g.Count());
+
+                var filesPerMonth = _dbContext.UploadedFiles.ToList().Where(f => f.UploadedDate > filesMaxDate.AddMonths(-7))
+                    .GroupBy(f => f.UploadedDate.Month)
+                    .ToDictionary(g => CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(g.Key), g => g.Count());
 
                 var logs = GetLast7DaysSqliteLogs(-7).GroupBy(l => l.Date.Date).OrderByDescending(g => g.Key)
                     .ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
@@ -142,9 +152,9 @@ namespace SbslFileTransformer.Controllers
 
                 var reports = _dbContext.ProcessedReports.ToList()
                     .Where(r => r.ProcessedDate > reportsMaxDate.AddDays(-7)).GroupBy(r => r.ProcessedDate.Date)
-                    .OrderByDescending(g => g.Key).ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
+                    .ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
 
-                return View(new ChartObjects { UploadedFiles = files, Logs = logs, Reports = reports });
+                return View(new ChartObjects { UploadedFilesPerDay = filesPerDay, UploadedFilesPerMonth = filesPerMonth, Logs = logs, Reports = reports });
             }
             catch (Exception ex)
             {
@@ -195,6 +205,8 @@ namespace SbslFileTransformer.Controllers
             {
                 var count = 0;
                 var itemsPerPage = 10;
+
+                ViewBag.TotalCount = _dbContext.VisionRecords.LongCount();
 
                 var visionRecords = _dbContext.VisionRecords.OrderByDescending(f => f.DateExtracted)
                     .Skip((page - 1) * itemsPerPage).OrderByDescending(f => f.DateExtracted).Take(itemsPerPage).ToList();
