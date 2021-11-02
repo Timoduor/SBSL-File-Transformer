@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -79,11 +80,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                     var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx"))
+                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx") || f.ToLower().EndsWith(".csv"))
                        .ToList();
 
                     files.AddRange(
-                        Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")));
+                        Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx") || f.ToLower().EndsWith(".csv")));
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
@@ -141,6 +142,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
 
         private List<VisionRecord> GetRecordsFromVisionFile(string glFile)
         {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
             var glCmsRecs = new List<VisionRecord>();
 
             using (var stream = File.Open(glFile, FileMode.Open, FileAccess.Read))
@@ -158,7 +161,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
 
                     while (reader.Read())
                     {
-                        if (count <= 10)
+                        if (count < 1)
                         {
                             count++;
                             continue;
@@ -172,8 +175,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                             ReferenceNumber = reader.GetString(3),
                             GLTransCode = reader.GetString(4),
                             CardNumber = reader.GetString(5),
-                            CreditAmount = reader.GetDouble(6),
-                            DebitAmount = reader.GetDouble(7),
+                            CreditAmount = Convert.ToDouble(reader.GetString(6)),
+                            DebitAmount = Convert.ToDouble(reader.GetString(7)),
                             CustomerName = reader.GetString(8),
                             ContractNumber = reader.GetString(9),
                             AccountNumber = reader.GetString(10),

@@ -106,7 +106,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                             {
 
                                 string path = Path.GetDirectoryName(file);
-                                string outputPath = Path.Combine(Path.GetFullPath(Path.Combine(path, @"..\")), "Conv");
+                                string outputPath = Path.Combine(Path.GetFullPath(Path.Combine(path, @"..\")), "Col_Conv");
 
                                 Directory.CreateDirectory(outputPath);
 

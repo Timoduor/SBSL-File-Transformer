@@ -174,7 +174,8 @@ namespace SbslFileTransformer
         {
             var appShutdownInput = new Tuple<IMemoryCache, ILogger<Startup>>(cache, logger);
 
-            applicationLifetime.ApplicationStopping.Register(i => { OnAppShutdown((Tuple<IMemoryCache, ILogger<Startup>>)i); }, appShutdownInput);
+            applicationLifetime.ApplicationStopping
+                .Register(i => OnAppShutdown((Tuple<IMemoryCache, ILogger<Startup>>)i), appShutdownInput);
 
             if (env.IsDevelopment())
             {
@@ -185,7 +186,8 @@ namespace SbslFileTransformer
             else
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                // The default HSTS value is 30 days. You may want to change this for production scenarios,
+                // see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
@@ -213,11 +215,12 @@ namespace SbslFileTransformer
         {
             //check for job state of upload job in memcache
             //log if job is still running and wait for completion before continuing shutdown
-            if(input.Item1.TryGetValue(nameof(SftpIndependentJob), out JobState result))
+            if(input.Item1.TryGetValue(nameof(SftpIndependentJob), out JobStatus result))
             {
-                while (result != JobState.Completed)
-                {
-                    Thread.Sleep(1000);
+                while (result.Status != JobState.Completed)
+                { 
+                    input.Item2.LogWarning("An important job is still running. Waiting for it to complete...");
+                    Thread.Sleep(2000);                   
                 }
             }
 
