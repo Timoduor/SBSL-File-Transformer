@@ -31,6 +31,10 @@ namespace SbslFileTransformer.Models.Enums
         [Description("Mpesa,B2C,Elma")] MpesaB2CElma,
         [Description("Mpesa,Bank,To,Till")] MpesaBanktoTill,
         [Description("Mpesa,C2B,Merchant")] MpesaC2BMerchant,
-        [Description("Mpesa,Lipa,na")] MpesaLipaNaMpesa
+        [Description("Mpesa,Lipa,na")] MpesaLipaNaMpesa,
+        [Description("Mpesa,C2B,Chango")] MpesaC2BChango,
+        [Description("IMS")] IMS,
+        [Description("Fx,Confirmation,Spot")] FXConfirmationSpot,
+        [Description("Fx,Confirmation,Money,Market")] FXConfirmationMoneyMarket,
     }
 }

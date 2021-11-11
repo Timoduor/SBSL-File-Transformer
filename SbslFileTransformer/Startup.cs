@@ -73,7 +73,7 @@ namespace SbslFileTransformer
 
             //SPRINT 1
             services.AddHostedService<SftpIndependentJob>();
-            services.AddHostedService<ScheduledReporterJob>();
+            services.AddHostedService<ReportEngineJob>();
             services.AddHostedService<MtBalanceExtractorJob>();
             services.AddHostedService<AuxilliaryProcessesJob>();
             services.AddHostedService<GLBalanceExtractorJob>();

@@ -13,8 +13,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         public string StartTime { get; set; }
         public string Status { get; set; }
         public string UserToken { get; set; }
-        public Country Country { get; set; }
-        public Sprint Sprint { get; set; }
-        public ReportCategory Category { get; set; }
-    }
+        public Country Country { get; set; } = Country.Kenya;
+        public Sprint Sprint { get; set; } = Sprint.Nostro;
+        public ReportCategory Category { get; set; } = ReportCategory.Default;
+        public string TempReportPath { get; set; }
+        public int[] DaysRange { get; set; }
+     }
 }
