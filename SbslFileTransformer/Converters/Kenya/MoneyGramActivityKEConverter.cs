@@ -12,7 +12,7 @@ namespace SbslFileTransformer.Converters.Kenya
 {
     public class MoneyGramActivityKEConverter
     {
-        private ILogger _logger;
+        private readonly ILogger _logger;
 
         public MoneyGramActivityKEConverter(ILogger logger)
         {
@@ -22,25 +22,25 @@ namespace SbslFileTransformer.Converters.Kenya
 
         public void ConvertFile(string inputFile, string outputFile = null)
         {
-            var list = new List<ExcelCols>();
+            List<ExcelCols> list = new List<ExcelCols>();
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateReader(stream))
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
                 {
-                    var countHeader = 0;
+                    int countHeader = 0;
 
-                    var per = 0.2;
+                    double per = 0.2;
 
-                    var excise = "Excise duty";
+                    string excise = "Excise duty";
 
-                    var computedbaseamnt = "Computed Base Amount";
+                    string computedbaseamnt = "Computed Base Amount";
 
                     while (reader.Read())
                     {
-                        var row = new ExcelCols();
+                        ExcelCols row = new ExcelCols();
 
-                        var value = reader.GetValue(1)?.ToString();
+                        string value = reader.GetValue(1)?.ToString();
 
                         if (string.IsNullOrEmpty(value) || value.Contains("Account Number : ") ||
                             value.Contains("Settlement Currency : ")) continue;
@@ -87,8 +87,8 @@ namespace SbslFileTransformer.Converters.Kenya
 
                         try
                         {
-                            var baseamnt = Convert.ToDouble(reader.GetValue(25));
-                            var feeamnt = Convert.ToDouble(reader.GetValue(26));
+                            double baseamnt = Convert.ToDouble(reader.GetValue(25));
+                            double feeamnt = Convert.ToDouble(reader.GetValue(26));
 
                             if (reader.GetValue(11) != null && reader.GetValue(12) != null &&
                                 reader.GetValue(11).ToString() == "MT" && reader.GetValue(12).ToString() == "SEN")
@@ -105,16 +105,16 @@ namespace SbslFileTransformer.Converters.Kenya
                 }
             }
 
-            var list2 = ProduceSecondList(inputFile).Skip(1).ToList();
+            List<ExcelCols> list2 = ProduceSecondList(inputFile).Skip(1).ToList();
 
-            var list3 = CombineTheTwoLists(list, list2);
+            List<ExcelCols> list3 = CombineTheTwoLists(list, list2);
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                 Directory.CreateDirectory(outputFolder);
 
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
@@ -125,28 +125,28 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private List<ExcelCols> ProduceSecondList(string inputFile)
         {
-            var list3 = new List<ExcelCols>();
+            List<ExcelCols> list3 = new List<ExcelCols>();
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateReader(stream))
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
                 {
-                    var countHeader1 = 0;
+                    int countHeader1 = 0;
 
-                    var per = 0.2;
+                    double per = 0.2;
 
                     while (reader.Read())
                     {
-                        var excise = "Excise duty";
+                        string excise = "Excise duty";
 
-                        var row = new ExcelCols();
+                        ExcelCols row = new ExcelCols();
 
-                        var value1 = reader.GetValue(1)?.ToString();
+                        string value1 = reader.GetValue(1)?.ToString();
 
                         if (string.IsNullOrEmpty(value1) || value1.Contains("Account Number : ") ||
                             value1.Contains("Settlement Currency : ")) continue;
 
-                        var value2 = reader.GetValue(12)?.ToString();
+                        string value2 = reader.GetValue(12)?.ToString();
 
                         if (string.IsNullOrEmpty(value2) || value2.Contains("REC")) continue;
 
@@ -185,7 +185,7 @@ namespace SbslFileTransformer.Converters.Kenya
                         //excise duty calculation (0.2% of amount)
                         try
                         {
-                            var cost = Convert.ToDouble(reader.GetValue(26));
+                            double cost = Convert.ToDouble(reader.GetValue(26));
                             row.Col14 = (cost * per).ToString("0.##");
                         }
                         catch (Exception)
@@ -210,7 +210,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private List<ExcelCols> CombineTheTwoLists(List<ExcelCols> list, List<ExcelCols> list2)
         {
-            var combinedList = new List<ExcelCols>();
+            List<ExcelCols> combinedList = new List<ExcelCols>();
 
             combinedList.AddRange(list);
             combinedList.AddRange(list2);
@@ -221,11 +221,11 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    foreach (var row in rows)
+                    foreach (ExcelCols row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

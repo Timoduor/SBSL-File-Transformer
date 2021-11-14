@@ -17,19 +17,19 @@ namespace SbslFileTransformer.Converters.KenSwitch
             if (string.IsNullOrEmpty(outputFolder))
                 outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
 
-            var text = SbslPdfReader.GetTextFromPDF(inputFile);
+            string text = SbslPdfReader.GetTextFromPDF(inputFile);
 
-            var lines = text.Split('\n', '\r');
+            string[] lines = text.Split('\n', '\r');
 
-            var outputLines = new List<KenSwitchRec>();
+            List<KenSwitchRec> outputLines = new List<KenSwitchRec>();
 
             KenSwitchRec rec = null;
 
-            var ksType = KenSwitchFileType.ClientDebitActivity;
+            KenSwitchFileType ksType = KenSwitchFileType.ClientDebitActivity;
 
-            var AcquirerIssuer = string.Empty;
-            var TerminalId = string.Empty;
-            var NameLocation = string.Empty;
+            string AcquirerIssuer = string.Empty;
+            string TerminalId = string.Empty;
+            string NameLocation = string.Empty;
 
             if (lines.Any(l => l.Contains("Client Debit Activity", StringComparison.OrdinalIgnoreCase)))
                 ksType = KenSwitchFileType.ClientDebitActivity;
@@ -37,7 +37,7 @@ namespace SbslFileTransformer.Converters.KenSwitch
             if (lines.Any(l => l.Contains("ATM Activity", StringComparison.OrdinalIgnoreCase)))
                 ksType = KenSwitchFileType.ATMActivity;
 
-            for (var i = 0; i < lines.Length; i++)
+            for (int i = 0; i < lines.Length; i++)
             {
                 if (lines[i].Contains("Acquirer:", StringComparison.OrdinalIgnoreCase) ||
                     lines[i].Contains("Issuer:", StringComparison.OrdinalIgnoreCase))
@@ -60,7 +60,7 @@ namespace SbslFileTransformer.Converters.KenSwitch
                         }
                         else
                         {
-                            var sec = lines[i].Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList().Skip(6);
+                            IEnumerable<string> sec = lines[i].Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList().Skip(6);
 
                             NameLocation = string.Join(" ", sec);
                         }
@@ -69,7 +69,7 @@ namespace SbslFileTransformer.Converters.KenSwitch
                     {
                         TerminalId = lines[i - 1].Split(' ')[0];
 
-                        var sec = lines[i - 1].Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList().Skip(1);
+                        IEnumerable<string> sec = lines[i - 1].Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList().Skip(1);
 
                         NameLocation = string.Join(" ", sec);
                     }
@@ -84,7 +84,7 @@ namespace SbslFileTransformer.Converters.KenSwitch
                     rec.TerminalId = TerminalId;
                     rec.NameLocation = NameLocation;
 
-                    var parts = lines[i].Split(" ", StringSplitOptions.RemoveEmptyEntries);
+                    string[] parts = lines[i].Split(" ", StringSplitOptions.RemoveEmptyEntries);
                     switch (ksType)
                     {
                         case KenSwitchFileType.ClientDebitActivity:
@@ -196,7 +196,7 @@ namespace SbslFileTransformer.Converters.KenSwitch
 
             Directory.CreateDirectory(outputFolder);
 
-            var fileName = Path.GetFileNameWithoutExtension(inputFile);
+            string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
             WriteToFile(outputLines,
                 Path.Combine(outputFolder,
@@ -207,14 +207,14 @@ namespace SbslFileTransformer.Converters.KenSwitch
 
         private static void WriteToFile(List<KenSwitchRec> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
                     csv.WriteHeader<KenSwitchRec>();
                     csv.NextRecord();
 
-                    foreach (var row in rows)
+                    foreach (KenSwitchRec row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

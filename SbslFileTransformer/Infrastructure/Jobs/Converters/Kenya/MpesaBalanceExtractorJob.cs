@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
@@ -47,15 +46,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 _logger.LogInformation("Running MPesa Balance Extractor job");
 
-                var prodFolder = string.Empty;
-                var sbFolder = string.Empty;
-                var Entity = string.Empty;
+                string prodFolder = string.Empty;
+                string sbFolder = string.Empty;
+                string Entity = string.Empty;
 
-                using (var scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.ToList();
+                    List<Configuration> configurations = dbContext.Configurations.ToList();
 
                     Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
@@ -63,38 +62,38 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
 
-                    var options = new EnumerationOptions
+                    EnumerationOptions options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv"))
+                    List<string> files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv"))
                         .ToList();
 
                     files.AddRange(
                         Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")));
 
-                    var mpesaConverter = new MpesaBalanceExtractor();
+                    MpesaBalanceExtractor mpesaConverter = new MpesaBalanceExtractor();
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
-                    var updatedFiles = new List<SftpUploadedFile>();
+                    List<SftpUploadedFile> updatedFiles = new List<SftpUploadedFile>();
 
-                    foreach (var file in files)
+                    foreach (string file in files)
                     {
                         if (((file.ToLower().Contains("mpesa") && file.Contains("Conv")) || file.ToLower().Contains("credit_receivable")) &&
                             file.ToLower().Contains("imke"))
                         {
-                            var fileToProcess =
+                            SftpUploadedFile fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>
                                     f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.BalanceExtracted == false)
                                 try
                                 {
-                                    var isProd = Convert.ToBoolean(
+                                    bool isProd = Convert.ToBoolean(
                                         configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ??
                                         false.ToString());
 
-                                    var rootFolder = isProd ? prodFolder : sbFolder;
+                                    string rootFolder = isProd ? prodFolder : sbFolder;
 
                                     mpesaConverter.ConvertFile(file, rootFolder);
                                 }

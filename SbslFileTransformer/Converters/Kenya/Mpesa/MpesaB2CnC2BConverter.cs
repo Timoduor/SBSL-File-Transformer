@@ -25,9 +25,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         {
             //Replace empties with zeros in columns 5 and 6
 
-            var list = new List<MPesaCols>();
+            List<MPesaCols> list = new List<MPesaCols>();
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
                 IExcelDataReader reader;
 
@@ -43,10 +43,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     while (reader.Read())
                     {
-                        var value = reader.GetValue(0)?.ToString();
+                        string value = reader.GetValue(0)?.ToString();
 
                         if (string.IsNullOrEmpty(value)) continue;
-                        var row = new MPesaCols();
+                        MPesaCols row = new MPesaCols();
 
                         row.Col0 = reader.GetValue(0)?.ToString().Replace("\n", "").Replace("\r", "");
 
@@ -85,11 +85,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
 
                 Directory.CreateDirectory(outputFolder);
 
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm}_B2C_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
@@ -104,22 +104,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         private void GenerateMultiCurr(MPesaCols item, string inputFile, string rootFolder)
         {
-            var fileName = Path.GetFileNameWithoutExtension(inputFile);
+            string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-            var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
+            string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
-            var outputFile = Path.Combine(rootFolder,
+            string outputFile = Path.Combine(rootFolder,
                 $"MultiCurr_{DateTime.Now:yyyy_MM_dd_mm_ss}_{fileNameToAppend}_MMF_{_entity}.txt");
 
-            var toAppend = new StringBuilder();
+            StringBuilder toAppend = new StringBuilder();
 
             if (!DateTime.TryParseExact(item.Col1, "d-M-yyyy HH:mm:ss", CultureInfo.InvariantCulture,
-                DateTimeStyles.None, out var date)) throw new Exception("Unable to parse datetime!");
+                DateTimeStyles.None, out DateTime date)) throw new Exception("Unable to parse datetime!");
 
-            var amount = (Convert.ToDouble(item.Col7) * -1).ToString("N2"); //vs col5 diff
-            var currency = "KES";
+            string amount = (Convert.ToDouble(item.Col7) * -1).ToString("N2"); //vs col5 diff
+            string currency = "KES";
 
-            var account = "19990126507010"; //payment
+            string account = "19990126507010"; //payment
 
             if (inputFile.ToLower().Contains(""))
 
@@ -130,7 +130,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             toAppend.Append(
                 $"{_entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
 
-            var text = toAppend.ToString();
+            string text = toAppend.ToString();
 
             if (!string.IsNullOrEmpty(text)) File.WriteAllText(outputFile, text);
         }
@@ -138,11 +138,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         private void WriteToFile(List<MPesaCols> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    foreach (var row in rows)
+                    foreach (MPesaCols row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

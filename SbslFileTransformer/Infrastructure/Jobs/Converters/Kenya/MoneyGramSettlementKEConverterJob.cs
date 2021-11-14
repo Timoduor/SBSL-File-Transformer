@@ -4,7 +4,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters.Kenya;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
@@ -48,15 +47,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                 _logger.LogInformation("Running Lipa Na Mpesa C2B Merchant Converter job");
 
-                var prodFolder = string.Empty;
-                var sbFolder = string.Empty;
-                var Entity = string.Empty;
+                string prodFolder = string.Empty;
+                string sbFolder = string.Empty;
+                string Entity = string.Empty;
 
-                using (var scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.ToList();
+                    List<Configuration> configurations = dbContext.Configurations.ToList();
 
                     Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
@@ -64,20 +63,20 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
 
-                    var options = new EnumerationOptions
+                    EnumerationOptions options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx"))
+                    List<string> files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx"))
                         .ToList();
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options)
                         .Where(f => f.ToLower().EndsWith(".xlsx")));
 
-                    var mpesaConverter = new MoneyGramSettlementKEConverter(_logger);
+                    MoneyGramSettlementKEConverter mpesaConverter = new MoneyGramSettlementKEConverter(_logger);
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
-                    var updatedFiles = new List<SftpUploadedFile>();
+                    List<SftpUploadedFile> updatedFiles = new List<SftpUploadedFile>();
 
                     foreach (string file in files)
                     {
@@ -86,7 +85,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                         if (file.ToLower().Contains("moneygram") && file.ToLower().Contains("imke") &&
                             file.ToLower().Contains("sett") && !file.Contains("Conv"))
                         {
-                            var fileToProcess =
+                            SftpUploadedFile fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>
                                     f.FilePath.ToLower() == file.ToLower());
 

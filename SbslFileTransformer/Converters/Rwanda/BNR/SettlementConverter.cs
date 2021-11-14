@@ -17,10 +17,10 @@ namespace SbslFileTransformer.Converters.BNR
 
         public void ConvertFile(string inputFile, string outputFile = null)
         {
-            var list = new List<ExcelCols>();
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            List<ExcelCols> list = new List<ExcelCols>();
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateReader(stream))
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
                 {
                     string reference = "Reference";
 
@@ -58,9 +58,9 @@ namespace SbslFileTransformer.Converters.BNR
 
                     while (reader.Read())
                     {
-                        var row = new ExcelCols();
+                        ExcelCols row = new ExcelCols();
 
-                        var value = reader.GetValue(0)?.ToString();
+                        string value = reader.GetValue(0)?.ToString();
 
                         //Ignore the colunm that contain DIFF or MT971
                         if (value.Contains("DIFF"))
@@ -146,7 +146,7 @@ namespace SbslFileTransformer.Converters.BNR
                         }
 
                         //Format into date
-                        var date = reader.GetValue(5)?.ToString();
+                        string date = reader.GetValue(5)?.ToString();
 
                         row.Col2 = date.Substring(Math.Max(0, date.Length - 10), Math.Min(10, date.Length)).Replace(".", "-");
 
@@ -183,13 +183,13 @@ namespace SbslFileTransformer.Converters.BNR
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.GetDirectoryName(inputFile);
+                string outputFolder = Path.GetDirectoryName(inputFile);
 
                 outputFolder = Path.Combine(Directory.GetParent(outputFolder).FullName, "Conv");
 
                 Directory.CreateDirectory(outputFolder);
 
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm}_{fileName.Substring(Math.Max(0, fileName.Length - 10))}_SETMT.csv");
@@ -200,11 +200,11 @@ namespace SbslFileTransformer.Converters.BNR
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    foreach (var row in rows)
+                    foreach (ExcelCols row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

@@ -20,9 +20,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         {
             //Replace empties with zeros in columns 5 and 6
 
-            var list = new List<MpesaBalCols>();
+            List<MpesaBalCols> list = new List<MpesaBalCols>();
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
                 IExcelDataReader reader;
 
@@ -38,29 +38,29 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     while (reader.Read())
                     {
-                        var value = reader.GetValue(0)?.ToString();
+                        string value = reader.GetValue(0)?.ToString();
 
                         if (string.IsNullOrEmpty(value)) continue;
-                        var row = new MpesaBalCols();
+                        MpesaBalCols row = new MpesaBalCols();
 
                         if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd-MM-yyyy HH:mm",
-                            CultureInfo.InvariantCulture, DateTimeStyles.None, out var resultDate))
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime resultDate))
                             row.BalDate = resultDate;
                         else if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd-MM-yyyy HH:mm:ss",
-                            CultureInfo.InvariantCulture, DateTimeStyles.None, out var resultDate2))
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime resultDate2))
                             row.BalDate = resultDate2;
                         else if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd/MM/yyyy HH:mm:ss",
-                            CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
                             row.BalDate = result;
                         else if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd/MM/yyyy HH:mm",
-                            CultureInfo.InvariantCulture, DateTimeStyles.None, out var result2))
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result2))
                             row.BalDate = result2;
-                        else if (DateTime.TryParse(reader.GetValue(1)?.ToString(), out var result3))
+                        else if (DateTime.TryParse(reader.GetValue(1)?.ToString(), out DateTime result3))
                             row.BalDate = result3;
                         else
                             continue;
 
-                        var amount = string.IsNullOrEmpty(reader.GetValue(7)?.ToString())
+                        string amount = string.IsNullOrEmpty(reader.GetValue(7)?.ToString())
                             ? "0"
                             : reader.GetValue(7)?.ToString();
 
@@ -81,17 +81,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         private static void CreateMultiCurrFile(string inputFile, string outputFolder, List<MpesaBalCols> list)
         {
-            var fileName = Path.GetFileNameWithoutExtension(inputFile);
+            string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-            var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
+            string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
-            var outputFile = Path.Combine(outputFolder,
+            string outputFile = Path.Combine(outputFolder,
                 $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_MpesaKE.txt");
 
-            var lastRow = list.OrderByDescending(i => i.BalDate)
+            MpesaBalCols lastRow = list.OrderByDescending(i => i.BalDate)
                 .FirstOrDefault(c => c.BalDate == list.Max(r => r.BalDate));
 
-            var toAppend =
+            string toAppend =
                 $"IMKE\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.BalDate):MM/dd/yyyy}\t\t\t\t{-lastRow.Amount}\tKES\n";
 
             if (!string.IsNullOrEmpty(toAppend)) File.WriteAllText(outputFile, toAppend);

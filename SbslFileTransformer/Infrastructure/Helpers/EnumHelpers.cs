@@ -12,8 +12,8 @@ namespace SbslFileTransformer.Infrastructure.Helpers
         /// <returns></returns>
         public static string[] GetDescriptors(Enum value)
         {
-            var fi = value.GetType().GetField(value.ToString());
-            var attributes = (DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);
+            System.Reflection.FieldInfo fi = value.GetType().GetField(value.ToString());
+            DescriptionAttribute[] attributes = (DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);
             if (attributes.Length > 0)
                 return attributes[0].Description.ToLower().Split(',');
             return value.ToString().ToLower().Split(',');

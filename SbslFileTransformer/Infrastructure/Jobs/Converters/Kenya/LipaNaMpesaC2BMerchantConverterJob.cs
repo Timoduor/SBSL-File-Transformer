@@ -4,7 +4,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters.Kenya;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
@@ -50,15 +49,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                 _logger.LogInformation("Running Lipa Na Mpesa C2B Merchant Converter job");
 
-                var prodFolder = string.Empty;
-                var sbFolder = string.Empty;
-                var Entity = string.Empty;
+                string prodFolder = string.Empty;
+                string sbFolder = string.Empty;
+                string Entity = string.Empty;
 
-                using (var scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.ToList();
+                    List<Configuration> configurations = dbContext.Configurations.ToList();
 
                     Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
@@ -66,22 +65,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
 
-                    var options = new EnumerationOptions
+                    EnumerationOptions options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls"))
+                    List<string> files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls"))
                         .ToList();
 
                     files.AddRange(
                         Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xls")));
 
-                    var mpesaConverter = new LipaNaMpesaC2BMerchantConverter(Entity);
+                    LipaNaMpesaC2BMerchantConverter mpesaConverter = new LipaNaMpesaC2BMerchantConverter(Entity);
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
-                    var updatedFiles = new List<SftpUploadedFile>();
+                    List<SftpUploadedFile> updatedFiles = new List<SftpUploadedFile>();
 
-                    foreach (var file in files)
+                    foreach (string file in files)
                     {
                         if ((file.ToLower().Contains("c2b") && file.ToLower().Contains("merchant") ||
                              file.ToLower().Contains("lipa")
@@ -90,18 +89,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                             && file.ToLower().Contains("mobile") && file.ToLower().Contains("banking") &&
                             file.ToLower().Contains("imke"))
                         {
-                            var fileToProcess =
+                            SftpUploadedFile fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>
                                     f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    var isProd = Convert.ToBoolean(
+                                    bool isProd = Convert.ToBoolean(
                                         configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ??
                                         false.ToString());
 
-                                    var rootFolder = isProd ? prodFolder : sbFolder;
+                                    string rootFolder = isProd ? prodFolder : sbFolder;
 
                                     mpesaConverter.ConvertFile(file, rootFolder);
                                 }

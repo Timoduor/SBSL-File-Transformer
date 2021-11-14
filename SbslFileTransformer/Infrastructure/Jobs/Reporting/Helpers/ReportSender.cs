@@ -24,23 +24,23 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
         {
             this.logger = logger;
             this.serviceScopeFactory = serviceScopeFactory;
-            this.reportConfiguration = reportConfig;           
+            reportConfiguration = reportConfig;
         }
 
         public async Task SendAndSaveReports(List<(ReportModel, Dictionary<int, string>)> newlyProcessedReports, IProgress<int> sendReportProgress)
         {
-            using(var scope = this.serviceScopeFactory.CreateScope())
+            using (IServiceScope scope = serviceScopeFactory.CreateScope())
             {
                 ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
                 EmailSender emailSender = scope.ServiceProvider.GetService<EmailSender>();
 
-                var alreadySent = dbContext.ProcessedReports.Select(r => r.ReportId).ToList();
+                List<long> alreadySent = dbContext.ProcessedReports.Select(r => r.ReportId).ToList();
 
                 int count = 0;
 
-                var reportsToSend = new List<ProcessedReport>();
+                List<ProcessedReport> reportsToSend = new List<ProcessedReport>();
 
-                foreach (var results in newlyProcessedReports)
+                foreach ((ReportModel, Dictionary<int, string>) results in newlyProcessedReports)
                 {
                     ReportModel report = results.Item1;
 
@@ -53,9 +53,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                     {
                         foreach (KeyValuePair<int, string> key in results.Item2)
                         {
-                            
+
                             //key is the overdue days used to select the email groups
-                            var emails = GetEmails(key.Key, report, serviceScopeFactory);
+                            IEnumerable<string> emails = GetEmails(key.Key, report, serviceScopeFactory);
 
                             //ONLY SEND EMAILS IF FILE HAS 1 OR MORE RECORDS
                             await emailSender.SendMessage(emails,
@@ -68,19 +68,19 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                                 $"COMMENTS:- {report.Notes}", false,
                                 new[] { report.TempReportPath, key.Value });
 
-                            await Task.Delay(2500);
+                            await Task.Delay(1500);
                         }
                     }
                     else
                     {
-                        if(results.Item1.DaysRange.Length == 0)
+                        if (results.Item1.DaysRange.Length == 0)
                         {
-                            results.Item1.DaysRange = new int[]{ 3 };
+                            results.Item1.DaysRange = new int[] { 3 };
                         }
 
-                        foreach (var r in results.Item1.DaysRange)
+                        foreach (int r in results.Item1.DaysRange)
                         {
-                            var outputFile = results.Item1.TempReportPath;
+                            string outputFile = results.Item1.TempReportPath;
 
                             //change signage for Tz B.P. report
                             if (report.Name.ToLower().Contains("tanzania") && report.Name.ToLower().Contains("clearing")
@@ -91,7 +91,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                                 outputFile = await AdjustBalanceValue(results.Item1.TempReportPath);
                             }
 
-                            var emails = GetEmails(r, report, serviceScopeFactory);
+                            IEnumerable<string> emails = GetEmails(r, report, serviceScopeFactory);
 
                             await emailSender.SendMessage(emails,
                                 reportConfiguration.EmailHeader,
@@ -103,7 +103,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                                 filePaths: new[] { outputFile });
                         }
 
-                        await Task.Delay(2500);
+                        await Task.Delay(1500);
                     }
 
                     reportsToSend.Add(new ProcessedReport
@@ -132,7 +132,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
         private async Task SaveToDb(List<ProcessedReport> reports)
         {
-            using (var scope = serviceScopeFactory.CreateScope())
+            using (IServiceScope scope = serviceScopeFactory.CreateScope())
             {
                 ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
@@ -144,13 +144,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
         public static IEnumerable<string> GetEmails(int duration, ReportModel report, IServiceScopeFactory serviceScopeFactory)
         {
-            var emails = new List<string>();
+            List<string> emails = new List<string>();
 
-            using (var scope = serviceScopeFactory.CreateScope())
+            using (IServiceScope scope = serviceScopeFactory.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                var groups = dbContext.EmailGroups.Where(g =>
+                IQueryable<EmailGroup> groups = dbContext.EmailGroups.Where(g =>
                     g.AgeAlertDuration == duration && g.Country == report.Country && g.Sprint == report.Sprint &&
                     g.Category == report.Category && g.IsActive);
 
@@ -158,9 +158,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                     groups = dbContext.EmailGroups.Where(g =>
                         g.AgeAlertDuration == duration && g.Country == report.Country && g.Sprint == report.Sprint && g.IsActive);
 
-                var groupEmails = groups.ToList().Select(g => g.Emails);
+                IEnumerable<string> groupEmails = groups.ToList().Select(g => g.Emails);
 
-                foreach (var group in groupEmails)
+                foreach (string group in groupEmails)
                     emails.AddRange(@group.Split(new[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries));
 
                 return emails;
@@ -169,20 +169,20 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
         private async Task<string> AdjustBalanceValue(string inputFile)
         {
-            var inputFileName = Path.GetFileName(inputFile);
+            string inputFileName = Path.GetFileName(inputFile);
 
-            var outputFilePath =
+            string outputFilePath =
                 Path.Combine(await FileHelpers.GetTempPath(serviceScopeFactory), "Adj_" + inputFileName);
 
-            using (var package = new ExcelPackage(new FileInfo(inputFile)))
+            using (ExcelPackage package = new ExcelPackage(new FileInfo(inputFile)))
             {
-                var sheet = package.Workbook.Worksheets.First();
+                ExcelWorksheet sheet = package.Workbook.Worksheets.First();
 
-                var start = sheet.Dimension.Start;
-                var end = sheet.Dimension.End;
+                ExcelCellAddress start = sheet.Dimension.Start;
+                ExcelCellAddress end = sheet.Dimension.End;
 
-                for (var i = start.Row + 5; i <= end.Row; i++)
-                    if (double.TryParse(sheet.Cells[$"E{i}"].Value.ToString(), out var result))
+                for (int i = start.Row + 5; i <= end.Row; i++)
+                    if (double.TryParse(sheet.Cells[$"E{i}"].Value.ToString(), out double result))
                         sheet.Cells[$"E{i}"].Value = (1 * result).ToString("N2");//change the (1 * result) to (-1 * result) if need be
 
                 await package.SaveAsAsync(new FileInfo(outputFilePath));

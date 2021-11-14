@@ -9,8 +9,8 @@ namespace SbslFileTransformer.Converters.Camt053
     {
         public static void SaveToCsv(List<ExtractedRecord> Ntry, string filePath)
         {
-            using (var writer = new StreamWriter(filePath))
-            using (var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            using (StreamWriter writer = new StreamWriter(filePath))
+            using (CsvWriter csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
                 csvWriter.Configuration.Delimiter = ",";
                 csvWriter.Configuration.AutoMap<ExtractedRecord>();
@@ -21,8 +21,8 @@ namespace SbslFileTransformer.Converters.Camt053
 
         public static void BalanceToCSV(List<BalanceExctracted> Bal, string filePath)
         {
-            using (var writer = new StreamWriter(filePath))
-            using (var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            using (StreamWriter writer = new StreamWriter(filePath))
+            using (CsvWriter csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
                 csvWriter.Configuration.Delimiter = ",";
                 csvWriter.Configuration.AutoMap<BalanceExctracted>();

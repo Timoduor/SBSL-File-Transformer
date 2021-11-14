@@ -29,13 +29,13 @@ namespace SbslFileTransformer.Infrastructure.Encryption
 
         public string Encrypt(string input = "")
         {
-            var protector = _dataProtectionProvider.CreateProtector(Purpose);
+            IDataProtector protector = _dataProtectionProvider.CreateProtector(Purpose);
             return protector.Protect(input);
         }
 
         public string Decrypt(string cipherText = "")
         {
-            var protector = _dataProtectionProvider.CreateProtector(Purpose);
+            IDataProtector protector = _dataProtectionProvider.CreateProtector(Purpose);
             return protector.Unprotect(cipherText);
         }
 
@@ -43,11 +43,11 @@ namespace SbslFileTransformer.Infrastructure.Encryption
         {
             lock (_locker)
             {
-                using (var md5 = MD5.Create())
+                using (MD5 md5 = MD5.Create())
                 {
-                    using (var stream = File.OpenRead(filePath))
+                    using (FileStream stream = File.OpenRead(filePath))
                     {
-                        var hash = md5.ComputeHash(stream);
+                        byte[] hash = md5.ComputeHash(stream);
 
                         stream.Close();
 

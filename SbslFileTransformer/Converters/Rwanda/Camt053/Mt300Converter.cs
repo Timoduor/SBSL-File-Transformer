@@ -9,7 +9,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
     {
         public void ProcessMt300File(string file, string outputFolder = null)
         {
-            var content = File.ReadAllText(file);
+            string content = File.ReadAllText(file);
 
             if (string.IsNullOrEmpty(outputFolder)) outputFolder = Path.GetDirectoryName(file);
             outputFolder = outputFolder + "\\conv";
@@ -17,16 +17,16 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                 Directory.CreateDirectory(outputFolder);
 
 
-            var sDet = File.ReadAllLines(file);
-            var scontent = "";
-            var sType = content.Split(':')[6].Trim().Substring(4, 3);
-            
+            string[] sDet = File.ReadAllLines(file);
+            string scontent = "";
+            string sType = content.Split(':')[6].Trim().Substring(4, 3);
+
             if (sDet.Length != 0)
             {
-                var seq15A = new MandatorySequenceA();
-                var seq15B = new MandatorySequenceB();
-                var seq15C = new MandatorySequenceC();
-                var seq15E = new MandatorySequenceE();
+                MandatorySequenceA seq15A = new MandatorySequenceA();
+                MandatorySequenceB seq15B = new MandatorySequenceB();
+                MandatorySequenceC seq15C = new MandatorySequenceC();
+                MandatorySequenceE seq15E = new MandatorySequenceE();
 
 
                 List<string> l = GetRtgsDetails_MT300_15A(sDet);
@@ -96,9 +96,9 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
 
         public static void WriteFile(string path, string content)
         {
-            using (var fs = new FileStream(path, FileMode.OpenOrCreate))
+            using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
             {
-                using (var sw = new StreamWriter(fs))
+                using (StreamWriter sw = new StreamWriter(fs))
                 {
                     sw.Write(content);
                 }
@@ -108,8 +108,8 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
 
         private List<string> GetRtgsDetails_MT300_15A(string[] d)
         {
-            var l = new List<string>();
-            for (var i = 1; i < d.Length - 1; i++)
+            List<string> l = new List<string>();
+            for (int i = 1; i < d.Length - 1; i++)
             {
                 if (d[i].Contains("15A:")) l.Add(d[i].Trim());
                 if (d[i].Contains("20:")) l.Add(d[i].Trim() + "|" + d[i + 1].Trim());
@@ -148,9 +148,9 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
 
         private List<string> GetRtgsDetails_MT300_15B(string[] d)
         {
-            var fldcount = 0;
-            var l = new List<string>();
-            for (var i = 1; i < d.Length - 1; i++)
+            int fldcount = 0;
+            List<string> l = new List<string>();
+            for (int i = 1; i < d.Length - 1; i++)
             {
                 if (d[i].Contains("15B:")) l.Add(d[i].Trim());
 
@@ -215,8 +215,8 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
 
         private List<string> GetRtgsDetails_MT300_15C(string[] d)
         {
-            var l = new List<string>();
-            for (var i = 1; i < d.Length - 1; i++)
+            List<string> l = new List<string>();
+            for (int i = 1; i < d.Length - 1; i++)
             {
                 if (d[i].Contains("15C:")) l.Add(d[i].Trim());
                 if (d[i].Contains("24D:")) l.Add(d[i].Trim() + "|" + d[i + 1].Trim());
@@ -227,8 +227,8 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
 
         private List<string> GetRtgsDetails_MT300_15E(string[] d)
         {
-            var l = new List<string>();
-            for (var i = 1; i < d.Length - 1; i++)
+            List<string> l = new List<string>();
+            for (int i = 1; i < d.Length - 1; i++)
             {
                 if (d[i].Contains("15E:")) l.Add(d[i].Trim());
                 if (d[i].Contains("22V:")) l.Add(d[i].Trim() + "|" + d[i + 1].Trim());

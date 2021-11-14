@@ -24,17 +24,17 @@ namespace SbslFileTransformer.Controllers
         public ActionResult Index()
         {
             //displays the license info if it is ok else redirects to renew license
-            var licenseInfo = new LicenseInfo();
+            LicenseInfo licenseInfo = new LicenseInfo();
 
-            var licensePath = _fileProvider.GetDirectoryContents("/").FirstOrDefault(f => f.Name == "license.lic")
+            string licensePath = _fileProvider.GetDirectoryContents("/").FirstOrDefault(f => f.Name == "license.lic")
                 ?.PhysicalPath;
 
-            var status = licenseInfo.GetLicenseStatus(out var licenseMessage);
+            LicenseStatus status = licenseInfo.GetLicenseStatus(out string licenseMessage);
 
             ViewBag.LicenseMessage = licenseMessage;
             ViewBag.Status = status;
 
-            var validationMsg = string.Empty;
+            string validationMsg = string.Empty;
 
             if (status == LicenseStatus.VALID &&
                 licenseInfo.License.DoExtraValidation(out validationMsg) == LicenseStatus.VALID)
@@ -55,12 +55,12 @@ namespace SbslFileTransformer.Controllers
         public ActionResult RenewLicense()
         {
             //displays the current UID for this machine
-            var activator = new LicenseActivator();
+            LicenseActivator activator = new LicenseActivator();
             ViewBag.Uid = activator.GenerateUID();
 
-            var licenseInfo = new LicenseInfo();
+            LicenseInfo licenseInfo = new LicenseInfo();
 
-            var status = licenseInfo.GetLicenseStatus(out var licenseMessage);
+            LicenseStatus status = licenseInfo.GetLicenseStatus(out string licenseMessage);
 
             ViewBag.LicenseMessage = licenseMessage;
             ViewBag.Status = status;
@@ -71,11 +71,11 @@ namespace SbslFileTransformer.Controllers
         [HttpPost]
         public ActionResult RenewLicense(string licKey)
         {
-            var licActivator = new LicenseActivator();
+            LicenseActivator licActivator = new LicenseActivator();
 
-            if (licActivator.ValidateLicense(licKey, out var msg, out var status))
+            if (licActivator.ValidateLicense(licKey, out string msg, out LicenseStatus status))
             {
-                var licensePath = _fileProvider.GetDirectoryContents("/").FirstOrDefault(f => f.Name == "license.lic")
+                string licensePath = _fileProvider.GetDirectoryContents("/").FirstOrDefault(f => f.Name == "license.lic")
                     ?.PhysicalPath;
 
                 if (licensePath == null) licensePath = Path.Combine(Directory.GetCurrentDirectory(), "license.lic");

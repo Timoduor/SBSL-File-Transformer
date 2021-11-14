@@ -17,19 +17,19 @@ namespace SbslFileTransformer.Converters.Tanzania
 
         public void ConvertFile(string inputFile, string outputFile = "")
         {
-            var list = new List<B2WSelcomBalCols>();
+            List<B2WSelcomBalCols> list = new List<B2WSelcomBalCols>();
 
-            var content = File.ReadAllText(inputFile);
+            string content = File.ReadAllText(inputFile);
 
-            var doc = new HtmlDocument();
+            HtmlDocument doc = new HtmlDocument();
 
             doc.LoadHtml(content);
 
-            foreach (var table in doc.DocumentNode.SelectNodes("//table"))
+            foreach (HtmlNode table in doc.DocumentNode.SelectNodes("//table"))
             {
-                var count = 0;
+                int count = 0;
 
-                foreach (var row in table.SelectNodes("tr"))
+                foreach (HtmlNode row in table.SelectNodes("tr"))
                 {
                     if (count <= 0)
                     {
@@ -37,15 +37,15 @@ namespace SbslFileTransformer.Converters.Tanzania
                         continue;
                     }
 
-                    var selcomRow = new B2WSelcomBalCols();
+                    B2WSelcomBalCols selcomRow = new B2WSelcomBalCols();
 
-                    var dateString = row.SelectNodes("td")[0].InnerText;
+                    string dateString = row.SelectNodes("td")[0].InnerText;
 
                     if (DateTime.TryParseExact(dateString, "M/dd/yyyy HH:mm", CultureInfo.InvariantCulture,
-                        DateTimeStyles.None, out var resultDate))
+                        DateTimeStyles.None, out DateTime resultDate))
                         selcomRow.Date = resultDate;
                     else if (DateTime.TryParseExact(dateString, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture,
-                        DateTimeStyles.None, out var result))
+                        DateTimeStyles.None, out DateTime result))
                         selcomRow.Date = result;
                     else
                         continue;
@@ -60,9 +60,9 @@ namespace SbslFileTransformer.Converters.Tanzania
 
                     selcomRow.TransType = row.SelectNodes("td")[2].InnerText?.Replace(Environment.NewLine, "");
 
-                    var amountString2 = row.SelectNodes("td")[3].InnerText?.Replace(Environment.NewLine, "");
+                    string amountString2 = row.SelectNodes("td")[3].InnerText?.Replace(Environment.NewLine, "");
 
-                    var amount2 = string.IsNullOrEmpty(amountString2) ? "0" : amountString2;
+                    string amount2 = string.IsNullOrEmpty(amountString2) ? "0" : amountString2;
 
                     selcomRow.Amount = amount2;
 
@@ -74,9 +74,9 @@ namespace SbslFileTransformer.Converters.Tanzania
 
                     selcomRow.TransID = row.SelectNodes("td")[7].InnerText?.Replace(Environment.NewLine, "");
 
-                    var amountString3 = row.SelectNodes("td")[8].InnerText?.Replace(Environment.NewLine, "");
+                    string amountString3 = row.SelectNodes("td")[8].InnerText?.Replace(Environment.NewLine, "");
 
-                    var amount3 = string.IsNullOrEmpty(amountString3) ? "0" : amountString3;
+                    string amount3 = string.IsNullOrEmpty(amountString3) ? "0" : amountString3;
 
                     selcomRow.OBal = amount3;
 
@@ -86,11 +86,11 @@ namespace SbslFileTransformer.Converters.Tanzania
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
 
                 Directory.CreateDirectory(outputFolder);
 
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_SELC_DISB_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
@@ -101,14 +101,14 @@ namespace SbslFileTransformer.Converters.Tanzania
 
         private void ConvertToCsvFile<T>(List<T> rows, string outputFile = null)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
                     csv.WriteHeader<T>();
                     csv.NextRecord();
 
-                    foreach (var row in rows)
+                    foreach (T row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

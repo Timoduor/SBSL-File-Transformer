@@ -1,10 +1,7 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using ExcelDataReader;
+﻿using ExcelDataReader;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -25,7 +22,7 @@ namespace SbslFileTransformer.Converters.Rwanda
 
         public void ConvertFile(string inputFile, string outputFolder = "")
         {
-            var list = new List<ExcelCols>();
+            List<ExcelCols> list = new List<ExcelCols>();
             string outputFile = "";
             //string outputFolder = null;
             if (string.IsNullOrEmpty(outputFolder))
@@ -43,26 +40,26 @@ namespace SbslFileTransformer.Converters.Rwanda
 
 
 
-            var list2 = new List<ExcelCols>();
+            List<ExcelCols> list2 = new List<ExcelCols>();
 
 
 
             string scontent = "";
             string scontentl2 = "";
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateReader(stream))
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
                 {
-                    var result = reader.AsDataSet();
-                    var tables = result.Tables;
+                    DataSet result = reader.AsDataSet();
+                    DataTableCollection tables = result.Tables;
 
-                    var sheet1 = tables[0];
+                    DataTable sheet1 = tables[0];
 
 
                     foreach (DataRow row in sheet1.Rows)
                     {
-                        var excelCol = new ExcelCols();
+                        ExcelCols excelCol = new ExcelCols();
                         excelCol.Col0 = row[0].ToString();
                         excelCol.Col1 = row[1].ToString();
                         excelCol.Col2 = row[2].ToString();
@@ -91,18 +88,18 @@ namespace SbslFileTransformer.Converters.Rwanda
 
                 }
 
-                for (var i = 0; i < list2.Count - 1; i++)
+                for (int i = 0; i < list2.Count - 1; i++)
                 {
                     if (scontentl2 == "")
                     {
-                     
-                            scontentl2 += list2[i].Col0.Trim() + "," + list2[i].Col1 + "," + list2[i].Col2 + "," + list2[i].Col3 + "," + list2[i].Col4 + "," + list2[i].Col5 + "," + list2[i].Col6 + "," + list2[i].Col7 + "," + list2[i].Col8 + "," + list2[i].Col9 + "," + list2[i].Col10 + "," + list2[i].Col11 + "," + list2[i].Col12 + "," + list2[i].Col13  + Environment.NewLine;
+
+                        scontentl2 += list2[i].Col0.Trim() + "," + list2[i].Col1 + "," + list2[i].Col2 + "," + list2[i].Col3 + "," + list2[i].Col4 + "," + list2[i].Col5 + "," + list2[i].Col6 + "," + list2[i].Col7 + "," + list2[i].Col8 + "," + list2[i].Col9 + "," + list2[i].Col10 + "," + list2[i].Col11 + "," + list2[i].Col12 + "," + list2[i].Col13 + Environment.NewLine;
 
                     }
                     else
                     {
-                         
-                            scontentl2 += list2[i].Col0.Trim() + "," + list2[i].Col1 + "," + list2[i].Col2 + "," + list2[i].Col3 + "," + list2[i].Col4 + "," + list2[i].Col5 + "," + list2[i].Col6 + "," + list2[i].Col7 + "," + list2[i].Col8 + "," + list2[i].Col9 + "," + list2[i].Col10 + "," + list2[i].Col11 + "," + list2[i].Col12 + "," + list2[i].Col13  + Environment.NewLine;
+
+                        scontentl2 += list2[i].Col0.Trim() + "," + list2[i].Col1 + "," + list2[i].Col2 + "," + list2[i].Col3 + "," + list2[i].Col4 + "," + list2[i].Col5 + "," + list2[i].Col6 + "," + list2[i].Col7 + "," + list2[i].Col8 + "," + list2[i].Col9 + "," + list2[i].Col10 + "," + list2[i].Col11 + "," + list2[i].Col12 + "," + list2[i].Col13 + Environment.NewLine;
                     }
                 }
 
@@ -115,13 +112,13 @@ namespace SbslFileTransformer.Converters.Rwanda
 
         public static void WriteFile(string path, string content)
         {
-            using (var fs = new FileStream(path, FileMode.OpenOrCreate))
+            using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
             {
-                using (var sw = new StreamWriter(fs))
+                using (StreamWriter sw = new StreamWriter(fs))
                     sw.Write(content);
             }
         }
     }
-  
+
 
 }

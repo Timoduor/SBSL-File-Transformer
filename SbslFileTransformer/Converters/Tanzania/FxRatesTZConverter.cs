@@ -12,16 +12,16 @@ namespace SbslFileTransformer.Converters.Tanzania
     {
         public void ConvertFile(string inputFile, string outputFile = null)
         {
-            var list = new List<ExcelCols>();
+            List<ExcelCols> list = new List<ExcelCols>();
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateReader(stream))
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
                 {
-                    var result = reader.AsDataSet();
-                    var tables = result.Tables;
+                    DataSet result = reader.AsDataSet();
+                    DataTableCollection tables = result.Tables;
 
-                    var sheet1 = tables[0];
+                    DataTable sheet1 = tables[0];
 
                     int countHeader = 0;
 
@@ -42,7 +42,7 @@ namespace SbslFileTransformer.Converters.Tanzania
 
                     if (countHeader == 0)
                     {
-                        var header = new ExcelCols();
+                        ExcelCols header = new ExcelCols();
 
                         header.Col0 = date;
 
@@ -62,9 +62,9 @@ namespace SbslFileTransformer.Converters.Tanzania
 
                     foreach (DataRow row in sheet1.Rows)
                     {
-                        var column1 = row[1]?.ToString();
+                        string column1 = row[1]?.ToString();
 
-                        var column2 = row[2]?.ToString();
+                        string column2 = row[2]?.ToString();
 
                         if (column2 != null && column2.Contains("/"))
                         {
@@ -78,7 +78,7 @@ namespace SbslFileTransformer.Converters.Tanzania
 
                         if (rateValue.Equals("CASH RATES") && column1 != null && column1.Contains("USD/TZS"))
                         {
-                            var buyingRate = new ExcelCols();
+                            ExcelCols buyingRate = new ExcelCols();
 
                             buyingRate.Col0 = dateValue.Replace(",", "");
 
@@ -91,7 +91,7 @@ namespace SbslFileTransformer.Converters.Tanzania
                             buyingRate.Col4 = row[2].ToString().Replace(",", "");
 
 
-                            var sellingRate = new ExcelCols();
+                            ExcelCols sellingRate = new ExcelCols();
 
                             sellingRate.Col0 = dateValue.Replace(",", "");
 
@@ -116,11 +116,11 @@ namespace SbslFileTransformer.Converters.Tanzania
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                 Directory.CreateDirectory(outputFolder);
 
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
-                var fileNameToUse = fileName.Replace(" ", "").Substring(Math.Max(0, fileName.Length - 15));
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileNameToUse = fileName.Replace(" ", "").Substring(Math.Max(0, fileName.Length - 15));
 
                 outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_FxRs_{fileNameToUse}.csv");
             }
@@ -135,12 +135,12 @@ namespace SbslFileTransformer.Converters.Tanzania
             //    File.WriteAllLines(item);
             //}
 
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
 
-                    foreach (var row in rows)
+                    foreach (ExcelCols row in rows)
                     {
                         //csv.Configuration.Delimiter = "\t";
                         csv.WriteRecord(row);

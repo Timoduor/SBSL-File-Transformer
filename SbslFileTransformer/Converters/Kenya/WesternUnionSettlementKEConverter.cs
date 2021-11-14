@@ -18,30 +18,30 @@ namespace SbslFileTransformer.Converters.Kenya
 
         public void ConvertFile(string inputFile, string outputFile = null)
         {
-            var list = new List<ExcelCols>();
+            List<ExcelCols> list = new List<ExcelCols>();
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateCsvReader(stream,
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateCsvReader(stream,
                     new ExcelReaderConfiguration { AutodetectSeparators = new[] { ',', ';', '\t', '|', '#' } }))
                 {
-                    var countHeader = 0;
+                    int countHeader = 0;
 
-                    var computedbaseamnt = "Computed Base Amount";
+                    string computedbaseamnt = "Computed Base Amount";
 
                     while (reader.Read())
                     {
-                        var row = new ExcelCols();
+                        ExcelCols row = new ExcelCols();
 
-                        var value = reader.GetValue(0).ToString();
+                        string value = reader.GetValue(0).ToString();
 
-                        var check = reader.GetValue(1)?.ToString().Trim();
+                        string check = reader.GetValue(1)?.ToString().Trim();
 
                         if (string.IsNullOrEmpty(check)) break;
 
                         if (string.IsNullOrEmpty(value) && value != "Number" && list.Count() > 0)
                         {
-                            var last = list.Last();
+                            ExcelCols last = list.Last();
 
                             last.Col5 = reader.GetValue(1)?.ToString();
 
@@ -410,9 +410,9 @@ namespace SbslFileTransformer.Converters.Kenya
                             last.Col187 = reader.GetValue(183)?.ToString().Replace("\n", "");
                             try
                             {
-                                var recamnt = Convert.ToDouble(reader.GetValue(90));
+                                double recamnt = Convert.ToDouble(reader.GetValue(90));
 
-                                var totalchamnt = Convert.ToDouble(reader.GetValue(91));
+                                double totalchamnt = Convert.ToDouble(reader.GetValue(91));
 
                                 if (reader.GetValue(46) != null && reader.GetValue(46).ToString() == "S")
                                     last.Col188 = (recamnt + totalchamnt).ToString().TrimStart().TrimEnd();
@@ -809,9 +809,9 @@ namespace SbslFileTransformer.Converters.Kenya
 
                         try
                         {
-                            var recamnt = Convert.ToDouble(reader.GetValue(94).ToString());
+                            double recamnt = Convert.ToDouble(reader.GetValue(94).ToString());
 
-                            var totalchamnt = Convert.ToDouble(reader.GetValue(95).ToString());
+                            double totalchamnt = Convert.ToDouble(reader.GetValue(95).ToString());
 
                             if (reader.GetValue(50) != null && reader.GetValue(50).ToString() == "S")
                                 row.Col188 = (recamnt + totalchamnt).ToString().TrimStart().TrimEnd();
@@ -829,10 +829,10 @@ namespace SbslFileTransformer.Converters.Kenya
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                 Directory.CreateDirectory(outputFolder);
 
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm}_WUSKE_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
@@ -843,11 +843,11 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    foreach (var row in rows)
+                    foreach (ExcelCols row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

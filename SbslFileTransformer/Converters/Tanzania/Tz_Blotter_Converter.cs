@@ -10,7 +10,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
     {
 
         public void Convert_Blotter_file(string inputFile)
-        { 
+        {
             string outputFolder = null;
             if (string.IsNullOrEmpty(outputFolder))
             {
@@ -20,20 +20,20 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             if (!Directory.Exists(outputFolder))
                 Directory.CreateDirectory(outputFolder);
 
-            var list2 = new List<ExcelCols>();
-            var list3 = new List<ExcelCols>();
-            var list4 = new List<ExcelCols>();
-            var list5 = new List<ExcelCols>();
-            var list6 = new List<ExcelCols>();
-            var list7 = new List<ExcelCols>();
-            var list8 = new List<ExcelCols>();
-            var list9 = new List<ExcelCols>();
-            var list10 = new List<ExcelCols>();
-            var list11 = new List<ExcelCols>();
-            var list12 = new List<ExcelCols>();
-            var list13 = new List<ExcelCols>();
+            List<ExcelCols> list2 = new List<ExcelCols>();
+            List<ExcelCols> list3 = new List<ExcelCols>();
+            List<ExcelCols> list4 = new List<ExcelCols>();
+            List<ExcelCols> list5 = new List<ExcelCols>();
+            List<ExcelCols> list6 = new List<ExcelCols>();
+            List<ExcelCols> list7 = new List<ExcelCols>();
+            List<ExcelCols> list8 = new List<ExcelCols>();
+            List<ExcelCols> list9 = new List<ExcelCols>();
+            List<ExcelCols> list10 = new List<ExcelCols>();
+            List<ExcelCols> list11 = new List<ExcelCols>();
+            List<ExcelCols> list12 = new List<ExcelCols>();
+            List<ExcelCols> list13 = new List<ExcelCols>();
 
-           
+
             string scontent = "";
             string scontentl2 = "";
             string scontentl3 = "";
@@ -49,30 +49,30 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             string scontentl13 = "";
             //string _header = "COUNTER PARTY,AMOUNT,RATE,DATE,NATURE,BRANCH,DEBIT A/C,CREDIT A/C,DEALER,RM,TICKET NO.,PRICE,COST,P&L TMU,UNIT,REVAL ,REVAL P/L,TOTAL P&L " + Environment.NewLine;
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateReader(stream))
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
                 {
-                    var result = reader.AsDataSet();
-                    var tables = result.Tables;
+                    DataSet result = reader.AsDataSet();
+                    DataTableCollection tables = result.Tables;
 
-                    var sheet1 = tables[0];
-                    var sheet2 = tables[1];
-                    var sheet3 = tables[2];
-                    var sheet4 = tables[3];
-                    var sheet5 = tables[4];
-                    var sheet6 = tables[5];
-                    var sheet7 = tables[6];
-                    var sheet8 = tables[7];
-                    var sheet9 = tables[8];
-                    var sheet10 = tables[9];
-                    var sheet11 = tables[10];
-                    var sheet12 = tables[11];
-                    var sheet13 = tables[12];
+                    DataTable sheet1 = tables[0];
+                    DataTable sheet2 = tables[1];
+                    DataTable sheet3 = tables[2];
+                    DataTable sheet4 = tables[3];
+                    DataTable sheet5 = tables[4];
+                    DataTable sheet6 = tables[5];
+                    DataTable sheet7 = tables[6];
+                    DataTable sheet8 = tables[7];
+                    DataTable sheet9 = tables[8];
+                    DataTable sheet10 = tables[9];
+                    DataTable sheet11 = tables[10];
+                    DataTable sheet12 = tables[11];
+                    DataTable sheet13 = tables[12];
 
                     foreach (DataRow row in sheet2.Rows)
                     {
-                        var excelCol = new ExcelCols();
+                        ExcelCols excelCol = new ExcelCols();
                         excelCol.Col0 = row[0].ToString();
                         excelCol.Col1 = row[1].ToString();
                         excelCol.Col2 = row[2].ToString();
@@ -103,7 +103,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     }
                     foreach (DataRow row in sheet3.Rows)
                     {
-                        var excelCol = new ExcelCols();
+                        ExcelCols excelCol = new ExcelCols();
                         excelCol.Col0 = row[0].ToString();
                         excelCol.Col1 = row[1].ToString();
                         excelCol.Col2 = row[2].ToString();
@@ -123,14 +123,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         excelCol.Col16 = row[16].ToString();
                         excelCol.Col17 = row[17].ToString();
                         excelCol.Col20 = sheet3.TableName;
-                       
+
 
                         list3.Add(excelCol);
                     }
 
                     foreach (DataRow row in sheet4.Rows)
                     {
-                        var excelCol = new ExcelCols();
+                        ExcelCols excelCol = new ExcelCols();
                         excelCol.Col0 = row[0].ToString();
                         excelCol.Col1 = row[1].ToString();
                         excelCol.Col2 = row[2].ToString();
@@ -157,7 +157,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     foreach (DataRow row in sheet5.Rows)
                     {
-                        var excelCol = new ExcelCols();
+                        ExcelCols excelCol = new ExcelCols();
                         excelCol.Col0 = row[0].ToString();
                         excelCol.Col1 = row[1].ToString();
                         excelCol.Col2 = row[2].ToString();
@@ -184,7 +184,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     foreach (DataRow row in sheet6.Rows)
                     {
-                        var excelCol = new ExcelCols();
+                        ExcelCols excelCol = new ExcelCols();
                         excelCol.Col0 = row[0].ToString();
                         excelCol.Col1 = row[1].ToString();
                         excelCol.Col2 = row[2].ToString();
@@ -211,7 +211,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     foreach (DataRow row in sheet7.Rows)
                     {
-                        var excelCol = new ExcelCols();
+                        ExcelCols excelCol = new ExcelCols();
                         excelCol.Col0 = row[0].ToString();
                         excelCol.Col1 = row[1].ToString();
                         excelCol.Col2 = row[2].ToString();
@@ -239,7 +239,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     foreach (DataRow row in sheet8.Rows)
                     {
-                        var excelCol = new ExcelCols();
+                        ExcelCols excelCol = new ExcelCols();
                         excelCol.Col0 = row[0].ToString();
                         excelCol.Col1 = row[1].ToString();
                         excelCol.Col2 = row[2].ToString();
@@ -272,7 +272,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     foreach (DataRow row in sheet9.Rows)
                     {
-                        var excelCol = new ExcelCols();
+                        ExcelCols excelCol = new ExcelCols();
                         excelCol.Col0 = row[0].ToString();
                         excelCol.Col1 = row[1].ToString();
                         excelCol.Col2 = row[2].ToString();
@@ -300,7 +300,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     foreach (DataRow row in sheet10.Rows)
                     {
-                        var excelCol = new ExcelCols();
+                        ExcelCols excelCol = new ExcelCols();
                         excelCol.Col0 = row[0].ToString();
                         excelCol.Col1 = row[1].ToString();
                         excelCol.Col2 = row[2].ToString();
@@ -328,7 +328,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     foreach (DataRow row in sheet11.Rows)
                     {
-                        var excelCol = new ExcelCols();
+                        ExcelCols excelCol = new ExcelCols();
                         excelCol.Col0 = row[0].ToString();
                         excelCol.Col1 = row[1].ToString();
                         excelCol.Col2 = row[2].ToString();
@@ -356,7 +356,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     foreach (DataRow row in sheet12.Rows)
                     {
-                        var excelCol = new ExcelCols();
+                        ExcelCols excelCol = new ExcelCols();
                         excelCol.Col0 = row[0].ToString();
                         excelCol.Col1 = row[1].ToString();
                         excelCol.Col2 = row[2].ToString();
@@ -384,7 +384,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     foreach (DataRow row in sheet13.Rows)
                     {
-                        var excelCol = new ExcelCols();
+                        ExcelCols excelCol = new ExcelCols();
                         excelCol.Col0 = row[0].ToString();
                         excelCol.Col1 = row[1].ToString();
                         excelCol.Col2 = row[2].ToString();
@@ -412,7 +412,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 }
             }
             //Sheet 2
-            for (var i = 4; i < list2.Count - 1; i++)
+            for (int i = 4; i < list2.Count - 1; i++)
             {
                 if (scontentl2 == "")
                 {
@@ -427,7 +427,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 }
             }
             //Sheet 3
-            for (var i = 4; i < list3.Count - 1; i++)
+            for (int i = 4; i < list3.Count - 1; i++)
             {
                 if (scontentl3 == "")
                 {
@@ -443,7 +443,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
             }
             //Sheet 4
-            for (var i = 3; i < list4.Count - 1; i++)
+            for (int i = 3; i < list4.Count - 1; i++)
             {
                 if (scontentl4 == "")
                 {
@@ -459,7 +459,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
             }
             //Sheet 5
-            for (var i = 3; i < list5.Count - 1; i++)
+            for (int i = 3; i < list5.Count - 1; i++)
             {
                 if (scontentl5 == "")
                 {
@@ -474,7 +474,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 }
             }
             //Sheet 6
-            for (var i = 3; i < list6.Count - 1; i++)
+            for (int i = 3; i < list6.Count - 1; i++)
             {
                 if (scontentl6 == "")
                 {
@@ -489,7 +489,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 }
             }
             //Sheet 7
-            for (var i = 3; i < list7.Count - 1; i++)
+            for (int i = 3; i < list7.Count - 1; i++)
             {
                 if (scontentl7 == "")
                 {
@@ -504,7 +504,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 }
             }
             //Sheet 8
-            for (var i = 3; i < list8.Count - 1; i++)
+            for (int i = 3; i < list8.Count - 1; i++)
             {
                 if (scontentl8 == "")
                 {
@@ -519,7 +519,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 }
             }
             //Sheet 9
-            for (var i = 3; i < list9.Count - 1; i++)
+            for (int i = 3; i < list9.Count - 1; i++)
             {
                 if (scontentl9 == "")
                 {
@@ -533,7 +533,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 }
             }
             //Sheet 10
-            for (var i = 3; i < list10.Count - 1; i++)
+            for (int i = 3; i < list10.Count - 1; i++)
             {
                 if (scontentl10 == "")
                 {
@@ -547,7 +547,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 }
             }
             //Sheet 11
-            for (var i = 3; i < list11.Count - 1; i++)
+            for (int i = 3; i < list11.Count - 1; i++)
             {
                 if (scontentl11 == "")
                 {
@@ -562,7 +562,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 }
             }
             //Sheet 12
-            for (var i = 3; i < list12.Count - 1; i++)
+            for (int i = 3; i < list12.Count - 1; i++)
             {
                 if (scontentl12 == "")
                 {
@@ -576,7 +576,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 }
             }
             //Sheet 13
-            for (var i = 3; i < list13.Count - 1; i++)
+            for (int i = 3; i < list13.Count - 1; i++)
             {
                 if (scontentl13 == "")
                 {
@@ -609,9 +609,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public static void WriteFile(string path, string content)
         {
-            using (var fs = new FileStream(path, FileMode.OpenOrCreate))
+            using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
             {
-                using (var sw = new StreamWriter(fs))
+                using (StreamWriter sw = new StreamWriter(fs))
                     sw.Write(content);
             }
         }

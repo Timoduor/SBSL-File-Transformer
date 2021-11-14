@@ -10,15 +10,15 @@ namespace SbslFileTransformer.Converters
     {
         public void ConvertFile(string inputFile, string outputFile = null)
         {
-            var lines = File.ReadAllLines(inputFile);
+            string[] lines = File.ReadAllLines(inputFile);
 
-            var records = new List<MasterCardResult>();
+            List<MasterCardResult> records = new List<MasterCardResult>();
 
-            foreach (var line in lines)
+            foreach (string line in lines)
             {
                 if (!line.StartsWith("FREC") && !line.StartsWith("NREC")) continue;
 
-                var record = new MasterCardResult
+                MasterCardResult record = new MasterCardResult
                 {
                     TransactionType = line.Substring(0, 4),
                     Code = line.Substring(4, 14),
@@ -41,10 +41,10 @@ namespace SbslFileTransformer.Converters
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                 Directory.CreateDirectory(outputFolder);
 
-                var name = Path.GetFileNameWithoutExtension(inputFile);
+                string name = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MC_{name.Substring(Math.Max(0, name.Length - 10))}.csv");
@@ -56,14 +56,14 @@ namespace SbslFileTransformer.Converters
 
         private void WriteToFile(List<MasterCardResult> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
                     csv.WriteHeader<MasterCardResult>();
                     csv.NextRecord();
 
-                    foreach (var row in rows)
+                    foreach (MasterCardResult row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

@@ -4,7 +4,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters.Kenya;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
@@ -48,11 +47,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                 _logger.LogInformation("Running EOD Deals Converter job");
 
-                var prodFolder = string.Empty;
-                var sbFolder = string.Empty;
-                var Entity = string.Empty;
+                string prodFolder = string.Empty;
+                string sbFolder = string.Empty;
+                string Entity = string.Empty;
 
-                using (var scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
                 {
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
@@ -63,27 +62,27 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                     Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
-                    
-                    var options = new EnumerationOptions
+
+                    EnumerationOptions options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
                     List<string> files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")).ToList();
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")));
 
-                    var EODDealConverter = new EODDealsKEConverter();
+                    EODDealsKEConverter EODDealConverter = new EODDealsKEConverter();
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
                     List<SftpUploadedFile> updatedFiles = new List<SftpUploadedFile>();
 
-                    foreach (var file in files)
+                    foreach (string file in files)
                     {
                         //SPECIFY FOLDER and file extension above PENDING
 
                         if (file.ToLower().Contains("gl_entries") && file.ToLower().Contains("imke") && !file.Contains("Conv"))
                         {
-                            var fileToProcess = uploadedFiles.FirstOrDefault(f =>
+                            SftpUploadedFile fileToProcess = uploadedFiles.FirstOrDefault(f =>
                                     f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)

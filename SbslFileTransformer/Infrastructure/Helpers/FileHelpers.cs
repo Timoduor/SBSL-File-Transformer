@@ -49,7 +49,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
             try
             {
-                using (var client = new SftpClient(connectionInfo))
+                using (SftpClient client = new SftpClient(connectionInfo))
                 {
                     await Task.Delay(delay);
 
@@ -61,9 +61,9 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                         {
                             ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                            var jobManager = scope.ServiceProvider.GetService<JobManager>();
-                            var jobName = nameof(SftpIndependentJob);
-                            var currentJobStatus = jobManager.GetJobStatus(jobName);
+                            JobDisplayManager jobManager = scope.ServiceProvider.GetService<JobDisplayManager>();
+                            string jobName = nameof(SftpIndependentJob);
+                            JobStatus currentJobStatus = jobManager.GetJobStatus(jobName);
 
                             if (currentJobStatus == null)
                             {
@@ -84,7 +84,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                             filePathsToCheck = filePaths.Except(uploadedFilesInDB.Select(f => f.FilePath));
 
                             SftpManager sftpManager = scope.ServiceProvider.GetService<SftpManager>();
-                            var uploadedFiles = new List<SftpUploadedFile>();
+                            List<SftpUploadedFile> uploadedFiles = new List<SftpUploadedFile>();
 
                             UploadFilesToRemoteServer(isProduction, productionOrSandboxFolder, logger, succeeded, client, currentlyUploaded,
                                                             uploadedFiles, useUnicode, filePathsToCheck, sftpManager, jobManager, currentJobStatus);
@@ -118,7 +118,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
         private static void UploadFilesToRemoteServer(bool isProduction, string productionOrSandboxFolder, ILogger logger, List<string> succeeded,
             SftpClient client, Dictionary<string, string> currentlyUploaded, List<SftpUploadedFile> uploadedFiles, bool useUnicode,
-            IEnumerable<string> filePathsToCheck, SftpManager sftpManager, JobManager jobManager, JobStatus currentJobStatus)
+            IEnumerable<string> filePathsToCheck, SftpManager sftpManager, JobDisplayManager jobManager, JobStatus currentJobStatus)
         {
             int count = 0;
             int total = filePathsToCheck.Count();
@@ -142,7 +142,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                         continue;
                     }
 
-                    if(uploadedFiles.Any(f => f.Md5 == previouslyUploaded.Md5))
+                    if (uploadedFiles.Any(f => f.Md5 == previouslyUploaded.Md5))
                     {
                         continue;
                     }
@@ -186,7 +186,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                 catch (Exception ex)
                 {
                     logger.LogError(ex, $"Error uploading file {filePath} {ex.Message}");
-                }                
+                }
             }
         }
 
@@ -216,7 +216,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                 string md5 = GetMd5(filePath);
                 string name = Path.GetFileName(filePath);
 
-                var uploadCheckResult = new UploadCheckResult
+                UploadCheckResult uploadCheckResult = new UploadCheckResult
                 {
                     Md5 = md5,
                     Uploaded = false
@@ -251,11 +251,11 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
         public static async Task<string> GetTempPath(IServiceScopeFactory serviceScopeFactory)
         {
-            var backUpFolder = @"C:\SBSLETL_DbBackup";
+            string backUpFolder = @"C:\SBSLETL_DbBackup";
 
             using (IServiceScope scope = serviceScopeFactory.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
                 backUpFolder = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
                                    b.ConfigType == ConfigurationType.Sftp && b.Key == "BackUpFolder"))
@@ -263,7 +263,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                                backUpFolder;
             }
 
-            var tempFolderDirectory = Path.Combine(backUpFolder, "SBSLETL_Temp");
+            string tempFolderDirectory = Path.Combine(backUpFolder, "SBSLETL_Temp");
 
             if (!Directory.Exists(tempFolderDirectory))
                 Directory.CreateDirectory(tempFolderDirectory);

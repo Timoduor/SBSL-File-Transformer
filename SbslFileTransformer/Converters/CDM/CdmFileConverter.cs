@@ -20,20 +20,20 @@ namespace SbslFileTransformer.Converters.CDM
             //remove all rows where column E is blank
             //remove all columns with blanks
 
-            var list = new List<CdmCols>();
+            List<CdmCols> list = new List<CdmCols>();
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateReader(stream))
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
                 {
                     while (reader.Read())
                     {
-                        var testValue = reader.GetValue(5)?.ToString();
+                        string testValue = reader.GetValue(5)?.ToString();
 
                         if (string.IsNullOrEmpty(testValue) || testValue.ToLower().Contains("Account".ToLower()))
                             continue;
 
-                        var row = new CdmCols
+                        CdmCols row = new CdmCols
                         {
                             //ID
                             Col2 = reader.GetValue(2)?.ToString(),
@@ -66,10 +66,10 @@ namespace SbslFileTransformer.Converters.CDM
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                 Directory.CreateDirectory(outputFolder);
 
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{fileName.Substring(Math.Max(0, fileName.Length - 10))}_IMKE.csv");
@@ -80,11 +80,11 @@ namespace SbslFileTransformer.Converters.CDM
 
         private void WriteToFile(List<CdmCols> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    foreach (var row in rows)
+                    foreach (CdmCols row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

@@ -41,31 +41,31 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
 
                 _logger.LogInformation("Running network file transfer Job");
 
-                using (var scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var networkFolder = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
+                    string networkFolder = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
                         b.ConfigType == ConfigurationType.Setting && b.Key == "NetworkFolder"))?.Value;
 
-                    var localFolder = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
+                    string localFolder = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
                         b.ConfigType == ConfigurationType.Setting && b.Key == "LocalFolder"))?.Value;
 
                     if (string.IsNullOrEmpty(networkFolder) || string.IsNullOrEmpty(localFolder)) return;
 
                     if (Directory.Exists(localFolder) && Directory.Exists(networkFolder))
                     {
-                        var enumOptions = new EnumerationOptions
+                        EnumerationOptions enumOptions = new EnumerationOptions
                         { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                        foreach (var file in Directory.GetFiles(localFolder, "*.*", enumOptions))
+                        foreach (string file in Directory.GetFiles(localFolder, "*.*", enumOptions))
                         {
-                            var relativePath = Path.GetRelativePath(localFolder, file);
-                            var destination = Path.Combine(networkFolder, relativePath);
+                            string relativePath = Path.GetRelativePath(localFolder, file);
+                            string destination = Path.Combine(networkFolder, relativePath);
 
                             if (!File.Exists(destination))
                             {
-                                var directory = Path.GetDirectoryName(destination);
+                                string directory = Path.GetDirectoryName(destination);
 
                                 if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
 

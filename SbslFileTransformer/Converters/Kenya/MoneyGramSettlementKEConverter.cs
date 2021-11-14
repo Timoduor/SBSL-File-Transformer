@@ -11,7 +11,7 @@ namespace SbslFileTransformer.Converters.Kenya
 {
     public class MoneyGramSettlementKEConverter
     {
-        private ILogger _logger;
+        private readonly ILogger _logger;
 
         public MoneyGramSettlementKEConverter(ILogger logger)
         {
@@ -21,25 +21,25 @@ namespace SbslFileTransformer.Converters.Kenya
 
         public void ConvertFile(string inputFile, string outputFile = null)
         {
-            var list = new List<ExcelCols>();
+            List<ExcelCols> list = new List<ExcelCols>();
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateReader(stream))
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
                 {
-                    var count = 0;
+                    int count = 0;
 
-                    var date = "Date";
+                    string date = "Date";
 
-                    var countHeader = 4;
+                    int countHeader = 4;
 
                     while (reader.Read())
                     {
                         count++;
 
-                        var row = new ExcelCols();
+                        ExcelCols row = new ExcelCols();
 
-                        var value = reader.GetValue(1)?.ToString();
+                        string value = reader.GetValue(1)?.ToString();
 
                         if (string.IsNullOrEmpty(value)) continue;
 
@@ -49,7 +49,7 @@ namespace SbslFileTransformer.Converters.Kenya
                             continue;
                         }
 
-                        var value2 = reader.GetValue(1)?.ToString();
+                        string value2 = reader.GetValue(1)?.ToString();
 
                         if (string.IsNullOrEmpty(value2) || value2.Contains("Net Total") ||
                             value2.Contains("Settlement Amount")) continue;
@@ -84,10 +84,10 @@ namespace SbslFileTransformer.Converters.Kenya
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                 Directory.CreateDirectory(outputFolder);
 
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
@@ -98,11 +98,11 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    foreach (var row in rows)
+                    foreach (ExcelCols row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

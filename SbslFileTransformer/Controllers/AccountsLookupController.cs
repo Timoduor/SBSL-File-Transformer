@@ -27,7 +27,7 @@ namespace SbslFileTransformer.Controllers
         // GET: AccountsLookupController
         public ActionResult Index()
         {
-            var accounts = _dbContext.Accounts;
+            DbSet<AccountsLookup> accounts = _dbContext.Accounts;
 
             return View(accounts);
         }
@@ -96,7 +96,7 @@ namespace SbslFileTransformer.Controllers
                 Value = v.Value.ToString()
             }).ToList(), "Value", "Text");
 
-            var account = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == id);
+            AccountsLookup account = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == id);
 
             return View("Update", account);
         }
@@ -115,7 +115,7 @@ namespace SbslFileTransformer.Controllers
                     return View("Update", acc);
                 }
 
-                var existing = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == acc.Id);
+                AccountsLookup existing = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == acc.Id);
 
                 if (existing != null)
                 {
@@ -141,7 +141,7 @@ namespace SbslFileTransformer.Controllers
         // GET: AccountsLookupController/Delete/5
         public async Task<ActionResult> Delete(int id)
         {
-            var account = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == id);
+            AccountsLookup account = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == id);
 
             if (account != null)
             {
@@ -162,10 +162,10 @@ namespace SbslFileTransformer.Controllers
             }
             else
             {
-                var uploadFolder = Path.Combine(_hostingEnvironment.ContentRootPath, "AccountsUploads");
+                string uploadFolder = Path.Combine(_hostingEnvironment.ContentRootPath, "AccountsUploads");
                 Directory.CreateDirectory(uploadFolder);
-                var filePath = Path.Combine(uploadFolder, excel.FileName);
-                using (var stream = new FileStream(filePath, FileMode.Create))
+                string filePath = Path.Combine(uploadFolder, excel.FileName);
+                using (FileStream stream = new FileStream(filePath, FileMode.Create))
                 {
                     await excel.CopyToAsync(stream);
                 }
@@ -182,9 +182,9 @@ namespace SbslFileTransformer.Controllers
 
         public async Task<ActionResult> DownloadSample()
         {
-            var sampleAccountsFile = Path.Combine(_hostingEnvironment.ContentRootPath, "AccountsUploads", "sample_accounts_format.xlsx");
+            string sampleAccountsFile = Path.Combine(_hostingEnvironment.ContentRootPath, "AccountsUploads", "sample_accounts_format.xlsx");
 
-            var file = await System.IO.File.ReadAllBytesAsync(sampleAccountsFile);
+            byte[] file = await System.IO.File.ReadAllBytesAsync(sampleAccountsFile);
 
             return File(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "accounts_sample.xlsx");
         }

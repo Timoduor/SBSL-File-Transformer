@@ -16,17 +16,17 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Tanzania
 
         public void ConvertFile(string inputFile, string outputFolder)
         {
-            var bal = new W2BCols();
+            W2BCols bal = new W2BCols();
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateCsvReader(stream,
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateCsvReader(stream,
                     new ExcelReaderConfiguration { AutodetectSeparators = new[] { ',', '\t' } }))
                 {
                     while (reader.Read())
                     {
                         if (DateTime.TryParseExact(reader.GetValue(3)?.ToString(), "yyyyMMd",
-                            CultureInfo.InvariantCulture, DateTimeStyles.None, out var result)) bal.Date = result;
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result)) bal.Date = result;
 
                         bal.Amount = Convert.ToDouble(reader.GetValue(2)?.ToString()) * -1;
 
@@ -42,14 +42,14 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Tanzania
         {
             if (item != null)
             {
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
+                string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
-                var outputFile = Path.Combine(outputFolder,
+                string outputFile = Path.Combine(outputFolder,
                     $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_SPEN_CTRL_TZ.txt");
 
-                var toAppend =
+                string toAppend =
                     $"IMTZ\t{item.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(item.Date):MM/dd/yyyy}\t\t\t\t{item.Amount.ToString("N2")}\tTZS\n";
 
                 if (!string.IsNullOrEmpty(toAppend)) File.WriteAllText(outputFile, toAppend);

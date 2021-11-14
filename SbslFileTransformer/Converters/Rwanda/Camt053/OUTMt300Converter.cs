@@ -11,7 +11,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
         public void ProcessOutMt300File(string file, string outputFolder = null)
         {
 
-            var content = File.ReadAllText(file);
+            string content = File.ReadAllText(file);
 
             if (string.IsNullOrEmpty(outputFolder))
             {
@@ -27,10 +27,10 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
             {
                 List<string> l = GetRtgsDetails(sDet);
 
-                var seq15A = new MandatorySequenceA();
-                var seq15B = new MandatorySequenceB();
-                var seq15C = new MandatorySequenceC();
-                var seq15E = new MandatorySequenceE();
+                MandatorySequenceA seq15A = new MandatorySequenceA();
+                MandatorySequenceB seq15B = new MandatorySequenceB();
+                MandatorySequenceC seq15C = new MandatorySequenceC();
+                MandatorySequenceE seq15E = new MandatorySequenceE();
 
 
                 seq15A.NewSequenceA = "";
@@ -97,16 +97,16 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
 
         public static void WriteFile(string path, string content)
         {
-            using (var fs = new FileStream(path, FileMode.OpenOrCreate))
+            using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
             {
-                using (var sw = new StreamWriter(fs))
+                using (StreamWriter sw = new StreamWriter(fs))
                     sw.Write(content);
             }
         }
         private List<string> GetRtgsDetails(string[] d)
         {
-            var l = new List<string>();
-            for (var i = 1; i < d.Length - 1; i++)
+            List<string> l = new List<string>();
+            for (int i = 1; i < d.Length - 1; i++)
             {
                 if (!d[i].StartsWith(":"))
                 {

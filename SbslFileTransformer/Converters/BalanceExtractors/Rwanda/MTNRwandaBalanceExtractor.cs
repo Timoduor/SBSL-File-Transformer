@@ -22,17 +22,17 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
 
         public void ConvertFile(string inputFile, string rootFolder)
         {
-            var list = new List<ExcelCols>();
+            List<ExcelCols> list = new List<ExcelCols>();
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateCsvReader(stream))
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateCsvReader(stream))
                 {
-                    var count = 0;
+                    int count = 0;
 
                     while (reader.Read())
                     {
-                        var value = reader.GetValue(0)?.ToString();
+                        string value = reader.GetValue(0)?.ToString();
                         if (string.IsNullOrEmpty(value)) continue;
 
                         if (count == 0)
@@ -41,7 +41,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
                             continue;
                         }
 
-                        var row = new ExcelCols();
+                        ExcelCols row = new ExcelCols();
 
                         row.Col0 = reader.GetValue(0)?.ToString().Replace("'", "");
 
@@ -57,28 +57,28 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
 
         private void GenerateMultiCurr(ExcelCols list, string inputFile, string rootFolder)
         {
-            var fileName = Path.GetFileNameWithoutExtension(inputFile);
+            string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-            var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
+            string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
-            var outputFile = Path.Combine(rootFolder,
+            string outputFile = Path.Combine(rootFolder,
                 $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_MTN_{_entity}.txt");
 
-            var toAppend = new StringBuilder();
+            StringBuilder toAppend = new StringBuilder();
 
             if (DateTime.TryParseExact(list.Col0, "M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture,
-                    DateTimeStyles.None, out var date) ||
+                    DateTimeStyles.None, out DateTime date) ||
                 DateTime.TryParseExact(list.Col0, "M/d/yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None,
                     out date))
             {
-                var amount = list.Col1; //vs col5 diff
-                var currency = "RWF";
-                var account = "20100243506075";
+                string amount = list.Col1; //vs col5 diff
+                string currency = "RWF";
+                string account = "20100243506075";
 
                 toAppend.Append(
                     $"{_entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
 
-                var text = toAppend.ToString();
+                string text = toAppend.ToString();
 
                 if (!string.IsNullOrEmpty(text)) File.WriteAllText(outputFile, text);
             }

@@ -41,15 +41,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                 _logger.LogInformation("Running GL Balance Extractor Job");
 
-                var prodFolder = string.Empty;
-                var sbFolder = string.Empty;
-                var Entity = string.Empty;
+                string prodFolder = string.Empty;
+                string sbFolder = string.Empty;
+                string Entity = string.Empty;
 
-                using (var scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
                 {
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.ToList();
+                    System.Collections.Generic.List<Models.Configuration> configurations = dbContext.Configurations.ToList();
 
                     Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
@@ -57,16 +57,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
                 }
 
-                var options = new EnumerationOptions
+                EnumerationOptions options = new EnumerationOptions
                 { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                var files = Directory.GetFiles(prodFolder, "*.csv", options).ToList();
+                System.Collections.Generic.List<string> files = Directory.GetFiles(prodFolder, "*.csv", options).ToList();
 
                 files.AddRange(Directory.GetFiles(sbFolder, "*.csv", options));
 
-                var converter = new MpesaTillBalanceTracker();
+                MpesaTillBalanceTracker converter = new MpesaTillBalanceTracker();
 
-                foreach (var file in files)
+                foreach (string file in files)
                 {
                 }
             }

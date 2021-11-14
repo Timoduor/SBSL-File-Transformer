@@ -44,7 +44,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             string scontent = "";
             string scontent_ = "";
             string scontent_sup = "";
-            var ATMflds = new ATMJournal();
+            ATMJournal ATMflds = new ATMJournal();
 
             bool hascashcount = false;
 
@@ -53,7 +53,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 if (sGrp.Length != 0)
                 {
 
-                    for (var i = 1; i < sGrp.Length - 1; i++)
+                    for (int i = 1; i < sGrp.Length - 1; i++)
                     {
 
                         List<string> lx = GetJournalDetails(sGrp[i].Split("\n"), ATMNO);
@@ -127,7 +127,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 if (sGrp_s.Length != 0)
                 {
-                    for (var i = 1; i < sGrp_s.Length - 1; i++)
+                    for (int i = 1; i < sGrp_s.Length - 1; i++)
                     {
                         List<string> ly = GetJournalDetails_supervisor(sGrp_s[i].Split("\n"), ATMNO);
                         if (ly != null)
@@ -200,9 +200,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         }
         public static void WriteFile(string path, string content)
         {
-            using (var fs = new FileStream(path, FileMode.OpenOrCreate))
+            using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
             {
-                using (var sw = new StreamWriter(fs))
+                using (StreamWriter sw = new StreamWriter(fs))
                     sw.Write(content);
             }
         }
@@ -211,22 +211,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         {
             bool gotcardno = false;
             bool gotdate = false;
-            bool gotdate_s = false;
             bool gotamount = false;
-            bool gotamount_s = false;
             bool gotcashtaken = false;
-            bool gotcashtaken_s = false;
             bool gotRC = false;
             bool gotSEQ = false;
             bool gotATM = false;
-            bool gotATM_s = false;
             bool gotATHNO = false;
             bool refusedtxn = false;
-            string currenAMount = "";
-            var l = new List<string>();
-            for (var i = 1; i < d.Length - 1; i++)
+            List<string> l = new List<string>();
+            for (int i = 1; i < d.Length - 1; i++)
             {
-                
+
                 try
                 {
                     if (d[i].Contains("REFUSED TRANSACTION"))
@@ -421,7 +416,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         }
         private List<string> GetJournalDetails_supervisor(string[] d, string ATMNo_ = "")
         {
-            bool gotcardno = false;
             bool gotdate = false;
             bool gotdate_s = false;
             bool gotamount = false;
@@ -429,11 +423,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             bool gotcashtaken = false;
             bool gotcashtaken_s = false;
             bool gotRC = false;
-            bool gotSEQ = false;
             bool gotATM = false;
             bool gotATM_s = false;
-            bool gotATHNO = false;
-            bool refusedtxn = false;
             decimal type1 = 0;
             decimal type2 = 0;
             decimal type3 = 0;
@@ -450,8 +441,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             decimal type3_s = 0;
             decimal type4_s = 0;
 
-            var l = new List<string>();
-            for (var i = 1; i < d.Length - 1; i++)
+            List<string> l = new List<string>();
+            for (int i = 1; i < d.Length - 1; i++)
             {//CARD	DATE	AMOUNT	UTRN NO	SUCCESSFUL	RC CARD NO:
 
 

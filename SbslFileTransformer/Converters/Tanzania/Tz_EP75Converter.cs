@@ -11,21 +11,21 @@ namespace SbslFileTransformer.Converters
 
         public void ConvertFile(string inputFile, string outputFile = null)
         {
-            var lines = File.ReadAllLines(inputFile);
+            string[] lines = File.ReadAllLines(inputFile);
 
-            var records = new List<EP75Item>();
+            List<EP75Item> records = new List<EP75Item>();
 
-            for (var i = 0; i < lines.Length; i++)
+            for (int i = 0; i < lines.Length; i++)
             {
-                var batch = lines[i].Substring(0, 4).Trim();
+                string batch = lines[i].Substring(0, 4).Trim();
 
-                var cardno = lines[i].Substring(20, 20).Trim();
+                string cardno = lines[i].Substring(20, 20).Trim();
 
-                if (int.TryParse(batch, out var batchNio) && cardno.Length == 16)
+                if (int.TryParse(batch, out int batchNio) && cardno.Length == 16)
                 {
-                    var amount = lines[i].Substring(101, 13).Trim();
+                    string amount = lines[i].Substring(101, 13).Trim();
 
-                    var rec = new EP75Item
+                    EP75Item rec = new EP75Item
                     {
                         BatchNo = lines[i].Substring(0, 4).Trim(),
                         TranDate = lines[i].Substring(5, 6).Trim(),
@@ -53,10 +53,10 @@ namespace SbslFileTransformer.Converters
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                 Directory.CreateDirectory(outputFolder);
 
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_Ep75_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.csv");
@@ -67,14 +67,14 @@ namespace SbslFileTransformer.Converters
 
         private static void WriteToFile(List<EP75Item> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
                     csv.WriteHeader<EP75Item>();
                     csv.NextRecord();
 
-                    foreach (var row in rows)
+                    foreach (EP75Item row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

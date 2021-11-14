@@ -1,12 +1,7 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using ExcelDataReader;
+﻿using SbslFileTransformer.Infrastructure.Helpers;
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Text;
-using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
@@ -20,33 +15,33 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         }
         public void ConvertFile(string inputFile, string outputFolder = "")
         {
-            var content = File.ReadAllText(inputFile);
-            var sDet = File.ReadAllLines(inputFile);
+            string content = File.ReadAllText(inputFile);
+            string[] sDet = File.ReadAllLines(inputFile);
             string outputFile = "";
             string Account = "";
             double Amount = 0;
-            var toAppend = "";
+            string toAppend = "";
             DateTime baldate = DateTime.Now;
             string[] sGrp = content.Split("\n");
             if (content.Length != 0)
             {
-                for (var i = 0; i < sGrp.Length-1; i++)
+                for (int i = 0; i < sGrp.Length - 1; i++)
                 {
                     if (sGrp[i].Split('|')[1].Contains("Customer FX P&L for "))
                     {
-                       
+
                         baldate = DateTime.Parse(sGrp[i].Split('|')[1].Replace("Customer FX P&L for ", ""));
                     }
                 }
-                    for (var i = 0; i < sGrp.Length-1; i++)
+                for (int i = 0; i < sGrp.Length - 1; i++)
+                {
+                    if (sGrp[i].Split('|')[2].Trim() != "")
                     {
-                    if(sGrp[i].Split('|')[2].Trim() !="")
-                    {
-                        if (sGrp[i].Split('|')[3] !="")
+                        if (sGrp[i].Split('|')[3] != "")
                         {
                             Account = GetAccountNumber(sGrp[i].Split('|')[2]);
                             Amount = Convert.ToDouble((sGrp[i].Split('|')[4].Trim()));
-                            if (toAppend=="")
+                            if (toAppend == "")
                             {
                                 toAppend = $"IMKE\t{Account}\t\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(baldate):MM-dd-yyyy}\t\t\t\t{Amount}\t{sGrp[i].Split('|')[2]}\n";
                             }
@@ -57,26 +52,26 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                         }
                     }
-                   
+
                 }
 
-                  outputFile = Path.Combine(outputFolder, $"MultiCur_{baldate:yyyyMMdd}_{"Repo2_IMKE"}.txt"); 
-                
+                outputFile = Path.Combine(outputFolder, $"MultiCur_{baldate:yyyyMMdd}_{"Repo2_IMKE"}.txt");
+
                 WriteFile(outputFile, toAppend);
             }
         }
 
         public static void WriteFile(string path, string content)
         {
-            using (var fs = new FileStream(path, FileMode.OpenOrCreate))
+            using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
             {
-                using (var sw = new StreamWriter(fs))
+                using (StreamWriter sw = new StreamWriter(fs))
                     sw.Write(content);
             }
         }
         private string GetAccountNumber(string Currency)
         {
-            if (Currency== "AUD")
+            if (Currency == "AUD")
                 return "10010981001004";
 
 

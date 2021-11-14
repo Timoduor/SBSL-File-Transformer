@@ -25,23 +25,23 @@ namespace SbslFileTransformer.Infrastructure.Licensing.Attributes
         {
             base.OnActionExecuting(filterContext);
 
-            var controllerExempted = filterContext.Controller.GetType()
+            bool controllerExempted = filterContext.Controller.GetType()
                 .GetCustomAttributes(typeof(LicenseCheckExemptAttribute), false).Length > 0;
 
-            var actionExempted = filterContext.ActionDescriptor.GetType()
+            bool actionExempted = filterContext.ActionDescriptor.GetType()
                 .GetCustomAttributes(typeof(LicenseCheckExemptAttribute), false).Length > 0;
 
             if (controllerExempted || actionExempted)
                 return;
 
-            var licInfo = new LicenseInfo();
+            LicenseInfo licInfo = new LicenseInfo();
 
             if (Feature == "All")
             {
-                var licensePath = Path.Combine(Directory.GetCurrentDirectory());
+                string licensePath = Path.Combine(Directory.GetCurrentDirectory());
 
-                if (licInfo.GetLicenseStatus(out var msg) != LicenseStatus.VALID ||
-                    licInfo.License.DoExtraValidation(out var validationMsg) != LicenseStatus.VALID)
+                if (licInfo.GetLicenseStatus(out string msg) != LicenseStatus.VALID ||
+                    licInfo.License.DoExtraValidation(out string validationMsg) != LicenseStatus.VALID)
                     filterContext.Result = new RedirectResult("/License", false);
             }
 

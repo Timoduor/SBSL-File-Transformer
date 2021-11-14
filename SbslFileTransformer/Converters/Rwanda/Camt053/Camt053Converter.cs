@@ -10,28 +10,28 @@ namespace SbslFileTransformer.Converters.Camt053
     {
         public void ProcessCamtFile(string file, string outputFolder = null)
         {
-            var xmlInputData = File.ReadAllText(file);
+            string xmlInputData = File.ReadAllText(file);
 
             if (string.IsNullOrEmpty(outputFolder)) outputFolder = Path.GetDirectoryName(file);
 
-            var xDoc = XDocument.Load(new StringReader(xmlInputData));
+            XDocument xDoc = XDocument.Load(new StringReader(xmlInputData));
 
             xDoc.Descendants().Attributes().Where(x => x.IsNamespaceDeclaration).Remove();
 
-            foreach (var elem in xDoc.Descendants())
+            foreach (XElement elem in xDoc.Descendants())
                 elem.Name = elem.Name.LocalName;
 
-            var unwrapped = xDoc.Descendants();
-            var node = unwrapped.Where(n => n.Name.LocalName == "Document").First();
+            IEnumerable<XElement> unwrapped = xDoc.Descendants();
+            XElement node = unwrapped.Where(n => n.Name.LocalName == "Document").First();
 
-            var doc = Serializers.Desiarilize<Document>(node.ToString());
+            Document doc = Serializers.Desiarilize<Document>(node.ToString());
 
 
-            var records = new List<ExtractedRecord>();
+            List<ExtractedRecord> records = new List<ExtractedRecord>();
 
-            foreach (var entry in doc.BkStmt.Stmt.Ntry)
+            foreach (NumberEntry entry in doc.BkStmt.Stmt.Ntry)
             {
-                var rec = new ExtractedRecord
+                ExtractedRecord rec = new ExtractedRecord
                 {
                     MsgId = entry.NtryDtls.TxDtls.Refs.MsgId,
                     AcctSvcrRef = entry.NtryDtls.TxDtls.Refs.AcctSvcrRef,
@@ -61,10 +61,10 @@ namespace SbslFileTransformer.Converters.Camt053
                 records.Add(rec);
             }
 
-            var balances = new List<BalanceExctracted>();
-            foreach (var entry in doc.BkStmt.Stmt.Bal)
+            List<BalanceExctracted> balances = new List<BalanceExctracted>();
+            foreach (Balance entry in doc.BkStmt.Stmt.Bal)
             {
-                var bal = new BalanceExctracted
+                BalanceExctracted bal = new BalanceExctracted
                 {
                     BalanceCd = entry.Tp.CdOrPrtry.Cd,
                     BalanceAmount = entry.Amt,
@@ -76,16 +76,16 @@ namespace SbslFileTransformer.Converters.Camt053
                 balances.Add(bal);
             }
 
-            var outputRecs = Path.Combine(outputFolder, "Trans");
+            string outputRecs = Path.Combine(outputFolder, "Trans");
             Directory.CreateDirectory(outputRecs);
 
-            var camtRecordsFile = Path.Combine(outputRecs, $"{Path.GetFileNameWithoutExtension(file)}.csv");
+            string camtRecordsFile = Path.Combine(outputRecs, $"{Path.GetFileNameWithoutExtension(file)}.csv");
             SaveFiles.SaveToCsv(records, camtRecordsFile);
 
-            var outputBals = Path.Combine(outputFolder, "Bals");
+            string outputBals = Path.Combine(outputFolder, "Bals");
             Directory.CreateDirectory(outputBals);
 
-            var camtBalanceFile = Path.Combine(outputBals, $"{Path.GetFileNameWithoutExtension(file)}.csv");
+            string camtBalanceFile = Path.Combine(outputBals, $"{Path.GetFileNameWithoutExtension(file)}.csv");
             SaveFiles.BalanceToCSV(balances, camtBalanceFile);
         }
     }

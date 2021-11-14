@@ -3,9 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters.BalanceExtractors.Kenya;
-using SbslFileTransformer.Converters.Tanzania;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
@@ -21,7 +19,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
     public class ImsBalanceExtractorJob : ConverterJobBase<ImsBalanceExtractorJob>, IHostedService
     {
         public ImsBalanceExtractorJob(ILogger<ImsBalanceExtractorJob> logger,
-            IServiceScopeFactory serviceScopeFactory, EmailSender emailSender, JobManager jobManager)
+            IServiceScopeFactory serviceScopeFactory, EmailSender emailSender, JobDisplayManager jobManager)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -51,17 +49,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                 _logger.LogInformation("Running IMS Balance Extractor job");
 
-                var prodFolder = string.Empty;
-                var sbFolder = string.Empty;
-                var Entity = string.Empty;
+                string prodFolder = string.Empty;
+                string sbFolder = string.Empty;
+                string Entity = string.Empty;
 
-                using (var scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
                 {
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
                     CurrentJobStatus = _jobManager.GetJobStatus(JobName);
 
-                    if(CurrentJobStatus == null)
+                    if (CurrentJobStatus == null)
                     {
                         CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Running };
 
@@ -75,8 +73,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                     Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
-                    
-                    var options = new EnumerationOptions
+
+                    EnumerationOptions options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
                     List<string> files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx"))
@@ -85,7 +83,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                     files.AddRange(
                         Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx")));
 
-                    var mpesaConverter = new ImsBalanceExtractor
+                    ImsBalanceExtractor mpesaConverter = new ImsBalanceExtractor
                     {
                         Entity = Entity,
                         ServiceScopeFactory = _serviceScopeFactory
@@ -93,7 +91,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
-                    var updatedFiles = new List<SftpUploadedFile>();
+                    List<SftpUploadedFile> updatedFiles = new List<SftpUploadedFile>();
 
                     CurrentJobStatus.Status = JobState.Running;
                     _jobManager.SetJobStatus(JobName, CurrentJobStatus);

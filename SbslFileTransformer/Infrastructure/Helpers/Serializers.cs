@@ -7,9 +7,9 @@ namespace SbslFileTransformer.Infrastructure.Helpers
     {
         public static T Desiarilize<T>(string input) where T : class
         {
-            var ser = new XmlSerializer(typeof(T));
+            XmlSerializer ser = new XmlSerializer(typeof(T));
 
-            using (var sr = new StringReader(input))
+            using (StringReader sr = new StringReader(input))
             {
                 return (T)ser.Deserialize(sr);
             }
@@ -17,8 +17,8 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
         public static string Serialize<T>(T ObjectToSerialize)
         {
-            var xmlSerializer = new XmlSerializer(ObjectToSerialize.GetType());
-            using (var textWriter = new StringWriter())
+            XmlSerializer xmlSerializer = new XmlSerializer(ObjectToSerialize.GetType());
+            using (StringWriter textWriter = new StringWriter())
             {
                 xmlSerializer.Serialize(textWriter, ObjectToSerialize);
                 return textWriter.ToString();

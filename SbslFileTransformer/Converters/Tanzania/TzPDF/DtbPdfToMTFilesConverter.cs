@@ -15,24 +15,24 @@ namespace SbslFileTransformer.Converters
     {
         public void ConvertFile(string inputFile, string password = "001402498", string outputFile = null)
         {
-            var text = GetTextFromPdf(inputFile, password);
+            string text = GetTextFromPdf(inputFile, password);
 
-            var bankAcc = string.Empty;
-            var currency = string.Empty;
-            var transactions = new List<ExtractedTableCRDB>();
+            string bankAcc = string.Empty;
+            string currency = string.Empty;
+            List<ExtractedTableCRDB> transactions = new List<ExtractedTableCRDB>();
 
-            var needsBookBalance = false;
+            bool needsBookBalance = false;
 
-            var extractedTableLine = new ExtractedTableCRDB();
+            ExtractedTableCRDB extractedTableLine = new ExtractedTableCRDB();
 
-            foreach (var line in text.Split('\n', '\r'))
+            foreach (string line in text.Split('\n', '\r'))
             {
                 if (Regex.IsMatch(line.Trim(), @"\d{2}-[A-Z]{1}[a-z]{2}-\d{4} \d{2}-[A-Z]{1}[a-z]{2}-\d{4}") &&
                     !line.Contains("Opening Balance") || needsBookBalance)
                 {
-                    var parts = line.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    string[] parts = line.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-                    var len = parts.Length;
+                    int len = parts.Length;
 
                     if (len < 5 && !needsBookBalance)
                     {
@@ -96,29 +96,29 @@ namespace SbslFileTransformer.Converters
 
             if (transactions.Count == 0) throw new Exception($"No transactions found in DTB PDF file {inputFile}");
 
-            var closingBal = Convert.ToDouble(transactions.Last().BookBalance);
+            double closingBal = Convert.ToDouble(transactions.Last().BookBalance);
 
-            var lines = new StringBuilder();
+            StringBuilder lines = new StringBuilder();
 
-            var balDate = transactions.First().ValueDate;
+            DateTime balDate = transactions.First().ValueDate;
 
             lines.AppendLine(":20:" + "1");
             lines.AppendLine(":25:" + bankAcc);
             lines.AppendLine(":28C:" + "1/1");
             lines.AppendLine(":60M:" + $@"C{balDate:yyMMdd}{currency}0,00");
 
-            foreach (var record in transactions)
+            foreach (ExtractedTableCRDB record in transactions)
             {
-                var valDate = record.ValueDate;
-                var valDateStr = valDate.ToString("yyMMdd");
-                var valDateStr2 = valDate.ToString("MMdd");
+                DateTime valDate = record.ValueDate;
+                string valDateStr = valDate.ToString("yyMMdd");
+                string valDateStr2 = valDate.ToString("MMdd");
 
-                var dOrC = "C";
+                string dOrC = "C";
 
-                var amountC = Convert.ToDouble(record.Credit);
-                var amountD = Convert.ToDouble(record.Debit);
+                double amountC = Convert.ToDouble(record.Credit);
+                double amountD = Convert.ToDouble(record.Debit);
 
-                var useC = true;
+                bool useC = true;
                 if (amountC > 0)
                 {
                     dOrC = "C";
@@ -129,8 +129,8 @@ namespace SbslFileTransformer.Converters
                     dOrC = "D";
                 }
 
-                var narrative = $"{record.Ref?.Trim()}";
-                var c61 =
+                string narrative = $"{record.Ref?.Trim()}";
+                string c61 =
                     $"{valDateStr}{valDateStr2}{dOrC}R{(useC ? amountC.ToString("N2").Replace(",", "").Replace(".", ",") : amountD.ToString("N2").Replace(",", "").Replace(".", ","))}S205{narrative}";
 
                 lines.AppendLine($":61:{c61}  {record.Details?.Trim()}");
@@ -139,11 +139,11 @@ namespace SbslFileTransformer.Converters
             lines.AppendLine(":62F:" +
                              $@"C{balDate:yyMMdd}{currency}{closingBal.ToString("N2").Replace(",", "").Replace(".", ",")}");
 
-            var fileName = Path.GetFileNameWithoutExtension(inputFile);
+            string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                 Directory.CreateDirectory(outputFolder);
 
                 outputFile = Path.Combine(outputFolder,
@@ -161,23 +161,23 @@ namespace SbslFileTransformer.Converters
 
         public static string GetTextFromPdf(string path, string password = "")
         {
-            var content = new StringBuilder();
+            StringBuilder content = new StringBuilder();
 
-            var readProps = new ReaderProperties().SetPassword(Encoding.Default.GetBytes(password));
+            ReaderProperties readProps = new ReaderProperties().SetPassword(Encoding.Default.GetBytes(password));
 
-            using (var reader = new PdfReader(path, readProps))
+            using (PdfReader reader = new PdfReader(path, readProps))
             {
-                var pdfDocument = new PdfDocument(reader);
+                PdfDocument pdfDocument = new PdfDocument(reader);
 
-                var pages = pdfDocument.GetNumberOfPages();
+                int pages = pdfDocument.GetNumberOfPages();
 
-                for (var i = 1; i <= pages; i++)
+                for (int i = 1; i <= pages; i++)
                 {
-                    var strategy = new SimpleTextExtractionStrategy();
+                    SimpleTextExtractionStrategy strategy = new SimpleTextExtractionStrategy();
 
-                    var page = pdfDocument.GetPage(i);
+                    PdfPage page = pdfDocument.GetPage(i);
 
-                    var text = PdfTextExtractor.GetTextFromPage(page, strategy);
+                    string text = PdfTextExtractor.GetTextFromPage(page, strategy);
 
                     content.Append(text);
                 }

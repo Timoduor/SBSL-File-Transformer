@@ -16,7 +16,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 {
     public class GLBalanceExtractorJob : ConverterJobBase<GLBalanceExtractorJob>, IHostedService
     {
-        public GLBalanceExtractorJob(IServiceScopeFactory serviceScopeFactory, ILogger<GLBalanceExtractorJob> logger, JobManager jobManager)
+        public GLBalanceExtractorJob(IServiceScopeFactory serviceScopeFactory, ILogger<GLBalanceExtractorJob> logger, JobDisplayManager jobManager)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
@@ -43,11 +43,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                 _logger.LogInformation("Running GL Balance Extractor Job");
 
-                var prodFolder = string.Empty;
-                var sbFolder = string.Empty;
-                var Entity = string.Empty;
+                string prodFolder = string.Empty;
+                string sbFolder = string.Empty;
+                string Entity = string.Empty;
 
-                using (var scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
                 {
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
@@ -67,19 +67,19 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                     Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
-                    
+
                     bool isProd =
                         Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ??
                                           false.ToString());
 
-                    var options = new EnumerationOptions
+                    EnumerationOptions options = new EnumerationOptions
                     { RecurseSubdirectories = false, MatchCasing = MatchCasing.CaseInsensitive };
 
                     List<string> files = Directory.GetFiles(prodFolder, "*.csv", options).ToList();
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.csv", options));
 
-                    var converter = new BalanceFileConverter(_logger, _serviceScopeFactory, Entity);
+                    BalanceFileConverter converter = new BalanceFileConverter(_logger, _serviceScopeFactory, Entity);
 
                     CurrentJobStatus.Status = JobState.Running;
                     _jobManager.SetJobStatus(JobName, CurrentJobStatus);
@@ -87,7 +87,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                     int count = 0;
                     int total = files.Count;
 
-                    foreach (var file in files)
+                    foreach (string file in files)
                     {
                         //if in Kenya do not process files for other countries
                         if (Entity == "IMKE" && !file.ToUpper().Contains("IMKE"))

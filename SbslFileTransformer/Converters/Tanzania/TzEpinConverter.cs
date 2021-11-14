@@ -9,33 +9,33 @@ namespace SbslFileTransformer.Converters
 {
     public class TzEpinConverter
     {
-        public  void ConvertEPINFile(string file, string outputDirectory="")
+        public void ConvertEPINFile(string file, string outputDirectory = "")
         {
-            var rowFilter = new string[] { "0500", "0700", "2500", "2700" }.ToList();//, "0600", "0620", "2500", "2700"
+            List<string> rowFilter = new string[] { "0500", "0700", "2500", "2700" }.ToList();//, "0600", "0620", "2500", "2700"
 
-            var lines = File.ReadAllLines(file).ToList();
+            List<string> lines = File.ReadAllLines(file).ToList();
 
-            var records = new List<EpinItem>();
+            List<EpinItem> records = new List<EpinItem>();
 
-            var toKeep = lines.Where(l => rowFilter.Any(e => l.StartsWith(e)));
+            IEnumerable<string> toKeep = lines.Where(l => rowFilter.Any(e => l.StartsWith(e)));
 
             if (string.IsNullOrEmpty(outputDirectory))
             {
                 outputDirectory = Path.GetDirectoryName(file);
             }
-            outputDirectory= Path.GetDirectoryName(file) + "\\Conv";
+            outputDirectory = Path.GetDirectoryName(file) + "\\Conv";
             //outputDirectory = Path.GetFullPath(Path.Combine(outputDirectory, @"..\")) + "Conv";
             if (!Directory.Exists(outputDirectory))
                 Directory.CreateDirectory(outputDirectory);
 
-            foreach (var line in toKeep)
+            foreach (string line in toKeep)
             {
-                var record = new EpinItem
+                EpinItem record = new EpinItem
                 {
                     TransCode = line.Substring(0, 4),
                     CardNo = line.Substring(4, 16),
                     Code1 = line.Substring(20, 4),
-                    RefNo= line.Substring(26, 22),
+                    RefNo = line.Substring(26, 22),
                     //RRN = line.Substring(49, 8),
                     Date = line.Substring(57, 4) + DateTime.Today.Year.ToString(),
                     TransAmount = $"{line.Substring(61, 10)}.{line.Substring(71, 2)}",
@@ -55,21 +55,21 @@ namespace SbslFileTransformer.Converters
             }
 
 
-            var outputFile = Path.Combine(outputDirectory, Path.GetFileNameWithoutExtension(file) + ".csv");
+            string outputFile = Path.Combine(outputDirectory, Path.GetFileNameWithoutExtension(file) + ".csv");
 
             WriteToFile(records, outputFile);
         }
 
         private static void WriteToFile(List<EpinItem> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
                     csv.WriteHeader<EpinItem>();
                     csv.NextRecord();
 
-                    foreach (var row in rows)
+                    foreach (EpinItem row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

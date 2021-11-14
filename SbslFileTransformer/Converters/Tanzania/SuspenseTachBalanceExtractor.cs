@@ -19,11 +19,11 @@ namespace SbslFileTransformer.Converters.Tanzania
 
         internal void ConvertFile(string inputFile, string rootFolder, string outputFile = null)
         {
-            var row = new ExcelCols();
+            ExcelCols row = new ExcelCols();
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateReader(stream))
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
                 {
                     while (reader.Read())
                         if (!string.IsNullOrEmpty(reader.GetValue(1)?.ToString()))
@@ -54,20 +54,20 @@ namespace SbslFileTransformer.Converters.Tanzania
 
         private void GenerateMultiCurr(ExcelCols list, string inputFile, string rootFolder)
         {
-            var fileName = Path.GetFileNameWithoutExtension(inputFile);
+            string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-            var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
+            string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
-            var outputFile = Path.Combine(rootFolder,
+            string outputFile = Path.Combine(rootFolder,
                 $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_SUS_{_entity}.txt");
 
-            var toAppend = new StringBuilder();
+            StringBuilder toAppend = new StringBuilder();
 
-            var date = Convert.ToDateTime(list.Col0);
-            var amount = list.Col2; //vs col5 diff
-            var currency = list.Col1.Trim();
+            DateTime date = Convert.ToDateTime(list.Col0);
+            string amount = list.Col2; //vs col5 diff
+            string currency = list.Col1.Trim();
 
-            var account = "30990311001001"; //TZS
+            string account = "30990311001001"; //TZS
 
             if (currency.ToUpper() == "USD") account = "30990411005001";
 
@@ -76,7 +76,7 @@ namespace SbslFileTransformer.Converters.Tanzania
             toAppend.Append(
                  $"{_entity}\t{account}\tSuspense\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
 
-            var text = toAppend.ToString();
+            string text = toAppend.ToString();
 
             if (!string.IsNullOrEmpty(text)) File.WriteAllText(outputFile, text);
         }

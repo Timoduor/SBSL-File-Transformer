@@ -4,7 +4,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters.Rwanda;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
@@ -48,47 +47,47 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 _logger.LogInformation("Running ATM BAL converter job");
 
-                var prodFolder = string.Empty;
-                var sbFolder = string.Empty;
-                var Entity = string.Empty;
+                string prodFolder = string.Empty;
+                string sbFolder = string.Empty;
+                string Entity = string.Empty;
 
-                using (var scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = await dbContext.Configurations.ToListAsync();
+                    List<Configuration> configurations = await dbContext.Configurations.ToListAsync();
 
                     Entity = configurations.FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
-                    var isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
+                    bool isProd = Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ?? false.ToString());
 
-                    var rootFolder = isProd ? prodFolder : sbFolder;
+                    string rootFolder = isProd ? prodFolder : sbFolder;
 
-                    var options = new EnumerationOptions
+                    EnumerationOptions options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.xlsx", options).ToList();
+                    List<string> files = Directory.GetFiles(prodFolder, "*.xlsx", options).ToList();
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.xlsx", options));
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
-                    var updatedFiles = new List<SftpUploadedFile>();
+                    List<SftpUploadedFile> updatedFiles = new List<SftpUploadedFile>();
 
-                    foreach (var file in files)
+                    foreach (string file in files)
                     {
                         //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
                         if (file.ToLower().Contains("imrw") && file.ToLower().Contains("atms") && file.ToLower().Contains("balances"))
                         {
-                            var fileToProcess = uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
+                            SftpUploadedFile fileToProcess = uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
                                     if (Entity == "IMRW")
                                     {
-                                        var atmbalConverter = new ATMBalConverterRwanda();
+                                        ATMBalConverterRwanda atmbalConverter = new ATMBalConverterRwanda();
                                         await atmbalConverter.ConvertFile(file, rootFolder, Entity);
                                     }
 

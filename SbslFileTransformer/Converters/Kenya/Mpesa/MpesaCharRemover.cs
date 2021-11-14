@@ -10,22 +10,22 @@ namespace SbslFileTransformer.Converters
         public void FindAndReplaceOccurrences(string inputFile, string searchText, string replaceText,
             string outputFile = null)
         {
-            using (var package = new ExcelPackage(new FileInfo(inputFile)))
+            using (ExcelPackage package = new ExcelPackage(new FileInfo(inputFile)))
             {
-                var sheet = package.Workbook.Worksheets.First();
+                ExcelWorksheet sheet = package.Workbook.Worksheets.First();
 
-                var query = from cell in sheet.Cells.Where(c => !string.IsNullOrEmpty(c.Value?.ToString()))
-                            where cell.Value?.ToString()?.ToLower().Contains(searchText.ToLower()) == true
-                            select cell;
+                System.Collections.Generic.IEnumerable<ExcelRangeBase> query = from cell in sheet.Cells.Where(c => !string.IsNullOrEmpty(c.Value?.ToString()))
+                                                                               where cell.Value?.ToString()?.ToLower().Contains(searchText.ToLower()) == true
+                                                                               select cell;
 
-                foreach (var cell in query) cell.Value = cell.Value.ToString()?.Replace(searchText, replaceText);
+                foreach (ExcelRangeBase cell in query) cell.Value = cell.Value.ToString()?.Replace(searchText, replaceText);
 
                 if (string.IsNullOrEmpty(outputFile))
                 {
-                    var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                    string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                     Directory.CreateDirectory(outputFolder);
 
-                    var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                    string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                     outputFile = Path.Combine(outputFolder,
                         $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.xlsx");
@@ -37,8 +37,8 @@ namespace SbslFileTransformer.Converters
 
         private static string GetExcelColumnName(int columnNumber)
         {
-            var dividend = columnNumber;
-            var columnName = string.Empty;
+            int dividend = columnNumber;
+            string columnName = string.Empty;
             int modulo;
 
             while (dividend > 0)

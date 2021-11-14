@@ -2,18 +2,17 @@
 using Microsoft.Extensions.Hosting;
 using SbslFileTransformer.Models.Enums;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
 namespace SbslFileTransformer.Infrastructure.Jobs
 {
-    public class JobManager
+    public class JobDisplayManager
     {
         private readonly IMemoryCache _memoryCache;
 
-        public JobManager(IMemoryCache memoryCache)
+        public JobDisplayManager(IMemoryCache memoryCache)
         {
             _memoryCache = memoryCache;
         }
@@ -26,7 +25,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
             List<string> jobNames = new List<string>();
 
-            foreach (var job in jobs)
+            foreach (Type job in jobs)
             {
                 jobNames.Add(job.Name);
             }
@@ -60,10 +59,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         /// <returns></returns>
         public Dictionary<string, JobStatus> GetJobStatuses()
         {
-            var jobs = GetJobNames();
-            var jobStatuses = new Dictionary<string, JobStatus>();
-            
-            foreach(var job in jobs)
+            List<string> jobs = GetJobNames();
+            Dictionary<string, JobStatus> jobStatuses = new Dictionary<string, JobStatus>();
+
+            foreach (string job in jobs)
             {
                 jobStatuses.Add(job, GetJobStatus(job));
             }
@@ -80,9 +79,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         }
 
         public JobState Status { get; set; } = JobState.Completed;
-        public string JobName {  get; set; }
+        public string JobName { get; set; }
         public int PercentageProgress { get; set; }
-        public string ProgressMessage {  get; set; }
+        public string ProgressMessage { get; set; }
 
         public void SetProgress(int currentCount, int total)
         {

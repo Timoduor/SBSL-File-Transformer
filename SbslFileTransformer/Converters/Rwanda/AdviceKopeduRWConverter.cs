@@ -17,22 +17,22 @@ namespace SbslFileTransformer.Converters.Kenya
 
         public void ConvertFile(string inputFile, string outputFile = null)
         {
-            var list = new List<ExcelCols>();
+            List<ExcelCols> list = new List<ExcelCols>();
             int count = 0;
             string IOBound = "";
             string location = "";
             string date = "";
 
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateReader(stream))
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
                 {
                     while (reader.Read())
                     {
-                        var row = new ExcelCols();
+                        ExcelCols row = new ExcelCols();
 
-                        var index20 = reader.GetValue(20)?.ToString();
+                        string index20 = reader.GetValue(20)?.ToString();
                         if (reader.GetValue(0) == null && reader.GetValue(1) == null && reader.GetValue(2) == null
                             && reader.GetValue(3) == null && reader.GetValue(4) == null && reader.GetValue(5) == null
                             && reader.GetValue(6) == null && reader.GetValue(7) == null
@@ -64,8 +64,8 @@ namespace SbslFileTransformer.Converters.Kenya
                         }
                         else
                         {
-                            var index0 = reader.GetValue(0)?.ToString();
-                            var index1 = reader.GetValue(1)?.ToString();
+                            string index0 = reader.GetValue(0)?.ToString();
+                            string index1 = reader.GetValue(1)?.ToString();
                             try
                             {
                                 if (index0 != null)
@@ -181,11 +181,11 @@ namespace SbslFileTransformer.Converters.Kenya
                 }
             }
 
-            var finalList = new List<ExcelCols>();
+            List<ExcelCols> finalList = new List<ExcelCols>();
             finalList.Add(list[0]);
             list.Remove(list[0]);
 
-            foreach (var rows in list)
+            foreach (ExcelCols rows in list)
             {
                 rows.Col0 = list[list.Count - 1].Col0;
                 if (rows.Col10 == null && rows.Col11 == null)
@@ -204,10 +204,10 @@ namespace SbslFileTransformer.Converters.Kenya
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                 Directory.CreateDirectory(outputFolder);
 
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_ADV_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
@@ -218,11 +218,11 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    foreach (var row in rows)
+                    foreach (ExcelCols row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

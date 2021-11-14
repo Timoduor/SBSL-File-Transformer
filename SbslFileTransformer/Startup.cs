@@ -46,7 +46,7 @@ namespace SbslFileTransformer
                 options.UseMySql(
                     Configuration.GetConnectionString("DefaultConnection")));
 
-            var keyStore = Path.Combine(Directory.GetCurrentDirectory(), "keys");
+            string keyStore = Path.Combine(Directory.GetCurrentDirectory(), "keys");
 
             Directory.CreateDirectory(keyStore);
 
@@ -66,7 +66,7 @@ namespace SbslFileTransformer
             services.AddRazorPages().AddRazorRuntimeCompilation();
 #endif
 
-            services.AddTransient<JobManager>();
+            services.AddTransient<JobDisplayManager>();
             services.AddTransient<SftpManager>();
             services.AddTransient<EncryptionManager>();
             services.AddTransient<EmailSender>();
@@ -172,7 +172,7 @@ namespace SbslFileTransformer
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider,
             ILogger<Startup> logger, IHostApplicationLifetime applicationLifetime, IMemoryCache cache)
         {
-            var appShutdownInput = new Tuple<IMemoryCache, ILogger<Startup>>(cache, logger);
+            Tuple<IMemoryCache, ILogger<Startup>> appShutdownInput = new Tuple<IMemoryCache, ILogger<Startup>>(cache, logger);
 
             applicationLifetime.ApplicationStopping
                 .Register(i => OnAppShutdown((Tuple<IMemoryCache, ILogger<Startup>>)i), appShutdownInput);
@@ -215,12 +215,12 @@ namespace SbslFileTransformer
         {
             //check for job state of upload job in memcache
             //log if job is still running and wait for completion before continuing shutdown
-            if(input.Item1.TryGetValue(nameof(SftpIndependentJob), out JobStatus result))
+            if (input.Item1.TryGetValue(nameof(SftpIndependentJob), out JobStatus result))
             {
                 while (result.Status != JobState.Completed)
-                { 
+                {
                     input.Item2.LogWarning("An important job is still running. Waiting for it to complete...");
-                    Thread.Sleep(2000);                   
+                    Thread.Sleep(2000);
                 }
             }
 

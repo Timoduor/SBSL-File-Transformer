@@ -11,21 +11,21 @@ namespace SbslFileTransformer.Infrastructure.Helpers
         // Gets the user token from the currently active session
         private static bool GetSessionUserToken(ref IntPtr phUserToken)
         {
-            var bResult = false;
-            var hImpersonationToken = IntPtr.Zero;
-            var activeSessionId = INVALID_SESSION_ID;
-            var pSessionInfo = IntPtr.Zero;
-            var sessionCount = 0;
+            bool bResult = false;
+            IntPtr hImpersonationToken = IntPtr.Zero;
+            uint activeSessionId = INVALID_SESSION_ID;
+            IntPtr pSessionInfo = IntPtr.Zero;
+            int sessionCount = 0;
 
             // Get a handle to the user access token for the current active session.
             if (WTSEnumerateSessions(WTS_CURRENT_SERVER_HANDLE, 0, 1, ref pSessionInfo, ref sessionCount) != 0)
             {
-                var arrayElementSize = Marshal.SizeOf(typeof(WTS_SESSION_INFO));
-                var current = pSessionInfo;
+                int arrayElementSize = Marshal.SizeOf(typeof(WTS_SESSION_INFO));
+                IntPtr current = pSessionInfo;
 
-                for (var i = 0; i < sessionCount; i++)
+                for (int i = 0; i < sessionCount; i++)
                 {
-                    var si = (WTS_SESSION_INFO)Marshal.PtrToStructure(current, typeof(WTS_SESSION_INFO));
+                    WTS_SESSION_INFO si = (WTS_SESSION_INFO)Marshal.PtrToStructure(current, typeof(WTS_SESSION_INFO));
                     current += arrayElementSize;
 
                     if (si.State == WTS_CONNECTSTATE_CLASS.WTSActive) activeSessionId = si.SessionID;
@@ -51,10 +51,10 @@ namespace SbslFileTransformer.Infrastructure.Helpers
         public static bool StartProcessAsCurrentUser(string appPath, string cmdLine = null, string workDir = null,
             bool visible = true)
         {
-            var hUserToken = IntPtr.Zero;
-            var startInfo = new STARTUPINFO();
-            var procInfo = new PROCESS_INFORMATION();
-            var pEnv = IntPtr.Zero;
+            IntPtr hUserToken = IntPtr.Zero;
+            STARTUPINFO startInfo = new STARTUPINFO();
+            PROCESS_INFORMATION procInfo = new PROCESS_INFORMATION();
+            IntPtr pEnv = IntPtr.Zero;
             int iResultOfCreateProcessAsUser;
 
             startInfo.cb = Marshal.SizeOf(typeof(STARTUPINFO));
@@ -64,7 +64,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                 if (!GetSessionUserToken(ref hUserToken))
                     throw new Exception("StartProcessAsCurrentUser: GetSessionUserToken failed.");
 
-                var dwCreationFlags = CREATE_UNICODE_ENVIRONMENT |
+                uint dwCreationFlags = CREATE_UNICODE_ENVIRONMENT |
                                       (uint)(visible ? CREATE_NEW_CONSOLE : CREATE_NO_WINDOW);
                 startInfo.wShowWindow = (short)(visible ? SW1.SW_SHOW : SW1.SW_HIDE);
                 startInfo.lpDesktop = "winsta0\\default";

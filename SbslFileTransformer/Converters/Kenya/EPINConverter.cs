@@ -11,17 +11,17 @@ namespace SbslFileTransformer.Converters
     {
         public void ConvertFile(string inputFile, string outputFile = null)
         {
-            var rowFilter = new[] { "0500", "0700", "0600", "0620", "2500", "2700" }.ToList();
+            List<string> rowFilter = new[] { "0500", "0700", "0600", "0620", "2500", "2700" }.ToList();
 
-            var lines = File.ReadAllLines(inputFile).ToList();
+            List<string> lines = File.ReadAllLines(inputFile).ToList();
 
-            var records = new List<EpinItem>();
+            List<EpinItem> records = new List<EpinItem>();
 
-            var toKeep = lines.Where(l => rowFilter.Any(e => l.StartsWith(e)));
+            IEnumerable<string> toKeep = lines.Where(l => rowFilter.Any(e => l.StartsWith(e)));
 
-            foreach (var line in toKeep)
+            foreach (string line in toKeep)
             {
-                var record = new EpinItem
+                EpinItem record = new EpinItem
                 {
                     TransCode = line.Substring(0, 4),
                     CardNo = line.Substring(4, 16),
@@ -47,10 +47,10 @@ namespace SbslFileTransformer.Converters
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                 Directory.CreateDirectory(outputFolder);
 
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_Epin_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.csv");
@@ -61,14 +61,14 @@ namespace SbslFileTransformer.Converters
 
         private static void WriteToFile(List<EpinItem> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
                     csv.WriteHeader<EpinItem>();
                     csv.NextRecord();
 
-                    foreach (var row in rows)
+                    foreach (EpinItem row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

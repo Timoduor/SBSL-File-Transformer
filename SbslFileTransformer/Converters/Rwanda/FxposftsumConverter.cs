@@ -22,9 +22,9 @@ namespace SbslFileTransformer.Converters.Rwanda
             return new DateTime(date.Year, date.Month, 1).AddMonths(1).AddDays(-1);
         }
 
-        public void ConvertFile(string inputFile,string outputFolder = "")
+        public void ConvertFile(string inputFile, string outputFolder = "")
         {
-            var list = new List<ExcelCols>();
+            List<ExcelCols> list = new List<ExcelCols>();
             string outputFile = "";
             //string outputFolder = null;
             if (string.IsNullOrEmpty(outputFolder))
@@ -39,17 +39,17 @@ namespace SbslFileTransformer.Converters.Rwanda
 
             }
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateReader(stream))
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
                 {
                     while (reader.Read())
                     {
-                        var row = new ExcelCols();
+                        ExcelCols row = new ExcelCols();
 
-                        var value = reader.GetValue(1)?.ToString();
+                        string value = reader.GetValue(1)?.ToString();
 
-                        var value1 = reader.GetValue(2)?.ToString();
+                        string value1 = reader.GetValue(2)?.ToString();
 
                         if (value.Contains("Currency Desc") || value.Contains("Net Open Position Equivalent") || value.Contains("Today's Customer FX P&L") || value.Contains("Customer FX P&L for 02-Aug-2021")
                              || value.Contains("Customer FX P&L Month to Date") || value.Contains("Customer FX P&L Year to Date") || value.Contains("Reval P&L for 02-Aug-2021") || value.Contains("Total P&L for 02-Aug-2021")
@@ -126,7 +126,7 @@ namespace SbslFileTransformer.Converters.Rwanda
                     }
                 }
             }
-              outputFile = Path.Combine(outputFolder,$"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{Path.GetFileNameWithoutExtension(inputFile)}_fxpostsum_{"IMRW"}.txt");
+            outputFile = Path.Combine(outputFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{Path.GetFileNameWithoutExtension(inputFile)}_fxpostsum_{"IMRW"}.txt");
             //outputFile = outputFile + "\\Converted_" + Path.GetFileNameWithoutExtension(inputFile) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".txt";
             WriteToFile(list, outputFile);
         }
@@ -134,16 +134,16 @@ namespace SbslFileTransformer.Converters.Rwanda
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+                CsvConfiguration config = new CsvConfiguration(CultureInfo.InvariantCulture)
                 {
                     Delimiter = "\t"
                 };
 
-                using (var csv = new CsvWriter(writer, config))
+                using (CsvWriter csv = new CsvWriter(writer, config))
                 {
-                    foreach (var row in rows)
+                    foreach (ExcelCols row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

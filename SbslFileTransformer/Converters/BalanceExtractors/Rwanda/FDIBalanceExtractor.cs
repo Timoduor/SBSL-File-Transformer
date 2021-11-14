@@ -23,16 +23,16 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
 
         public void ConvertFile(string inputFile, string rootFolder, string outputFile = null)
         {
-            var list = new List<ExcelCols>();
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            List<ExcelCols> list = new List<ExcelCols>();
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateCsvReader(stream))
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateCsvReader(stream))
                 {
                     while (reader.Read())
                     {
-                        var value = reader.GetValue(0)?.ToString();
+                        string value = reader.GetValue(0)?.ToString();
 
-                        var value1 = reader.GetValue(3)?.ToString();
+                        string value1 = reader.GetValue(3)?.ToString();
 
                         if (value1.Contains("float"))
                         {
@@ -42,7 +42,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
                         {
                             continue;
                         }
-                        var row = new ExcelCols
+                        ExcelCols row = new ExcelCols
                         {
                             Col0 = reader.GetValue(0)?.ToString().Replace("'", ""),
 
@@ -60,7 +60,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
 
             double amount = list.Skip(1).Sum(r => Convert.ToDouble(r.Col2.ToString()));
 
-            var sumrow = new ExcelCols
+            ExcelCols sumrow = new ExcelCols
             {
                 Col0 = list.Skip(1).Select(r => r.Col0).FirstOrDefault(),
 
@@ -69,16 +69,16 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
                 Col2 = amount.ToString(),
 
             };
-            var list2 = new List<ExcelCols>();
+            List<ExcelCols> list2 = new List<ExcelCols>();
             list2.Add(sumrow);
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                 Directory.CreateDirectory(outputFolder);
 
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
-                var fileNameToUse = fileName.Replace(" ", "").Substring(Math.Max(0, fileName.Length - 10));
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileNameToUse = fileName.Replace(" ", "").Substring(Math.Max(0, fileName.Length - 10));
 
                 outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{fileNameToUse}_COMM.csv");
             }
@@ -90,37 +90,37 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
 
         private void GenerateMultiCurr(List<ExcelCols> list, string inputFile, string rootFolder)
         {
-            var fileName = Path.GetFileNameWithoutExtension(inputFile);
+            string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-            var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
+            string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
-            var outputFile = Path.Combine(rootFolder,
+            string outputFile = Path.Combine(rootFolder,
                 $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_FDI_{_entity}.txt");
 
-            var toAppend = new StringBuilder();
+            StringBuilder toAppend = new StringBuilder();
 
             list = list.Skip(1).ToList();
 
-            var date = Convert.ToDateTime(list.First().Col0.Replace("'", ""));
-            var amount = Convert.ToDouble(list.First().Col9) + Convert.ToDouble(list.First().Col10); //vs col5 diff
-            var currency = "RWF";
-            var account = "20100243506073";
+            DateTime date = Convert.ToDateTime(list.First().Col0.Replace("'", ""));
+            double amount = Convert.ToDouble(list.First().Col9) + Convert.ToDouble(list.First().Col10); //vs col5 diff
+            string currency = "RWF";
+            string account = "20100243506073";
 
             toAppend.Append(
                 $"{_entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount.ToString("N2")}\t{currency}\n");
 
-            var text = toAppend.ToString();
+            string text = toAppend.ToString();
 
             if (!string.IsNullOrEmpty(text)) File.WriteAllText(outputFile, text);
         }
 
         private void WriteToCommissionFile(List<ExcelCols> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    foreach (var row in rows)
+                    foreach (ExcelCols row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

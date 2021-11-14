@@ -4,7 +4,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
@@ -48,56 +47,56 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 _logger.LogInformation("Running DTB PDF To MT File converter job");
 
-                var prodFolder = string.Empty;
-                var sbFolder = string.Empty;
-                var Entity = string.Empty;
+                string prodFolder = string.Empty;
+                string sbFolder = string.Empty;
+                string Entity = string.Empty;
 
-                using (var scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.ToList();
+                    List<Configuration> configurations = dbContext.Configurations.ToList();
 
                     Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
-                    var isProd =
+                    bool isProd =
                         Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value);
 
-                    var options = new EnumerationOptions
+                    EnumerationOptions options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.pdf", options).ToList();
+                    List<string> files = Directory.GetFiles(prodFolder, "*.pdf", options).ToList();
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.pdf", options));
 
-                    var pdfConverter = new DtbPdfToMTFilesConverter();
+                    DtbPdfToMTFilesConverter pdfConverter = new DtbPdfToMTFilesConverter();
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
-                    var updatedFiles = new List<SftpUploadedFile>();
+                    List<SftpUploadedFile> updatedFiles = new List<SftpUploadedFile>();
 
-                    foreach (var file in files)
+                    foreach (string file in files)
                     {
                         //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
                         if (file.ToLower().Contains("dtb") && file.ToLower().Contains("imtz"))
                         {
-                            var fileToProcess =
+                            SftpUploadedFile fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>
                                     f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    var statementFolder = Path.Combine(sbFolder, @$"{Entity}\NOSTRO\STATEMENT");
+                                    string statementFolder = Path.Combine(sbFolder, @$"{Entity}\NOSTRO\STATEMENT");
 
                                     if (isProd)
                                         statementFolder = Path.Combine(prodFolder, @$"{Entity}\NOSTRO\STATEMENT");
 
 
-                                    var pdfPassword = await dbContext.Configurations.FirstOrDefaultAsync(c =>
+                                    Configuration pdfPassword = await dbContext.Configurations.FirstOrDefaultAsync(c =>
                                         c.ConfigType == ConfigurationType.Setting && c.Key == "PdfPassword");
                                     pdfConverter.ConvertFile(file, pdfPassword?.Value, statementFolder);
                                 }

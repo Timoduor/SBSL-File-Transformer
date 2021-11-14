@@ -10,7 +10,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
 
         public void ProcessMt320File(string file, string outputFolder = null)
         {
-            var content = File.ReadAllText(file);
+            string content = File.ReadAllText(file);
 
             if (string.IsNullOrEmpty(outputFolder))
             {
@@ -22,14 +22,14 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
             string[] sDet = File.ReadAllLines(file);
             string scontent = "";
             string sType = content.Split(':')[6].ToString().Trim().Substring(4, 3);
-            
+
             if (sDet.Length != 0)
             {
-                var seq15A = new MandatorySequence320A();
-                var seq15B = new MandatorySequence320B();
-                var seq15C = new MandatorySequence320C();
-                var seq15D = new MandatorySequence320D();
-                var seq15E = new MandatorySequence320E();
+                MandatorySequence320A seq15A = new MandatorySequence320A();
+                MandatorySequence320B seq15B = new MandatorySequence320B();
+                MandatorySequence320C seq15C = new MandatorySequence320C();
+                MandatorySequence320D seq15D = new MandatorySequence320D();
+                MandatorySequence320E seq15E = new MandatorySequence320E();
 
 
 
@@ -96,9 +96,9 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
 
         public static void WriteFile(string path, string content)
         {
-            using (var fs = new FileStream(path, FileMode.OpenOrCreate))
+            using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
             {
-                using (var sw = new StreamWriter(fs))
+                using (StreamWriter sw = new StreamWriter(fs))
                     sw.Write(content);
             }
         }
@@ -190,8 +190,8 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
         {
 
 
-            var l = new List<string>();
-            for (var i = 1; i < d.Length - 1; i++)
+            List<string> l = new List<string>();
+            for (int i = 1; i < d.Length - 1; i++)
             {
                 if (d[i].Contains("15A:"))
                 {
@@ -271,8 +271,8 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
         {
 
 
-            var l = new List<string>();
-            for (var i = 1; i < d.Length - 1; i++)
+            List<string> l = new List<string>();
+            for (int i = 1; i < d.Length - 1; i++)
             {
                 if (d[i].Contains("15B:"))
                 {
@@ -378,8 +378,8 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
         {
 
 
-            var l = new List<string>();
-            for (var i = 1; i < d.Length - 1; i++)
+            List<string> l = new List<string>();
+            for (int i = 1; i < d.Length - 1; i++)
             {
 
                 if (d[i].Contains("15C:"))
@@ -473,8 +473,8 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
         {
 
 
-            var l = new List<string>();
-            for (var i = 1; i < d.Length - 1; i++)
+            List<string> l = new List<string>();
+            for (int i = 1; i < d.Length - 1; i++)
             {
 
                 if (d[i].Contains("15D:"))

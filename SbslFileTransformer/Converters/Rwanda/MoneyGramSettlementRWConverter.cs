@@ -15,13 +15,13 @@ namespace SbslFileTransformer.Converters.Kenya
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
-        public void ConvertFile(string inputFile, string outputFile=null)
+        public void ConvertFile(string inputFile, string outputFile = null)
         {
-            var list = new List<ExcelCols>();
+            List<ExcelCols> list = new List<ExcelCols>();
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateReader(stream))
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
                 {
                     int countHeader = 0;
 
@@ -30,8 +30,6 @@ namespace SbslFileTransformer.Converters.Kenya
                     double per = 0.18;
 
                     double ch = 0.78;
-
-                    string accountNo = "Account Number";
 
                     string agentName = "Agent Name";
 
@@ -63,17 +61,17 @@ namespace SbslFileTransformer.Converters.Kenya
                     {
                         count++;
 
-                        var row = new ExcelCols();
+                        ExcelCols row = new ExcelCols();
 
                         //settelement currency
                         //var value = reader.GetValue(1)?.ToString();
 
                         //transaction currency
-                        var valueTran = reader.GetValue(9)?.ToString();
+                        string valueTran = reader.GetValue(9)?.ToString();
                         //settelement currency && account number
-                        var accountValue = reader.GetValue(1)?.ToString();
+                        string accountValue = reader.GetValue(1)?.ToString();
                         //agentname
-                        var agentValue = reader.GetValue(4)?.ToString();
+                        string agentValue = reader.GetValue(4)?.ToString();
 
                         //remember this code for dealing with empty rows
                         if (!string.IsNullOrEmpty(accountValue))
@@ -259,7 +257,7 @@ namespace SbslFileTransformer.Converters.Kenya
                 }
             }
 
-            var finalList = new List<ExcelCols>();
+            List<ExcelCols> finalList = new List<ExcelCols>();
             finalList.Add(list[3]);
             finalList[0].Col0 = list[2].Col0;
             finalList[0].Col1 = list[2].Col1;
@@ -276,7 +274,7 @@ namespace SbslFileTransformer.Converters.Kenya
             double rev2 = 0.5;
             double amntfinal = 0.022;
 
-            foreach (var rows in list)
+            foreach (ExcelCols rows in list)
             {
                 try
                 {
@@ -319,10 +317,10 @@ namespace SbslFileTransformer.Converters.Kenya
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                 Directory.CreateDirectory(outputFolder);
 
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
@@ -333,11 +331,11 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    foreach (var row in rows)
+                    foreach (ExcelCols row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

@@ -31,7 +31,7 @@ namespace SbslFileTransformer.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var configs = await _dbContext.Configurations.Where(c => c.Key != "Password").OrderBy(c => c.ConfigType)
+            System.Collections.Generic.List<Configuration> configs = await _dbContext.Configurations.Where(c => c.Key != "Password").OrderBy(c => c.ConfigType)
                 .ToListAsync();
 
             ViewBag.ServiceName = configs
@@ -69,7 +69,7 @@ namespace SbslFileTransformer.Controllers
 
         public IActionResult Update(int configType, string key)
         {
-            var config =
+            Configuration config =
                 _dbContext.Configurations.FirstOrDefault(c =>
                     c.ConfigType == (ConfigurationType)configType && c.Key == key);
 
@@ -98,12 +98,12 @@ namespace SbslFileTransformer.Controllers
 
         public async Task<IActionResult> Sftp()
         {
-            var configurations = await _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
+            System.Collections.Generic.List<Configuration> configurations = await _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
                 .ToListAsync();
 
             if (configurations.Count >= 8)
             {
-                var config = new SftpConfigModel
+                SftpConfigModel config = new SftpConfigModel
                 {
                     Host = configurations.FirstOrDefault(c => c.Key == "Host" && c.ConfigType == ConfigurationType.Sftp)
                         ?.Value,
@@ -131,12 +131,12 @@ namespace SbslFileTransformer.Controllers
 
         public async Task<IActionResult> Smtp()
         {
-            var configurations = await _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Email)
+            System.Collections.Generic.List<Configuration> configurations = await _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Email)
                 .ToListAsync();
 
             if (configurations.Count >= 5)
             {
-                var config = new SmtpConfigModel
+                SmtpConfigModel config = new SmtpConfigModel
                 {
                     EmailAddress = configurations
                         .FirstOrDefault(c => c.Key == "EmailAddress" && c.ConfigType == ConfigurationType.Email)?.Value,
@@ -181,14 +181,14 @@ namespace SbslFileTransformer.Controllers
 
         public async Task<IActionResult> SendTestEmail()
         {
-            var testFiles = Directory
+            System.Collections.Generic.List<string> testFiles = Directory
                 .GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory), "*.*",
                     new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive })
                 .Take(2).ToList();
 
-            for (var i = 0; i < testFiles.Count; i++)
+            for (int i = 0; i < testFiles.Count; i++)
             {
-                var newFileName = Path.ChangeExtension(testFiles[i], ".txt");
+                string newFileName = Path.ChangeExtension(testFiles[i], ".txt");
 
                 if (!System.IO.File.Exists(newFileName)) System.IO.File.Copy(testFiles[i], newFileName);
 
@@ -207,7 +207,7 @@ namespace SbslFileTransformer.Controllers
             //update host
             if (!string.IsNullOrEmpty(config.UserName))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Email,
                     Key = "UserName",
@@ -221,7 +221,7 @@ namespace SbslFileTransformer.Controllers
             //update host
             if (!string.IsNullOrEmpty(config.Password))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Email,
                     Key = "Password",
@@ -235,7 +235,7 @@ namespace SbslFileTransformer.Controllers
             //update host
             //if (!string.IsNullOrEmpty(config.UseSsl))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Email,
                     Key = "UseSsl",
@@ -247,7 +247,7 @@ namespace SbslFileTransformer.Controllers
             }
 
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Email,
                     Key = "UseDefaultCredentials",
@@ -261,7 +261,7 @@ namespace SbslFileTransformer.Controllers
             //update host
             if (config.Port != 0)
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Email,
                     Key = "Port",
@@ -275,7 +275,7 @@ namespace SbslFileTransformer.Controllers
             //update host
             if (!string.IsNullOrEmpty(config.Name))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Email,
                     Key = "Name",
@@ -289,7 +289,7 @@ namespace SbslFileTransformer.Controllers
             //update host
             if (!string.IsNullOrEmpty(config.SmtpServer))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Email,
                     Key = "SmtpServer",
@@ -303,7 +303,7 @@ namespace SbslFileTransformer.Controllers
             //update host
             if (!string.IsNullOrEmpty(config.EmailAddress))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Email,
                     Key = "EmailAddress",
@@ -317,7 +317,7 @@ namespace SbslFileTransformer.Controllers
             //update host
             if (!string.IsNullOrEmpty(config.Recipients))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Email,
                     Key = "Recipients",
@@ -334,7 +334,7 @@ namespace SbslFileTransformer.Controllers
             //update host
             if (!string.IsNullOrEmpty(config.Host))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Sftp,
                     Key = "Host",
@@ -348,7 +348,7 @@ namespace SbslFileTransformer.Controllers
             //update host
             if (!string.IsNullOrEmpty(config.UserName))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Sftp,
                     Key = "UserName",
@@ -362,7 +362,7 @@ namespace SbslFileTransformer.Controllers
             //update host
             if (!string.IsNullOrEmpty(config.Password))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Sftp,
                     Key = "Password",
@@ -376,7 +376,7 @@ namespace SbslFileTransformer.Controllers
             //update host
             if (config.Port != 0)
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Sftp,
                     Key = "Port",
@@ -389,7 +389,7 @@ namespace SbslFileTransformer.Controllers
 
             if (!string.IsNullOrEmpty(config.ProductionFolder))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Sftp,
                     Key = "ProductionFolder",
@@ -399,7 +399,7 @@ namespace SbslFileTransformer.Controllers
 
                 await CreateOrUpdate(configuration);
 
-                var config2 = new Configuration
+                Configuration config2 = new Configuration
                 {
                     ConfigType = ConfigurationType.Sftp,
                     Key = "IncludeProduction",
@@ -412,7 +412,7 @@ namespace SbslFileTransformer.Controllers
 
             if (!string.IsNullOrEmpty(config.SandboxFolder))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Sftp,
                     Key = "SandboxFolder",
@@ -422,7 +422,7 @@ namespace SbslFileTransformer.Controllers
 
                 await CreateOrUpdate(configuration);
 
-                var config2 = new Configuration
+                Configuration config2 = new Configuration
                 {
                     ConfigType = ConfigurationType.Sftp,
                     Key = "IncludeSandbox",
@@ -436,7 +436,7 @@ namespace SbslFileTransformer.Controllers
 
         private async Task CreateOrUpdate(Configuration config)
         {
-            var existing = await _dbContext.Configurations.FirstOrDefaultAsync(c =>
+            Configuration existing = await _dbContext.Configurations.FirstOrDefaultAsync(c =>
                 c.Key.ToLower() == config.Key.ToLower() && c.ConfigType == config.ConfigType);
 
             if (existing != null)

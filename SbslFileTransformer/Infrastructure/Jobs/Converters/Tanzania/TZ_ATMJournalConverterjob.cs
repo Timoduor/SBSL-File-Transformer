@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
@@ -47,15 +46,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 _logger.LogInformation("Running ATM Journal Converter Job");
 
-                var prodFolder = string.Empty;
-                var sbFolder = string.Empty;
-                var Entity = string.Empty;
+                string prodFolder = string.Empty;
+                string sbFolder = string.Empty;
+                string Entity = string.Empty;
 
-                using (var scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = await dbContext.Configurations.ToListAsync();
+                    List<Configuration> configurations = await dbContext.Configurations.ToListAsync();
 
                     Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
@@ -63,27 +62,27 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
 
-                    var options = new EnumerationOptions
+                    EnumerationOptions options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
-                    var updatedFiles = new List<SftpUploadedFile>();
+                    List<SftpUploadedFile> updatedFiles = new List<SftpUploadedFile>();
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".jrn"))
+                    List<string> files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".jrn"))
                     .ToList();
 
                     files.AddRange(
                         Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".jrn")));
 
-                    var ATMJournalConverter = new TZ_ATMJournalConverter();
+                    TZ_ATMJournalConverter ATMJournalConverter = new TZ_ATMJournalConverter();
 
-                    foreach (var file in files)
+                    foreach (string file in files)
                     {
                         //FILE PATH SHOULD IMTZ/Cards_ATM/JRN_ATM
                         if (file.ToLower().Contains("imtz") && file.ToLower().Contains("cards_atm") && file.ToLower().Contains("jrn_atm"))
                         {
-                            var fileToProcess =
+                            SftpUploadedFile fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>
                                     f.FilePath.ToLower() == file.ToLower());
 
@@ -115,6 +114,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             }
         }
 
-        
+
     }
 }

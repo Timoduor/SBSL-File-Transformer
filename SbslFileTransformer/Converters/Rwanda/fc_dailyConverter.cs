@@ -9,7 +9,7 @@ using System.IO;
 using System.Text;
 
 namespace SbslFileTransformer.Converters.Rwanda
-{ 
+{
     public class Fc_dailyConverter
     {
         public Fc_dailyConverter()
@@ -25,9 +25,9 @@ namespace SbslFileTransformer.Converters.Rwanda
 
         public void ConvertFile(string inputFile, string outputFolder = "")
         {
-            var list = new List<ExcelCols>();
+            List<ExcelCols> list = new List<ExcelCols>();
             string outputFile = "";
-             
+
             if (string.IsNullOrEmpty(outputFolder))
             {
                 outputFolder = Path.GetDirectoryName(inputFile);
@@ -41,28 +41,28 @@ namespace SbslFileTransformer.Converters.Rwanda
             }
 
 
-      
 
-            var list2 = new List<ExcelCols>();
-           
+
+            List<ExcelCols> list2 = new List<ExcelCols>();
+
 
 
             string scontent = "";
             string scontentl2 = "";
-         
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
-            {
-                using (var reader = ExcelReaderFactory.CreateReader(stream))
-                {
-                    var result = reader.AsDataSet();
-                    var tables = result.Tables;
 
-                    var sheet1 = tables[0];
-      
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            {
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
+                {
+                    DataSet result = reader.AsDataSet();
+                    DataTableCollection tables = result.Tables;
+
+                    DataTable sheet1 = tables[0];
+
 
                     foreach (DataRow row in sheet1.Rows)
                     {
-                        var excelCol = new ExcelCols();
+                        ExcelCols excelCol = new ExcelCols();
                         excelCol.Col0 = row[0].ToString();
                         excelCol.Col1 = row[1].ToString();
                         excelCol.Col2 = row[2].ToString();
@@ -82,7 +82,7 @@ namespace SbslFileTransformer.Converters.Rwanda
                         excelCol.Col16 = row[16].ToString();
                         excelCol.Col17 = row[17].ToString();
                         excelCol.Col17 = row[18].ToString();
-                         
+
 
                         list2.Add(excelCol);
 
@@ -90,19 +90,19 @@ namespace SbslFileTransformer.Converters.Rwanda
 
 
                 }
-            
-                for (var i = 0; i < list2.Count - 1; i++)
+
+                for (int i = 0; i < list2.Count - 1; i++)
                 {
                     if (scontentl2 == "")
                     {
                         if ((list2[i].Col0.Trim() != "") && (list2[i].Col0.Trim() != "NET POSITION") && (list2[i].Col0.Trim() != "OPENING POSITION") && (list2[i].Col0.Trim() != "OPENING BALANCE") && (list2[i].Col0.Trim() != "TOTAL P/L"))
-                            scontentl2 += list2[i].Col0.Trim() + "," + list2[i].Col1 + "," + list2[i].Col2 + "," + list2[i].Col3 + "," + list2[i].Col4 + "," + list2[i].Col5 + "," + list2[i].Col6 + "," + list2[i].Col7 + "," + list2[i].Col8 + "," + list2[i].Col9 + "," + list2[i].Col10 + "," + list2[i].Col11 + "," + list2[i].Col12 + "," + list2[i].Col13 + "," + list2[i].Col14 + "," + list2[i].Col15 + "," + list2[i].Col16 + "," + list2[i].Col17 + "," + list2[i].Col18  + Environment.NewLine;
+                            scontentl2 += list2[i].Col0.Trim() + "," + list2[i].Col1 + "," + list2[i].Col2 + "," + list2[i].Col3 + "," + list2[i].Col4 + "," + list2[i].Col5 + "," + list2[i].Col6 + "," + list2[i].Col7 + "," + list2[i].Col8 + "," + list2[i].Col9 + "," + list2[i].Col10 + "," + list2[i].Col11 + "," + list2[i].Col12 + "," + list2[i].Col13 + "," + list2[i].Col14 + "," + list2[i].Col15 + "," + list2[i].Col16 + "," + list2[i].Col17 + "," + list2[i].Col18 + Environment.NewLine;
 
                     }
                     else
                     {
                         if ((list2[i].Col0.Trim() != "") && (list2[i].Col0.Trim() != "NET POSITION") && (list2[i].Col0.Trim() != "OPENING POSITION") && (list2[i].Col0.Trim() != "OPENING BALANCE") && (list2[i].Col0.Trim() != "TOTAL P/L"))
-                            scontentl2 += list2[i].Col0.Trim() + "," + list2[i].Col1 + "," + list2[i].Col2 + "," + list2[i].Col3 + "," + list2[i].Col4 + "," + list2[i].Col5 + "," + list2[i].Col6 + "," + list2[i].Col7 + "," + list2[i].Col8 + "," + list2[i].Col9 + "," + list2[i].Col10 + "," + list2[i].Col11 + "," + list2[i].Col12 + "," + list2[i].Col13 + "," + list2[i].Col14 + "," + list2[i].Col15 + "," + list2[i].Col16 + "," + list2[i].Col17 + "," + list2[i].Col18 +  Environment.NewLine;
+                            scontentl2 += list2[i].Col0.Trim() + "," + list2[i].Col1 + "," + list2[i].Col2 + "," + list2[i].Col3 + "," + list2[i].Col4 + "," + list2[i].Col5 + "," + list2[i].Col6 + "," + list2[i].Col7 + "," + list2[i].Col8 + "," + list2[i].Col9 + "," + list2[i].Col10 + "," + list2[i].Col11 + "," + list2[i].Col12 + "," + list2[i].Col13 + "," + list2[i].Col14 + "," + list2[i].Col15 + "," + list2[i].Col16 + "," + list2[i].Col17 + "," + list2[i].Col18 + Environment.NewLine;
                     }
                 }
 
@@ -115,24 +115,24 @@ namespace SbslFileTransformer.Converters.Rwanda
 
         public static void WriteFile(string path, string content)
         {
-            using (var fs = new FileStream(path, FileMode.OpenOrCreate))
+            using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
             {
-                using (var sw = new StreamWriter(fs))
+                using (StreamWriter sw = new StreamWriter(fs))
                     sw.Write(content);
             }
         }
         private void WriteToFile(List<ExcelCols> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+                CsvConfiguration config = new CsvConfiguration(CultureInfo.InvariantCulture)
                 {
                     Delimiter = "\t"
                 };
 
-                using (var csv = new CsvWriter(writer, config))
+                using (CsvWriter csv = new CsvWriter(writer, config))
                 {
-                    foreach (var row in rows)
+                    foreach (ExcelCols row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();
@@ -161,7 +161,7 @@ namespace SbslFileTransformer.Converters.Rwanda
             public string Col16 { get; set; }
             public string Col17 { get; set; }
 
-            public string Col18{ get; set; }
+            public string Col18 { get; set; }
 
         }
     }

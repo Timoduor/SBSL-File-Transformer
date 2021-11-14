@@ -16,66 +16,66 @@ namespace SbslFileTransformer.Converters.Kenya
 
         public void ConvertFile(string inputFile, string outputFile = null, string entity = "IMKE")
         {
-            var list = new List<ExcelCols>();
+            List<ExcelCols> list = new List<ExcelCols>();
 
-            var lines = File.ReadAllLines(inputFile);
+            string[] lines = File.ReadAllLines(inputFile);
 
-            var previousIs57A_1 = false;
+            bool previousIs57A_1 = false;
 
-            var previousIs57A_2 = false;
+            bool previousIs57A_2 = false;
 
-            var first57AProcessed = false;
+            bool first57AProcessed = false;
 
-            var countHeader = 0;
+            int countHeader = 0;
 
-            var senderA = "Party A - BIC";
+            string senderA = "Party A - BIC";
 
-            var recieverB = "Party B - BIC";
+            string recieverB = "Party B - BIC";
 
-            var newSequence15A = "New Sequence A";
+            string newSequence15A = "New Sequence A";
 
-            var newSequence15B = "New Sequence B";
+            string newSequence15B = "New Sequence B";
 
-            var newSequence15C = "New Sequence C";
+            string newSequence15C = "New Sequence C";
 
-            var senderRef = "Sender Reference";
+            string senderRef = "Sender Reference";
 
-            var relatedRef = "Related Reference";
+            string relatedRef = "Related Reference";
 
-            var typeOperation = "Type of operation";
+            string typeOperation = "Type of operation";
 
-            var commonRef = "Common Reference";
+            string commonRef = "Common Reference";
 
-            var tradeDate = "Trade date";
+            string tradeDate = "Trade date";
 
-            var valueDate = "Value date";
+            string valueDate = "Value date";
 
-            var exchangeRate = "Exchange Rate";
+            string exchangeRate = "Exchange Rate";
 
-            var Amount32 = "Amount";
+            string Amount32 = "Amount";
 
-            var currency32 = "Currency";
+            string currency32 = "Currency";
 
-            var currency33 = "Currency";
+            string currency33 = "Currency";
 
-            var Amount33 = "Amount";
+            string Amount33 = "Amount";
 
-            var recAgent = "Receiving Agent - FI BIC";
+            string recAgent = "Receiving Agent - FI BIC";
 
-            var scopeOfOperation = "Scope Of Operation";
+            string scopeOfOperation = "Scope Of Operation";
 
-            var nonDelivarableOperator = "Non-Deliverable Indicator";
+            string nonDelivarableOperator = "Non-Deliverable Indicator";
 
-            var brokerIdentification = "Broker Identification -Name&Addr";
+            string brokerIdentification = "Broker Identification -Name&Addr";
 
 
-            var row = new ExcelCols();
+            ExcelCols row = new ExcelCols();
 
-            foreach (var line in lines)
+            foreach (string line in lines)
             {
                 if (countHeader == 0)
                 {
-                    var header = new ExcelCols();
+                    ExcelCols header = new ExcelCols();
 
                     header.Col0 = newSequence15A;
 
@@ -124,7 +124,7 @@ namespace SbslFileTransformer.Converters.Kenya
                 else
                 {
                     row.Col20 = Path.GetFileNameWithoutExtension(inputFile);
-                    var value = line.Replace("\n", "");
+                    string value = line.Replace("\n", "");
 
                     if (value.StartsWith(":15A:"))
                     {
@@ -225,7 +225,7 @@ namespace SbslFileTransformer.Converters.Kenya
                     }
                     else if (value.StartsWith(":88D:"))
                     {
-                        row.Col20 = row.Col20 + " " +  value.Split(':')[2].Replace("\n", "");
+                        row.Col20 = row.Col20 + " " + value.Split(':')[2].Replace("\n", "");
                     }
 
 
@@ -249,10 +249,10 @@ namespace SbslFileTransformer.Converters.Kenya
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                 Directory.CreateDirectory(outputFolder);
 
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MT300_{entity}_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
@@ -263,11 +263,11 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    foreach (var row in rows)
+                    foreach (ExcelCols row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

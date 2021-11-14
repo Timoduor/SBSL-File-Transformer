@@ -14,8 +14,8 @@ namespace SbslFileTransformer.Infrastructure.Licensing
             LicenseObjectType = typeof(ETLLicense);
 
             //Read public key from assembly
-            var assembly = Assembly.GetExecutingAssembly();
-            using (var mem = new MemoryStream())
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            using (MemoryStream mem = new MemoryStream())
             {
                 assembly.GetManifestResourceStream("SbslFileTransformer.LicenseVerify.cer")?.CopyTo(mem);
 

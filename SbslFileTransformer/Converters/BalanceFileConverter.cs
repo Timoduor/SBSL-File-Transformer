@@ -6,7 +6,6 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
-using SbslFileTransformer.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -44,28 +43,28 @@ namespace SbslFileTransformer.Converters
 
         public async Task<bool> Execute(string filePath, string functionalArea = "Nostros")
         {
-            using (var scope = ServiceScopeFactory.CreateScope())
+            using (IServiceScope scope = ServiceScopeFactory.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-                var emailSender = scope.ServiceProvider.GetService<EmailSender>();
+                ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                EmailSender emailSender = scope.ServiceProvider.GetService<EmailSender>();
 
-                var configurations = await dbContext.Configurations.ToListAsync();
+                List<Configuration> configurations = await dbContext.Configurations.ToListAsync();
 
                 try
                 {
                     if (string.IsNullOrEmpty(Entity))
                         Entity = "IMKE";
 
-                    var fileDate = DateTime.Now;
+                    DateTime fileDate = DateTime.Now;
 
-                    var lookUp = new Dictionary<string, string>();
+                    Dictionary<string, string> lookUp = new Dictionary<string, string>();
 
-                    var exemptAccs = new List<string>();
+                    List<string> exemptAccs = new List<string>();
 
-                    var existingAccs = configurations.Where(c => c.Key == "GLExemptAccounts")
+                    string[] existingAccs = configurations.Where(c => c.Key == "GLExemptAccounts")
                         .FirstOrDefault()?.Value.Split(",");
 
-                    if(existingAccs != null)
+                    if (existingAccs != null)
                         exemptAccs.AddRange(existingAccs);
 
                     var pairs = dbContext.Accounts.Select(a => new { a.Number, a.Name });
@@ -78,28 +77,28 @@ namespace SbslFileTransformer.Converters
                     if (Path.GetExtension(filePath).ToLower() != ".csv")
                         return false;
 
-                    var output = new StringBuilder();
+                    StringBuilder output = new StringBuilder();
                     //code to convert
-                    using (var reader = new StreamReader(filePath))
+                    using (StreamReader reader = new StreamReader(filePath))
                     {
-                        using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                        using (CsvReader csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                         {
                             while (csv.Read())
                             {
-                                var accNo = csv.GetField(0);
-                                var currency = csv.GetField(1);
-                                var date1 = csv.GetField<DateTime>(2);
-                                var DorC = csv.GetField<int>(3);
-                                var openingBalance = csv.GetField<double>(4);
-                                var date2 = fileDate = csv.GetField<DateTime>(5);
-                                var DorC2 = csv.GetField<int>(6);
-                                var closingBalance = csv.GetField<double>(7);
+                                string accNo = csv.GetField(0);
+                                string currency = csv.GetField(1);
+                                DateTime date1 = csv.GetField<DateTime>(2);
+                                int DorC = csv.GetField<int>(3);
+                                double openingBalance = csv.GetField<double>(4);
+                                DateTime date2 = fileDate = csv.GetField<DateTime>(5);
+                                int DorC2 = csv.GetField<int>(6);
+                                double closingBalance = csv.GetField<double>(7);
 
-                                var multiplyBy = exemptAccs.Contains(accNo) ? 1 : -1;
+                                int multiplyBy = exemptAccs.Contains(accNo) ? 1 : -1;
 
                                 if (filePath.ToLower().Contains("_sus") && Entity == "IMRW") multiplyBy = 1;
 
-                                var toAppend =
+                                string toAppend =
                                     $"{Entity}\t{accNo}\t{functionalArea}\t\t\t\t\t\t\t\t{GetAccountName(accNo, lookUp)}\t{functionalArea}\tA\tAsset\tTRUE\tTRUE\t\t{currency}\t{ContentHelpers.GetLastDayOfTheMonth(date2):MM/dd/yyyy}\t\t\t{multiplyBy * DorC2 * closingBalance}\n";
 
                                 output.Append(toAppend);
@@ -109,7 +108,7 @@ namespace SbslFileTransformer.Converters
                         reader.Close();
                     }
 
-                    var outputPath = GetFileOutputName(filePath, fileDate);
+                    string outputPath = GetFileOutputName(filePath, fileDate);
 
                     if (!File.Exists(outputPath))
                         await File.WriteAllTextAsync(outputPath, output.ToString());
@@ -129,7 +128,7 @@ namespace SbslFileTransformer.Converters
 
         private string GetFileOutputName(string filePath, DateTime fileDate)
         {
-            var outputPath = Path.Combine(Path.GetDirectoryName(filePath),
+            string outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                 $"GLAccounts_{fileDate:yyyyMMdd}_{Entity}.txt");
 
             if (filePath.ToLower().Contains("nostro"))
@@ -181,7 +180,7 @@ namespace SbslFileTransformer.Converters
 
             if (filePath.ToLower().Contains("clearing"))
             {
-                var curr = filePath.ToLower().Contains("lcy") ? "LCY" : "FCY";
+                string curr = filePath.ToLower().Contains("lcy") ? "LCY" : "FCY";
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_CLEAR_{curr}_{Entity}.txt");
             }
@@ -227,7 +226,7 @@ namespace SbslFileTransformer.Converters
 
             if (filePath.ToLower().Contains("treasurybills") || filePath.ToLower().Contains("treasurybonds"))
             {
-                var curr = filePath.ToLower().Contains("bonds") ? "TBonds" : "TBills";
+                string curr = filePath.ToLower().Contains("bonds") ? "TBonds" : "TBills";
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_{curr}_{Entity}.txt");
             }
@@ -274,7 +273,7 @@ namespace SbslFileTransformer.Converters
         {
             try
             {
-                using (var stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None))
+                using (FileStream stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None))
                 {
                     stream.Close();
                 }

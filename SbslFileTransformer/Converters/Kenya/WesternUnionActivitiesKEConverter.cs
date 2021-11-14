@@ -18,38 +18,38 @@ namespace SbslFileTransformer.Converters.Kenya
 
         public void ConvertFile(string inputFile, string outputFile = null)
         {
-            var list = new List<ExcelCols>();
+            List<ExcelCols> list = new List<ExcelCols>();
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateCsvReader(stream,
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateCsvReader(stream,
                     new ExcelReaderConfiguration { AutodetectSeparators = new[] { ',', ';', '\t', '|', '#' } }))
                 {
-                    var countHeader = 0;
+                    int countHeader = 0;
 
-                    var per = 0.2;
+                    double per = 0.2;
 
-                    var excise = "Excise duty";
+                    string excise = "Excise duty";
 
-                    var computedbaseamnt = "Computed Base Amount";
+                    string computedbaseamnt = "Computed Base Amount";
 
-                    var count = 0;
+                    int count = 0;
 
                     while (reader.Read())
                     {
                         count++;
 
-                        var row = new ExcelCols();
+                        ExcelCols row = new ExcelCols();
 
-                        var value = reader.GetValue(0).ToString();
+                        string value = reader.GetValue(0).ToString();
 
-                        var check = reader.GetValue(1)?.ToString().Trim();
+                        string check = reader.GetValue(1)?.ToString().Trim();
 
                         if (string.IsNullOrEmpty(check)) break;
 
                         if (value != "KES" && value != "Code" && list.Count() > 0)
                         {
-                            var last = list.Last();
+                            ExcelCols last = list.Last();
 
                             last.Col3 = reader.GetValue(1)?.ToString().Trim();
 
@@ -81,9 +81,9 @@ namespace SbslFileTransformer.Converters.Kenya
 
                             last.Col17 = reader.GetValue(15)?.ToString();
 
-                            var recamnt = Convert.ToDouble(reader.GetValue(11));
+                            double recamnt = Convert.ToDouble(reader.GetValue(11));
 
-                            var totalchamnt = Convert.ToDouble(reader.GetValue(12));
+                            double totalchamnt = Convert.ToDouble(reader.GetValue(12));
 
                             if (reader.GetValue(4).ToString().Contains("S"))
                                 last.Col19 = (recamnt + totalchamnt + totalchamnt * per).ToString().TrimStart()
@@ -141,9 +141,9 @@ namespace SbslFileTransformer.Converters.Kenya
 
                         try
                         {
-                            var recamnt = Convert.ToDouble(reader.GetValue(13));
+                            double recamnt = Convert.ToDouble(reader.GetValue(13));
 
-                            var totalchamnt = Convert.ToDouble(reader.GetValue(14));
+                            double totalchamnt = Convert.ToDouble(reader.GetValue(14));
 
                             if (reader.GetValue(6).ToString().Contains("S"))
                                 row.Col19 = (recamnt + totalchamnt + totalchamnt * per).ToString().TrimStart()
@@ -160,16 +160,16 @@ namespace SbslFileTransformer.Converters.Kenya
                 }
             }
 
-            var list2 = ProduceSecondList(inputFile).Skip(1).ToList();
+            List<ExcelCols> list2 = ProduceSecondList(inputFile).Skip(1).ToList();
 
-            var list4 = CombineTheTwoLists(list, list2);
+            List<ExcelCols> list4 = CombineTheTwoLists(list, list2);
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                 Directory.CreateDirectory(outputFolder);
 
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm}_WUAKE_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
@@ -180,31 +180,31 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private List<ExcelCols> ProduceSecondList(string inputFile)
         {
-            var list3 = new List<ExcelCols>();
+            List<ExcelCols> list3 = new List<ExcelCols>();
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateCsvReader(stream,
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateCsvReader(stream,
                     new ExcelReaderConfiguration { AutodetectSeparators = new[] { ',', ';', '\t', '|', '#' } }))
                 {
-                    var per = 0.2;
+                    double per = 0.2;
 
                     while (reader.Read())
                     {
-                        var row = new ExcelCols();
+                        ExcelCols row = new ExcelCols();
 
-                        var value1 = reader.GetValue(0).ToString();
+                        string value1 = reader.GetValue(0).ToString();
 
-                        var check = reader.GetValue(1)?.ToString().Trim();
+                        string check = reader.GetValue(1)?.ToString().Trim();
 
                         if (string.IsNullOrEmpty(check)) break;
 
                         //traversing through row 5
                         if (value1 != "KES" && value1 != "Code" && list3.Count() > 0)
                         {
-                            var value3 = reader.GetValue(4)?.ToString();
+                            string value3 = reader.GetValue(4)?.ToString();
 
-                            var last = list3.Last();
+                            ExcelCols last = list3.Last();
 
                             if (value3.Contains("S"))
                                 last.Col6 = "excise duty";
@@ -242,7 +242,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
                             try
                             {
-                                var cost = Convert.ToDouble(last.Col14);
+                                double cost = Convert.ToDouble(last.Col14);
 
                                 last.Col18 = (cost * per).ToString("0.##").TrimStart().TrimEnd();
 
@@ -255,7 +255,7 @@ namespace SbslFileTransformer.Converters.Kenya
                             continue;
                         }
 
-                        var value2 = reader.GetValue(6)?.ToString();
+                        string value2 = reader.GetValue(6)?.ToString();
 
                         if (value2.Contains("S"))
                             row.Col6 = "excise duty";
@@ -301,7 +301,7 @@ namespace SbslFileTransformer.Converters.Kenya
                         //excise duty calculation (0.2% of amount)
                         try
                         {
-                            var cost = Convert.ToDouble(reader.GetValue(14));
+                            double cost = Convert.ToDouble(reader.GetValue(14));
 
                             row.Col18 = (cost * per).ToString("0.##").TrimStart().TrimEnd();
 
@@ -321,7 +321,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private List<ExcelCols> CombineTheTwoLists(List<ExcelCols> list, List<ExcelCols> list2)
         {
-            var combinedList = new List<ExcelCols>();
+            List<ExcelCols> combinedList = new List<ExcelCols>();
 
             combinedList.AddRange(list);
             combinedList.AddRange(list2);
@@ -331,11 +331,11 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    foreach (var row in rows)
+                    foreach (ExcelCols row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

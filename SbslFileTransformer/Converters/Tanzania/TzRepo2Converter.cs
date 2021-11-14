@@ -1,12 +1,7 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using ExcelDataReader;
+﻿using SbslFileTransformer.Infrastructure.Helpers;
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Text;
-using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
@@ -19,17 +14,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         }
         public void ConvertFile(string inputFile, string outputFolder = "")
         {
-            var content = File.ReadAllText(inputFile);
-            var sDet = File.ReadAllLines(inputFile);
+            string content = File.ReadAllText(inputFile);
+            string[] sDet = File.ReadAllLines(inputFile);
             string outputFile = "";
             string Account = "";
             double Amount = 0;
-            var toAppend = "";
+            string toAppend = "";
             DateTime baldate = DateTime.Now;
             string[] sGrp = content.Split("\n");
             if (content.Length != 0)
             {
-                for (var i = 0; i < sGrp.Length - 1; i++)
+                for (int i = 0; i < sGrp.Length - 1; i++)
                 {
                     if (sGrp[i].Split('|')[1].Contains("Customer FX P&L for "))
                     {
@@ -37,7 +32,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         baldate = DateTime.Parse(sGrp[i].Split('|')[1].Replace("Customer FX P&L for ", ""));
                     }
                 }
-                for (var i = 0; i < sGrp.Length - 1; i++)
+                for (int i = 0; i < sGrp.Length - 1; i++)
                 {
                     if (sGrp[i].Split('|')[2].Trim() != "")
                     {
@@ -47,11 +42,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                             Amount = Convert.ToDouble((sGrp[i].Split('|')[4].Trim()));
                             if (toAppend == "")
                             {
-                                toAppend = $"IMTZ\t{Account}\t\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(baldate):MM-dd-yyyy}\t\t\t\t{-1*Amount}\t{sGrp[i].Split('|')[2]}\n";
+                                toAppend = $"IMTZ\t{Account}\t\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(baldate):MM-dd-yyyy}\t\t\t\t{-1 * Amount}\t{sGrp[i].Split('|')[2]}\n";
                             }
                             else
                             {
-                                toAppend += $"IMTZ\t{Account}\t\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(baldate):MM-dd-yyyy}\t\t\t\t{-1*Amount}\t{sGrp[i].Split('|')[2]}\n";
+                                toAppend += $"IMTZ\t{Account}\t\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(baldate):MM-dd-yyyy}\t\t\t\t{-1 * Amount}\t{sGrp[i].Split('|')[2]}\n";
                             }
 
                         }
@@ -67,9 +62,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public static void WriteFile(string path, string content)
         {
-            using (var fs = new FileStream(path, FileMode.OpenOrCreate))
+            using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
             {
-                using (var sw = new StreamWriter(fs))
+                using (StreamWriter sw = new StreamWriter(fs))
                     sw.Write(content);
             }
         }

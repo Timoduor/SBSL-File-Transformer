@@ -1,11 +1,7 @@
-﻿using CsvHelper.Configuration;
-using ExcelDataReader;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Text;
-using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 {
@@ -20,7 +16,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         public void ConvertFile(string inputFile, string rootfolder = "")
         {
             int fieldsExpected = 2;  // I have counted 49 fields per row of the CSV file. You should check this!
-            var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+            string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
             string fileOut = outputFolder + "\\Conv_" + Path.GetFileNameWithoutExtension(inputFile) + ".csv";
             string fileIn = inputFile;
 
@@ -49,11 +45,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     i++;
                     temp += lines[i];
                     fields = temp.Split(',');
-                    if (temp=="")
-                        //if (temp.Contains(",Sno,Card Number,,Card Account, ") && (got_headers != true))
-                       
+                    if (temp == "")
+                    //if (temp.Contains(",Sno,Card Number,,Card Account, ") && (got_headers != true))
+
                     {
-                       
+
                         got_headers = true;
                         newLines.Add(temp);
                         continue;

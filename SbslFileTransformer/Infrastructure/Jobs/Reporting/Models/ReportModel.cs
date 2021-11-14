@@ -18,5 +18,5 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         public ReportCategory Category { get; set; } = ReportCategory.Default;
         public string TempReportPath { get; set; }
         public int[] DaysRange { get; set; }
-     }
+    }
 }

@@ -29,10 +29,10 @@ namespace SbslFileTransformer.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var configurations = await _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Report)
+            System.Collections.Generic.List<Configuration> configurations = await _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Report)
                 .ToListAsync();
 
-            var config = new ReportConfigModel
+            ReportConfigModel config = new ReportConfigModel
             {
                 BaseUrl = configurations.FirstOrDefault(c => c.Key == "BaseUrl")?.Value,
                 EnvironmentUrl = configurations.FirstOrDefault(c => c.Key == "EnvironmentUrl")?.Value,
@@ -56,7 +56,7 @@ namespace SbslFileTransformer.Controllers
 
         public async Task<IActionResult> EmailGroups()
         {
-            var groups = await _dbContext.EmailGroups.ToListAsync();
+            System.Collections.Generic.List<EmailGroup> groups = await _dbContext.EmailGroups.ToListAsync();
 
             return View(groups);
         }
@@ -99,7 +99,7 @@ namespace SbslFileTransformer.Controllers
 
         public async Task<IActionResult> EditGroup(int id)
         {
-            var group = await _dbContext.EmailGroups.FindAsync(id);
+            EmailGroup group = await _dbContext.EmailGroups.FindAsync(id);
 
             ViewBag.Countries = new SelectList(Enum.GetValues(typeof(Country)).Cast<Country>().Select(v =>
                 new SelectListItem
@@ -138,7 +138,7 @@ namespace SbslFileTransformer.Controllers
 
         public async Task<IActionResult> Deactivate(int id, bool active)
         {
-            var group = await _dbContext.EmailGroups.FindAsync(id);
+            EmailGroup group = await _dbContext.EmailGroups.FindAsync(id);
 
             group.IsActive = active;
 
@@ -153,16 +153,16 @@ namespace SbslFileTransformer.Controllers
         {
             try
             {
-                var count = 0;
-                var itemsPerPage = 10;
+                int count = 0;
+                int itemsPerPage = 10;
 
-                var uploadedFiles = _dbContext.ProcessedReports.OrderByDescending(f => f.ProcessedDate)
+                IOrderedEnumerable<ProcessedReport> uploadedFiles = _dbContext.ProcessedReports.OrderByDescending(f => f.ProcessedDate)
                     .Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToList()
                     .OrderByDescending(f => f.ProcessedDate);
 
                 count = await _dbContext.ProcessedReports.CountAsync();
 
-                var pagedList = new StaticPagedList<ProcessedReport>(uploadedFiles, page, itemsPerPage, count);
+                StaticPagedList<ProcessedReport> pagedList = new StaticPagedList<ProcessedReport>(uploadedFiles, page, itemsPerPage, count);
 
                 return View(pagedList);
             }
@@ -177,7 +177,7 @@ namespace SbslFileTransformer.Controllers
         {
             if (!string.IsNullOrEmpty(config.BaseUrl))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Report,
                     Key = "BaseUrl",
@@ -190,7 +190,7 @@ namespace SbslFileTransformer.Controllers
 
             if (!string.IsNullOrEmpty(config.ClientId))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Report,
                     Key = "ClientId",
@@ -203,7 +203,7 @@ namespace SbslFileTransformer.Controllers
 
             if (!string.IsNullOrEmpty(config.ClientSecret))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Report,
                     Key = "ClientSecret",
@@ -216,7 +216,7 @@ namespace SbslFileTransformer.Controllers
 
             if (!string.IsNullOrEmpty(config.EmailBody))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Report,
                     Key = "EmailBody",
@@ -229,7 +229,7 @@ namespace SbslFileTransformer.Controllers
 
             if (!string.IsNullOrEmpty(config.EmailHeader))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Report,
                     Key = "EmailHeader",
@@ -242,7 +242,7 @@ namespace SbslFileTransformer.Controllers
 
             if (!string.IsNullOrEmpty(config.EnvironmentUrl))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Report,
                     Key = "EnvironmentUrl",
@@ -255,7 +255,7 @@ namespace SbslFileTransformer.Controllers
 
             if (!string.IsNullOrEmpty(config.ExportType))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Report,
                     Key = "ExportType",
@@ -268,7 +268,7 @@ namespace SbslFileTransformer.Controllers
 
             if (!string.IsNullOrEmpty(config.Scope))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Report,
                     Key = "Scope",
@@ -281,7 +281,7 @@ namespace SbslFileTransformer.Controllers
 
             if (!string.IsNullOrEmpty(config.TokenUrl))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Report,
                     Key = "TokenUrl",
@@ -294,7 +294,7 @@ namespace SbslFileTransformer.Controllers
 
             if (!string.IsNullOrEmpty(config.UserToken))
             {
-                var configuration = new Configuration
+                Configuration configuration = new Configuration
                 {
                     ConfigType = ConfigurationType.Report,
                     Key = "UserToken",
@@ -308,7 +308,7 @@ namespace SbslFileTransformer.Controllers
 
         private async Task CreateOrUpdate(Configuration config)
         {
-            var existing = await _dbContext.Configurations.FirstOrDefaultAsync(c =>
+            Configuration existing = await _dbContext.Configurations.FirstOrDefaultAsync(c =>
                 c.Key.ToLower() == config.Key.ToLower() && c.ConfigType == config.ConfigType);
 
             if (existing != null)

@@ -16,85 +16,85 @@ namespace SbslFileTransformer.Converters.Kenya
 
         public void ConvertFile(string inputFile, string outputFile = null, string entity = "IMKE")
         {
-            var list = new List<ExcelCols>();
+            List<ExcelCols> list = new List<ExcelCols>();
 
-            var lines = File.ReadAllLines(inputFile);
+            string[] lines = File.ReadAllLines(inputFile);
 
-            var previousIs53A_1 = false;
+            bool previousIs53A_1 = false;
 
-            var previousIs53A_2 = false;
+            bool previousIs53A_2 = false;
 
-            var previousIs57A_1 = false;
+            bool previousIs57A_1 = false;
 
-            var previousIs57A_2 = false;
+            bool previousIs57A_2 = false;
 
-            var first57AProcessed = false;
+            bool first57AProcessed = false;
 
-            var first53AProcessed = false;
+            bool first53AProcessed = false;
 
-            var countHeader = 0;
+            int countHeader = 0;
 
-            var senderA = "Party A - BIC";
+            string senderA = "Party A - BIC";
 
-            var recieverB = "Party B - BIC";
+            string recieverB = "Party B - BIC";
 
-            var newSequence15A = "New Sequence A";
+            string newSequence15A = "New Sequence A";
 
-            var newSequence15B = "New Sequence B";
+            string newSequence15B = "New Sequence B";
 
-            var newSequence15C = "New Sequence C";
+            string newSequence15C = "New Sequence C";
 
-            var newSequence15D = "New Sequence D";
+            string newSequence15D = "New Sequence D";
 
-            var senderRef = "Sender Reference";
+            string senderRef = "Sender Reference";
 
-            var typeOfEvent = "Type Of Event";
+            string typeOfEvent = "Type Of Event";
 
-            var typeOperation = "Type of operation";
+            string typeOperation = "Type of operation";
 
-            var commonRef = "Common Reference";
+            string commonRef = "Common Reference";
 
-            var partysARole = "Partys A role";
+            string partysARole = "Partys A role";
 
-            var tradeDate = "Trade date";
+            string tradeDate = "Trade date";
 
-            var valueDate = "Value date";
+            string valueDate = "Value date";
 
-            var contractNoPartyA = "Contract NO";
+            string contractNoPartyA = "Contract NO";
 
-            var dayCountFraction = "Day Count";
+            string dayCountFraction = "Day Count";
 
-            var currency32 = "Currency";
+            string currency32 = "Currency";
 
-            var principalAmount = "Principal Amount";
+            string principalAmount = "Principal Amount";
 
-            var currency34E = "Currency";
+            string currency34E = "Currency";
 
-            var interestAmt = "Interest Amount";
+            string interestAmt = "Interest Amount";
 
-            var deliveryAgent1 = "Delivery Agent 1 ";
+            string deliveryAgent1 = "Delivery Agent 1 ";
 
-            var recAgent1 = "Receiving Agent 1";
+            string recAgent1 = "Receiving Agent 1";
 
-            var deliveryAgent2 = "Delivery Agent 2 ";
+            string deliveryAgent2 = "Delivery Agent 2 ";
 
-            var recAgent2 = "Receiving Agent 2";
+            string recAgent2 = "Receiving Agent 2";
 
-            var interestRateDueDate = "Interest Date";
+            string interestRateDueDate = "Interest Date";
 
-            var interestRate = "Interest Rate";
+            string interestRate = "Interest Rate";
 
-            var scopeOfOperation = "Scope Of Operation";
+            string scopeOfOperation = "Scope Of Operation";
 
-            var maturityDate = "Maturity Date";
+            string maturityDate = "Maturity Date";
 
-            var row = new ExcelCols();
+            ExcelCols row = new ExcelCols();
 
-            foreach (var line in lines)
+            foreach (string line in lines)
             {
                 if (countHeader == 0)
                 {
-                    var header = new ExcelCols();
+                    ExcelCols header = new ExcelCols();
 
                     header.Col0 = newSequence15A;
 
@@ -155,7 +155,7 @@ namespace SbslFileTransformer.Converters.Kenya
                 else
                 {
                     row.Col26 = Path.GetFileNameWithoutExtension(inputFile);
-                    var value = line.Replace("\n", "");
+                    string value = line.Replace("\n", "");
 
                     if (value.StartsWith(":15A:"))
                     {
@@ -190,14 +190,12 @@ namespace SbslFileTransformer.Converters.Kenya
                     //check change
                     else if (value.StartsWith(":82A:"))
                     {
-                        bool previousIs82A_1 = true;
                         row.Col7 = value.Split(':')[2].Replace("\n", "");
                         continue;
                     }
                     //check change
                     else if (value.StartsWith(":87A:"))
                     {
-                        bool previousIs87A_1 = true;
                         row.Col8 = value.Split(':')[2].Replace("\n", "");
                         continue;
                     }
@@ -331,10 +329,10 @@ namespace SbslFileTransformer.Converters.Kenya
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                 Directory.CreateDirectory(outputFolder);
 
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MT320_{entity}_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
@@ -345,11 +343,11 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    foreach (var row in rows)
+                    foreach (ExcelCols row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

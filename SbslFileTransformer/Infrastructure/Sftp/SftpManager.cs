@@ -23,7 +23,7 @@ namespace SbslFileTransformer.Infrastructure.Sftp
             _logger = logger;
             _dbContext = dbContext;
 
-            var configurations = _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
+            List<Models.Configuration> configurations = _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
 
             _config = new SftpConfig
             {
@@ -57,11 +57,11 @@ namespace SbslFileTransformer.Infrastructure.Sftp
             {
                 try
                 {
-                    var directoryPath = Path.GetDirectoryName(remoteFilePath);
+                    string directoryPath = Path.GetDirectoryName(remoteFilePath);
 
                     CreateAllDirectories(client, directoryPath);
 
-                    using (var s = File.OpenRead(localFilePath))
+                    using (FileStream s = File.OpenRead(localFilePath))
                     {
                         client.UploadFile(s, remoteFilePath, true);
                     }
@@ -85,7 +85,7 @@ namespace SbslFileTransformer.Infrastructure.Sftp
             // Consistent forward slashes
             path = path.Replace(@"\", "/");
 
-            foreach (var dir in path.Split('/'))
+            foreach (string dir in path.Split('/'))
                 // Ignoring leading/ending/multiple slashes
                 if (!string.IsNullOrWhiteSpace(dir))
                 {
@@ -99,12 +99,12 @@ namespace SbslFileTransformer.Infrastructure.Sftp
 
         public void DownloadFile(string remoteFilePath, string localFilePath)
         {
-            using var client = new SftpClient(_config.Host, _config.Port == 0 ? 22 : _config.Port, _config.UserName,
+            using SftpClient client = new SftpClient(_config.Host, _config.Port == 0 ? 22 : _config.Port, _config.UserName,
                 _config.Password);
             try
             {
                 client.Connect();
-                using var s = File.Create(localFilePath);
+                using FileStream s = File.Create(localFilePath);
                 client.DownloadFile(remoteFilePath, s);
                 _logger.LogInformation($"Finished downloading file [{localFilePath}] from [{remoteFilePath}]");
             }
@@ -120,7 +120,7 @@ namespace SbslFileTransformer.Infrastructure.Sftp
 
         public void DeleteFile(string remoteFilePath)
         {
-            using var client = new SftpClient(_config.Host, _config.Port == 0 ? 22 : _config.Port, _config.UserName,
+            using SftpClient client = new SftpClient(_config.Host, _config.Port == 0 ? 22 : _config.Port, _config.UserName,
                 _config.Password);
             try
             {

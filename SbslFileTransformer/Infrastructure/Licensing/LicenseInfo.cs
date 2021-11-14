@@ -23,8 +23,8 @@ namespace SbslFileTransformer.Infrastructure.Licensing
             msg = string.Empty;
 
             //Read public key from assembly
-            var assembly = Assembly.GetExecutingAssembly();
-            using (var mem = new MemoryStream())
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            using (MemoryStream mem = new MemoryStream())
             {
                 assembly.GetManifestResourceStream("SbslFileTransformer.LicenseVerify.cer")?.CopyTo(mem);
 
@@ -33,7 +33,7 @@ namespace SbslFileTransformer.Infrastructure.Licensing
 
             LicenseStatus status;
 
-            var licensePath = Path.Combine(Directory.GetCurrentDirectory(), "license.lic");
+            string licensePath = Path.Combine(Directory.GetCurrentDirectory(), "license.lic");
 
             //Check if the XML license file exists
             if (File.Exists(licensePath))
@@ -59,17 +59,17 @@ namespace SbslFileTransformer.Infrastructure.Licensing
         {
             try
             {
-                var sb = new StringBuilder(512);
+                StringBuilder sb = new StringBuilder(512);
 
-                var typeLic = license.GetType();
-                var props = typeLic.GetProperties();
+                Type typeLic = license.GetType();
+                PropertyInfo[] props = typeLic.GetProperties();
 
                 object _value = null;
-                var formattedValue = string.Empty;
-                foreach (var p in props)
+                string formattedValue = string.Empty;
+                foreach (PropertyInfo p in props)
                     try
                     {
-                        var showAttr =
+                        ShowInLicenseInfoAttribute showAttr =
                             (ShowInLicenseInfoAttribute)Attribute.GetCustomAttribute(p,
                                 typeof(ShowInLicenseInfoAttribute));
                         if (showAttr != null && showAttr.ShowInLicenseInfo)
@@ -104,12 +104,12 @@ namespace SbslFileTransformer.Infrastructure.Licensing
                                         break;
 
                                     case ShowInLicenseInfoAttribute.FormatType.EnumDescription:
-                                        var name = Enum.GetName(p.PropertyType, _value);
+                                        string name = Enum.GetName(p.PropertyType, _value);
                                         if (name != null)
                                         {
-                                            var fi = p.PropertyType.GetField(name);
+                                            FieldInfo fi = p.PropertyType.GetField(name);
 
-                                            var dna = (DescriptionAttribute)Attribute.GetCustomAttribute(fi,
+                                            DescriptionAttribute dna = (DescriptionAttribute)Attribute.GetCustomAttribute(fi,
                                                 typeof(DescriptionAttribute));
 
                                             formattedValue = dna != null ? dna.Description : _value.ToString();

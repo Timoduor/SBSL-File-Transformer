@@ -33,7 +33,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
         protected string Entity { get; set; }
 
-        protected JobManager _jobManager;
+        protected JobDisplayManager _jobManager;
         protected JobStatus CurrentJobStatus;
 
         //this method should be abstract to force the actual specific implementation per job
@@ -60,28 +60,28 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 _logger.LogInformation($"Running {JobName} job");
 
-                var prodFolder = string.Empty;
-                var sbFolder = string.Empty;
+                string prodFolder = string.Empty;
+                string sbFolder = string.Empty;
 
-                using (var scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.ToList();
+                    List<Configuration> configurations = dbContext.Configurations.ToList();
 
                     Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
-                    var options = new EnumerationOptions
+                    EnumerationOptions options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options)
+                    List<string> files = Directory.GetFiles(prodFolder, "*.*", options)
                                     .Where(f => FileExts.Any(e => Path.GetExtension(f).ToLower() == e.ToLower()))
                                     .ToList();
 
-                    foreach (var file in files)
+                    foreach (string file in files)
                     {
                         if (!FilePathCheck(file))
                             return;

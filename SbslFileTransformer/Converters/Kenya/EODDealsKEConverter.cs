@@ -1,11 +1,9 @@
-﻿using CsvHelper;
+﻿using ExcelDataReader;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
+using System.Data;
 using System.IO;
 using System.Text;
-using ExcelDataReader;
-using System.Data;
 
 
 namespace SbslFileTransformer.Converters.Kenya
@@ -19,27 +17,27 @@ namespace SbslFileTransformer.Converters.Kenya
 
         public static void WriteFile(string path, string content)
         {
-            using (var fs = new FileStream(path, FileMode.OpenOrCreate))
+            using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
             {
-                using (var sw = new StreamWriter(fs))
+                using (StreamWriter sw = new StreamWriter(fs))
                     sw.Write(content);
             }
         }
         public void POSTEOD_ConvertFile(string inputFile)
         {
-     
-            var list2 = new List<ExcelCols>();
-            var list3 = new List<ExcelCols>();
-            var list4 = new List<ExcelCols>();
-            var list5 = new List<ExcelCols>();
-            var list6 = new List<ExcelCols>();
-            var list7 = new List<ExcelCols>();
-            var list8 = new List<ExcelCols>();
-            var list9 = new List<ExcelCols>();
-            var list10 = new List<ExcelCols>();
-            var list11 = new List<ExcelCols>();
-            var list12 = new List<ExcelCols>();
-            var list13 = new List<ExcelCols>();
+
+            List<ExcelCols> list2 = new List<ExcelCols>();
+            List<ExcelCols> list3 = new List<ExcelCols>();
+            List<ExcelCols> list4 = new List<ExcelCols>();
+            List<ExcelCols> list5 = new List<ExcelCols>();
+            List<ExcelCols> list6 = new List<ExcelCols>();
+            List<ExcelCols> list7 = new List<ExcelCols>();
+            List<ExcelCols> list8 = new List<ExcelCols>();
+            List<ExcelCols> list9 = new List<ExcelCols>();
+            List<ExcelCols> list10 = new List<ExcelCols>();
+            List<ExcelCols> list11 = new List<ExcelCols>();
+            List<ExcelCols> list12 = new List<ExcelCols>();
+            List<ExcelCols> list13 = new List<ExcelCols>();
 
             string outputFolder = null;
             if (string.IsNullOrEmpty(outputFolder))
@@ -55,22 +53,22 @@ namespace SbslFileTransformer.Converters.Kenya
 
             string scontent = "";
             string scontentl2 = "";
-         
-         
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
-            { 
-                using (var reader = ExcelReaderFactory.CreateReader(stream))
+
+
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            {
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
                 {
-                    var result = reader.AsDataSet();
-                    var tables = result.Tables;
+                    DataSet result = reader.AsDataSet();
+                    DataTableCollection tables = result.Tables;
 
-                    var sheet1 = tables[0];
+                    DataTable sheet1 = tables[0];
 
 
                     foreach (DataRow row in sheet1.Rows)
                     {
-                        var excelCol = new ExcelCols();
+                        ExcelCols excelCol = new ExcelCols();
                         excelCol.Col0 = row[0].ToString();
                         excelCol.Col1 = row[1].ToString();
                         excelCol.Col2 = row[2].ToString();
@@ -99,9 +97,9 @@ namespace SbslFileTransformer.Converters.Kenya
                 }
             }
             //Sheet 1
-            var l = list2;
+            List<ExcelCols> l = list2;
 
-            for (var i = 1; i < list2.Count - 1; i++)
+            for (int i = 1; i < list2.Count - 1; i++)
             {
                 if (list2[i].Col17.Trim() != "Capture Timestamp")
                 {
@@ -137,13 +135,13 @@ namespace SbslFileTransformer.Converters.Kenya
 
             }
 
-            for (var i = 0; i < list2.Count - 1; i++)
+            for (int i = 0; i < list2.Count - 1; i++)
             {
                 if (scontentl2 == "")
                 {
-                   
+
                     scontentl2 += list2[i].Col0.Trim() + "," + list2[i].Col1 + "," + list2[i].Col2 + "," + list2[i].Col13 + "," + list2[i].Col14 + "," + list2[i].Col5 + "," + list2[i].Col6 + "," + list2[i].Col7 + "," + list2[i].Col8 + "," + list2[i].Col9 + "," + list2[i].Col10 + "," + list2[i].Col11 + "," + list2[i].Col12 + "," + list2[i].Col13 + "," + list2[i].Col14 + "," + list2[i].Col15 + "," + list2[i].Col16 + "," + list2[i].Col17 + Environment.NewLine;
-                            
+
 
                 }
                 else

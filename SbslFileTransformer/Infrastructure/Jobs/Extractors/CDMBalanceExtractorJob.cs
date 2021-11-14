@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
@@ -19,7 +18,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
     public class CDMBalanceExtractorJob : ConverterJobBase<CDMBalanceExtractorJob>, IHostedService
     {
         public CDMBalanceExtractorJob(ILogger<CDMBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory,
-            EmailSender emailSender, JobManager jobManager)
+            EmailSender emailSender, JobDisplayManager jobManager)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -49,13 +48,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 _logger.LogInformation("Running CDM Balance Extractor job");
 
-                var prodFolder = string.Empty;
-                var sbFolder = string.Empty;
-                var Entity = string.Empty;
+                string prodFolder = string.Empty;
+                string sbFolder = string.Empty;
+                string Entity = string.Empty;
 
-                using (var scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
                     CurrentJobStatus = _jobManager.GetJobStatus(JobName);
 
@@ -66,7 +65,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         _jobManager.SetJobStatus(JobName, CurrentJobStatus);
                     }
 
-                    var configurations = dbContext.Configurations.ToList();
+                    List<Configuration> configurations = dbContext.Configurations.ToList();
 
                     Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
@@ -74,16 +73,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
-                    var options = new EnumerationOptions
+                    EnumerationOptions options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options)
+                    List<string> files = Directory.GetFiles(prodFolder, "*.*", options)
                         .Where(f => f.ToLower().EndsWith(".csv") || f.ToLower().EndsWith(".xlsx")).ToList();
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f =>
                         f.ToLower().EndsWith(".csv") || f.ToLower().EndsWith(".xlsx")));
 
-                    var mpesaConverter = new CDMBalanceExtractor
+                    CDMBalanceExtractor mpesaConverter = new CDMBalanceExtractor
                     {
                         ServiceScopeFactory = _serviceScopeFactory,
                         Entity = Entity
@@ -91,7 +90,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
-                    var updatedFiles = new List<SftpUploadedFile>();
+                    List<SftpUploadedFile> updatedFiles = new List<SftpUploadedFile>();
 
                     CurrentJobStatus.Status = JobState.Running;
                     _jobManager.SetJobStatus(JobName, CurrentJobStatus);
@@ -99,24 +98,24 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     int count = 0;
                     int total = files.Count;
 
-                    foreach (var file in files)
+                    foreach (string file in files)
                     {
                         if (file.ToLower().Contains("cdm") && file.ToLower().Contains("bal") ||
                             file.ToLower().Contains("cash")
                             && file.ToLower().Contains("deposit") && file.ToLower().Contains("machine") &&
                             file.ToLower().Contains("bal"))
                         {
-                            var fileToProcess = uploadedFiles.FirstOrDefault(f =>
+                            SftpUploadedFile fileToProcess = uploadedFiles.FirstOrDefault(f =>
                                     f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    var isProd = Convert.ToBoolean(
+                                    bool isProd = Convert.ToBoolean(
                                         configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ??
                                         false.ToString());
 
-                                    var rootFolder = isProd ? prodFolder : sbFolder;
+                                    string rootFolder = isProd ? prodFolder : sbFolder;
 
                                     await mpesaConverter.ConvertFile(file, rootFolder, Entity);
                                 }

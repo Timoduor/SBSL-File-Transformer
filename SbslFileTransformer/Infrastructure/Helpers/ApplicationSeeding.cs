@@ -11,7 +11,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
     {
         internal static async Task CreateDatabase(IServiceProvider serviceProvider, ILogger<Startup> logger)
         {
-            var dbContext = serviceProvider.GetRequiredService<ApplicationDbContext>();
+            ApplicationDbContext dbContext = serviceProvider.GetRequiredService<ApplicationDbContext>();
 
             logger.LogInformation("Creating Database tables...");
 

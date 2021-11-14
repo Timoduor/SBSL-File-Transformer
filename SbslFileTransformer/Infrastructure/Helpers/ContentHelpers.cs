@@ -18,12 +18,12 @@ namespace SbslFileTransformer.Infrastructure.Helpers
         public static DateTime GetLastBusinessDayOfMonth(DateTime date)
         {
             //exclude holidays https://stackoverflow.com/questions/273048/how-to-determine-the-last-business-day-in-a-given-month
-            var holidays = new List<DateTime>();
-            var lastBusinessDay = new DateTime();
-            var i = DateTime.DaysInMonth(date.Year, date.Month);
+            List<DateTime> holidays = new List<DateTime>();
+            DateTime lastBusinessDay = new DateTime();
+            int i = DateTime.DaysInMonth(date.Year, date.Month);
             while (i > 0)
             {
-                var dtCurrent = new DateTime(date.Year, date.Month, i);
+                DateTime dtCurrent = new DateTime(date.Year, date.Month, i);
                 if (dtCurrent.DayOfWeek < DayOfWeek.Saturday && dtCurrent.DayOfWeek > DayOfWeek.Sunday)
                 {
                     lastBusinessDay = dtCurrent;
@@ -40,15 +40,15 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
         public static List<AccountsLookup> GetAccountFromCsv(string file)
         {
-            var list = new List<AccountsLookup>();
+            List<AccountsLookup> list = new List<AccountsLookup>();
 
             file = string.IsNullOrEmpty(file) ? @"C:\Users\Yida\Downloads\GL_BANK_LOOKUP.csv" : file;
 
-            using (var reader = new StreamReader(file))
+            using (StreamReader reader = new StreamReader(file))
             {
-                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                using (CsvReader csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                 {
-                    var records = csv.GetRecords<AccountsLookup>();
+                    IEnumerable<AccountsLookup> records = csv.GetRecords<AccountsLookup>();
 
                     list.AddRange(records.ToList());
                 }

@@ -1,13 +1,8 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using ExcelDataReader;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
-using System.Text;
-using SbslFileTransformer.Infrastructure.Helpers; 
 using System.Linq;
+using System.Text;
 
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters
@@ -29,11 +24,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 outputDirectory = Path.GetDirectoryName(inputFile);
             }
             outputDirectory = Path.GetDirectoryName(inputFile) + "\\Conv";
-              outputFile = Path.Combine(outputDirectory, Path.GetFileNameWithoutExtension(inputFile) + ".csv");
+            outputFile = Path.Combine(outputDirectory, Path.GetFileNameWithoutExtension(inputFile) + ".csv");
             if (!Directory.Exists(outputDirectory))
                 Directory.CreateDirectory(outputDirectory);
 
-            var csv = File.ReadLines(filePath) // not AllLines
+            List<string> csv = File.ReadLines(filePath) // not AllLines
               .Select((line, index) => index == 0
                  ? line + "0,00"
                  : line + "0,00")

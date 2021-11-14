@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
@@ -47,15 +46,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 _logger.LogInformation("Running RW ATM Journal Converter Job");
 
-                var prodFolder = string.Empty;
-                var sbFolder = string.Empty;
-                var Entity = string.Empty;
+                string prodFolder = string.Empty;
+                string sbFolder = string.Empty;
+                string Entity = string.Empty;
 
-                using (var scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = await dbContext.Configurations.ToListAsync();
+                    List<Configuration> configurations = await dbContext.Configurations.ToListAsync();
 
                     Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
@@ -63,32 +62,32 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
 
-                    var options = new EnumerationOptions
+                    EnumerationOptions options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".jrn")).ToList();
+                    List<string> files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".jrn")).ToList();
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".jrn")));
 
 
-                    var files_ = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".log")).ToList();
+                    List<string> files_ = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".log")).ToList();
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".log")));
 
-                    var ATMJournalConverter = new RW_ATMJournalConverter();
+                    RW_ATMJournalConverter ATMJournalConverter = new RW_ATMJournalConverter();
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
-                    var updatedFiles = new List<SftpUploadedFile>();
+                    List<SftpUploadedFile> updatedFiles = new List<SftpUploadedFile>();
 
-                    foreach (var file in files)
+                    foreach (string file in files)
                     {
                         //FILE PATH SHOULD HAVE FOLDER NAME MT300 SOMEWHERE IN IT
                         if (file.Contains("ATMs") && file.Contains("E-JRN"))
                         {
-                            var fileToProcess = uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
+                            SftpUploadedFile fileToProcess = uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    ATMJournalConverter.ConvertFile_WinkaATMjrn(file);                                    
+                                    ATMJournalConverter.ConvertFile_WinkaATMjrn(file);
                                 }
                                 catch (Exception ex)
                                 {
@@ -101,17 +100,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                         }
                     }
 
-                    foreach (var file in files_)
+                    foreach (string file in files_)
                     {
                         //FILE PATH SHOULD HAVE FOLDER NAME MT300 SOMEWHERE IN IT
                         if (file.Contains("ATMs") && file.Contains("E-JRN"))
                         {
-                            var fileToProcess = uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
+                            SftpUploadedFile fileToProcess = uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
                                     ATMJournalConverter.ConvertFile_WinkaATMjrn(file);
-                                    
+
                                 }
                                 catch (Exception ex)
                                 {

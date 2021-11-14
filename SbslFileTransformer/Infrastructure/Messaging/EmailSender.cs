@@ -29,14 +29,14 @@ namespace SbslFileTransformer.Infrastructure.Messaging
             try
             {
                 //get values from dbcontext to populate the email configuration
-                using (var scope = serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = serviceScopeFactory.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Email)
+                    List<Configuration> configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Email)
                         .ToList();
 
-                    var useDefaultCreds = Convert.ToBoolean(configurations.FirstOrDefault(c =>
+                    bool useDefaultCreds = Convert.ToBoolean(configurations.FirstOrDefault(c =>
                         c.Key == "UseDefaultCredentials" && c.ConfigType == ConfigurationType.Email)?.Value);
 
                     _emailConfig = new SmtpConfigModel
@@ -71,16 +71,16 @@ namespace SbslFileTransformer.Infrastructure.Messaging
                 recipients =
                     _emailConfig.Recipients.Split(new[] { ',', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 
-            var message = new Message(recipients, subject, content, filePaths);
+            Message message = new Message(recipients, subject, content, filePaths);
 
-            var mimeMessage = CreateEmailMessage(message, isHtml);
+            (MimeMessage, Message) mimeMessage = CreateEmailMessage(message, isHtml);
 
             await Send(mimeMessage);
         }
 
         private (MimeMessage, Message) CreateEmailMessage(Message message, bool isHtml = false)
         {
-            var emailMessage = new MimeMessage();
+            MimeMessage emailMessage = new MimeMessage();
 
             emailMessage.From.Add(new MailboxAddress(_emailConfig.Name, _emailConfig.EmailAddress));
 
@@ -88,7 +88,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
 
             emailMessage.Subject = message.Subject;
 
-            var builder = new BodyBuilder();
+            BodyBuilder builder = new BodyBuilder();
 
             if (isHtml)
                 builder.HtmlBody = message.Content; //html content string
@@ -96,11 +96,11 @@ namespace SbslFileTransformer.Infrastructure.Messaging
                 builder.TextBody = message.Content;
 
             if (message?.FilePaths != null)
-                foreach (var file in message.FilePaths)
+                foreach (string file in message.FilePaths)
                 {
-                    var mediaType = GetMediaType(file);
+                    string mediaType = GetMediaType(file);
 
-                    var contentType = new ContentType(mediaType.Split('/')[0], mediaType.Split('/')[1]);
+                    ContentType contentType = new ContentType(mediaType.Split('/')[0], mediaType.Split('/')[1]);
 
                     builder.Attachments.Add(Path.GetFileName(file), File.OpenRead(file), contentType);
                 }
@@ -113,28 +113,28 @@ namespace SbslFileTransformer.Infrastructure.Messaging
         private async Task Send((MimeMessage, Message) mailMessage)
         {
             if (_emailConfig.UseDefaultCredentials)
-                using (var client = new SmtpClient(_emailConfig.SmtpServer, _emailConfig.Port))
+                using (SmtpClient client = new SmtpClient(_emailConfig.SmtpServer, _emailConfig.Port))
                 {
                     client.UseDefaultCredentials = _emailConfig.UseDefaultCredentials;
                     client.EnableSsl = _emailConfig.UseSsl;
 
-                    var message = new MailMessage
+                    MailMessage message = new MailMessage
                     {
                         From = new MailAddress(_emailConfig.EmailAddress, _emailConfig.Name),
                         Body = mailMessage.Item2.Content,
                         Subject = mailMessage.Item2.Subject
                     };
 
-                    foreach (var email in mailMessage.Item2.To)
+                    foreach (MailboxAddress email in mailMessage.Item2.To)
                         if (!string.IsNullOrEmpty(email.Address))
                             message.To.Add(email.Address);
 
                     if (mailMessage.Item2.FilePaths != null)
-                        foreach (var file in mailMessage.Item2.FilePaths)
+                        foreach (string file in mailMessage.Item2.FilePaths)
                         {
-                            var data = new Attachment(file, MediaTypeNames.Application.Octet);
+                            Attachment data = new Attachment(file, MediaTypeNames.Application.Octet);
 
-                            var disposition = data.ContentDisposition;
+                            System.Net.Mime.ContentDisposition disposition = data.ContentDisposition;
                             disposition.CreationDate = File.GetCreationTime(file);
                             disposition.ModificationDate = File.GetLastWriteTime(file);
                             disposition.ReadDate = File.GetLastAccessTime(file);
@@ -145,7 +145,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
                     client.Send(message);
                 }
             else
-                using (var client = new MailKit.Net.Smtp.SmtpClient())
+                using (MailKit.Net.Smtp.SmtpClient client = new MailKit.Net.Smtp.SmtpClient())
                 {
                     await client.ConnectAsync(_emailConfig.SmtpServer, _emailConfig.Port, _emailConfig.UseSsl);
 
@@ -161,7 +161,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
 
         private static string GetMediaType(string file)
         {
-            var extension = Path.GetExtension(file)?.ToLower();
+            string extension = Path.GetExtension(file)?.ToLower();
 
             string mediaType;
 

@@ -16,7 +16,7 @@ namespace SbslFileTransformer.Converters.Rwanda
 
         public void ConvertFile(string inputFile, string outputFile = null)
         {
-            var list = new List<ExcelCols>();
+            List<ExcelCols> list = new List<ExcelCols>();
             string outputFolder = null;
             if (string.IsNullOrEmpty(outputFolder))
             {
@@ -54,15 +54,15 @@ namespace SbslFileTransformer.Converters.Rwanda
 
             string valueAmnt = "Value";
 
-            var lines = File.ReadAllLines(inputFile);
+            string[] lines = File.ReadAllLines(inputFile);
 
-            foreach (var line in lines)
+            foreach (string line in lines)
             {
-                var row = new ExcelCols();
+                ExcelCols row = new ExcelCols();
 
                 if (countHeader == 0)
                 {
-                    var header = new ExcelCols();
+                    ExcelCols header = new ExcelCols();
 
                     header.Col0 = time;
 
@@ -92,7 +92,7 @@ namespace SbslFileTransformer.Converters.Rwanda
 
                 try
                 {
-                    var value = row.Col0;
+                    string value = row.Col0;
 
                     row.Col0 = line.Split("\t")[0].ToString().Trim();
 
@@ -145,11 +145,11 @@ namespace SbslFileTransformer.Converters.Rwanda
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    foreach (var row in rows)
+                    foreach (ExcelCols row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

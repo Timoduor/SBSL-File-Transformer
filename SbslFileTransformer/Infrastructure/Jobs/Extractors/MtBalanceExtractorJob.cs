@@ -36,18 +36,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
             GetConfiguration(out SftpConfigModel config);
 
-            var loopTime = 7;
+            int loopTime = 7;
 
             if (config.IncludeProduction)
             {
-                var statementFolderProd =
+                string statementFolderProd =
                     Path.Combine(config.ProductionFolder,
                         @$"{config.Entity}\NOSTRO\STATEMENT"); //TODO PUT IN CONFIG OR CHANGE FOR DIFFERENT COUNTRIES
 
                 if (!Directory.Exists(statementFolderProd)) Directory.CreateDirectory(statementFolderProd);
 
                 //sync all folders every hours
-                var timerProduction = new Timer(async state =>
+                Timer timerProduction = new Timer(async state =>
                         await MTFileConverter.RunMTBalanceExtractor(statementFolderProd, config.ProductionFolder,
                             _serviceScopeFactory, _logger)
                     , null, TimeSpan.FromSeconds(new Random().Next(60, 200)), TimeSpan.FromMinutes(loopTime));
@@ -57,13 +57,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
             else //if (config.IncludeSandbox)
             {
-                var statementFolder =
+                string statementFolder =
                     Path.Combine(config.SandboxFolder,
                         @$"{config.Entity}\NOSTRO\STATEMENT"); //TODO PUT IN CONFIG OR CHANGE FOR DIFFERENT COUNTRIES
 
                 if (!Directory.Exists(statementFolder)) Directory.CreateDirectory(statementFolder);
 
-                var timerSandbox = new Timer(async state =>
+                Timer timerSandbox = new Timer(async state =>
                         await MTFileConverter.RunMTBalanceExtractor(statementFolder, config.SandboxFolder,
                             _serviceScopeFactory, _logger)
                     , null, TimeSpan.FromSeconds(new Random().Next(60, 200)), TimeSpan.FromMinutes(loopTime));
@@ -71,7 +71,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                 _timers.Add(timerSandbox);
             }
 
-            var timedValidator = new Timer(
+            Timer timedValidator = new Timer(
                 async state =>
                     await MTFileConverter.RunMtSequenceValidationCheck(_serviceScopeFactory, _logger, _emailSender),
                 null, TimeSpan.FromSeconds(new Random().Next(60, 200)), TimeSpan.FromHours(12)); //TODO
@@ -85,7 +85,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
         {
             _logger.LogInformation("MT Balance Extractor stopped");
 
-            foreach (var timer in _timers)
+            foreach (Timer timer in _timers)
             {
                 timer?.Change(Timeout.Infinite, 0);
                 await timer.DisposeAsync();
@@ -94,13 +94,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
         private void GetConfiguration(out SftpConfigModel config)
         {
-            using (var scope = _serviceScopeFactory.CreateScope())
+            using (IServiceScope scope = _serviceScopeFactory.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
                 dbContext.Database.EnsureCreated();
 
-                var configurations = dbContext.Configurations.Where(c =>
+                List<Configuration> configurations = dbContext.Configurations.Where(c =>
                     c.ConfigType == ConfigurationType.Sftp || c.ConfigType == ConfigurationType.Setting).ToList();
 
                 config = new SftpConfigModel

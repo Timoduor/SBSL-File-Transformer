@@ -34,7 +34,7 @@ namespace SbslFileTransformer.Controllers
         {
             try
             {
-                var file = _fileProvider.GetDirectoryContents("Content").FirstOrDefault(f => f.Name == "eula.docx");
+                IFileInfo file = _fileProvider.GetDirectoryContents("Content").FirstOrDefault(f => f.Name == "eula.docx");
 
                 return File(file.CreateReadStream(),
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.document");

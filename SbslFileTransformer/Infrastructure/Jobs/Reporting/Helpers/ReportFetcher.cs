@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using SbslFileTransformer.Data;
 using SbslFileTransformer.Models;
-using SbslFileTransformer.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,7 +38,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             {
                 KeyValuePair<string, IEnumerable<ReportModel>> userReports = await GetUserRecentReports(userToken);
 
-                var unprocessedReports = userReports.Value.Where(r => !processedReports.Select(p => p.ReportId).Contains(r.ReportId));
+                IEnumerable<ReportModel> unprocessedReports = userReports.Value.Where(r => !processedReports.Select(p => p.ReportId).Contains(r.ReportId));
 
                 allUsersUnprocessedReports.Add(userToken.Key, unprocessedReports);
 
@@ -52,23 +50,23 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             return allUsersUnprocessedReports;
         }
 
-        
+
 
         private async Task<Dictionary<string, string>> GetUserLoginTokens()
         {
             Logger.LogInformation("Fetching User tokens");
 
-            var userTokens = new Dictionary<string, string>();
+            Dictionary<string, string> userTokens = new Dictionary<string, string>();
 
             foreach (KeyValuePair<string, string> user in reportConfiguration.UserNamesAndPasswords)
             {
                 try
                 {
-                    using (var client = new HttpClient())
+                    using (HttpClient client = new HttpClient())
                     {
                         client.Timeout = TimeSpan.FromMinutes(10);
 
-                        var content = new List<KeyValuePair<string, string>>
+                        List<KeyValuePair<string, string>> content = new List<KeyValuePair<string, string>>
                         {
                             new KeyValuePair<string, string>("grant_type", "password"),
                             new KeyValuePair<string, string>("scope", reportConfiguration.Scope),
@@ -78,15 +76,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                             new KeyValuePair<string, string>("client_secret", reportConfiguration.ClientSecret)
                         };
 
-                        var formdata = new FormUrlEncodedContent(content);
+                        FormUrlEncodedContent formdata = new FormUrlEncodedContent(content);
 
-                        var response = await client.PostAsync(reportConfiguration.TokenUrl, formdata);
+                        HttpResponseMessage response = await client.PostAsync(reportConfiguration.TokenUrl, formdata);
 
                         if (response.IsSuccessStatusCode)
                         {
-                            var respContent = await response.Content.ReadAsStringAsync();
+                            string respContent = await response.Content.ReadAsStringAsync();
 
-                            var data = JObject.Parse(respContent);
+                            JObject data = JObject.Parse(respContent);
 
                             userTokens.Add(user.Key, (string)data.SelectToken("access_token"));
                         }
@@ -105,27 +103,27 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
         {
             Logger.LogInformation($"Fetching reports for {userToken.Key}");
 
-            var reportsUrl = @$"https://{reportConfiguration.EnvironmentUrl}.{reportConfiguration.BaseUrl}/queryruns";
+            string reportsUrl = @$"https://{reportConfiguration.EnvironmentUrl}.{reportConfiguration.BaseUrl}/queryruns";
 
-            var reports = new List<ReportModel>();
+            List<ReportModel> reports = new List<ReportModel>();
 
             try
             {
-                using (var client = new HttpClient())
+                using (HttpClient client = new HttpClient())
                 {
                     client.Timeout = TimeSpan.FromMinutes(10);
 
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userToken.Value);
 
-                    var response = await client.GetAsync(reportsUrl);
+                    HttpResponseMessage response = await client.GetAsync(reportsUrl);
 
                     if (response.IsSuccessStatusCode)
                     {
-                        var result = await response.Content.ReadAsStringAsync();
+                        string result = await response.Content.ReadAsStringAsync();
 
                         dynamic data = JArray.Parse(result);
 
-                        foreach (var item in data)
+                        foreach (dynamic item in data)
                             reports.Add(new ReportModel
                             {
                                 Creator = item.creatorFirstAndLastName,

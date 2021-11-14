@@ -15,7 +15,7 @@ namespace SbslFileTransformer.Controllers
     public class TaskController : Controller
     {
         private readonly ApplicationDbContext _dbContext;
-        private ILogger<TaskController> _logger;
+        private readonly ILogger<TaskController> _logger;
 
         public TaskController(ILogger<TaskController> logger, ApplicationDbContext dbContext)
         {
@@ -25,7 +25,7 @@ namespace SbslFileTransformer.Controllers
 
         public IActionResult Index(Guid? pluginId)
         {
-            var plugins = _dbContext.Plugins.ToList();
+            System.Collections.Generic.List<Plugin> plugins = _dbContext.Plugins.ToList();
 
             Plugin selectedPlugin = null;
 
@@ -34,12 +34,12 @@ namespace SbslFileTransformer.Controllers
             else
                 selectedPlugin = plugins.Last();
 
-            var files = Directory.GetFiles(selectedPlugin.InputFolder).ToList();
+            System.Collections.Generic.List<string> files = Directory.GetFiles(selectedPlugin.InputFolder).ToList();
 
-            var taskVM = new TaskViewModel();
+            TaskViewModel taskVM = new TaskViewModel();
             taskVM.Files.AddRange(files.Select(f => new FileInfo(f)));
 
-            foreach (var plugin in plugins)
+            foreach (Plugin plugin in plugins)
             {
                 if (string.IsNullOrEmpty(plugin.InputFolder))
                     continue;

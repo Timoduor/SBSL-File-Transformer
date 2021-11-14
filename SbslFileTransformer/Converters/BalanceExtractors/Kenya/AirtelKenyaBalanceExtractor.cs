@@ -20,9 +20,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         {
             //Replace empties with zeros in columns 5 and 6
 
-            var list = new List<AirtelCols>();
+            List<AirtelCols> list = new List<AirtelCols>();
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
                 IExcelDataReader reader;
 
@@ -40,10 +40,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     {
                         if (reader.GetValue(0)?.ToString().ToLower().Contains("transaction") ?? false) continue;
 
-                        var row = new AirtelCols();
+                        AirtelCols row = new AirtelCols();
 
                         if (DateTime.TryParseExact(reader.GetValue(2)?.ToString(), "dd/MM/yyyy HH:mm",
-                            CultureInfo.InvariantCulture, DateTimeStyles.None, out var resultDate))
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime resultDate))
                             row.ReconDate = resultDate;
                         else
                             continue;
@@ -59,17 +59,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
             if (list.Count > 0)
             {
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
+                string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
-                var outputFile = Path.Combine(outputFolder,
+                string outputFile = Path.Combine(outputFolder,
                     $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_AirtelKE.txt");
 
-                var lastRow = list.OrderByDescending(i => i.ReconDate)
+                AirtelCols lastRow = list.OrderByDescending(i => i.ReconDate)
                     .FirstOrDefault(c => c.ReconDate == list.Max(r => r.ReconDate));
 
-                var toAppend =
+                string toAppend =
                     $"IMKE\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.ReconDate):MM/dd/yyyy}\t\t\t\t{-lastRow.Amount}\tKES\n";
 
                 if (!string.IsNullOrEmpty(toAppend)) File.WriteAllText(outputFile, toAppend);

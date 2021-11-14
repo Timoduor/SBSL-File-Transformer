@@ -28,7 +28,7 @@ namespace SbslFileTransformer.Converters
         public static MTFileValidation ValidateMTFile(string originalFile, ILogger logger)
         {
 
-            var validation = new MTFileValidation
+            MTFileValidation validation = new MTFileValidation
             {
                 Statement = Path.GetFileName(originalFile),
                 Account = string.Empty,
@@ -43,14 +43,14 @@ namespace SbslFileTransformer.Converters
             {
                 lock (_locker)
                 {
-                    var lines = File.ReadAllLines(originalFile);
+                    string[] lines = File.ReadAllLines(originalFile);
 
-                    var pair = lines.FirstOrDefault(l => l.Trim().StartsWith(":28C:"))?.Split(":").Last();
-                    var account = lines.FirstOrDefault(l => l.Trim().StartsWith(":25:"))?.Split(":").Last();
+                    string pair = lines.FirstOrDefault(l => l.Trim().StartsWith(":28C:"))?.Split(":").Last();
+                    string account = lines.FirstOrDefault(l => l.Trim().StartsWith(":25:"))?.Split(":").Last();
 
                     if (pair != null)
                     {
-                        var toRet = pair.Split("/");
+                        string[] toRet = pair.Split("/");
 
                         validation.Statement = Path.GetFileName(originalFile);
                         validation.Account = account;
@@ -75,11 +75,11 @@ namespace SbslFileTransformer.Converters
             {
                 await SemaphoreValidator.WaitAsync();
 
-                using (var scope = serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = serviceScopeFactory.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    var uploadedToday = dbContext.UploadedFiles.Where(u =>
+                    List<Models.SftpUploadedFile> uploadedToday = dbContext.UploadedFiles.Where(u =>
                         u.UploadedDate.Date == DateTime.Now.Date && u.MtAccountNo != null).ToList();
 
                     var dict = uploadedToday.GroupBy(u => u.MtAccountNo)
@@ -87,28 +87,28 @@ namespace SbslFileTransformer.Converters
 
                     //Dictionary<string, string> absent = new Dictionary<string, string>();
 
-                    var absent = new List<MTFileValidation>();
+                    List<MTFileValidation> absent = new List<MTFileValidation>();
 
                     foreach (var stmt in dict)
                     {
-                        var StatementNos = uploadedToday.Where(u => u.MtAccountNo == stmt.Account)
+                        List<string> StatementNos = uploadedToday.Where(u => u.MtAccountNo == stmt.Account)
                             .Select(u => u.MtStatementNo).Distinct().ToList();
 
-                        foreach (var StatementNo in StatementNos)
+                        foreach (string StatementNo in StatementNos)
                         {
-                            var validation = new MTFileValidation
+                            MTFileValidation validation = new MTFileValidation
                             { Account = stmt.Account, Statement = StatementNo, Sequences = new List<string>() };
 
-                            var worked = int.TryParse(stmt.Max, out var result);
+                            bool worked = int.TryParse(stmt.Max, out int result);
 
-                            var present = uploadedToday
+                            List<string> present = uploadedToday
                                 .Where(u => u.MtAccountNo == stmt.Account && u.MtStatementNo == StatementNo)
                                 .Select(u => u.MtSequenceNo).Distinct().ToList();
 
                             if (worked)
-                                for (var i = 1; i <= result; i++)
+                                for (int i = 1; i <= result; i++)
                                 {
-                                    var current = i.ToString().PadLeft(5, '0');
+                                    string current = i.ToString().PadLeft(5, '0');
 
                                     if (!present.Contains(current))
                                         validation.Sequences.Add(i.ToString());
@@ -118,14 +118,14 @@ namespace SbslFileTransformer.Converters
                         }
                     }
 
-                    var message = new StringBuilder();
+                    StringBuilder message = new StringBuilder();
 
-                    var unfinalized = uploadedToday.Where(u => !u.ProcessFor62F).Select(u => u.MtAccountNo).Distinct()
+                    List<string> unfinalized = uploadedToday.Where(u => !u.ProcessFor62F).Select(u => u.MtAccountNo).Distinct()
                         .ToList();
 
                     message.AppendLine();
 
-                    foreach (var acc in unfinalized)
+                    foreach (string acc in unfinalized)
                         if (!uploadedToday.Where(u => u.ProcessFor62F && u.MtAccountNo == acc).Any())
                         {
                             message.AppendLine($"Account No. {acc} is missing Closing Balance Statement file");
@@ -133,11 +133,11 @@ namespace SbslFileTransformer.Converters
                             message.AppendLine();
                         }
 
-                    foreach (var val in absent)
+                    foreach (MTFileValidation val in absent)
                     {
-                        var seqs = "";
+                        string seqs = "";
 
-                        foreach (var seq in val.Sequences)
+                        foreach (string seq in val.Sequences)
                             seqs += seq + ", ";
 
                         message.AppendLine(
@@ -146,12 +146,12 @@ namespace SbslFileTransformer.Converters
                         message.AppendLine();
                     }
 
-                    var configurations = await dbContext.Configurations.ToListAsync();
+                    List<Models.Configuration> configurations = await dbContext.Configurations.ToListAsync();
 
-                    var config = configurations.FirstOrDefault(c =>
+                    Models.Configuration config = configurations.FirstOrDefault(c =>
                         c.ConfigType == ConfigurationType.Email && c.Key == "Recipients");
 
-                    var recipients = config.Value.Split(new[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                    string[] recipients = config.Value.Split(new[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
                     if (!string.IsNullOrEmpty(message.ToString().Trim()))
                         await EmailHelpers.SendEmails(configurations, "Possible Missing Closing Balances & Sequence Numbers",
@@ -172,16 +172,16 @@ namespace SbslFileTransformer.Converters
             IServiceScopeFactory serviceScopeFactory, ILogger logger)
         {
             logger.LogInformation("Running MT Balance file extractor");
-            using (var scope = serviceScopeFactory.CreateScope())
+            using (IServiceScope scope = serviceScopeFactory.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-                var emailSender = scope.ServiceProvider.GetService<EmailSender>();
-                var jobManager = scope.ServiceProvider.GetService<JobManager>();
-                var jobName = nameof(MtBalanceExtractorJob);
+                ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                EmailSender emailSender = scope.ServiceProvider.GetService<EmailSender>();
+                JobDisplayManager jobManager = scope.ServiceProvider.GetService<JobDisplayManager>();
+                string jobName = nameof(MtBalanceExtractorJob);
 
-                var configurations = await dbContext.Configurations.ToListAsync();
+                List<Models.Configuration> configurations = await dbContext.Configurations.ToListAsync();
 
-                var currentJobStatus = jobManager.GetJobStatus(jobName);
+                JobStatus currentJobStatus = jobManager.GetJobStatus(jobName);
 
                 if (currentJobStatus == null)
                 {
@@ -195,19 +195,19 @@ namespace SbslFileTransformer.Converters
                 {
                     await SemaphoreExtractor.WaitAsync();
 
-                    var loc = location.ToString();
-                    
-                    var entity = configurations
+                    string loc = location.ToString();
+
+                    string entity = configurations
                         .FirstOrDefault(f => f.Key == "Entity" && f.ConfigType == ConfigurationType.Setting).Value;
 
-                    var encryptionManager = scope.ServiceProvider.GetService<EncryptionManager>();
+                    EncryptionManager encryptionManager = scope.ServiceProvider.GetService<EncryptionManager>();
 
-                    var notProcessed = dbContext.UploadedFiles.Where(u =>
+                    IQueryable<Models.SftpUploadedFile> notProcessed = dbContext.UploadedFiles.Where(u =>
                         u.ProcessFor62F == false && u.FilePath.ToLower().Contains("statement"));
 
-                    var pathsForNotProcessed = notProcessed.Select(f => f.FilePath).ToList();
+                    List<string> pathsForNotProcessed = notProcessed.Select(f => f.FilePath).ToList();
 
-                    var sftpConfig = new SftpConfig
+                    SftpConfig sftpConfig = new SftpConfig
                     {
                         Host = configurations.FirstOrDefault(c => c.Key == "Host")?.Value,
                         Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port")?.Value),
@@ -218,24 +218,24 @@ namespace SbslFileTransformer.Converters
 
                     if (pathsForNotProcessed.Count() > 0)
                     {
-                        var options = new EnumerationOptions
+                        EnumerationOptions options = new EnumerationOptions
                         {
                             RecurseSubdirectories = true,
                             MatchCasing = MatchCasing.CaseInsensitive
                         };
 
-                        var filesInDirectory = Directory.GetFiles(loc, "*.*", options).ToList();
+                        List<string> filesInDirectory = Directory.GetFiles(loc, "*.*", options).ToList();
 
                         filesInDirectoryToProcess = filesInDirectory
                             .Where(f => pathsForNotProcessed.Any(p => f.ToLower() == p.ToLower()) && f.ToLower().Contains(entity.ToLower()))
                             .OrderBy(f => new FileInfo(f).LastWriteTime).ToList();
 
-                        var multiCurrFile = await ProcessFilesBalance(filesInDirectoryToProcess, sandboxOrProdFolder,
+                        string multiCurrFile = await ProcessFilesBalance(filesInDirectoryToProcess, sandboxOrProdFolder,
                             entity, serviceScopeFactory);
 
                         if (File.Exists(multiCurrFile))
                         {
-                            foreach (var file in notProcessed.OrderBy(f => f.UploadedDate))
+                            foreach (Models.SftpUploadedFile file in notProcessed.OrderBy(f => f.UploadedDate))
                                 if (filesInDirectoryToProcess.Contains(file.FilePath,
                                     StringComparer.OrdinalIgnoreCase))
                                     file.ProcessFor62F = true;
@@ -268,21 +268,21 @@ namespace SbslFileTransformer.Converters
         private static async Task<string> ProcessFilesBalance(List<string> filesToProcess, string sandboxOrProdFolder,
             string entity, IServiceScopeFactory serviceScopeFactory)
         {
-            var outputPath = Path.Combine(sandboxOrProdFolder,
+            string outputPath = Path.Combine(sandboxOrProdFolder,
                 $"MultiCurr_{DateTime.Now:yyyyMMdd_HHmmss}_MT_{entity}.txt");
 
-            var output = new StringBuilder();
-            var balances = new List<Balance>();
+            StringBuilder output = new StringBuilder();
+            List<Balance> balances = new List<Balance>();
 
             //process mt files and return the balance files
-            using (var scope = serviceScopeFactory.CreateScope())
+            using (IServiceScope scope = serviceScopeFactory.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-                var logger = scope.ServiceProvider.GetService<ILogger<MTFileConverter>>();
-                var jobManager = scope.ServiceProvider.GetService<JobManager>();
-                var jobName = nameof(MtBalanceExtractorJob);
+                ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                ILogger<MTFileConverter> logger = scope.ServiceProvider.GetService<ILogger<MTFileConverter>>();
+                JobDisplayManager jobManager = scope.ServiceProvider.GetService<JobDisplayManager>();
+                string jobName = nameof(MtBalanceExtractorJob);
 
-                var currentJobStatus = jobManager.GetJobStatus(jobName);
+                JobStatus currentJobStatus = jobManager.GetJobStatus(jobName);
 
                 if (currentJobStatus == null)
                 {
@@ -297,26 +297,26 @@ namespace SbslFileTransformer.Converters
                 int count = 0;
                 int total = filesToProcess.Count;
 
-                foreach (var file in filesToProcess)
+                foreach (string file in filesToProcess)
                 {
                     try
                     {
-                        var lines = File.ReadAllLines(file);
+                        string[] lines = File.ReadAllLines(file);
 
-                        var bal = lines.FirstOrDefault(l => l.Contains(":62F:"));
+                        string bal = lines.FirstOrDefault(l => l.Contains(":62F:"));
 
                         if (bal == null) continue;
 
-                        var account = lines.FirstOrDefault(l => l.Contains(":25:"))?.Split(":").Last().Trim();
+                        string account = lines.FirstOrDefault(l => l.Contains(":25:"))?.Split(":").Last().Trim();
 
-                        var balParts = bal.Split(":").Last();
+                        string balParts = bal.Split(":").Last();
 
-                        var sign = balParts[0] == 'C' ? 1 : -1;
-                        var date = DateTime.ParseExact(balParts.Substring(1, 6), "yyMMdd", null);
-                        var currency = balParts.Substring(7, 3);
-                        var amount = Convert.ToDouble(balParts.Substring(10).Replace(',', '.'));
+                        int sign = balParts[0] == 'C' ? 1 : -1;
+                        DateTime date = DateTime.ParseExact(balParts.Substring(1, 6), "yyMMdd", null);
+                        string currency = balParts.Substring(7, 3);
+                        double amount = Convert.ToDouble(balParts.Substring(10).Replace(',', '.'));
 
-                        var balance = new Balance
+                        Balance balance = new Balance
                         {
                             Account = account,
                             Date = date,
@@ -337,12 +337,12 @@ namespace SbslFileTransformer.Converters
                     jobManager.SetJobStatus(jobName, currentJobStatus);
                 }
 
-                var maxValues = balances.Where(b =>
+                IEnumerable<Balance> maxValues = balances.Where(b =>
                     b.Date == balances.Where(d => d.Account == b.Account).Max(c => c.Date));
 
-                foreach (var balance in balances)
+                foreach (Balance balance in balances)
                 {
-                    var toAppend =
+                    string toAppend =
                         $"{entity}\t{await GetGLAccountNumber(balance.Account, dbContext)}\tNostros\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(balance.Date):MM/dd/yyyy}\t\t\t\t{balance.Amount}\t{balance.Currency}\n";
 
                     output.Append(toAppend);
@@ -357,7 +357,7 @@ namespace SbslFileTransformer.Converters
 
         private static async Task<string> GetGLAccountNumber(string accNo, ApplicationDbContext dbContext)
         {
-            var account = (await dbContext.Accounts.FirstOrDefaultAsync(a =>
+            string account = (await dbContext.Accounts.FirstOrDefaultAsync(a =>
                 a.Account.ToLower() == accNo.ToLower() || a.Account.ToLower().Contains(accNo.ToLower())))?.Number;
 
             if (!string.IsNullOrEmpty(account))

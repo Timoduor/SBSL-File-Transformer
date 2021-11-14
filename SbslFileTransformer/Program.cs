@@ -76,17 +76,17 @@ namespace SbslFileTransformer
 
         private static void AddLogging()
         {
-            var logsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            string logsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 "SBSL_ETL", "logs");
-            var logPathFiles = Path.Combine(logsFolder, "log_files");
-            var logPathSqlite = Path.Combine(logsFolder, "log_sqlite");
+            string logPathFiles = Path.Combine(logsFolder, "log_files");
+            string logPathSqlite = Path.Combine(logsFolder, "log_sqlite");
 
             Directory.CreateDirectory(logPathFiles);
             Directory.CreateDirectory(logPathSqlite);
 
             try
             {
-                var formatter = new MessageTemplateTextFormatter(
+                MessageTemplateTextFormatter formatter = new MessageTemplateTextFormatter(
                     "${Timestamp} [{Level}] {Message:l}{NewLine:l}{Exception:l}", CultureInfo.CurrentCulture);
 
                 Log.Logger = new LoggerConfiguration()
@@ -117,7 +117,7 @@ namespace SbslFileTransformer
                 File.AppendAllText(Path.Combine(logPathSqlite, "SQLite Problems.txt"),
                     $"Sqlite Log file Delete due to corruption {DateTime.Now:yyyy_MM_dd_HH_mm_ss}\n\n");
                 //restart the service
-                var eventLog = new EventLog
+                EventLog eventLog = new EventLog
                 {
                     Source = "SBSL ETL Service"
                 };

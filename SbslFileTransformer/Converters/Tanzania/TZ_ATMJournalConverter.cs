@@ -28,8 +28,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
             if (sGrp.Length != 0)
             {
-                var ATMflds = new ATMJournal();
-                for (var i = 1; i < sGrp.Length; i++)
+                ATMJournal ATMflds = new ATMJournal();
+                for (int i = 1; i < sGrp.Length; i++)
                 {
                     List<string> lx = GetJournalDetails(sGrp[i].Split("\r\n"));
                     if (lx.Count > 0)
@@ -78,9 +78,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         }
         public static void WriteFile(string path, string content)
         {
-            using (var fs = new FileStream(path, FileMode.OpenOrCreate))
+            using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
             {
-                using (var sw = new StreamWriter(fs))
+                using (StreamWriter sw = new StreamWriter(fs))
                     sw.Write(content);
             }
         }
@@ -93,15 +93,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             bool gotcashtaken = false;
             bool gotRC = false;
             bool gotSEQ = false;
-            bool gotResp = false;
             bool gotATM = false;
             bool gotATHNO = false;
             string currentRESP = "";
             string currentDESC = "";
             string currenAMount = "";
 
-            var l = new List<string>();
-            for (var i = 1; i < d.Length - 1; i++)
+            List<string> l = new List<string>();
+            for (int i = 1; i < d.Length - 1; i++)
             {//
                 if (d[i].Contains("CRD NO:"))
                 {
@@ -186,7 +185,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     if (d[i] != currentDESC && currentDESC != "")
                     {
-                        string sd = "";
                         l.Remove(currentDESC);
                         gotRC = false;
                     }
@@ -202,7 +200,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     if (d[i] != currentDESC && currentDESC != "")
                     {
-                        string sd = "";
                         l.Remove(currentDESC);
                         gotRC = false;
                     }
@@ -218,7 +215,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     if (d[i] != currentDESC && currentDESC != "")
                     {
-                        string sd = "";
                         l.Remove(currentDESC);
                         gotRC = false;
                     }

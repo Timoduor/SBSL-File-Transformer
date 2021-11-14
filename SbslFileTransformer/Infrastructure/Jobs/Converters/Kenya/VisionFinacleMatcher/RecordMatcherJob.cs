@@ -4,7 +4,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters.Kenya;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
@@ -21,7 +20,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
     {
         protected override string JobName { get; set; } = nameof(RecordMatcherJob);
         public RecordMatcherJob(ILogger<RecordMatcherJob> logger, IServiceScopeFactory serviceScopeFactory,
-            EmailSender emailSender, JobManager jobManager)
+            EmailSender emailSender, JobDisplayManager jobManager)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -48,11 +47,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                 _logger.LogInformation("Running Record Matcher Extractor job");
 
-                var prodFolder = string.Empty;
-                var sbFolder = string.Empty;
-                var Entity = string.Empty;
+                string prodFolder = string.Empty;
+                string sbFolder = string.Empty;
+                string Entity = string.Empty;
 
-                using (var scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
                 {
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
@@ -73,7 +72,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
 
-                    var options = new EnumerationOptions
+                    EnumerationOptions options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
                     List<string> files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv"))
@@ -82,7 +81,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     files.AddRange(
                         Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")));
 
-                    var mpesaConverter = new VisionRecordMatcher(dbContext);
+                    VisionRecordMatcher mpesaConverter = new VisionRecordMatcher(dbContext);
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
@@ -99,8 +98,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                         if (file.ToLower().Contains("cards") && file.ToLower().Contains("credit_card")
                             && file.ToLower().Contains("collections_gl") && file.ToLower().Contains("imke"))
                         {
-                            SftpUploadedFile fileToProcess =uploadedFiles.FirstOrDefault(f =>
-                                    f.FilePath.ToLower() == file.ToLower());
+                            SftpUploadedFile fileToProcess = uploadedFiles.FirstOrDefault(f =>
+                                     f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null)// not checked for processed because new records might be added that match
                             {

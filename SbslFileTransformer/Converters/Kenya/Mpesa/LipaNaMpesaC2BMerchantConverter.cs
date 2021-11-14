@@ -13,7 +13,7 @@ namespace SbslFileTransformer.Converters.Kenya
 {
     public class LipaNaMpesaC2BMerchantConverter
     {
-        private string _entity; //might be need for balance files generated later
+        private readonly string _entity; //might be need for balance files generated later
 
         public LipaNaMpesaC2BMerchantConverter(string entity)
         {
@@ -24,11 +24,11 @@ namespace SbslFileTransformer.Converters.Kenya
 
         public void ConvertFile(string inputFile, string rootFolder, string outputFile = null)
         {
-            var list = new List<MPesaCols>();
+            List<MPesaCols> list = new List<MPesaCols>();
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                var reader = ExcelReaderFactory.CreateCsvReader(stream, new ExcelReaderConfiguration
+                IExcelDataReader reader = ExcelReaderFactory.CreateCsvReader(stream, new ExcelReaderConfiguration
                 {
                     AutodetectSeparators = new[] { '\t' }
                 });
@@ -40,10 +40,10 @@ namespace SbslFileTransformer.Converters.Kenya
 
                     while (reader.Read())
                     {
-                        var value = reader.GetValue(0)?.ToString();
+                        string value = reader.GetValue(0)?.ToString();
 
                         if (string.IsNullOrEmpty(value)) continue;
-                        var row = new MPesaCols();
+                        MPesaCols row = new MPesaCols();
 
                         row.Col0 = reader.GetValue(0)?.ToString().Replace("\n", "").Replace("\r", "");
 
@@ -79,17 +79,17 @@ namespace SbslFileTransformer.Converters.Kenya
                     }
                 }
 
-                var maxRecs =
+                IEnumerable<MPesaCols> maxRecs =
                     list.GroupBy(l => l.Col0)
                         .Select(x => x.First()); //last balance record for each short code MIGHT NEED TO SKIP HEADER ROW
             }
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                 Directory.CreateDirectory(outputFolder);
 
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_C2B_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.txt");
@@ -100,14 +100,14 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private void WriteToFile(List<MPesaCols> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture)
+                using (CsvWriter csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture)
                 {
                     Delimiter = "\t"
                 }))
                 {
-                    foreach (var row in rows)
+                    foreach (MPesaCols row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

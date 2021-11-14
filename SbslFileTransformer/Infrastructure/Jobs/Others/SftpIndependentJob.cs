@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Renci.SshNet;
@@ -24,7 +23,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly List<Timer> _timers = new List<Timer>();
 
-        private string JobName = nameof(SftpIndependentJob);
+        private readonly string JobName = nameof(SftpIndependentJob);
         private JobStatus CurrentJobStatus;
 
         public SftpIndependentJob(IServiceScopeFactory serviceScopeFactory, ILogger<SftpIndependentJob> logger)
@@ -41,11 +40,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 _semaphore = new SemaphoreSlim(1, 1);
 
-                GetConfiguration(out SftpConfigModel config, out int prodTimeSpan, out int sbTimeSpan, out JobManager jobManager);
+                GetConfiguration(out SftpConfigModel config, out int prodTimeSpan, out int sbTimeSpan, out JobDisplayManager jobManager);
 
                 if (config.IncludeProduction)
                 {
-                    var timerProd = new Timer(
+                    Timer timerProd = new Timer(
                         async state => await RunFileCheckAndUpload(state, true, config.ProductionFolder, config, jobManager), null,
                         TimeSpan.Zero,
                         TimeSpan.FromMinutes(prodTimeSpan));
@@ -55,7 +54,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 if (config.IncludeSandbox)
                 {
-                    var timerSB = new Timer(
+                    Timer timerSB = new Timer(
                         async state => await RunFileCheckAndUpload(state, false, config.SandboxFolder, config, jobManager), null,
                         TimeSpan.Zero,
                         TimeSpan.FromMinutes(sbTimeSpan));
@@ -77,20 +76,20 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             _logger.LogInformation("SFTP Independent Job stopped");
 
-            foreach (var timer in _timers) await timer.DisposeAsync();
+            foreach (Timer timer in _timers) await timer.DisposeAsync();
         }
 
-        private void GetConfiguration(out SftpConfigModel config, out int prodTimeSpan, out int sbTimeSpan, out JobManager jobManager)
+        private void GetConfiguration(out SftpConfigModel config, out int prodTimeSpan, out int sbTimeSpan, out JobDisplayManager jobManager)
         {
             prodTimeSpan = 10;
             sbTimeSpan = 15;
-            using (var scope = _serviceScopeFactory.CreateScope())
+            using (IServiceScope scope = _serviceScopeFactory.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                jobManager = scope.ServiceProvider.GetService<JobManager>();                
+                jobManager = scope.ServiceProvider.GetService<JobDisplayManager>();
 
-                var configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
+                List<Configuration> configurations = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
                     .ToList();
 
                 config = new SftpConfigModel
@@ -120,7 +119,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         }
 
         private async Task RunFileCheckAndUpload(object state, bool isProduction, string productionOrSandboxFolder,
-            SftpConfigModel config, JobManager jobManager)
+            SftpConfigModel config, JobDisplayManager jobManager)
         {
             bool result;
 
@@ -141,7 +140,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 jobManager.SetJobStatus(nameof(SftpIndependentJob), CurrentJobStatus);
 
-                var path = state?.ToString();
+                string path = state?.ToString();
 
                 ConnectionInfo connectionInfo = string.IsNullOrEmpty(config.Password?.Trim())
                     ? connectionInfo = new ConnectionInfo(config.Host, config.Port, config.UserName,
@@ -151,7 +150,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 if (!string.IsNullOrEmpty(config.KeyFilesPath?.Trim()))
                 {
-                    var keyFiles = Directory.GetFiles(config.KeyFilesPath).Select(f => new PrivateKeyFile(f)).ToArray();
+                    PrivateKeyFile[] keyFiles = Directory.GetFiles(config.KeyFilesPath).Select(f => new PrivateKeyFile(f)).ToArray();
 
                     connectionInfo = new ConnectionInfo(config.Host, config.Port, config.UserName,
                         new PrivateKeyAuthenticationMethod(config.UserName, keyFiles));
@@ -166,14 +165,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 if (string.IsNullOrEmpty(path) || !Directory.Exists(path) || !File.Exists(path))
                 {
                     //do check for all folders/files
-                    var options = new EnumerationOptions
+                    EnumerationOptions options = new EnumerationOptions
                     {
                         MatchCasing = MatchCasing.CaseInsensitive,
                         MatchType = MatchType.Simple,
                         RecurseSubdirectories = true
                     };
 
-                    var files = Directory.GetFiles(productionOrSandboxFolder, "*", options).ToList();
+                    List<string> files = Directory.GetFiles(productionOrSandboxFolder, "*", options).ToList();
 
                     result = await ProcessFileAndUpload(isProduction, productionOrSandboxFolder, files, connectionInfo);
                 }

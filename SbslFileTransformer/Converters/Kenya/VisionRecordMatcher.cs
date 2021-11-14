@@ -13,7 +13,7 @@ namespace SbslFileTransformer.Converters.Kenya
 {
     public class VisionRecordMatcher
     {
-        private ApplicationDbContext _dbContext;
+        private readonly ApplicationDbContext _dbContext;
 
         public VisionRecordMatcher(ApplicationDbContext dbContext)
         {
@@ -23,10 +23,10 @@ namespace SbslFileTransformer.Converters.Kenya
         public async Task MatchFiles(string finacleFile, string outputPath)
         {
             List<FinacleRec> finacleRecords = GetRecordsFromFinacleFile(finacleFile);
-            
+
             IEnumerable<string> finacleRefs = finacleRecords.Select(f => f.ReferenceNumber).Distinct();
 
-            foreach (var finRef in finacleRefs)
+            foreach (string finRef in finacleRefs)
             {
                 IEnumerable<VisionRecord> unmatchedVisionRecords = GetUnmatchedVisionRecords();
                 List<VisionRecord> matchedRecords = new List<VisionRecord>();
@@ -92,11 +92,11 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private void GenerateFileForSelectedRecords(IEnumerable<VisionRecord> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    foreach (var row in rows)
+                    foreach (VisionRecord row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();
@@ -107,9 +107,9 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private List<FinacleRec> GetRecordsFromFinacleFile(string cmsFile)
         {
-            var finacleRecs = new List<FinacleRec>();
+            List<FinacleRec> finacleRecs = new List<FinacleRec>();
 
-            using (var stream = File.Open(cmsFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(cmsFile, FileMode.Open, FileAccess.Read))
             {
                 IExcelDataReader reader;
 
@@ -122,7 +122,7 @@ namespace SbslFileTransformer.Converters.Kenya
                 {
                     while (reader.Read())
                     {
-                        var finacleRec = new FinacleRec();
+                        FinacleRec finacleRec = new FinacleRec();
 
                         finacleRec.AccountNumber = reader.GetString(0);
                         finacleRec.Currency = reader.GetString(1);

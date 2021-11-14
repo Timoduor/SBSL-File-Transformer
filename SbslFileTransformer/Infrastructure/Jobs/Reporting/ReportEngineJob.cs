@@ -18,7 +18,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
     {
         protected override string JobName { get; set; } = nameof(ReportEngineJob);
         public ReportEngineJob(ILogger<ReportEngineJob> logger, EmailSender emailSender,
-            IServiceScopeFactory serviceScopeFactory, JobManager jobManager)
+            IServiceScopeFactory serviceScopeFactory, JobDisplayManager jobManager)
         {
             _logger = logger;
             _emailSender = emailSender;
@@ -46,7 +46,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
                 _logger.LogInformation("Running reporting job...");
 
-                using (var scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
                 {
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
@@ -60,11 +60,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                         CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Starting };
 
                         _jobManager.SetJobStatus(JobName, CurrentJobStatus);
-                    }                    
+                    }
 
                     Dictionary<string, IEnumerable<ReportModel>> unprocessedReports = await FetchReports(dbContext);
 
-                     await ProcessReports(unprocessedReports);
+                    await ProcessReports(unprocessedReports);
                 }
 
                 CurrentJobStatus.Status = JobState.Completed;
@@ -94,7 +94,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                 List<Configuration> userLogins = dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.ReportUser)
                     .ToList();
 
-                var config = new ReportConfigModel
+                ReportConfigModel config = new ReportConfigModel
                 {
                     BaseUrl = reportConfigurations.FirstOrDefault(c => c.Key == "BaseUrl")?.Value,
                     EnvironmentUrl = reportConfigurations.FirstOrDefault(c => c.Key == "EnvironmentUrl")?.Value,
@@ -121,9 +121,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
         private async Task<Dictionary<string, IEnumerable<ReportModel>>> FetchReports(ApplicationDbContext dbContext)
         {
-            var reportFetcher = new ReportFetcher(_logger, _serviceScopeFactory, LoadReportConnectionConfig());
+            ReportFetcher reportFetcher = new ReportFetcher(_logger, _serviceScopeFactory, LoadReportConnectionConfig());
 
-            var processedReports = dbContext.ProcessedReports.ToList();
+            List<ProcessedReport> processedReports = dbContext.ProcessedReports.ToList();
 
             IProgress<int> fetchReportProgress = new Progress<int>(percent =>
             {
@@ -137,7 +137,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
         private async Task ProcessReports(Dictionary<string, IEnumerable<ReportModel>> unprocessedReports)
         {
-            var reportProcessor = new ReportProcessor(_logger, _serviceScopeFactory, LoadReportConnectionConfig());
+            ReportProcessor reportProcessor = new ReportProcessor(_logger, _serviceScopeFactory, LoadReportConnectionConfig());
 
             IProgress<int> processReportProgress = new Progress<int>(percent =>
             {
@@ -149,6 +149,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             await reportProcessor.ProcessReports(unprocessedReports, Entity, processReportProgress);
         }
 
-        
+
     }
 }

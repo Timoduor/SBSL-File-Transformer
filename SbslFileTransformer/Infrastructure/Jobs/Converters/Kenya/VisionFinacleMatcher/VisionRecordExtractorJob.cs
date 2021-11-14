@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
@@ -22,7 +21,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
     {
         protected override string JobName { get; set; } = nameof(VisionRecordExtractorJob);
         public VisionRecordExtractorJob(ILogger<VisionRecordExtractorJob> logger, IServiceScopeFactory serviceScopeFactory,
-            EmailSender emailSender, JobManager jobManager)
+            EmailSender emailSender, JobDisplayManager jobManager)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -49,13 +48,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
 
                 _logger.LogInformation("Running Record Matcher Extractor job");
 
-                var prodFolder = string.Empty;
-                var sbFolder = string.Empty;
-                var Entity = string.Empty;
+                string prodFolder = string.Empty;
+                string sbFolder = string.Empty;
+                string Entity = string.Empty;
 
-                using (var scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
                     CurrentJobStatus = _jobManager.GetJobStatus(JobName);
 
@@ -69,7 +68,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                     CurrentJobStatus.Status = JobState.Running;
                     _jobManager.SetJobStatus(JobName, CurrentJobStatus);
 
-                    var configurations = dbContext.Configurations.ToList();
+                    List<Configuration> configurations = dbContext.Configurations.ToList();
 
                     Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
@@ -77,10 +76,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
 
-                    var options = new EnumerationOptions
+                    EnumerationOptions options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    var files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx") || f.ToLower().EndsWith(".csv"))
+                    List<string> files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".xlsx") || f.ToLower().EndsWith(".csv"))
                        .ToList();
 
                     files.AddRange(
@@ -88,17 +87,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
-                    var updatedFiles = new List<SftpUploadedFile>();
-                    
+                    List<SftpUploadedFile> updatedFiles = new List<SftpUploadedFile>();
+
                     int count = 0;
                     int total = files.Count;
 
-                    foreach (var file in files)
+                    foreach (string file in files)
                     {
                         if (file.ToLower().Contains("cards") && file.ToLower().Contains("credit_card")
                             && file.ToLower().Contains("collections_cms") && file.ToLower().Contains("imke"))
                         {
-                            var fileToProcess =
+                            SftpUploadedFile fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>
                                     f.FilePath.ToLower() == file.ToLower());
 
@@ -106,7 +105,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                             {
                                 try
                                 {
-                                    var records = GetRecordsFromVisionFile(file);
+                                    List<VisionRecord> records = GetRecordsFromVisionFile(file);
 
                                     await InsertRecordsToDb(records, dbContext);
                                 }
@@ -144,9 +143,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            var glCmsRecs = new List<VisionRecord>();
+            List<VisionRecord> glCmsRecs = new List<VisionRecord>();
 
-            using (var stream = File.Open(glFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(glFile, FileMode.Open, FileAccess.Read))
             {
                 IExcelDataReader reader;
 

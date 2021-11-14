@@ -27,9 +27,9 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
         {
             //Replace empties with zeros in columns 5 and 6
 
-            var list = new List<CdmCols>();
+            List<CdmCols> list = new List<CdmCols>();
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
                 IExcelDataReader reader;
 
@@ -45,16 +45,15 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
 
                     while (reader.Read())
                     {
-                        var value = reader.GetValue(0)?.ToString();
+                        string value = reader.GetValue(0)?.ToString();
 
                         if (string.IsNullOrEmpty(value)) continue;
 
-                        var row = new CdmCols();
+                        CdmCols row = new CdmCols();
 
-                        DateTime resultDate;
 
                         if (DateTime.TryParseExact(reader.GetValue(0)?.ToString(), "MM/dd/yyyy",
-                            CultureInfo.InvariantCulture, DateTimeStyles.None, out resultDate))
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime resultDate))
                         {
                             row.ReconDate = resultDate;
                         }
@@ -62,7 +61,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
                         {
                             row.ReconDate = resultDate;
                         }
-                        else if (int.TryParse(reader.GetValue(0)?.ToString(), out var intRes))
+                        else if (int.TryParse(reader.GetValue(0)?.ToString(), out int intRes))
                         {
                             if (intRes.FromExcelSerialDate(out resultDate)) row.ReconDate = resultDate;
                         }
@@ -82,38 +81,38 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
 
             if (list.Count > 0)
             {
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
+                string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
-                var outputFile = Path.Combine(outputFolder,
+                string outputFile = Path.Combine(outputFolder,
                     $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_IMS_{entity}.txt");
 
-                var lookUp = new Dictionary<string, string>();
+                Dictionary<string, string> lookUp = new Dictionary<string, string>();
 
-                using (var scope = ServiceScopeFactory.CreateScope())
+                using (IServiceScope scope = ServiceScopeFactory.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
                     var pairs = dbContext.Accounts.Select(a => new { a.Number, a.Name });
 
                     foreach (var acc in pairs) lookUp.TryAdd(acc.Number, acc.Name);
                 }
 
-                var toAppend = new StringBuilder();
+                StringBuilder toAppend = new StringBuilder();
 
-                foreach (var row in list)
+                foreach (CdmCols row in list)
                 {
                     //var success = long.TryParse(row.Account, out var result);
 
-                    var account = row.Account;
+                    string account = row.Account;
 
                     toAppend.Append(
                         $"{Entity}\t{account}\tIMS\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t\t{row.AmountMC}\tKES\n");
                 }
 
                 //write multicurr file
-                var text = toAppend.ToString();
+                string text = toAppend.ToString();
 
                 if (!string.IsNullOrEmpty(text))
                     await File.WriteAllTextAsync(outputFile, text);
@@ -122,13 +121,13 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
 
         private string GetAccountCurrency(string account)
         {
-            var currency = "KES";
+            string currency = "KES";
 
-            using (var scope = ServiceScopeFactory.CreateScope())
+            using (IServiceScope scope = ServiceScopeFactory.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                var curr = dbContext.Accounts.FirstOrDefault(a => a.Number == account).Currency;
+                string curr = dbContext.Accounts.FirstOrDefault(a => a.Number == account).Currency;
 
                 currency = string.IsNullOrEmpty(curr) ? currency : curr;
             }

@@ -17,9 +17,9 @@ namespace SbslFileTransformer.Infrastructure.Helpers
         /// <returns></returns>
         public static async Task<string> ProcessedExcelUpload(string inputFile, ApplicationDbContext dbContext)
         {
-            var toReturn = new StringBuilder();
+            StringBuilder toReturn = new StringBuilder();
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
                 IExcelDataReader reader;
 
@@ -32,11 +32,11 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                 {
                     while (reader.Read())
                     {
-                        var entity = reader.GetValue(1)?.ToString();
-                        var name = reader.GetValue(2)?.ToString();
-                        var number = reader.GetValue(3)?.ToString();
-                        var account = reader.GetValue(4)?.ToString();
-                        var currency = reader.GetValue(5)?.ToString();
+                        string entity = reader.GetValue(1)?.ToString();
+                        string name = reader.GetValue(2)?.ToString();
+                        string number = reader.GetValue(3)?.ToString();
+                        string account = reader.GetValue(4)?.ToString();
+                        string currency = reader.GetValue(5)?.ToString();
 
                         if (dbContext.Accounts.Any(x => x.Number == number))
                         {

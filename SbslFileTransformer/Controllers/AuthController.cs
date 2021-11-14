@@ -40,7 +40,7 @@ namespace SbslFileTransformer.Controllers
 
             try
             {
-                var user = await _userManager.FindByEmailAsync(model.Username) ??
+                ApplicationUser user = await _userManager.FindByEmailAsync(model.Username) ??
                            await _userManager.FindByNameAsync(model.Username);
 
                 if (user != null)
@@ -59,7 +59,7 @@ namespace SbslFileTransformer.Controllers
                         return View(model);
                     }
 
-                    var result =
+                    Microsoft.AspNetCore.Identity.SignInResult result =
                         await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, false);
 
                     if (result.Succeeded)

@@ -17,20 +17,20 @@ namespace SbslFileTransformer.Converters.CDM
 
         public void ConvertFile(string inputFile, string outputFile = null)
         {
-            var list = new List<CdmColsRwanda>();
+            List<CdmColsRwanda> list = new List<CdmColsRwanda>();
 
-            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (var reader = ExcelReaderFactory.CreateReader(stream))
+                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
                 {
                     while (reader.Read())
                     {
-                        var testValue = reader.GetValue(4)?.ToString();
+                        string testValue = reader.GetValue(4)?.ToString();
 
                         if (string.IsNullOrEmpty(testValue) || testValue.ToLower().Contains("Account".ToLower()))
                             continue;
 
-                        var row = new CdmColsRwanda
+                        CdmColsRwanda row = new CdmColsRwanda
                         {
                             //ID
                             Col2 = reader.GetValue(2)?.ToString(),
@@ -63,10 +63,10 @@ namespace SbslFileTransformer.Converters.CDM
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
                 Directory.CreateDirectory(outputFolder);
 
-                var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{fileName.Substring(Math.Max(0, fileName.Length - 10))}_IMRW.csv");
@@ -77,11 +77,11 @@ namespace SbslFileTransformer.Converters.CDM
 
         private void WriteToFile(List<CdmColsRwanda> rows, string outputFile)
         {
-            using (var writer = new StreamWriter(outputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    foreach (var row in rows)
+                    foreach (CdmColsRwanda row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();
