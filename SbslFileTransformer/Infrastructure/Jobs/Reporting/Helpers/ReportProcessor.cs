@@ -45,9 +45,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 {
                     Logger.LogInformation($"Processing reports for user {reportUser.Key}");
 
-                    foreach (IEnumerable<ReportModel> reports in reportUser.Value.Batch(25))
+                    foreach (IEnumerable<ReportModel> reportBatch in reportUser.Value.Batch(25))
                     {
-                        await ProcessReportBatch(reports, entity, processReportProgress, emailGroups);
+                        try
+                        {
+                            await ProcessReportBatch(reportBatch, entity, processReportProgress, emailGroups);
+                        }
+                        catch(Exception ex)
+                        {
+                            Logger.LogError(ex, $"Error processing report batch for user {reportUser.Key}");
+                        }
                     }
                 }
             }
@@ -62,7 +69,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
             foreach (ReportModel report in reports)
             {
-
                 Logger.LogInformation($"Processing report {report.Name} with ID {report.ReportId}");
 
                 SetReportFilters(report, entity);
@@ -179,7 +185,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             {
                 string[] checkVals = EnumHelpers.GetDescriptors((ReportCategory)val);
 
-                if (checkVals.All(x => report.Name.ToLower().Contains(x.ToLower()))) category = (ReportCategory)val;
+                if (checkVals.All(x => report.Name.ToLower().Contains(x.ToLower())))
+                    category = (ReportCategory)val;
             }
 
             report.Category = category;
