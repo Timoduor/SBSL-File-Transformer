@@ -125,6 +125,12 @@
     <None Update="DLLs\BouncyCastle.Crypto.dll">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
+    <None Update="InstallScripts\Install.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="InstallScripts\Uninstall.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="sbsletl.db">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
