@@ -6,6 +6,9 @@
         Mobile_Banking,
         Suspense,
         ABC,
-        Cards
+        Cards,
+        Finance,
+        MoneyTransfers,
+        BillPayments
     }
 }

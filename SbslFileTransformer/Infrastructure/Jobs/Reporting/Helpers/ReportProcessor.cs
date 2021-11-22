@@ -178,9 +178,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             if (report.Name.ToLower().Contains("suspense")) sprint = Sprint.Suspense;
             //others
             if (report.Name.ToLower().Contains("abc")) sprint = Sprint.ABC;
+            
+            if (entity == "BOAKE")
+            {
+                //finance boa
+                if (report.Name.ToLower().Contains("fin")) sprint = Sprint.Finance;
+                //money transfers boa
+                if (report.Name.ToLower().Contains("mt")) sprint = Sprint.MoneyTransfers;
+                // bill payments boa
+                if (report.Name.ToLower().Contains("bill")) sprint = Sprint.MoneyTransfers;
+            }
 
             //SET CATEGORY
-
             foreach (int val in Enum.GetValues(typeof(ReportCategory)))
             {
                 string[] checkVals = EnumHelpers.GetDescriptors((ReportCategory)val);

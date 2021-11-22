@@ -36,5 +36,13 @@ namespace SbslFileTransformer.Models.Enums
         [Description("IMS")] IMS,
         [Description("Fx,Confirmation,Spot")] FXConfirmationSpot,
         [Description("Fx,Confirmation,Money,Market")] FXConfirmationMoneyMarket,
+        [Description("Bill,Payments")] BillPayments,
+        [Description("Fin,Prepayments")] FinancePrepayments,
+        [Description("Fin,Payables")] FinancePayables,
+        [Description("Mpesa,B2C")] MpesaB2C,
+        [Description("Airtel,B2C")] AirtelB2C,
+        [Description("Airtel,C2B")] AirtelC2B,
+        [Description("MT,Western,Union")] MoneyTransfersWesternUnion,
+        [Description("MT,MoneyGram")] MoneyTransfersMoneyGram
     }
 }
