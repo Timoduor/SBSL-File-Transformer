@@ -92,14 +92,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
         {
             ReportSender reportSender = new ReportSender(Logger, ServiceScopeFactory, ReportConfigModel);
 
-            await reportSender.SendAndSaveReports(processedReports, processReportProgress);
+            await reportSender.SendAndSaveReportsToDb(processedReports, processReportProgress);
         }
 
         private async Task<bool> DownloadAndSaveReport(ReportModel report)
         {
             Logger.LogInformation($"Downloading report ID: {report.ReportId} Title: {report.Name}");
 
-            report.TempReportPath = Path.Combine(await FileHelpers.GetTempPath(ServiceScopeFactory),
+            string tempFolder = Path.Combine(await FileHelpers.GetTempPath(ServiceScopeFactory), "Reports");
+
+            Directory.CreateDirectory(tempFolder);
+
+            report.TempReportPath = Path.Combine(tempFolder,
                                 $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{report.Name}." +
                                 (ReportConfigModel.ExportType == "Excel" ? "xlsx" : ReportConfigModel.ExportType));
 

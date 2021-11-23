@@ -27,7 +27,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             reportConfiguration = reportConfig;
         }
 
-        public async Task SendAndSaveReports(List<(ReportModel, Dictionary<int, string>)> newlyProcessedReports, IProgress<int> sendReportProgress)
+        public async Task SendAndSaveReportsToDb(List<(ReportModel, Dictionary<int, string>)> newlyProcessedReports, IProgress<int> sendReportProgress)
         {
             using (IServiceScope scope = serviceScopeFactory.CreateScope())
             {
