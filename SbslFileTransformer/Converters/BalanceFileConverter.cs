@@ -128,8 +128,10 @@ namespace SbslFileTransformer.Converters
 
         private string GetFileOutputName(string filePath, DateTime fileDate)
         {
+            string subFileName = Path.GetFileName(filePath).Substring(0, 10);
+
             string outputPath = Path.Combine(Path.GetDirectoryName(filePath),
-                $"GLAccounts_{fileDate:yyyyMMdd}_{Entity}.txt");
+                $"GLAccounts_{fileDate:yyyyMMdd}_{subFileName}_{Entity}.txt");
 
             if (filePath.ToLower().Contains("nostro"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
