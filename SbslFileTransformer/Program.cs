@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Threading;
 
 namespace SbslFileTransformer
 {
@@ -108,13 +109,14 @@ namespace SbslFileTransformer
             }
             catch (Exception ex)
             {
+                Thread.Sleep(1000);                
                 Directory.CreateDirectory(Path.Combine(logPathSqlite, "Old"));
                 //move corrupt sqlite log file to old files
                 File.Move(Path.Combine(logPathSqlite, "sbsletl_logs.db"),
                     Path.Combine(logPathSqlite, "Old",
                         $"sbsletl_logs_{DateTime.Now:yyyy_MM_dd_HH_mm_ss}.db"));
                 //log the incident
-                File.AppendAllText(Path.Combine(logPathSqlite, "SQLite Problems.txt"),
+                File.AppendAllText(Path.Combine(logPathSqlite, "SQLite_Problems.txt"),
                     $"Sqlite Log file Delete due to corruption {DateTime.Now:yyyy_MM_dd_HH_mm_ss}\n\n");
                 //restart the service
                 EventLog eventLog = new EventLog

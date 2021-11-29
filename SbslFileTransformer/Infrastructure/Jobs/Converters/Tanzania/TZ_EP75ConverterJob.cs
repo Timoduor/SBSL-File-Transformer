@@ -79,7 +79,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     foreach (string file in files)
                     {
-                        if (file.ToLower().Contains("ep75") && file.ToLower().Contains("imtz") &&
+                        if (file.ToLower().Contains("ep745") && file.ToLower().Contains("imtz") &&
                             file.ToLower().Contains("cards"))
                         {
                             SftpUploadedFile fileToProcess =
