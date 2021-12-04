@@ -31,7 +31,7 @@ namespace SbslFileTransformer.Controllers
 
         public async Task<IActionResult> Index()
         {
-            System.Collections.Generic.List<Configuration> configs = await _dbContext.Configurations.Where(c => c.Key != "Password").OrderBy(c => c.ConfigType)
+            System.Collections.Generic.List<Configuration> configs = await _dbContext.Configurations.Where(c => c.Key != "Password").OrderBy(c => c.ConfigType).OrderBy(c => c.ConfigType)
                 .ToListAsync();
 
             ViewBag.ServiceName = configs

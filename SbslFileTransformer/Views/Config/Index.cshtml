@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Configuration>
+﻿@model List<Configuration>
 
 @{
     ViewData["Title"] = "Configurations";
@@ -55,25 +55,32 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in Model)
+                    <tr><td><b>@Model[0].ConfigType.ToString().ToUpper()</b></td></tr>
+                    <tr><td><hr/></td></tr>
+                    @for (int i = 0; i < Model.Count(); i++)
                     {
                         <tr>
                             <td>
-                                @Html.DisplayFor(modelItem => item.ConfigType)
+                                @Html.DisplayFor(modelItem => Model[i].ConfigType)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.Key)
+                                @Html.DisplayFor(modelItem => Model[i].Key)
                             </td>
                             <td style="word-wrap: break-word; max-width: 550px">
-                                @Html.DisplayFor(modelItem => item.Value)
+                                @Html.DisplayFor(modelItem => Model[i].Value)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.Updated)
+                                @Html.DisplayFor(modelItem => Model[i].Updated)
                             </td>
                             <td>
-                                <a class="btn btn-primary btn-sm" asp-controller="Config" asp-action="Update" asp-route-key="@item.Key" asp-route-configType="@((int) item.ConfigType)">Edit</a>
+                                <a class="btn btn-primary btn-sm" asp-controller="Config" asp-action="Update" asp-route-key="@Model[i].Key" asp-route-configType="@((int) Model[i].ConfigType)">Edit</a>
                             </td>
                         </tr>
+                        if((i + 1) < Model.Count() && Model[i+1].ConfigType != Model[i].ConfigType)
+                        {
+                            <tr><td><hr/></td></tr>
+                            <tr><td><b>@Model[i+1].ConfigType.ToString().ToUpper()</b></td></tr>
+                        }
                     }
                 </tbody>
             </table>
