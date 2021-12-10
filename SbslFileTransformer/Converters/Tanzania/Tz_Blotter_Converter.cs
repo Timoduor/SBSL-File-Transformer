@@ -56,19 +56,19 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     DataSet result = reader.AsDataSet();
                     DataTableCollection tables = result.Tables;
 
-                    DataTable sheet1 = tables[0];
-                    DataTable sheet2 = tables[1];
-                    DataTable sheet3 = tables[2];
-                    DataTable sheet4 = tables[3];
-                    DataTable sheet5 = tables[4];
-                    DataTable sheet6 = tables[5];
-                    DataTable sheet7 = tables[6];
-                    DataTable sheet8 = tables[7];
-                    DataTable sheet9 = tables[8];
-                    DataTable sheet10 = tables[9];
-                    DataTable sheet11 = tables[10];
-                    DataTable sheet12 = tables[11];
-                    DataTable sheet13 = tables[12];
+                    DataTable sheet1 = tables["POSITION"];
+                    DataTable sheet2 = tables["$TZS-INTERBANK"];
+                    DataTable sheet3 = tables["$TZS-CORP"];
+                    DataTable sheet4 = tables["INRTZS"];
+                    DataTable sheet5 = tables["GBPTZS"];
+                    DataTable sheet6 = tables["EURTZS"];
+                    DataTable sheet7 = tables["KESTZS"];
+                    DataTable sheet8 = tables["ZARTZS"];
+                    DataTable sheet9 = tables["CADTZS"];
+                    DataTable sheet10 = tables["RWFTZS"];
+                    DataTable sheet11 = tables["CHFTZS"];
+                    DataTable sheet12 = tables["JPYTZS"];
+                    DataTable sheet13 = tables["MURTZS"];
 
                     foreach (DataRow row in sheet2.Rows)
                     {
@@ -458,21 +458,30 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 }
 
             }
-            //Sheet 5
-            for (int i = 3; i < list5.Count - 1; i++)
-            {
-                if (scontentl5 == "")
-                {
-                    if (list5[i].Col1.Trim() != "" && (list5[i].Col0.Trim() != "NET POSITION") && (list5[i].Col0.Trim() != "OPENING POSITION") && (list5[i].Col0.Trim() != "OPENING BALANCE") && (list6[i].Col0.Trim() != "TOTAL P/L") && (list5[i].Col0.Trim() != "TOTAL P&L") && (list5[i].Col0.Trim() != "O/N LIMIT IN GBP") && (list5[i].Col0.Trim() != "D/L LIMIT IN GBP") && (list5[i].Col0.Trim() != "CUST P&L") && (list5[i].Col0.Trim() != "INTERBANK P&L") && (list5[i].Col0.Trim() != "CUST P&L (BEFORE REVAL)"))
-                        scontentl5 += list5[i].Col0.Trim() + "," + list5[i].Col1 + "," + list5[i].Col2 + "," + list5[i].Col3 + "," + list5[i].Col4 + "," + list5[i].Col5 + "," + list5[i].Col6 + "," + list5[i].Col7 + "," + list5[i].Col8 + "," + list5[i].Col9 + "," + list5[i].Col10 + "," + list5[i].Col11 + "," + list5[i].Col12 + "," + list5[i].Col13 + "," + list5[i].Col14 + "," + list5[i].Col15 + "," + list5[i].Col16 + "," + list5[i].Col17 + "," + list5[i].Col18 + "," + list5[i].Col19 + "," + list5[i].Col20 + Environment.NewLine;
 
-                }
-                else
+            try
+            {
+                //Sheet 5
+                for (int i = 3; i < list5.Count - 1; i++)
                 {
-                    if (list5[i].Col0.Trim() != "" && (list5[i].Col0.Trim() != "NET POSITION") && (list5[i].Col0.Trim() != "OPENING POSITION") && (list5[i].Col0.Trim() != "OPENING BALANCE") && (list6[i].Col0.Trim() != "TOTAL P/L") && (list5[i].Col0.Trim() != "TOTAL P&L") && (list5[i].Col0.Trim() != "O/N LIMIT IN GBP") && (list5[i].Col0.Trim() != "D/L LIMIT IN GBP") && (list5[i].Col0.Trim() != "CUST P&L") && (list5[i].Col0.Trim() != "INTERBANK P&L") && (list5[i].Col0.Trim() != "CUST P&L (BEFORE REVAL)"))
-                        scontentl5 += list5[i].Col0.Trim() + "," + list5[i].Col1 + "," + list5[i].Col2 + "," + list5[i].Col3 + "," + list5[i].Col4 + "," + list5[i].Col5 + "," + list5[i].Col6 + "," + list5[i].Col7 + "," + list5[i].Col8 + "," + list5[i].Col9 + "," + list5[i].Col10 + "," + list5[i].Col11 + "," + list5[i].Col12 + "," + list5[i].Col13 + "," + list5[i].Col14 + "," + list5[i].Col15 + "," + list5[i].Col16 + "," + list5[i].Col17 + "," + list5[i].Col18 + "," + list5[i].Col19 + "," + list5[i].Col20 + Environment.NewLine;
+                    if (scontentl5 == "")
+                    {
+                        if (list5[i].Col1.Trim() != "" && (list5[i].Col0.Trim() != "NET POSITION") && (list5[i].Col0.Trim() != "OPENING POSITION") && (list5[i].Col0.Trim() != "OPENING BALANCE") && (list6[i].Col0.Trim() != "TOTAL P/L") && (list5[i].Col0.Trim() != "TOTAL P&L") && (list5[i].Col0.Trim() != "O/N LIMIT IN GBP") && (list5[i].Col0.Trim() != "D/L LIMIT IN GBP") && (list5[i].Col0.Trim() != "CUST P&L") && (list5[i].Col0.Trim() != "INTERBANK P&L") && (list5[i].Col0.Trim() != "CUST P&L (BEFORE REVAL)"))
+                            scontentl5 += list5[i].Col0.Trim() + "," + list5[i].Col1 + "," + list5[i].Col2 + "," + list5[i].Col3 + "," + list5[i].Col4 + "," + list5[i].Col5 + "," + list5[i].Col6 + "," + list5[i].Col7 + "," + list5[i].Col8 + "," + list5[i].Col9 + "," + list5[i].Col10 + "," + list5[i].Col11 + "," + list5[i].Col12 + "," + list5[i].Col13 + "," + list5[i].Col14 + "," + list5[i].Col15 + "," + list5[i].Col16 + "," + list5[i].Col17 + "," + list5[i].Col18 + "," + list5[i].Col19 + "," + list5[i].Col20 + Environment.NewLine;
+
+                    }
+                    else
+                    {
+                        if (list5[i].Col0.Trim() != "" && (list5[i].Col0.Trim() != "NET POSITION") && (list5[i].Col0.Trim() != "OPENING POSITION") && (list5[i].Col0.Trim() != "OPENING BALANCE") && (list6[i].Col0.Trim() != "TOTAL P/L") && (list5[i].Col0.Trim() != "TOTAL P&L") && (list5[i].Col0.Trim() != "O/N LIMIT IN GBP") && (list5[i].Col0.Trim() != "D/L LIMIT IN GBP") && (list5[i].Col0.Trim() != "CUST P&L") && (list5[i].Col0.Trim() != "INTERBANK P&L") && (list5[i].Col0.Trim() != "CUST P&L (BEFORE REVAL)"))
+                            scontentl5 += list5[i].Col0.Trim() + "," + list5[i].Col1 + "," + list5[i].Col2 + "," + list5[i].Col3 + "," + list5[i].Col4 + "," + list5[i].Col5 + "," + list5[i].Col6 + "," + list5[i].Col7 + "," + list5[i].Col8 + "," + list5[i].Col9 + "," + list5[i].Col10 + "," + list5[i].Col11 + "," + list5[i].Col12 + "," + list5[i].Col13 + "," + list5[i].Col14 + "," + list5[i].Col15 + "," + list5[i].Col16 + "," + list5[i].Col17 + "," + list5[i].Col18 + "," + list5[i].Col19 + "," + list5[i].Col20 + Environment.NewLine;
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                string err = ex.Message;
+            }
+           
             //Sheet 6
             for (int i = 3; i < list6.Count - 1; i++)
             {
