@@ -27,7 +27,7 @@ namespace SbslFileTransformer.Controllers
         // GET: AccountsLookupController
         public ActionResult Index()
         {
-            DbSet<AccountsLookup> accounts = _dbContext.Accounts;
+            IEnumerable<AccountsLookup> accounts = _dbContext.Accounts.OrderBy(a => a.Entity).ThenBy(a => a.Number);
 
             return View(accounts);
         }

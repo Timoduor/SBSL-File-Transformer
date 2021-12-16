@@ -162,6 +162,7 @@ namespace SbslFileTransformer
             //special scenario jobs
             services.AddHostedService<RecordMatcherJob>();
             services.AddHostedService<VisionRecordExtractorJob>();
+            services.AddHostedService<MultiCurrBalanceExtractorJob>();
 
 
             services.AddHostedService<FileNetworkCopyJob>();
