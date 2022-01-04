@@ -158,6 +158,7 @@ namespace SbslFileTransformer
             services.AddHostedService<FxPosGLBalJob>();
             services.AddHostedService<TZRepo2_ConverterJob>();
             services.AddHostedService<RW_notonusposvisa_Job>();
+            services.AddHostedService<PesaLinkGl2ConverterJob>();
 
             //special scenario jobs
             services.AddHostedService<RecordMatcherJob>();
