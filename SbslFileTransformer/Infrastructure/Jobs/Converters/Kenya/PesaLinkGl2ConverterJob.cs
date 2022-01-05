@@ -29,7 +29,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting Omni Lookup Converter Job");
+            _logger.LogInformation("Starting PesaLink GL2 Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
@@ -80,15 +80,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                     foreach (string file in files)
                     {
-                        if (file.ToLower().Contains("pesalink_gl") &&
-                            !file.ToLower().Contains("conv")
-                            && file.ToLower().Contains("imke"))
+                        if (file.ToLower().Contains("pesalink_gl") && file.ToLower().Contains("imke") &&
+                            !file.ToLower().Contains("conv"))
                         {
                             SftpUploadedFile fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>
                                     f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
+                            {
                                 try
                                 {
                                     mpesaConverter.ConvertFile(file);
@@ -99,8 +99,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(OmniLookupConverter));
+                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(PesaLinkGl2ConverterJob));
                                 }
+                            }
                         }
                     }
                     await SaveProcessedFilesStatuses(dbContext, updatedFiles);
