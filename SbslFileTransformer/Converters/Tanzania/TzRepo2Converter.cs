@@ -54,7 +54,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                 }
 
-                outputFile = Path.Combine(outputFolder, $"MultiCur_{baldate:yyyyMMdd}_{"Repo2_IMTZ"}.txt");
+                outputFile = Path.Combine(outputFolder, $"MultiCurr_{baldate:yyyyMMdd}_{"Repo2_IMTZ"}.txt");
 
                 WriteFile(outputFile, toAppend);
             }
