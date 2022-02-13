@@ -44,9 +44,12 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 double finacleDiff = finacleSumCredits - finacleSumDebits;
 
-                IEnumerable<VisionRecord> matchedRecs = unmatchedVisionRecords.Where(v => v.ReferenceNumber == finRef);
+                List<VisionRecord> matchedRecs = unmatchedVisionRecords.Where(v => v.ReferenceNumber == finRef).ToList();
 
-                double visionDiff = matchedRecs.Sum(v => v.CreditAmount - v.DebitAmount);
+                double visionCredits = matchedRecs.Sum(v => v.CreditAmount);
+                double visionDebits = matchedRecs.Sum(v => v.DebitAmount);
+
+                double visionDiff = visionCredits - visionDebits;
 
                 if (Math.Abs(Math.Round(finacleDiff, 2)) == Math.Abs(Math.Round(visionDiff, 2)) && matchedRecs.Count() > 0)
                 {
@@ -85,7 +88,7 @@ namespace SbslFileTransformer.Converters.Kenya
             GenerateFileForSelectedRecords(matchedRecs, outputFile);
         }
 
-        private IEnumerable<VisionRecord> GetUnmatchedVisionRecords()
+        private List<VisionRecord> GetUnmatchedVisionRecords()
         {
             return _dbContext.VisionRecords.Where(v => v.Matched == false).ToList();
         }
