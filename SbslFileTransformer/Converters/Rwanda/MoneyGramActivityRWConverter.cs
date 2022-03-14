@@ -1,13 +1,13 @@
-﻿using CsvHelper;
-using ExcelDataReader;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
+using Microsoft.Extensions.Logging;
 
-namespace SbslFileTransformer.Converters.Kenya
+namespace SbslFileTransformer.Converters.Rwanda
 {
     public class MoneyGramActivityRWConverter
     {
@@ -22,11 +22,11 @@ namespace SbslFileTransformer.Converters.Kenya
 
         public void ConvertFile(string inputFile, string outputFile = null)
         {
-            List<ExcelCols> list = new List<ExcelCols>();
+            var list = new List<ExcelCols>();
 
-            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
+                using (var reader = ExcelReaderFactory.CreateReader(stream))
                 {
                     int countHeader = 0;
 
@@ -68,13 +68,13 @@ namespace SbslFileTransformer.Converters.Kenya
                     {
                         count++;
 
-                        ExcelCols row = new ExcelCols();
+                        var row = new ExcelCols();
 
                         //settelement currency
-                        string value = reader.GetValue(1)?.ToString();
+                        var value = reader.GetValue(1)?.ToString();
 
                         //transaction currency
-                        string valueTran = reader.GetValue(10)?.ToString();
+                        var valueTran = reader.GetValue(10)?.ToString();
 
                         if (string.IsNullOrEmpty(value))
                         {
@@ -171,6 +171,7 @@ namespace SbslFileTransformer.Converters.Kenya
                         {
                             double baseamnt = Convert.ToDouble(reader.GetValue(25));
                             double feeamnt = Convert.ToDouble(reader.GetValue(26));
+                            double comm = Convert.ToDouble(row.Col15);
 
                             if (reader.GetValue(12) != null && reader.GetValue(12).ToString() == "SEN")
                             {
@@ -197,7 +198,8 @@ namespace SbslFileTransformer.Converters.Kenya
                             if (reader.GetValue(12) != null && reader.GetValue(12).ToString() == "REF")
                             {
                                 //row.Col18 = Math.Round(baseamnt,MidpointRounding.AwayFromZero).ToString();
-                                row.Col18 = Math.Truncate(baseamnt).ToString();
+                                //row.Col18 = Math.Truncate(baseamnt).ToString();
+                                row.Col18 = Math.Truncate(comm).ToString();
                             }
                             if (reader.GetValue(12) != null && reader.GetValue(12).ToString() == "RDT")
                             {
@@ -236,7 +238,7 @@ namespace SbslFileTransformer.Converters.Kenya
                     }
                 }
             }
-            List<ExcelCols> finalList = new List<ExcelCols>();
+            var finalList = new List<ExcelCols>();
             finalList.Add(list[4]);
             finalList[0].Col0 = list[3].Col0;
             finalList[0].Col1 = list[3].Col1;
@@ -252,7 +254,7 @@ namespace SbslFileTransformer.Converters.Kenya
             double rev1 = 0.4;
             double rev2 = 0.5;
             double amntfinal = 0.022;
-            foreach (ExcelCols rows in list)
+            foreach (var rows in list)
             {
                 try
                 {
@@ -260,7 +262,7 @@ namespace SbslFileTransformer.Converters.Kenya
                     {
                         continue;
                     }
-                    if (rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN"))
+                    if (rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN") || rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
                     {
                         //revenue
                         rows.Col20 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col19)) * rev2).ToString();
@@ -276,18 +278,26 @@ namespace SbslFileTransformer.Converters.Kenya
                         //amount final
                         rows.Col21 = Math.Ceiling(Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col19) + Convert.ToDouble(rows.Col20) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
                     }
-                    else
+                    if (rows.Col6.Contains("SEN") && rows.Col16 != null && rows.Col16.Contains("MK") && rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN") || rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
                     {
                         //amount final
-                        //double rev3 = Convert.ToDouble(rows.Col12.ToString());
-                        rows.Col21 = Math.Floor(Convert.ToDouble(rows.Col12)).ToString();
+                        //base amount + charge + revenue + (fee amount * amtfinal )
+                        rows.Col21 = Math.Ceiling(Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col19) + Convert.ToDouble(rows.Col20) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
                     }
+                    //else
+                    //{
+                    //    amount final
+                    //    double rev3 = Convert.ToDouble(rows.Col12.ToString());
+                    //    rows.Col21 = Math.Floor(Convert.ToDouble(rows.Col12)).ToString();
+                    //}
                     if (rows.Col6.Contains("RSN"))
                     {
                         //amount final
+
                         rows.Col21 = Math.Ceiling(Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col19) + Convert.ToDouble(rows.Col20) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
                     }
-                    else
+
+                    if (rows.Col6.Contains("REC") || rows.Col6.Contains("RDT") || rows.Col6.Contains("REF"))
                     {
                         //amount final
                         //double rev3 = Convert.ToDouble(rows.Col12.ToString());
