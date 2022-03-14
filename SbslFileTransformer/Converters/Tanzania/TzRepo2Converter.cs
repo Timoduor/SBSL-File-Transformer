@@ -71,50 +71,52 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
         private string GetAccountNumber(string Currency)
         {
             if (Currency == "AUD")
+                // return "10010981001004";
                 return "10010981001004";
 
 
             if (Currency == "CAD")
-                return "10010881001010";
+                // return "10010881001010";
+                return "30010881001015";
 
             if (Currency == "EUR")
-                return "10000681001023";
+                return "30000681001013";
 
             if (Currency == "INR")
-                return "10001381001042";
+                return "30011381001013";
 
             if (Currency == "JPY")
-                return "10010781001045";
+                return "30030781001015";
 
             if (Currency == "KES")
-                return "10000181001047";
+                return "30010181001013";
 
             if (Currency == "MUR")
                 return "10031781001051";
 
             if (Currency == "GBP")
-                return "10000581001037";
+                return "30000581001013";
 
             if (Currency == "RWF")
-                return "10000281001125";
+                return "30010281001013";
 
             if (Currency == "ZAR")
-                return "10011481001074";
+                return "30011481001013";
 
             if (Currency == "CHF")
-                return "10011181001014";
+                return "30981181001013";
 
             if (Currency == "TZS")
-                return "10000381001126";
+                return "30000381001006";
 
             if (Currency == "USD")
-                return "10000481001060";
+                return "30000481001013";
 
             if (Currency == "AED")
                 return "10011281001001";
 
             if (Currency == "UGX")
-                return "10011681001127";
+                return "30061681001013";
 
             if (Currency == "CNY")
                 return "10012081001016";
