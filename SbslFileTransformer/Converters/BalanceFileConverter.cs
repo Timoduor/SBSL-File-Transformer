@@ -261,6 +261,10 @@ namespace SbslFileTransformer.Converters
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_TREPOS_{Entity}.txt");
 
+            if(filePath.ToLower().Contains("pos_pay"))
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath),
+                    $"GLAccounts_{fileDate:yyyyMMdd}_POSPAY_{Entity}.txt");
+
             if (Path.GetFileName(filePath).ToLower().StartsWith("card"))
             {
                 subFileName = Path.GetFileName(filePath).Substring(4, 10);

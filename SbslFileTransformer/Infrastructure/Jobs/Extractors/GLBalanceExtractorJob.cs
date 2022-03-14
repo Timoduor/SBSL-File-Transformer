@@ -196,6 +196,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                     else if (file.ToLower().Contains("treposition"))
                         await converter.Execute(file, "Position Account");
 
+                    else if (file.ToLower().Contains("pos_pay"))
+                        await converter.Execute(file, "CARDS RWANDA");
+
                     else
                         await converter.Execute(file);
                 }
