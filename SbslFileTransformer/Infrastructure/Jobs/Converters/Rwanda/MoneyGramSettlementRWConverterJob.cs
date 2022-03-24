@@ -72,7 +72,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options)
                         .Where(f => f.ToLower().EndsWith(".xlsx")));
 
-                    MoneyGramSettlementRWConverter mpesaConverter = new MoneyGramSettlementRWConverter();
+                    MoneyGramSettlementRWConverter MoneyGramConverter = new MoneyGramSettlementRWConverter();
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
@@ -92,7 +92,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    mpesaConverter.ConvertFile(file);
+                                    MoneyGramConverter.ConvertFile(file);
                                 }
                                 catch (Exception ex)
                                 {

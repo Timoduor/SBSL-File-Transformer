@@ -17,11 +17,11 @@ namespace SbslFileTransformer.Converters.Kenya
 
         public void ConvertFile(string inputFile, string outputFile = null)
         {
-            List<ExcelCols> list = new List<ExcelCols>();
+            var list = new List<ExcelCols>();
 
-            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
+                using (var reader = ExcelReaderFactory.CreateReader(stream))
                 {
                     int countHeader = 0;
 
@@ -30,6 +30,8 @@ namespace SbslFileTransformer.Converters.Kenya
                     double per = 0.18;
 
                     double ch = 0.78;
+
+                    string accountNo = "Account Number";
 
                     string agentName = "Agent Name";
 
@@ -61,17 +63,17 @@ namespace SbslFileTransformer.Converters.Kenya
                     {
                         count++;
 
-                        ExcelCols row = new ExcelCols();
+                        var row = new ExcelCols();
 
                         //settelement currency
                         //var value = reader.GetValue(1)?.ToString();
 
                         //transaction currency
-                        string valueTran = reader.GetValue(9)?.ToString();
+                        var valueTran = reader.GetValue(9)?.ToString();
                         //settelement currency && account number
-                        string accountValue = reader.GetValue(1)?.ToString();
+                        var accountValue = reader.GetValue(1)?.ToString();
                         //agentname
-                        string agentValue = reader.GetValue(4)?.ToString();
+                        var agentValue = reader.GetValue(4)?.ToString();
 
                         //remember this code for dealing with empty rows
                         if (!string.IsNullOrEmpty(accountValue))
@@ -257,7 +259,7 @@ namespace SbslFileTransformer.Converters.Kenya
                 }
             }
 
-            List<ExcelCols> finalList = new List<ExcelCols>();
+            var finalList = new List<ExcelCols>();
             finalList.Add(list[3]);
             finalList[0].Col0 = list[2].Col0;
             finalList[0].Col1 = list[2].Col1;
@@ -274,7 +276,7 @@ namespace SbslFileTransformer.Converters.Kenya
             double rev2 = 0.5;
             double amntfinal = 0.022;
 
-            foreach (ExcelCols rows in list)
+            foreach (var rows in list)
             {
                 try
                 {
@@ -282,7 +284,7 @@ namespace SbslFileTransformer.Converters.Kenya
                     {
                         continue;
                     }
-                    if (rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN"))
+                    if (rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN") || rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
                     {
                         //revenue
                         rows.Col21 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col20)) * rev2).ToString();
@@ -292,17 +294,17 @@ namespace SbslFileTransformer.Converters.Kenya
                         //revenue
                         rows.Col21 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col20)) * rev1).ToString();
                     }
-                    if (rows.Col6.Contains("SEN"))
+                    if (rows.Col6.Contains("SEN") && rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN") || rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
                     {
                         //amount final
                         rows.Col22 = Math.Ceiling(Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col20) + Convert.ToDouble(rows.Col21) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
                     }
-                    if (rows.Col6.Contains("RSN"))
+                    if (rows.Col6.Contains("RSN") && rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN") || rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
                     {
                         //amount final
                         rows.Col22 = Math.Ceiling(Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col20) + Convert.ToDouble(rows.Col21) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
                     }
-                    else
+                    if (rows.Col6.Contains("REC") || rows.Col6.Contains("RDT"))
                     {
                         //amount final
                         rows.Col22 = Math.Floor(Convert.ToDouble(rows.Col12)).ToString();
@@ -314,7 +316,6 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 }
             }
-
             if (string.IsNullOrEmpty(outputFile))
             {
                 string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
@@ -325,6 +326,7 @@ namespace SbslFileTransformer.Converters.Kenya
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
+
 
             WriteToFile(finalList, outputFile);
         }
