@@ -14,7 +14,7 @@ namespace SbslFileTransformer.Converters.Kenya
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
-
+       
         public void ConvertFile(string inputFile, string outputFile = null)
         {
             var list = new List<ExcelCols>();
@@ -284,30 +284,35 @@ namespace SbslFileTransformer.Converters.Kenya
                     {
                         continue;
                     }
-                    if (rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN") || rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
+                    if (rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN"))
                     {
                         //revenue
                         rows.Col21 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col20)) * rev2).ToString();
                     }
-                    else
+                    if (rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
                     {
                         //revenue
                         rows.Col21 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col20)) * rev1).ToString();
                     }
+                    else
+                    {
+                        rows.Col21 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col20)) * rev1).ToString();
+
+                    }
                     if (rows.Col6.Contains("SEN") && rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN") || rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
                     {
                         //amount final
-                        rows.Col22 = Math.Ceiling(Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col20) + Convert.ToDouble(rows.Col21) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
+                        rows.Col22 = (Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col20) + Convert.ToDouble(rows.Col21) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
                     }
                     if (rows.Col6.Contains("RSN") && rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN") || rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
                     {
                         //amount final
-                        rows.Col22 = Math.Ceiling(Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col20) + Convert.ToDouble(rows.Col21) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
+                        rows.Col22 = (Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col20) + Convert.ToDouble(rows.Col21) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
                     }
                     if (rows.Col6.Contains("REC") || rows.Col6.Contains("RDT"))
                     {
                         //amount final
-                        rows.Col22 = Math.Floor(Convert.ToDouble(rows.Col12)).ToString();
+                        rows.Col22 = (Convert.ToDouble(rows.Col12)).ToString();
                     }
                     finalList.Add(rows);
                 }
@@ -316,6 +321,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 }
             }
+
             if (string.IsNullOrEmpty(outputFile))
             {
                 string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
@@ -326,11 +332,8 @@ namespace SbslFileTransformer.Converters.Kenya
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
-
-
             WriteToFile(finalList, outputFile);
         }
-
         private void WriteToFile(List<ExcelCols> rows, string outputFile)
         {
             using (StreamWriter writer = new StreamWriter(outputFile))
