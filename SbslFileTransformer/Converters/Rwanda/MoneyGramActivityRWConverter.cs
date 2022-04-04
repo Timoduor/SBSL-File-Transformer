@@ -262,46 +262,45 @@ namespace SbslFileTransformer.Converters.Rwanda
                     {
                         continue;
                     }
-                    if (rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN") || rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
+                    if (rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN"))
                     {
                         //revenue
                         rows.Col20 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col19)) * rev2).ToString();
                     }
-                    else
+                    if (rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
                     {
                         //revenue
+                        rows.Col20 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col19)) * rev1).ToString();
+                    }
+                    else
+                    {
                         rows.Col20 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col19)) * rev1).ToString();
                     }
 
                     if (rows.Col6.Contains("SEN"))
                     {
                         //amount final
-                        rows.Col21 = Math.Ceiling(Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col19) + Convert.ToDouble(rows.Col20) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
+                        rows.Col21 = (Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col19) + Convert.ToDouble(rows.Col20) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
                     }
                     if (rows.Col6.Contains("SEN") && rows.Col16 != null && rows.Col16.Contains("MK") && rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN") || rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
                     {
                         //amount final
                         //base amount + charge + revenue + (fee amount * amtfinal )
-                        rows.Col21 = Math.Ceiling(Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col19) + Convert.ToDouble(rows.Col20) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
+                        rows.Col21 = (Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col19) + Convert.ToDouble(rows.Col20) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
                     }
-                    //else
-                    //{
-                    //    amount final
-                    //    double rev3 = Convert.ToDouble(rows.Col12.ToString());
-                    //    rows.Col21 = Math.Floor(Convert.ToDouble(rows.Col12)).ToString();
-                    //}
+
                     if (rows.Col6.Contains("RSN"))
                     {
                         //amount final
 
-                        rows.Col21 = Math.Ceiling(Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col19) + Convert.ToDouble(rows.Col20) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
+                        rows.Col21 = (Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col19) + Convert.ToDouble(rows.Col20) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
                     }
 
                     if (rows.Col6.Contains("REC") || rows.Col6.Contains("RDT") || rows.Col6.Contains("REF"))
                     {
                         //amount final
                         //double rev3 = Convert.ToDouble(rows.Col12.ToString());
-                        rows.Col21 = Math.Floor(Convert.ToDouble(rows.Col12)).ToString();
+                        rows.Col21 = (Convert.ToDouble(rows.Col12)).ToString();
                     }
 
                     finalList.Add(rows);
