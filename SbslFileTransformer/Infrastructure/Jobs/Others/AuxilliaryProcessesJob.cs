@@ -174,7 +174,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 _logger.LogInformation("Restarting SBSL Service");
 
                 //do it only at night
-                if (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 3)
+                if (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 1)
                 {
 #if (!DEBUG)
                     FileHelpers.RestartService();

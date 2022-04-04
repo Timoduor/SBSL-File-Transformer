@@ -9,6 +9,7 @@ using SbslFileTransformer.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,12 +19,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
     {
         protected override string JobName { get; set; } = nameof(ReportEngineJob);
         public ReportEngineJob(ILogger<ReportEngineJob> logger, EmailSender emailSender,
-            IServiceScopeFactory serviceScopeFactory, JobDisplayManager jobManager)
+            IServiceScopeFactory serviceScopeFactory, IHttpClientFactory httpClientFactory, JobDisplayManager jobManager)
         {
             _logger = logger;
             _emailSender = emailSender;
             _serviceScopeFactory = serviceScopeFactory;
             _jobManager = jobManager;
+            HttpClientFactory = httpClientFactory;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -121,7 +123,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
         private async Task<Dictionary<string, IEnumerable<ReportModel>>> FetchReports(ApplicationDbContext dbContext)
         {
-            ReportFetcher reportFetcher = new ReportFetcher(_logger, _serviceScopeFactory, LoadReportConnectionConfig());
+            ReportFetcher reportFetcher = new ReportFetcher(_logger, HttpClientFactory, LoadReportConnectionConfig());
 
             List<ProcessedReport> processedReports = dbContext.ProcessedReports.ToList();
 
@@ -137,7 +139,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
         private async Task ProcessReports(Dictionary<string, IEnumerable<ReportModel>> unprocessedReports)
         {
-            ReportProcessor reportProcessor = new ReportProcessor(_logger, _serviceScopeFactory, LoadReportConnectionConfig());
+            ReportProcessor reportProcessor = new ReportProcessor(_logger, _serviceScopeFactory, HttpClientFactory, LoadReportConnectionConfig());
 
             IProgress<int> processReportProgress = new Progress<int>(percent =>
             {

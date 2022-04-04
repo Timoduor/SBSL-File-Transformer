@@ -10,9 +10,9 @@ using System.Text;
 namespace SbslFileTransformer.Converters.Kenya
 {
     //PesaLink_GL2
-    public class PesaLinkConverter
+    public class PesaLinkGLConverter
     {
-        public PesaLinkConverter()
+        public PesaLinkGLConverter()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }

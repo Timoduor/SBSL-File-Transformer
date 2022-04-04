@@ -16,10 +16,10 @@ using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
-    public class PesaLinkGl2ConverterJob : ConverterJobBase<PesaLinkGl2ConverterJob>, IHostedService
+    public class PesaLinkStatementConverterJob : ConverterJobBase<PesaLinkGl2ConverterJob>, IHostedService
     {
         protected override string JobName { get; set; } = nameof(PesaLinkGl2ConverterJob);
-        public PesaLinkGl2ConverterJob(ILogger<PesaLinkGl2ConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
+        public PesaLinkStatementConverterJob(ILogger<PesaLinkGl2ConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender)
         {
             _logger = logger;
@@ -72,15 +72,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     files.AddRange(
                         Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")));
 
-                    PesaLinkGLConverter mpesaConverter = new PesaLinkGLConverter();
+                    var mpesaConverter = new PesaLinkStatementConverter();
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
-                    List<SftpUploadedFile> updatedFiles = new List<SftpUploadedFile>();
+                    var updatedFiles = new List<SftpUploadedFile>();
 
                     foreach (string file in files)
                     {
-                        if (file.ToLower().Contains("pesalink_gl") && file.ToLower().Contains("imke") &&
+                        if (file.ToLower().Contains("pesa_link_st") && file.ToLower().Contains("imke") &&
                             !file.ToLower().Contains("conv"))
                         {
                             SftpUploadedFile fileToProcess =

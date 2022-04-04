@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,6 +21,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         protected EmailSender _emailSender;
         protected ILogger<T> _logger;
         protected IServiceScopeFactory _serviceScopeFactory;
+        protected IHttpClientFactory HttpClientFactory;
         protected Timer _timer;
         protected string _entity;
         protected abstract string JobName { get; set; }

@@ -25,11 +25,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
         readonly ILogger<ReportEngineJob> Logger;
         readonly IServiceScopeFactory ServiceScopeFactory;
         readonly ReportConfigModel ReportConfigModel;
+        readonly IHttpClientFactory HttpClientFactory;
 
-        public ReportProcessor(ILogger<ReportEngineJob> logger, IServiceScopeFactory serviceScopeFactory, ReportConfigModel reportConfigModel)
+        public ReportProcessor(ILogger<ReportEngineJob> logger, IServiceScopeFactory serviceScopeFactory, IHttpClientFactory httpClientFactory, ReportConfigModel reportConfigModel)
         {
             Logger = logger;
             ServiceScopeFactory = serviceScopeFactory;
+            HttpClientFactory = httpClientFactory;
             ReportConfigModel = reportConfigModel;
         }
 
@@ -51,7 +53,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                         {
                             await ProcessReportBatch(reportBatch, entity, processReportProgress, emailGroups);
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Logger.LogError(ex, $"Error processing report batch for user {reportUser.Key}");
                         }
@@ -111,27 +113,27 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 @$"https://{ReportConfigModel.EnvironmentUrl}.{ReportConfigModel.BaseUrl}/completedqueryrun/{report.ReportId}/{ReportConfigModel.ExportType}";
             try
             {
-                using (HttpClient client = new HttpClient())
+                HttpClient client = HttpClientFactory.CreateClient("BlackLine");
+
+                client.Timeout = TimeSpan.FromMinutes(10);
+
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", report.UserToken);
+
+                HttpResponseMessage response = await client.GetAsync(reportToDownload);
+
+                if (response.IsSuccessStatusCode)
                 {
-                    client.Timeout = TimeSpan.FromMinutes(10);
+                    Stream result = await response.Content.ReadAsStreamAsync();
 
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", report.UserToken);
-
-                    HttpResponseMessage response = await client.GetAsync(reportToDownload);
-
-                    if (response.IsSuccessStatusCode)
+                    using (FileStream fs = File.Create(report.TempReportPath))
                     {
-                        Stream result = await response.Content.ReadAsStreamAsync();
-
-                        using (FileStream fs = File.Create(report.TempReportPath))
-                        {
-                            result.Seek(0, SeekOrigin.Begin);
-                            result.CopyTo(fs);
-                        }
-
-                        return true;
+                        result.Seek(0, SeekOrigin.Begin);
+                        result.CopyTo(fs);
                     }
+
+                    return true;
                 }
+
             }
             catch (Exception ex)
             {
@@ -182,7 +184,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             if (report.Name.ToLower().Contains("suspense")) sprint = Sprint.Suspense;
             //others
             if (report.Name.ToLower().Contains("abc")) sprint = Sprint.ABC;
-            
+
             if (entity == "BOAKE")
             {
                 //finance boa
@@ -275,7 +277,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 else
                     items = openItems.Where(it => it.DaysOverdue >= report.DaysRange[i]).ToList();
 
-                daysRecordsPairs.Add(report.DaysRange[i], items);
+                daysRecordsPairs.TryAdd(report.DaysRange[i], items);
             }
 
             string agingExcel = await CreateModifiedAgingExcel(report.TempReportPath, report.DaysRange);

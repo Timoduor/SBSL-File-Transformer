@@ -14,13 +14,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
     public class ReportFetcher
     {
         readonly ILogger<ReportEngineJob> Logger;
-        readonly IServiceScopeFactory ServiceScopeFactory;
         readonly ReportConfigModel reportConfiguration;
+        readonly IHttpClientFactory HttpClientFactory;
 
-        public ReportFetcher(ILogger<ReportEngineJob> logger, IServiceScopeFactory serviceScopeFactory, ReportConfigModel reportConfig)
+        public ReportFetcher(ILogger<ReportEngineJob> logger, IHttpClientFactory httpClientFactory, ReportConfigModel reportConfig)
         {
             Logger = logger;
-            ServiceScopeFactory = serviceScopeFactory;
+            HttpClientFactory = httpClientFactory;
             reportConfiguration = reportConfig;
         }
 
@@ -62,11 +62,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             {
                 try
                 {
-                    using (HttpClient client = new HttpClient())
-                    {
-                        client.Timeout = TimeSpan.FromMinutes(10);
+                    HttpClient client = HttpClientFactory.CreateClient("BlackLine");
 
-                        List<KeyValuePair<string, string>> content = new List<KeyValuePair<string, string>>
+                    client.Timeout = TimeSpan.FromMinutes(10);
+
+                    List<KeyValuePair<string, string>> content = new List<KeyValuePair<string, string>>
                         {
                             new KeyValuePair<string, string>("grant_type", "password"),
                             new KeyValuePair<string, string>("scope", reportConfiguration.Scope),
@@ -76,24 +76,33 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                             new KeyValuePair<string, string>("client_secret", reportConfiguration.ClientSecret)
                         };
 
-                        FormUrlEncodedContent formdata = new FormUrlEncodedContent(content);
+                    FormUrlEncodedContent formdata = new FormUrlEncodedContent(content);
 
-                        HttpResponseMessage response = await client.PostAsync(reportConfiguration.TokenUrl, formdata);
+                    HttpResponseMessage response = await client.PostAsync(reportConfiguration.TokenUrl, formdata);
 
-                        if (response.IsSuccessStatusCode)
-                        {
-                            string respContent = await response.Content.ReadAsStringAsync();
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string respContent = await response.Content.ReadAsStringAsync();
 
-                            JObject data = JObject.Parse(respContent);
+                        JObject data = JObject.Parse(respContent);
 
-                            userTokens.Add(user.Key, (string)data.SelectToken("access_token"));
-                        }
+                        userTokens.Add(user.Key, (string)data.SelectToken("access_token"));
                     }
+
                 }
                 catch (Exception ex)
                 {
                     Logger.LogError(ex, ex.Message);
                 }
+            }
+
+            if (userTokens.Count() <= 0)
+            {
+                string users = string.Join($"{Environment.NewLine}", reportConfiguration.UserNamesAndPasswords.Select(u => u.Key));
+
+                throw new ReportTokenFetchException($"No tokens were found for the specified users {Environment.NewLine} " +
+                    $"{users}." +
+                    $"{Environment.NewLine} Verify that their passwords are updated and report settings are correct");
             }
 
             return userTokens;
@@ -109,35 +118,35 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
             try
             {
-                using (HttpClient client = new HttpClient())
+                HttpClient client = HttpClientFactory.CreateClient("BlackLine");
+
+                client.Timeout = TimeSpan.FromMinutes(10);
+
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userToken.Value);
+
+                HttpResponseMessage response = await client.GetAsync(reportsUrl);
+
+                if (response.IsSuccessStatusCode)
                 {
-                    client.Timeout = TimeSpan.FromMinutes(10);
+                    string result = await response.Content.ReadAsStringAsync();
 
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userToken.Value);
+                    dynamic data = JArray.Parse(result);
 
-                    HttpResponseMessage response = await client.GetAsync(reportsUrl);
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        string result = await response.Content.ReadAsStringAsync();
-
-                        dynamic data = JArray.Parse(result);
-
-                        foreach (dynamic item in data)
-                            reports.Add(new ReportModel
-                            {
-                                Creator = item.creatorFirstAndLastName,
-                                EndTime = item.endTime,
-                                Message = item.endTime,
-                                Name = item.name,
-                                Notes = item.notes,
-                                ReportId = item.id,
-                                StartTime = item.startTime,
-                                Status = item.status,
-                                UserToken = userToken.Value
-                            });
-                    }
+                    foreach (dynamic item in data)
+                        reports.Add(new ReportModel
+                        {
+                            Creator = item.creatorFirstAndLastName,
+                            EndTime = item.endTime,
+                            Message = item.endTime,
+                            Name = item.name,
+                            Notes = item.notes,
+                            ReportId = item.id,
+                            StartTime = item.startTime,
+                            Status = item.status,
+                            UserToken = userToken.Value
+                        });
                 }
+
             }
             catch (Exception ex)
             {

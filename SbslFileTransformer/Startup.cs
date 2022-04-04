@@ -66,6 +66,11 @@ namespace SbslFileTransformer
             services.AddRazorPages().AddRazorRuntimeCompilation();
 #endif
 
+            services.AddHttpClient("BlackLine", c =>
+            {
+                c.Timeout = TimeSpan.FromSeconds(25);                
+            });
+
             services.AddTransient<JobDisplayManager>();
             services.AddTransient<SftpManager>();
             services.AddTransient<EncryptionManager>();
@@ -159,6 +164,7 @@ namespace SbslFileTransformer
             services.AddHostedService<TZRepo2_ConverterJob>();
             services.AddHostedService<RW_notonusposvisa_Job>();
             services.AddHostedService<PesaLinkGl2ConverterJob>();
+            services.AddHostedService<PesaLinkStatementConverterJob>();
 
             //special scenario jobs
             services.AddHostedService<RecordMatcherJob>();

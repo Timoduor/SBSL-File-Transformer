@@ -75,7 +75,7 @@ namespace SbslFileTransformer.Converters.Tanzania
                 
             }
                 
-            amount = account == "30990311001001" ? (Convert.ToDouble(amount) * -1).ToString("N2") : amount;
+            amount = (Convert.ToDouble(amount) * -1).ToString("N2");
             
             toAppend.Append(
                  $"{_entity}\t{account}\tSuspense\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
