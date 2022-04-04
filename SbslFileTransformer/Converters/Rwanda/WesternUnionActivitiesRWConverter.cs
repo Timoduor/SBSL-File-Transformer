@@ -18,12 +18,11 @@ namespace SbslFileTransformer.Converters.Kenya
 
         public void ConvertFile(string inputFile, string outputFile = null)
         {
-            List<ExcelCols> list = new List<ExcelCols>();
+            var list = new List<ExcelCols>();
 
-            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (IExcelDataReader reader = ExcelReaderFactory.CreateCsvReader(stream,
-                    new ExcelReaderConfiguration { AutodetectSeparators = new[] { ',', ';', '\t', '|', '#' } }))
+                using (var reader = ExcelReaderFactory.CreateCsvReader(stream, new ExcelReaderConfiguration() { AutodetectSeparators = new char[] { ',', ';', '\t', '|', '#' } }))
                 {
                     int countHeader = 0;
 
@@ -41,17 +40,20 @@ namespace SbslFileTransformer.Converters.Kenya
                     {
                         count++;
 
-                        ExcelCols row = new ExcelCols();
+                        var row = new ExcelCols();
 
-                        string value = reader.GetValue(0).ToString();
+                        var value = reader.GetValue(0).ToString();
 
-                        string check = reader.GetValue(1)?.ToString().Trim();
+                        var check = reader.GetValue(1)?.ToString().Trim();
 
-                        if (string.IsNullOrEmpty(check)) break;
+                        if (string.IsNullOrEmpty(check))
+                        {
+                            break;
+                        }
 
                         if (value == null && list.Count() > 0)
                         {
-                            ExcelCols last = list.Last();
+                            var last = list.Last();
 
                             last.Col3 = reader.GetValue(1)?.ToString().Trim();
 
@@ -88,10 +90,13 @@ namespace SbslFileTransformer.Converters.Kenya
                             double totalchamnt = Convert.ToDouble(reader.GetValue(12));
 
                             if (reader.GetValue(4).ToString().Contains("S"))
-                                last.Col19 = (recamnt + totalchamnt + totalchamnt * per).ToString().TrimStart()
-                                    .TrimEnd();
+                            {
+                                last.Col19 = (recamnt + totalchamnt + (totalchamnt * per)).ToString().TrimStart().TrimEnd();
+                            }
                             else if (reader.GetValue(4).ToString().Contains("P"))
+                            {
                                 last.Col19 = reader.GetValue(17).ToString().TrimStart().TrimEnd();
+                            }
 
                             continue;
                         }
@@ -144,7 +149,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
                         try
                         {
-                            double recamnt = Convert.ToDouble(reader.GetValue(13));
+                            double recamnt = Math.Ceiling(Convert.ToDouble(reader.GetValue(13)));
 
                             double totalchamnt = Convert.ToDouble(reader.GetValue(14));
 
@@ -152,20 +157,31 @@ namespace SbslFileTransformer.Converters.Kenya
 
                             double computedbase1 = Convert.ToDouble(reader.GetValue(17));
 
-                            if (reader.GetValue(6).ToString().Contains("S")) row.Col18 = Math.Round(calcvat).ToString();
                             if (reader.GetValue(6).ToString().Contains("S"))
-                                row.Col19 = Math.Round(recamnt + totalchamnt + calcvat).ToString().TrimStart()
-                                    .TrimEnd();
+                            {
+                                row.Col18 = Math.Round(calcvat).ToString();
+                            }
                             if (reader.GetValue(6).ToString().Contains("S"))
-                                row.Col20 = Math.Round(recamnt + totalchamnt + calcvat).ToString().TrimStart()
-                                    .TrimEnd();
+                            {
+                                row.Col19 = Math.Round(recamnt + totalchamnt + calcvat).ToString().TrimStart().TrimEnd();
+                            }
+                            if (reader.GetValue(6).ToString().Contains("S"))
+                            {
+                                row.Col20 = Math.Round(recamnt + totalchamnt + calcvat).ToString().TrimStart().TrimEnd();
+                            }
                             if (reader.GetValue(6).ToString().Contains("P"))
+                            {
                                 row.Col19 = reader.GetValue(17).ToString().TrimStart().TrimEnd();
+                            }
                             if (reader.GetValue(6).ToString().Contains("P"))
+                            {
                                 row.Col20 = Math.Truncate(computedbase1).ToString().TrimStart().TrimEnd();
+                            }
+
                         }
                         catch (Exception)
                         {
+
                         }
 
                         list.Add(row);

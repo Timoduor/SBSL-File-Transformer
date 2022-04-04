@@ -16,7 +16,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
         public void ConvertFile(string inputFile, string outputFile = null)
         {
-            List<ExcelCols> list = new List<ExcelCols>();
+            var list = new List<ExcelCols>();
 
             int countHeader = 0;
 
@@ -28,11 +28,11 @@ namespace SbslFileTransformer.Converters.Kenya
 
             string computedbaseamnt1 = "Computed Base Amount without decimal";
 
-            string[] lines = File.ReadAllLines(inputFile);
+            var lines = File.ReadAllLines(inputFile);
 
-            foreach (string line in lines)
+            foreach (var line in lines)
             {
-                ExcelCols row = new ExcelCols();
+                var row = new ExcelCols();
 
                 row.Col0 = line.Split("\t")[0].ToString();
 
@@ -180,7 +180,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 try
                 {
-                    double recamnt = Convert.ToDouble(row.Col51);
+                    double recamnt = Math.Ceiling(Convert.ToDouble(row.Col51));
 
                     double totalchamnt = Convert.ToDouble(row.Col53);
 

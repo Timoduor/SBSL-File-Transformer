@@ -284,21 +284,23 @@ namespace SbslFileTransformer.Converters.Kenya
                     {
                         continue;
                     }
-                    if (rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN"))
+                    if (rows.Col6.Contains("SEN") || rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN"))
                     {
                         //revenue
-                        rows.Col21 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col20)) * rev2).ToString();
+                        //rows.Col21 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col20)) * rev2).ToString();
+                        rows.Col21 = (Convert.ToDouble(rows.Col15) * rev2 * -1).ToString();
                     }
-                    if (rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
+                    if (rows.Col6.Contains("SEN") || rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
                     {
                         //revenue
-                        rows.Col21 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col20)) * rev1).ToString();
+                        //rows.Col21 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col20)) * rev1).ToString();
+                        rows.Col21 = (Convert.ToDouble(rows.Col15) * rev1 * -1).ToString();
                     }
-                    else
-                    {
-                        rows.Col21 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col20)) * rev1).ToString();
+                    //else
+                    //{
+                    //    rows.Col21 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col20)) * rev1).ToString();
 
-                    }
+                    //}
                     if (rows.Col6.Contains("SEN") && rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN") || rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
                     {
                         //amount final
