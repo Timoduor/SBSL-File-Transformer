@@ -18,84 +18,57 @@ namespace SbslFileTransformer.Converters.Kenya
         public void ConvertFile(string inputFile, string outputFile = null)
         {
             var list = new List<ExcelCols>();
-
             using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
                 using (var reader = ExcelReaderFactory.CreateReader(stream))
                 {
                     int countHeader = 0;
-
                     int count = 0;
-
                     double per = 0.18;
-
                     double ch = 0.78;
-
                     string accountNo = "Account Number";
-
                     string agentName = "Agent Name";
-
                     string vat = "VAT";
-
                     string mk = "MK";
-
                     string computedbaseamnt = "Computed Base Amount";
-
                     string charge = "Charge";
-
                     string revenue = "Revenue";
-
                     string amountFinal = "Amount Final";
-
                     string bankCode = "";
-
                     string agentDetails = "";
-
                     string tran = "";
-
                     string set = "";
-
                     string settelementCurrency = "Settlement Currency";
-
                     string transactionCurrency = "Transaction Currency";
-
                     while (reader.Read())
                     {
                         count++;
-
                         var row = new ExcelCols();
-
                         //settelement currency
                         //var value = reader.GetValue(1)?.ToString();
-
                         //transaction currency
                         var valueTran = reader.GetValue(9)?.ToString();
                         //settelement currency && account number
                         var accountValue = reader.GetValue(1)?.ToString();
                         //agentname
                         var agentValue = reader.GetValue(4)?.ToString();
-
                         //remember this code for dealing with empty rows
                         if (!string.IsNullOrEmpty(accountValue))
                         {
                             if (accountValue.Contains("Settlement Id") ||
-                                accountValue.Contains("Business Date"))
+                            accountValue.Contains("Business Date"))
                             {
                                 continue;
                             }
-
                             else if (accountValue.Contains("Account Number"))
                             {
                                 string rec = reader.GetValue(5)?.ToString();
-
                                 bankCode = rec;
-
                             }
                             else if (accountValue.Contains("Settlement Currency"))
                             {
                                 set = reader.GetValue(7)?.ToString();
                             }
-
                         }
                         if (agentValue != null)
                         {
@@ -104,7 +77,6 @@ namespace SbslFileTransformer.Converters.Kenya
                                 agentDetails = reader.GetValue(8)?.ToString();
                             }
                         }
-
                         if (valueTran != null)
                         {
                             if (valueTran.Contains("Transaction Currency"))
@@ -112,29 +84,18 @@ namespace SbslFileTransformer.Converters.Kenya
                                 tran = reader.GetValue(12)?.ToString();
                             }
                         }
-
                         if (countHeader == 2)
                         {
                             row.Col0 = "Account Number";
-
                             row.Col1 = agentName;
-
                             row.Col16 = mk;
-
                             row.Col17 = vat;
-
                             row.Col19 = computedbaseamnt;
-
                             row.Col20 = charge;
-
                             row.Col21 = revenue;
-
                             row.Col22 = amountFinal;
-
                             row.Col23 = settelementCurrency;
-
                             row.Col24 = transactionCurrency;
-
                         }
                         else
                         {
@@ -146,14 +107,10 @@ namespace SbslFileTransformer.Converters.Kenya
                                 }
                             }
                             row.Col0 = bankCode;
-
                             row.Col1 = agentDetails;
-
                             row.Col23 = set;
-
                             row.Col24 = tran;
                         }
-
                         //tran date
                         row.Col2 = reader.GetValue(1)?.ToString().Replace("\n", "");
                         //tran id
@@ -174,7 +131,7 @@ namespace SbslFileTransformer.Converters.Kenya
                         row.Col10 = reader.GetValue(19)?.ToString().Replace("\n", "");
                         //fx margin
                         row.Col11 = reader.GetValue(20)?.ToString().Replace("\n", "");
-                        //base amount 
+                        //base amount
                         row.Col12 = reader.GetValue(23)?.ToString().Replace("\n", "");
                         //fee amount
                         row.Col13 = reader.GetValue(24)?.ToString().Replace("\n", "") + reader.GetValue(25)?.ToString().Replace("\n", "");
@@ -189,26 +146,21 @@ namespace SbslFileTransformer.Converters.Kenya
                         }
                         //total
                         row.Col18 = reader.GetValue(35)?.ToString().Replace("\n", "");
-
                         countHeader++;
-
                         try
                         {
                             double baseamnt = Convert.ToDouble(reader.GetValue(23));
                             double feeamnt = Convert.ToDouble(reader.GetValue(24));
-
                             if (reader.GetValue(10) != null && reader.GetValue(10).ToString() == "SEN")
                             {
                                 //VAT
                                 row.Col17 = (feeamnt * per).ToString();
-
                                 row.Col19 = Math.Ceiling(baseamnt + feeamnt + (feeamnt * per)).ToString();
                             }
                             if (reader.GetValue(10) != null && reader.GetValue(10).ToString() == "RSN")
                             {
                                 //VAT
                                 row.Col17 = (feeamnt * per).ToString();
-
                                 row.Col19 = Math.Ceiling(baseamnt + feeamnt + (feeamnt * per)).ToString();
                             }
                             if (reader.GetValue(10) != null && reader.GetValue(10).ToString() == "REC")
@@ -244,7 +196,6 @@ namespace SbslFileTransformer.Converters.Kenya
                         }
                         catch (Exception)
                         {
-
                         }
                         if (!string.IsNullOrEmpty(row.Col2))
                         {
@@ -258,7 +209,6 @@ namespace SbslFileTransformer.Converters.Kenya
                     }
                 }
             }
-
             var finalList = new List<ExcelCols>();
             finalList.Add(list[3]);
             finalList[0].Col0 = list[2].Col0;
@@ -271,11 +221,9 @@ namespace SbslFileTransformer.Converters.Kenya
             finalList[0].Col22 = list[2].Col22;
             finalList[0].Col23 = list[2].Col23;
             finalList[0].Col24 = list[2].Col24;
-
             double rev1 = 0.4;
             double rev2 = 0.5;
             double amntfinal = 0.022;
-
             foreach (var rows in list)
             {
                 try
@@ -284,13 +232,13 @@ namespace SbslFileTransformer.Converters.Kenya
                     {
                         continue;
                     }
-                    if (rows.Col6.Contains("SEN") || rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN"))
+                    if (rows.Col6.Contains("SEN") && rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN"))
                     {
                         //revenue
                         //rows.Col21 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col20)) * rev2).ToString();
                         rows.Col21 = (Convert.ToDouble(rows.Col15) * rev2 * -1).ToString();
                     }
-                    if (rows.Col6.Contains("SEN") || rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
+                    if (rows.Col6.Contains("SEN") && rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
                     {
                         //revenue
                         //rows.Col21 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col20)) * rev1).ToString();
@@ -298,8 +246,7 @@ namespace SbslFileTransformer.Converters.Kenya
                     }
                     //else
                     //{
-                    //    rows.Col21 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col20)) * rev1).ToString();
-
+                    // rows.Col21 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col20)) * rev1).ToString();
                     //}
                     if (rows.Col6.Contains("SEN") && rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN") || rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
                     {
@@ -320,7 +267,6 @@ namespace SbslFileTransformer.Converters.Kenya
                 }
                 catch (Exception)
                 {
-
                 }
             }
 
