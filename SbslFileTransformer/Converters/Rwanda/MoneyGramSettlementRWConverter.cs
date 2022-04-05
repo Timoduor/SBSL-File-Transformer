@@ -40,6 +40,7 @@ namespace SbslFileTransformer.Converters.Kenya
                     string set = "";
                     string settelementCurrency = "Settlement Currency";
                     string transactionCurrency = "Transaction Currency";
+
                     while (reader.Read())
                     {
                         count++;
@@ -270,6 +271,8 @@ namespace SbslFileTransformer.Converters.Kenya
                 }
             }
 
+            finalList.RemoveAt(0);
+
             if (string.IsNullOrEmpty(outputFile))
             {
                 string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
@@ -280,6 +283,7 @@ namespace SbslFileTransformer.Converters.Kenya
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
+
             WriteToFile(finalList, outputFile);
         }
         private void WriteToFile(List<ExcelCols> rows, string outputFile)

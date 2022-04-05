@@ -261,6 +261,8 @@ namespace SbslFileTransformer.Converters.Rwanda
                 }
             }
 
+            finalList.RemoveAt(0);
+
             if (string.IsNullOrEmpty(outputFile))
             {
                 string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
