@@ -1,9 +1,9 @@
-﻿using OfficeOpenXml;
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
+using OfficeOpenXml;
 
-namespace SbslFileTransformer.Converters
+namespace SbslFileTransformer.Converters.Kenya.Mpesa
 {
     public class MpesaCharRemover
     {

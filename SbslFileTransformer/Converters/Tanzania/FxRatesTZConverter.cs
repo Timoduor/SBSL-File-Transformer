@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.IO;
+using SbslFileTransformer.Converters.Rwanda.BNR;
 
 namespace SbslFileTransformer.Converters.Tanzania
 {

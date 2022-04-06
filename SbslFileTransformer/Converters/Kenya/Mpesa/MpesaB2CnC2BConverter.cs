@@ -1,14 +1,14 @@
-﻿using CsvHelper;
-using ExcelDataReader;
-using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
+using SbslFileTransformer.Infrastructure.Helpers;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters
+namespace SbslFileTransformer.Converters.Kenya.Mpesa
 {
     public class MpesaB2CnC2BConverter
     {
@@ -16,7 +16,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
         public MpesaB2CnC2BConverter(string entity)
         {
-            _entity = entity;
+            this._entity = entity;
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
@@ -95,10 +95,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm}_B2C_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
-            WriteToFile(list, outputFile);
+            this.WriteToFile(list, outputFile);
 
             if (inputFile.ToLower().Contains("mmf") && !inputFile.ToLower().Contains("credit_receivable"))
-                GenerateMultiCurr(list.Skip(6).First(), inputFile, rootFolder);
+                this.GenerateMultiCurr(list.Skip(6).First(), inputFile, rootFolder);
         }
 
 
@@ -109,7 +109,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
             string outputFile = Path.Combine(rootFolder,
-                $"MultiCurr_{DateTime.Now:yyyy_MM_dd_mm_ss}_{fileNameToAppend}_MMF_{_entity}.txt");
+                $"MultiCurr_{DateTime.Now:yyyy_MM_dd_mm_ss}_{fileNameToAppend}_MMF_{this._entity}.txt");
 
             StringBuilder toAppend = new StringBuilder();
 
@@ -128,7 +128,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             if (inputFile.ToLower().Contains("elma")) account = "19990126505009";
 
             toAppend.Append(
-                $"{_entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
+                $"{this._entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
 
             string text = toAppend.ToString();
 

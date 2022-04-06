@@ -3,6 +3,7 @@ using SbslFileTransformer.Infrastructure.Helpers;
 using System;
 using System.IO;
 using System.Text;
+using SbslFileTransformer.Converters.Rwanda.BNR;
 
 namespace SbslFileTransformer.Converters.Tanzania
 {

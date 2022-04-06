@@ -1,14 +1,14 @@
-﻿using CsvHelper;
-using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using CsvHelper;
+using SbslFileTransformer.Infrastructure.Helpers;
 
-namespace SbslFileTransformer.Converters.KenSwitch
+namespace SbslFileTransformer.Converters.Kenya.KenSwitch
 {
     public class KenSwitchConverter
     {

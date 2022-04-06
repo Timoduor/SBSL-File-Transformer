@@ -1,13 +1,14 @@
-﻿using CsvHelper;
-using ExcelDataReader;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
+using SbslFileTransformer.Converters.Rwanda.BNR;
 
-namespace SbslFileTransformer.Converters.Kenya
+namespace SbslFileTransformer.Converters.Kenya.Mpesa
 {
     public class WeeklyMonthlyElmaOmniSettlementConverter
     {
@@ -70,7 +71,7 @@ namespace SbslFileTransformer.Converters.Kenya
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm}_Weekly_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
-            WriteToFile(list2, outputFile);
+            this.WriteToFile(list2, outputFile);
         }
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)

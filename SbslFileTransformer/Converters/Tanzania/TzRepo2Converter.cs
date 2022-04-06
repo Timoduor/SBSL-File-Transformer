@@ -1,9 +1,9 @@
-﻿using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
+using SbslFileTransformer.Infrastructure.Helpers;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters
+namespace SbslFileTransformer.Converters.Tanzania
 {
     public class TzRepo2Converter
     {
@@ -38,7 +38,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     {
                         if (sGrp[i].Split('|')[3] != "")
                         {
-                            Account = GetAccountNumber(sGrp[i].Split('|')[2]);
+                            Account = this.GetAccountNumber(sGrp[i].Split('|')[2]);
                             Amount = Convert.ToDouble((sGrp[i].Split('|')[4].Trim()));
                             if (toAppend == "")
                             {

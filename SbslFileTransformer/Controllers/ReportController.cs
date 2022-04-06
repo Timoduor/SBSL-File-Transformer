@@ -9,6 +9,7 @@ using SbslFileTransformer.Models.Enums;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using SbslFileTransformer.Models.ViewModels;
 using X.PagedList;
 
 namespace SbslFileTransformer.Controllers

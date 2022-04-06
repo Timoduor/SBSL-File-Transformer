@@ -5,6 +5,7 @@ using SbslFileTransformer.Models;
 using System;
 using System.IO;
 using System.Linq;
+using SbslFileTransformer.Models.ViewModels;
 
 namespace SbslFileTransformer.Controllers
 {

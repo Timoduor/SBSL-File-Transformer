@@ -1,4 +1,4 @@
-﻿namespace SbslFileTransformer.Converters
+﻿namespace SbslFileTransformer.Converters.Kenya
 {
     public class MasterCardResult
     {

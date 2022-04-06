@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SbslFileTransformer.Converters.BalanceExtractors;
 
 namespace SbslFileTransformer.Converters.Rwanda
 {

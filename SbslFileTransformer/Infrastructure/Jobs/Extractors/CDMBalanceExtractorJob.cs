@@ -1,40 +1,41 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Messaging;
-using SbslFileTransformer.Models;
-using SbslFileTransformer.Models.Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using SbslFileTransformer.Converters.BalanceExtractors;
+using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Messaging;
+using SbslFileTransformer.Models;
+using SbslFileTransformer.Models.Enums;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters
+namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 {
     public class CDMBalanceExtractorJob : ConverterJobBase<CDMBalanceExtractorJob>, IHostedService
     {
         public CDMBalanceExtractorJob(ILogger<CDMBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender, JobDisplayManager jobManager)
         {
-            _logger = logger;
-            _serviceScopeFactory = serviceScopeFactory;
-            _emailSender = emailSender;
-            _jobManager = jobManager;
+            this._logger = logger;
+            this._serviceScopeFactory = serviceScopeFactory;
+            this._emailSender = emailSender;
+            this._jobManager = jobManager;
         }
 
         protected override string JobName { get; set; } = nameof(CDMBalanceExtractorJob);
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting MPesa Balance Extractor Job");
+            this._logger.LogInformation("Starting MPesa Balance Extractor Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await CDMFileBalanceExtractor(), null,
+            this._timer = new Timer(async state => await this.CDMFileBalanceExtractor(), null,
                 TimeSpan.FromSeconds(new Random().Next(60, 200)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
@@ -46,23 +47,23 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running CDM Balance Extractor job");
+                this._logger.LogInformation("Running CDM Balance Extractor job");
 
                 string prodFolder = string.Empty;
                 string sbFolder = string.Empty;
                 string Entity = string.Empty;
 
-                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
                 {
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    CurrentJobStatus = _jobManager.GetJobStatus(JobName);
+                    this.CurrentJobStatus = this._jobManager.GetJobStatus(JobName);
 
-                    if (CurrentJobStatus == null)
+                    if (this.CurrentJobStatus == null)
                     {
-                        CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Starting };
+                        this.CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Starting };
 
-                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                        this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
                     }
 
                     List<Configuration> configurations = dbContext.Configurations.ToList();
@@ -84,7 +85,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     CDMBalanceExtractor mpesaConverter = new CDMBalanceExtractor
                     {
-                        ServiceScopeFactory = _serviceScopeFactory,
+                        ServiceScopeFactory = this._serviceScopeFactory,
                         Entity = Entity
                     };
 
@@ -92,8 +93,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                     List<SftpUploadedFile> updatedFiles = new List<SftpUploadedFile>();
 
-                    CurrentJobStatus.Status = JobState.Running;
-                    _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                    this.CurrentJobStatus.Status = JobState.Running;
+                    this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
 
                     int count = 0;
                     int total = files.Count;
@@ -121,26 +122,26 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 catch (Exception ex)
                                 {
-                                    await ProcessFileFailure(configurations, file, fileToProcess, ex);
+                                    await this.ProcessFileFailure(configurations, file, fileToProcess, ex);
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(CDMBalanceExtractor));
+                                    this.CompleteFileProcessing(updatedFiles, fileToProcess, nameof(CDMBalanceExtractor));
                                 }
                         }
-                        CurrentJobStatus.ProgressMessage = $"Currently processing {file}... {count} of {total}";
-                        CurrentJobStatus.SetProgress(count, total);
-                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                        this.CurrentJobStatus.ProgressMessage = $"Currently processing {file}... {count} of {total}";
+                        this.CurrentJobStatus.SetProgress(count, total);
+                        this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
                     }
-                    await SaveProcessedFilesStatuses(dbContext, updatedFiles);
+                    await this.SaveProcessedFilesStatuses(dbContext, updatedFiles);
 
-                    CurrentJobStatus.Status = JobState.Completed;
-                    _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                    this.CurrentJobStatus.Status = JobState.Completed;
+                    this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                this._logger.LogError(ex, ex.Message);
             }
             finally
             {

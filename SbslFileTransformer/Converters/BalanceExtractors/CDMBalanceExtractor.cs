@@ -1,16 +1,16 @@
-﻿using ExcelDataReader;
-using Microsoft.Extensions.DependencyInjection;
-using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ExcelDataReader;
+using Microsoft.Extensions.DependencyInjection;
+using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Helpers;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters
+namespace SbslFileTransformer.Converters.BalanceExtractors
 {
     public class CDMBalanceExtractor
     {
@@ -117,10 +117,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     string account = success ? result.ToString() : row.Account;
 
                     toAppend.Append(
-                        $"{Entity}\t{account}\tCDM\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t\t{row.AmountMC}\t{GetAccountCurrency(row.Account)}\n");
+                        $"{Entity}\t{account}\tCDM\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t\t{row.AmountMC}\t{this.GetAccountCurrency(row.Account)}\n");
 
                     toAppendGL.Append(
-                        $"{Entity}\t{account}\tCDM\t\t\t\t\t\t\t\t{GetAccountName(row.Account, lookUp)}\tCDM\tA\tAsset\tTRUE\tTRUE\t\t{GetAccountCurrency(row.Account)}\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t{row.AmountGL}\n");
+                        $"{Entity}\t{account}\tCDM\t\t\t\t\t\t\t\t{this.GetAccountName(row.Account, lookUp)}\tCDM\tA\tAsset\tTRUE\tTRUE\t\t{this.GetAccountCurrency(row.Account)}\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t{row.AmountGL}\n");
                 }
 
                 //write multicurr file

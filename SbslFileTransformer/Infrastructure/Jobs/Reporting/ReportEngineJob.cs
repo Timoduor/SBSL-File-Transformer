@@ -12,6 +12,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using SbslFileTransformer.Infrastructure.Jobs.Reporting.Models;
+using SbslFileTransformer.Models.ViewModels;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 {

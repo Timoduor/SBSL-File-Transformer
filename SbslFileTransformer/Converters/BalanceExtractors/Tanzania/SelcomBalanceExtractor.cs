@@ -1,14 +1,14 @@
-﻿using CsvHelper;
-using HtmlAgilityPack;
-using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CsvHelper;
+using HtmlAgilityPack;
+using SbslFileTransformer.Infrastructure.Helpers;
 
-namespace SbslFileTransformer.Converters
+namespace SbslFileTransformer.Converters.BalanceExtractors.Tanzania
 {
     public class SelcomBalanceExtractor
     {
@@ -24,20 +24,20 @@ namespace SbslFileTransformer.Converters
             string ext = Path.GetExtension(inputFile).ToLower();
 
 
-            switch (GetMBType(inputFile))
+            switch (this.GetMBType(inputFile))
             {
                 case MBTypeTz.SELCOM:
-                    GetHtmlSelcomData(inputFile, list);
+                    this.GetHtmlSelcomData(inputFile, list);
                     break;
 
                 case MBTypeTz.B2W:
-                    GetHtmlSelcomData(inputFile, list);
+                    this.GetHtmlSelcomData(inputFile, list);
                     break;
 
                 case MBTypeTz.W2B:
                     List<W2BCols> list2 = new List<W2BCols>();
 
-                    GetHtmlW2BData(inputFile, list2);
+                    this.GetHtmlW2BData(inputFile, list2);
 
                     //GenerateMultiCurr2(list2, inputFile, outputFolder);
 
@@ -45,13 +45,13 @@ namespace SbslFileTransformer.Converters
             }
 
 
-            if (list.Count > 0 && GetMBType(inputFile) != MBTypeTz.W2B)
+            if (list.Count > 0 && this.GetMBType(inputFile) != MBTypeTz.W2B)
             {
                 string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
-                string toAppend2 = GetMBType(inputFile) == MBTypeTz.B2W ? "B2W" : "SPEN";
+                string toAppend2 = this.GetMBType(inputFile) == MBTypeTz.B2W ? "B2W" : "SPEN";
 
                 string outputFile = Path.Combine(outputFolder,
                     $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_MB_{toAppend2}_TZ.txt");
@@ -148,13 +148,13 @@ namespace SbslFileTransformer.Converters
 
                     selcomRow.Channel = row.SelectNodes("td")[8].InnerText;
 
-                    selcomRow.Account = GetAccountNumber(inputFile);
+                    selcomRow.Account = this.GetAccountNumber(inputFile);
 
                     list.Add(selcomRow);
                 }
             }
 
-            ConvertToCsvFile(list, inputFile);
+            this.ConvertToCsvFile(list, inputFile);
         }
 
 
@@ -221,13 +221,13 @@ namespace SbslFileTransformer.Converters
 
                     selcomRow.OBal = Convert.ToDouble(amount3);
 
-                    selcomRow.Account = GetAccountNumber(inputFile);
+                    selcomRow.Account = this.GetAccountNumber(inputFile);
 
                     list.Add(selcomRow);
                 }
             }
 
-            ConvertToCsvFile(list, inputFile);
+            this.ConvertToCsvFile(list, inputFile);
         }
 
         private void ConvertToCsvFile<T>(List<T> rows, string inputFile, string outputFile = null)
@@ -276,7 +276,7 @@ namespace SbslFileTransformer.Converters
         {
             string ret;
 
-            switch (GetMBType(inputFile))
+            switch (this.GetMBType(inputFile))
             {
                 case MBTypeTz.W2B:
                     ret = "30010326501012";

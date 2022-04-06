@@ -1,12 +1,13 @@
-﻿using CsvHelper;
-using ExcelDataReader;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
+using SbslFileTransformer.Converters.Rwanda.BNR;
 
-namespace SbslFileTransformer.Converters.Kenya
+namespace SbslFileTransformer.Converters.Rwanda
 {
     public class AdviceKopeduRWConverter
     {
@@ -213,7 +214,7 @@ namespace SbslFileTransformer.Converters.Kenya
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_ADV_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
-            WriteToFile(finalList, outputFile);
+            this.WriteToFile(finalList, outputFile);
         }
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)

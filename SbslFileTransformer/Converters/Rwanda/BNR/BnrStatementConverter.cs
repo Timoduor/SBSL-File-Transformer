@@ -1,16 +1,16 @@
-﻿using CsvHelper;
-using ExcelDataReader;
-using SbslFileTransformer.Converters.BNR;
-using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
+using SbslFileTransformer.Converters.Rwanda.BNR.Models;
+using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Helpers;
 
-namespace SbslFileTransformer.Converters
+namespace SbslFileTransformer.Converters.Rwanda.BNR
 {
     public class BnrStatementConverter
     {
@@ -21,8 +21,8 @@ namespace SbslFileTransformer.Converters
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            _entity = Entity;
-            _dbContext = dbContext;
+            this._entity = Entity;
+            this._dbContext = dbContext;
         }
 
         public void ConvertFile(string inputFile, string rootFolder, string outputFile = null)
@@ -223,9 +223,9 @@ namespace SbslFileTransformer.Converters
                 outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm}_{fileNameToUse}_STAMT.csv");
             }
 
-            WriteToFile(list, outputFile);
+            this.WriteToFile(list, outputFile);
 
-            GetClosingBalanceMutliCurrNAdjustment(inputFile, rootFolder, outputFolder);
+            this.GetClosingBalanceMutliCurrNAdjustment(inputFile, rootFolder, outputFolder);
         }
 
         private void GetClosingBalanceMutliCurrNAdjustment(string inputFile, string rootFolder, string outputFolder)
@@ -288,10 +288,10 @@ namespace SbslFileTransformer.Converters
                 }
             }
 
-            GenerateAdjustment(list, inputFile, outputFolder);
+            this.GenerateAdjustment(list, inputFile, outputFolder);
 
             //input = acc / amt / date
-            GenerateMultiCurr(list, inputFile, rootFolder);
+            this.GenerateMultiCurr(list, inputFile, rootFolder);
         }
 
         private void GenerateAdjustment(List<ExcelCols> list, string inputFile, string outputFolder)
@@ -348,7 +348,7 @@ namespace SbslFileTransformer.Converters
 
             countHeader.Amount = countHeader.Amount.TrimStart('-');
 
-            WriteToFile(countHeader,
+            this.WriteToFile(countHeader,
                 Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm}_{fileNameToAppend}_ADJSMT.csv"));
         }
 
@@ -359,7 +359,7 @@ namespace SbslFileTransformer.Converters
             string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
             string outputFile = Path.Combine(outputFolder,
-                $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_BNR_{_entity}.txt");
+                $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_BNR_{this._entity}.txt");
 
             StringBuilder toAppend = new StringBuilder();
 
@@ -372,7 +372,7 @@ namespace SbslFileTransformer.Converters
             string currency = list.First().Col2;
 
             toAppend.Append(
-                $"{_entity}\t{GetGLAccountNumber(account, _dbContext)}\tNostros\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
+                $"{this._entity}\t{this.GetGLAccountNumber(account, this._dbContext)}\tNostros\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
 
             string text = toAppend.ToString();
 

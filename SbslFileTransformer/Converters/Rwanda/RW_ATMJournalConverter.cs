@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters
+namespace SbslFileTransformer.Converters.Rwanda
 {
     public class RW_ATMJournalConverter
     {
@@ -56,7 +55,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     for (int i = 1; i < sGrp.Length - 1; i++)
                     {
 
-                        List<string> lx = GetJournalDetails(sGrp[i].Split("\n"), ATMNO);
+                        List<string> lx = this.GetJournalDetails(sGrp[i].Split("\n"), ATMNO);
                         if (lx.Count > 0)
                         {
                             ATMflds.CARDNo = lx.Any(p => p.StartsWith("CARDNO:")) ? lx.First(p => p.StartsWith("CARDNO:")).Split(':')[1].ToString().Replace("|", "") : "";
@@ -129,7 +128,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 {
                     for (int i = 1; i < sGrp_s.Length - 1; i++)
                     {
-                        List<string> ly = GetJournalDetails_supervisor(sGrp_s[i].Split("\n"), ATMNO);
+                        List<string> ly = this.GetJournalDetails_supervisor(sGrp_s[i].Split("\n"), ATMNO);
                         if (ly != null)
                         {
 

@@ -1,13 +1,14 @@
-﻿using ExcelDataReader;
-using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using ExcelDataReader;
+using SbslFileTransformer.Converters.Rwanda.BNR;
+using SbslFileTransformer.Infrastructure.Helpers;
 
-namespace SbslFileTransformer.Converters.BalanceExtractors
+namespace SbslFileTransformer.Converters.BalanceExtractors.Rwanda
 {
     public class SpennRwandaBalanceExtractor
     {
@@ -15,7 +16,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
 
         public SpennRwandaBalanceExtractor(string entity)
         {
-            _entity = entity;
+            this._entity = entity;
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
@@ -52,7 +53,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
                 }
             }
 
-            GenerateMultiCurr(list.First(), inputFile, rootFolder);
+            this.GenerateMultiCurr(list.First(), inputFile, rootFolder);
         }
 
         private void GenerateMultiCurr(ExcelCols list, string inputFile, string rootFolder)
@@ -62,7 +63,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
             string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
             string outputFile = Path.Combine(rootFolder,
-                $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_SPEN_{_entity}.txt");
+                $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_SPEN_{this._entity}.txt");
 
             StringBuilder toAppend = new StringBuilder();
 
@@ -76,7 +77,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
                 string account = "25049787002";
 
                 toAppend.Append(
-                    $"{_entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
+                    $"{this._entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
 
                 string text = toAppend.ToString();
 

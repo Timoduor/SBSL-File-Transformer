@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters
+namespace SbslFileTransformer.Converters.BalanceExtractors
 {
     public class CdmCols
     {

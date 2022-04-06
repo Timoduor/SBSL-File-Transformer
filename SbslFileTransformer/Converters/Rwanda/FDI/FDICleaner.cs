@@ -1,13 +1,14 @@
-﻿using CsvHelper;
-using ExcelDataReader;
-using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
+using SbslFileTransformer.Converters.Rwanda.BNR;
+using SbslFileTransformer.Infrastructure.Helpers;
 
-namespace SbslFileTransformer.Converters.BalanceExtractors
+namespace SbslFileTransformer.Converters.Rwanda.FDI
 {
     public class FDICleaner
     {
@@ -61,7 +62,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
                 outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_FDI_{fileNameToUse}.csv");
             }
 
-            WriteToFile(list, outputFile);
+            this.WriteToFile(list, outputFile);
         }
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)

@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SbslFileTransformer.Converters.Kenya.Mpesa;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {

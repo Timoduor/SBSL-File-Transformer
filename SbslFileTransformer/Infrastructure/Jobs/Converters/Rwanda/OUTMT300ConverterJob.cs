@@ -1,4 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -7,32 +13,26 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters
+namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda
 {
     public class OUTMT300ConverterJob : ConverterJobBase<OUTMT300ConverterJob>, IHostedService
     {
         protected override string JobName { get; set; } = nameof(OUTMT300ConverterJob);
         public OUTMT300ConverterJob(ILogger<OUTMT300ConverterJob> logger, IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
-            _logger = logger;
-            _serviceScopeFactory = serviceScopeFactory;
-            _emailSender = emailSender;
+            this._logger = logger;
+            this._serviceScopeFactory = serviceScopeFactory;
+            this._emailSender = emailSender;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting OUTMT300 Converter Job");
+            this._logger.LogInformation("Starting OUTMT300 Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await ConvertOutMT300File(), null, TimeSpan.FromSeconds(new Random().Next(60, 200)), TimeSpan.FromMinutes(10));
+            this._timer = new Timer(async state => await this.ConvertOutMT300File(), null, TimeSpan.FromSeconds(new Random().Next(60, 200)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
@@ -43,13 +43,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running OUTMT300 Converter Job");
+                this._logger.LogInformation("Running OUTMT300 Converter Job");
 
                 string prodFolder = string.Empty;
                 string sbFolder = string.Empty;
                 string Entity = string.Empty;
 
-                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
                 {
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
@@ -84,21 +84,21 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 catch (Exception ex)
                                 {
-                                    await ProcessFileFailure(configurations, file, fileToProcess, ex);
+                                    await this.ProcessFileFailure(configurations, file, fileToProcess, ex);
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(OUTMt300Converter));
+                                    this.CompleteFileProcessing(updatedFiles, fileToProcess, nameof(OUTMt300Converter));
                                 }
 
                         }
                     }
-                    await SaveProcessedFilesStatuses(dbContext, updatedFiles);
+                    await this.SaveProcessedFilesStatuses(dbContext, updatedFiles);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                this._logger.LogError(ex, ex.Message);
             }
             finally
             {

@@ -1,15 +1,14 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using ExcelDataReader;
-using SbslFileTransformer.Infrastructure.Jobs.Converters;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CsvHelper;
+using CsvHelper.Configuration;
+using ExcelDataReader;
 
-namespace SbslFileTransformer.Converters.Kenya
+namespace SbslFileTransformer.Converters.Kenya.Mpesa
 {
     public class LipaNaMpesaC2BMerchantConverter
     {
@@ -17,7 +16,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
         public LipaNaMpesaC2BMerchantConverter(string entity)
         {
-            _entity = entity;
+            this._entity = entity;
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
@@ -95,7 +94,7 @@ namespace SbslFileTransformer.Converters.Kenya
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_C2B_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.txt");
             }
 
-            WriteToFile(list, outputFile);
+            this.WriteToFile(list, outputFile);
         }
 
         private void WriteToFile(List<MPesaCols> rows, string outputFile)

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SbslFileTransformer.Infrastructure.Jobs
+namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Models
 {
     public class OpenItem
     {

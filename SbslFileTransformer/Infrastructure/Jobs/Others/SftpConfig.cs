@@ -1,4 +1,4 @@
-﻿namespace SbslFileTransformer.Infrastructure.Jobs
+﻿namespace SbslFileTransformer.Infrastructure.Jobs.Others
 {
     public class SftpConfig
     {

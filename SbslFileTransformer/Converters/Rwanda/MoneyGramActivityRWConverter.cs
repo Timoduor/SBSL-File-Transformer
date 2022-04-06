@@ -6,6 +6,7 @@ using System.Text;
 using CsvHelper;
 using ExcelDataReader;
 using Microsoft.Extensions.Logging;
+using SbslFileTransformer.Converters.Rwanda.BNR;
 
 namespace SbslFileTransformer.Converters.Rwanda
 {

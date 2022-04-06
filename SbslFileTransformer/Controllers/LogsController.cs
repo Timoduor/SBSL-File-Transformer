@@ -128,7 +128,7 @@ namespace SbslFileTransformer.Controllers
             //To show GROUPED logs, processed reports and uploaded files
             try
             {
-                DateTime filesMaxDate = _dbContext.UploadedFiles.Select(d => d.UploadedDate).Max();
+                DateTime filesMaxDate = this._dbContext.UploadedFiles.Any() ? _dbContext.UploadedFiles.Select(d => d.UploadedDate).Max() : DateTime.Now;
 
                 Dictionary<string, int> filesPerDay = _dbContext.UploadedFiles.ToList().Where(f => f.UploadedDate > filesMaxDate.AddDays(-14))
                     .GroupBy(f => f.UploadedDate.Date)
@@ -157,7 +157,7 @@ namespace SbslFileTransformer.Controllers
                 _logger.LogError(ex, ex.Message);
             }
 
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Logs");
         }
 
         public IActionResult DownloadLogFile(string name)

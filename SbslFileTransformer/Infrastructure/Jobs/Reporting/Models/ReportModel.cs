@@ -1,6 +1,6 @@
 ﻿using SbslFileTransformer.Models.Enums;
 
-namespace SbslFileTransformer.Infrastructure.Jobs
+namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Models
 {
     public class ReportModel
     {

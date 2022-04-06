@@ -1,12 +1,12 @@
-﻿using CsvHelper;
-using ExcelDataReader;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
 
-namespace SbslFileTransformer.Converters.BNR
+namespace SbslFileTransformer.Converters.Rwanda.BNR
 {
     public class SettlementConverter
     {
@@ -195,7 +195,7 @@ namespace SbslFileTransformer.Converters.BNR
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm}_{fileName.Substring(Math.Max(0, fileName.Length - 10))}_SETMT.csv");
             }
 
-            WriteToFile(list, outputFile);
+            this.WriteToFile(list, outputFile);
         }
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)

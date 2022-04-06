@@ -1,4 +1,4 @@
-﻿namespace SbslFileTransformer.Converters.Camt053
+﻿namespace SbslFileTransformer.Converters.Rwanda.Camt053
 {
     public class BalanceExctracted
     {

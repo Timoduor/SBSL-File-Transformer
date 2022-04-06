@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using SbslFileTransformer.Infrastructure.Jobs.Reporting.Models;
+using SbslFileTransformer.Models.ViewModels;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 {

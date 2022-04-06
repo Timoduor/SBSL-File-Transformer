@@ -1,4 +1,4 @@
-﻿namespace SbslFileTransformer.Converters.KenSwitch
+﻿namespace SbslFileTransformer.Converters.Kenya.KenSwitch
 {
     public class KenSwitchRec
     {

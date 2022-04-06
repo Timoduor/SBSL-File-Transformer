@@ -1,10 +1,10 @@
-﻿using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using SbslFileTransformer.Infrastructure.Helpers;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters
+namespace SbslFileTransformer.Converters.Tanzania
 {
     public class PrepaidBal_converter
     {

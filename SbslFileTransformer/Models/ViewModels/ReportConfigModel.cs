@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace SbslFileTransformer.Models
+namespace SbslFileTransformer.Models.ViewModels
 {
     public class ReportConfigModel
     {

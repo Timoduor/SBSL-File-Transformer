@@ -27,6 +27,8 @@ using Serilog;
 using System;
 using System.IO;
 using System.Threading;
+using SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda;
+using SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda.BNR;
 
 namespace SbslFileTransformer
 {

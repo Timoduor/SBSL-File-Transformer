@@ -1,4 +1,4 @@
-namespace SbslFileTransformer.Models
+namespace SbslFileTransformer.Models.ViewModels
 {
     public class ErrorViewModel
     {

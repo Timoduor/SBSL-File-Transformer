@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SbslFileTransformer.Models
+namespace SbslFileTransformer.Models.ViewModels
 {
     public class SmtpConfigModel
     {

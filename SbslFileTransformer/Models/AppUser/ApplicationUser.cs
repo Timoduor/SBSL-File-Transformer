@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
-using System;
+﻿using System;
+using Microsoft.AspNetCore.Identity;
 
-namespace SbslFileTransformer.Models
+namespace SbslFileTransformer.Models.AppUser
 {
     public class ApplicationUser : IdentityUser<Guid>
     {

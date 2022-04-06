@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 
-namespace SbslFileTransformer.Models
+namespace SbslFileTransformer.Models.ViewModels
 {
     public class TaskViewModel
     {

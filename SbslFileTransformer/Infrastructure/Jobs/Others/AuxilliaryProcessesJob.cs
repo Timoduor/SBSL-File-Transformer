@@ -1,23 +1,24 @@
 ﻿extern alias MySqlDataAlias;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using MySqlDataAlias::MySql.Data.MySqlClient;
-using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
-using SbslFileTransformer.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Helpers;
+using SbslFileTransformer.Models.Enums;
 using MySqlBackup = MySql.Data.MySqlClient.MySqlBackup;
+using MySqlCommand = MySqlDataAlias::MySql.Data.MySqlClient.MySqlCommand;
+using MySqlConnection = MySqlDataAlias::MySql.Data.MySqlClient.MySqlConnection;
 
 
-namespace SbslFileTransformer.Infrastructure.Jobs
+namespace SbslFileTransformer.Infrastructure.Jobs.Others
 {
     public class AuxilliaryProcessesJob : IHostedService
     {
@@ -29,37 +30,37 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
         public AuxilliaryProcessesJob(ILogger<AuxilliaryProcessesJob> logger, IServiceScopeFactory serviceScopeFactory)
         {
-            _logger = logger;
-            _serviceScopeFactory = serviceScopeFactory;
+            this._logger = logger;
+            this._serviceScopeFactory = serviceScopeFactory;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _semaphore = new SemaphoreSlim(1, 1);
 
-            Timer timer = new Timer(state => RestartService(), null, TimeSpan.Zero, TimeSpan.FromHours(2));
-            _timers.Add(timer);
+            Timer timer = new Timer(state => this.RestartService(), null, TimeSpan.Zero, TimeSpan.FromHours(2));
+            this._timers.Add(timer);
 
-            Timer timerArchive = new Timer(async state => await ArchiveOldFiles(), null,
+            Timer timerArchive = new Timer(async state => await this.ArchiveOldFiles(), null,
                 TimeSpan.FromSeconds(new Random().Next(60, 600)), TimeSpan.FromHours(2));
-            _timers.Add(timerArchive);
+            this._timers.Add(timerArchive);
 
-            Timer timerBackup = new Timer(async state => await BackupDb(), null,
+            Timer timerBackup = new Timer(async state => await this.BackupDb(), null,
                 TimeSpan.FromSeconds(new Random().Next(60, 600)), TimeSpan.FromHours(1));
-            _timers.Add(timerBackup);
+            this._timers.Add(timerBackup);
 
-            Timer timerClearTemp = new Timer(async state => await ClearTempFolder(), null,
+            Timer timerClearTemp = new Timer(async state => await this.ClearTempFolder(), null,
                 TimeSpan.FromSeconds(new Random().Next(60, 600)), TimeSpan.FromHours(1));
-            _timers.Add(timerClearTemp);
+            this._timers.Add(timerClearTemp);
 
             return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Auxilliary Services stopped!");
+            this._logger.LogInformation("Auxilliary Services stopped!");
 
-            foreach (Timer timer in _timers) timer.Dispose();
+            foreach (Timer timer in this._timers) timer.Dispose();
 
             return Task.CompletedTask;
         }
@@ -70,11 +71,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running file Archive Job");
+                this._logger.LogInformation("Running file Archive Job");
 
                 //do it only at night
                 if (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 3)
-                    using (IServiceScope scope = _serviceScopeFactory.CreateScope())
+                    using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
                     {
                         ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
@@ -130,7 +131,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                this._logger.LogError(ex, ex.Message);
             }
             finally
             {
@@ -143,7 +144,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             try
             {
-                string tempFolder = await FileHelpers.GetTempPath(_serviceScopeFactory);
+                string tempFolder = await FileHelpers.GetTempPath(this._serviceScopeFactory);
 
                 //DELETE OLD BACKUPS 2 days or older
                 EnumerationOptions searchOptions = new EnumerationOptions
@@ -163,7 +164,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                this._logger.LogError(ex, ex.Message);
             }
         }
 
@@ -171,7 +172,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             try
             {
-                _logger.LogInformation("Restarting SBSL Service");
+                this._logger.LogInformation("Restarting SBSL Service");
 
                 //do it only at night
                 if (DateTime.Now.Hour >= 0 && DateTime.Now.Hour <= 1)
@@ -183,7 +184,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                this._logger.LogError(ex, ex.Message);
             }
         }
 
@@ -197,7 +198,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                 IMemoryCache memCache;
 
-                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
                 {
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
@@ -255,7 +256,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                this._logger.LogError(ex, ex.Message);
             }
         }
     }

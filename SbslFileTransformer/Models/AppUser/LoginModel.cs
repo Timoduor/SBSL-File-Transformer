@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace SbslFileTransformer.Models
+namespace SbslFileTransformer.Models.AppUser
 {
     public class LoginModel
     {

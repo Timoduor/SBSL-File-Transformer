@@ -1,4 +1,4 @@
-﻿namespace SbslFileTransformer.Infrastructure.Jobs.Converters
+﻿namespace SbslFileTransformer.Converters.Kenya.Mpesa
 {
     public class MPesaCols
     {

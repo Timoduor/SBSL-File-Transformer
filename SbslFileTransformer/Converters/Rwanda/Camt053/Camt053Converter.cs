@@ -1,10 +1,10 @@
-﻿using SbslFileTransformer.Infrastructure.Helpers;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using SbslFileTransformer.Infrastructure.Helpers;
 
-namespace SbslFileTransformer.Converters.Camt053
+namespace SbslFileTransformer.Converters.Rwanda.Camt053
 {
     public class Camt053Converter
     {

@@ -1,4 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Renci.SshNet;
@@ -6,15 +13,9 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using SbslFileTransformer.Models.ViewModels;
 
-namespace SbslFileTransformer.Infrastructure.Jobs
+namespace SbslFileTransformer.Infrastructure.Jobs.Others
 {
     public class SftpIndependentJob : IHostedService
     {
@@ -28,45 +29,45 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
         public SftpIndependentJob(IServiceScopeFactory serviceScopeFactory, ILogger<SftpIndependentJob> logger)
         {
-            _serviceScopeFactory = serviceScopeFactory;
-            _logger = logger;
+            this._serviceScopeFactory = serviceScopeFactory;
+            this._logger = logger;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
             try
             {
-                _logger.LogInformation("Starting SFTP Independent...");
+                this._logger.LogInformation("Starting SFTP Independent...");
 
                 _semaphore = new SemaphoreSlim(1, 1);
 
-                GetConfiguration(out SftpConfigModel config, out int prodTimeSpan, out int sbTimeSpan, out JobDisplayManager jobManager);
+                this.GetConfiguration(out SftpConfigModel config, out int prodTimeSpan, out int sbTimeSpan, out JobDisplayManager jobManager);
 
                 if (config.IncludeProduction)
                 {
                     Timer timerProd = new Timer(
-                        async state => await RunFileCheckAndUpload(state, true, config.ProductionFolder, config, jobManager), null,
+                        async state => await this.RunFileCheckAndUpload(state, true, config.ProductionFolder, config, jobManager), null,
                         TimeSpan.Zero,
                         TimeSpan.FromMinutes(prodTimeSpan));
 
-                    _timers.Add(timerProd);
+                    this._timers.Add(timerProd);
                 }
 
                 if (config.IncludeSandbox)
                 {
                     Timer timerSB = new Timer(
-                        async state => await RunFileCheckAndUpload(state, false, config.SandboxFolder, config, jobManager), null,
+                        async state => await this.RunFileCheckAndUpload(state, false, config.SandboxFolder, config, jobManager), null,
                         TimeSpan.Zero,
                         TimeSpan.FromMinutes(sbTimeSpan));
 
-                    _timers.Add(timerSB);
+                    this._timers.Add(timerSB);
                 }
 
-                _logger.LogInformation("SFTP Independent Job Started Successfully!");
+                this._logger.LogInformation("SFTP Independent Job Started Successfully!");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message + " Error starting SFTP independent job");
+                this._logger.LogError(ex, ex.Message + " Error starting SFTP independent job");
             }
 
             return Task.CompletedTask;
@@ -74,16 +75,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("SFTP Independent Job stopped");
+            this._logger.LogInformation("SFTP Independent Job stopped");
 
-            foreach (Timer timer in _timers) await timer.DisposeAsync();
+            foreach (Timer timer in this._timers) await timer.DisposeAsync();
         }
 
         private void GetConfiguration(out SftpConfigModel config, out int prodTimeSpan, out int sbTimeSpan, out JobDisplayManager jobManager)
         {
             prodTimeSpan = 10;
             sbTimeSpan = 15;
-            using (IServiceScope scope = _serviceScopeFactory.CreateScope())
+            using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
             {
                 ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
@@ -127,18 +128,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation($"Running file check and upload at {DateTime.Now}!");
+                this._logger.LogInformation($"Running file check and upload at {DateTime.Now}!");
 
-                CurrentJobStatus = jobManager.GetJobStatus(JobName);
+                this.CurrentJobStatus = jobManager.GetJobStatus(this.JobName);
 
-                if (CurrentJobStatus == null)
+                if (this.CurrentJobStatus == null)
                 {
-                    CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Running };
+                    this.CurrentJobStatus = new JobStatus(this.JobName) { Status = JobState.Running };
 
-                    jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                    jobManager.SetJobStatus(this.JobName, this.CurrentJobStatus);
                 }
 
-                jobManager.SetJobStatus(nameof(SftpIndependentJob), CurrentJobStatus);
+                jobManager.SetJobStatus(nameof(SftpIndependentJob), this.CurrentJobStatus);
 
                 string path = state?.ToString();
 
@@ -159,8 +160,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 if (config.UseUnicode)
                     connectionInfo.Encoding = Encoding.UTF8;
 
-                CurrentJobStatus.Status = JobState.Running;
-                jobManager.SetJobStatus(nameof(SftpIndependentJob), CurrentJobStatus);
+                this.CurrentJobStatus.Status = JobState.Running;
+                jobManager.SetJobStatus(nameof(SftpIndependentJob), this.CurrentJobStatus);
 
                 if (string.IsNullOrEmpty(path) || !Directory.Exists(path) || !File.Exists(path))
                 {
@@ -174,26 +175,26 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                     List<string> files = Directory.GetFiles(productionOrSandboxFolder, "*", options).ToList();
 
-                    result = await ProcessFileAndUpload(isProduction, productionOrSandboxFolder, files, connectionInfo);
+                    result = await this.ProcessFileAndUpload(isProduction, productionOrSandboxFolder, files, connectionInfo);
                 }
                 else
                 {
-                    result = await ProcessFileAndUpload(isProduction, productionOrSandboxFolder, new List<string> { path }, connectionInfo);
+                    result = await this.ProcessFileAndUpload(isProduction, productionOrSandboxFolder, new List<string> { path }, connectionInfo);
                 }
 
                 if (result)
                 {
-                    _logger.LogInformation("File check and upload ran successfully!");
+                    this._logger.LogInformation("File check and upload ran successfully!");
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message + $" Error running file check and upload");
+                this._logger.LogError(ex, ex.Message + $" Error running file check and upload");
             }
             finally
             {
-                CurrentJobStatus.Status = JobState.Completed;
-                jobManager.SetJobStatus(nameof(SftpIndependentJob), CurrentJobStatus);
+                this.CurrentJobStatus.Status = JobState.Completed;
+                jobManager.SetJobStatus(nameof(SftpIndependentJob), this.CurrentJobStatus);
 
                 _semaphore.Release();
             }
@@ -204,11 +205,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             try
             {
-                return await FileHelpers.UploadFilesToSftp(files, isProduction, productionOrSandboxFolder, _serviceScopeFactory, _logger, connectionInfo);
+                return await FileHelpers.UploadFilesToSftp(files, isProduction, productionOrSandboxFolder, this._serviceScopeFactory, this._logger, connectionInfo);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message + " Error uploading file");
+                this._logger.LogError(ex, ex.Message + " Error uploading file");
             }
 
             return false;

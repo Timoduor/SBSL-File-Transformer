@@ -1,14 +1,15 @@
-﻿using CsvHelper;
-using ExcelDataReader;
-using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
+using SbslFileTransformer.Converters.Rwanda.BNR;
+using SbslFileTransformer.Infrastructure.Helpers;
 
-namespace SbslFileTransformer.Converters.BalanceExtractors
+namespace SbslFileTransformer.Converters.BalanceExtractors.Rwanda
 {
     public class FDIBalanceExtractor
     {
@@ -16,7 +17,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
 
         public FDIBalanceExtractor(string entity)
         {
-            _entity = entity;
+            this._entity = entity;
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
@@ -83,9 +84,9 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
                 outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{fileNameToUse}_COMM.csv");
             }
 
-            WriteToCommissionFile(list2, outputFile);
+            this.WriteToCommissionFile(list2, outputFile);
 
-            GenerateMultiCurr(list, inputFile, rootFolder);
+            this.GenerateMultiCurr(list, inputFile, rootFolder);
         }
 
         private void GenerateMultiCurr(List<ExcelCols> list, string inputFile, string rootFolder)
@@ -95,7 +96,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
             string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
             string outputFile = Path.Combine(rootFolder,
-                $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_FDI_{_entity}.txt");
+                $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_FDI_{this._entity}.txt");
 
             StringBuilder toAppend = new StringBuilder();
 
@@ -107,7 +108,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors
             string account = "20100243506073";
 
             toAppend.Append(
-                $"{_entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount.ToString("N2")}\t{currency}\n");
+                $"{this._entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount.ToString("N2")}\t{currency}\n");
 
             string text = toAppend.ToString();
 

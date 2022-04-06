@@ -1,4 +1,4 @@
-﻿namespace SbslFileTransformer.Converters
+﻿namespace SbslFileTransformer.Converters.BalanceExtractors.Tanzania
 {
     public enum MBTypeTz
     {

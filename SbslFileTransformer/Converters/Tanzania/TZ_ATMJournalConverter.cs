@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters
+namespace SbslFileTransformer.Converters.Tanzania
 {
     public class TZ_ATMJournalConverter
     {
@@ -31,7 +31,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                 ATMJournal ATMflds = new ATMJournal();
                 for (int i = 1; i < sGrp.Length; i++)
                 {
-                    List<string> lx = GetJournalDetails(sGrp[i].Split("\r\n"));
+                    List<string> lx = this.GetJournalDetails(sGrp[i].Split("\r\n"));
                     if (lx.Count > 0)
                     {
                         ATMflds.CARDNo = lx.Any(p => p.StartsWith("CARDNO:")) ? lx.First(p => p.StartsWith("CARDNO:")).Split(':')[1].ToString().Replace("|", "") : "";

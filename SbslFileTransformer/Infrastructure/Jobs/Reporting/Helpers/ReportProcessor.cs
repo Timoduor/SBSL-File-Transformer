@@ -17,6 +17,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using SbslFileTransformer.Infrastructure.Jobs.Reporting.Models;
+using SbslFileTransformer.Models.ViewModels;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 {

@@ -4,8 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters
+namespace SbslFileTransformer.Converters.Rwanda
 {
     public class NotonusPOSConverter
     {

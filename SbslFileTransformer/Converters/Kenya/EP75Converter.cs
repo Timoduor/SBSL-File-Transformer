@@ -1,10 +1,10 @@
-﻿using CsvHelper;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using CsvHelper;
 
-namespace SbslFileTransformer.Converters
+namespace SbslFileTransformer.Converters.Kenya
 {
     public class EP75Converter
     {

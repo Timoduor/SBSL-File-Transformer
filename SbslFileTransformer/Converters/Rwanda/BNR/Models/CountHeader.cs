@@ -1,4 +1,4 @@
-﻿namespace SbslFileTransformer.Converters.BNR
+﻿namespace SbslFileTransformer.Converters.Rwanda.BNR.Models
 {
     public class CountHeader
     {

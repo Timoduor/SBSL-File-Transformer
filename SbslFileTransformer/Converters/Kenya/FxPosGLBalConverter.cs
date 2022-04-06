@@ -1,9 +1,9 @@
-﻿using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
+using SbslFileTransformer.Infrastructure.Helpers;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters
+namespace SbslFileTransformer.Converters.Kenya
 {
     public class FxPosGLBalConverter
     {

@@ -1,13 +1,13 @@
-﻿using ExcelDataReader;
-using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using ExcelDataReader;
+using SbslFileTransformer.Infrastructure.Helpers;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters
+namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
 {
     public class MpesaBalanceExtractor
     {
@@ -66,7 +66,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
 
                         row.Amount = Convert.ToDouble(amount);
 
-                        row.Account = GetAccountNumber(inputFile);
+                        row.Account = this.GetAccountNumber(inputFile);
 
                         list.Add(row);
                     }

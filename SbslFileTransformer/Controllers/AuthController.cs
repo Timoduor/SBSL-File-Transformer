@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Models;
 using System;
 using System.Threading.Tasks;
+using SbslFileTransformer.Models.AppUser;
 
 namespace SbslFileTransformer.Controllers
 {

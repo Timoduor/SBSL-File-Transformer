@@ -1,6 +1,6 @@
 ﻿using System.Xml.Serialization;
 
-namespace SbslFileTransformer.Converters.Camt053
+namespace SbslFileTransformer.Converters.Rwanda.Camt053
 {
     [XmlRoot(ElementName = "RltdPties")]
     public class Retailedparties
