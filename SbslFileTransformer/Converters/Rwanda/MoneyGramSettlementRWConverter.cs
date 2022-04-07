@@ -182,7 +182,8 @@ namespace SbslFileTransformer.Converters.Rwanda
                             }
                             if (reader.GetValue(10) != null && reader.GetValue(10).ToString() == "RDT")
                             {
-                                row.Col19 = reader.GetValue(32)?.ToString().Replace("\n", "");
+                                row.Col19 = Math.Truncate(baseamnt).ToString();
+                                //row.Col19 = reader.GetValue(32)?.ToString().Replace("\n", "");
                             }
                             if (reader.GetValue(10) != null && reader.GetValue(10).ToString() == "SEN")
                             {
@@ -255,6 +256,13 @@ namespace SbslFileTransformer.Converters.Rwanda
                     if (!string.IsNullOrEmpty(rows.Col16))
                     {
                         if (rows.Col6.Contains("REC") && rows.Col16.Contains("mk"))
+                        {
+                            rows.Col21 = Convert.ToDouble(zero).ToString();
+                        }
+                    }
+                    if (!string.IsNullOrEmpty(rows.Col16))
+                    {
+                        if (rows.Col6.Contains("RDT") && rows.Col16.Contains("mk"))
                         {
                             rows.Col21 = Convert.ToDouble(zero).ToString();
                         }

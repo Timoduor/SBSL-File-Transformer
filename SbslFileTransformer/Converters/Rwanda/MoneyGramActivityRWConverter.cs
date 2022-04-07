@@ -231,6 +231,7 @@ namespace SbslFileTransformer.Converters.Rwanda
                     {
                         if (rows.Col6.Contains("SEN") && rows.Col16.Contains("MK"))
                         {
+                            //revenue
                             rows.Col20 = Convert.ToDouble(zero).ToString();
                         }
                     }
@@ -238,6 +239,15 @@ namespace SbslFileTransformer.Converters.Rwanda
                     {
                         if (rows.Col6.Contains("REC") && rows.Col16.Contains("MK"))
                         {
+                            //revenue
+                            rows.Col20 = Convert.ToDouble(zero).ToString();
+                        }
+                    }
+                    if (!string.IsNullOrEmpty(rows.Col16))
+                    {
+                        if (rows.Col6.Contains("RDT") && rows.Col16.Contains("MK"))
+                        {
+                            //revenue
                             rows.Col20 = Convert.ToDouble(zero).ToString();
                         }
                     }
