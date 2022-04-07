@@ -27,7 +27,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             _emailSender = emailSender;
             _serviceScopeFactory = serviceScopeFactory;
             _jobManager = jobManager;
-            HttpClientFactory = httpClientFactory;
+            this.HttpClientFactory = httpClientFactory;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -36,7 +36,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await ProcessNewReports(), null,
+            _timer = new Timer(async state => await this.ProcessNewReports(), null,
                 TimeSpan.FromSeconds(new Random().Next(15, 30)), TimeSpan.FromMinutes(15));
 
             return Task.CompletedTask;
@@ -57,22 +57,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                     Entity = dbContext.Configurations.FirstOrDefault(c =>
                                 c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
 
-                    CurrentJobStatus = _jobManager.GetJobStatus(JobName);
+                    this.CurrentJobStatus = _jobManager.GetJobStatus(JobName);
 
-                    if (CurrentJobStatus == null)
+                    if (this.CurrentJobStatus == null)
                     {
-                        CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Starting };
+                        this.CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Starting };
 
-                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                        _jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
                     }
 
-                    Dictionary<string, IEnumerable<ReportModel>> unprocessedReports = await FetchReports(dbContext);
+                    Dictionary<string, IEnumerable<ReportModel>> unprocessedReports = await this.FetchReports(dbContext);
 
-                    await ProcessReports(unprocessedReports);
+                    await this.ProcessReports(unprocessedReports);
                 }
 
-                CurrentJobStatus.Status = JobState.Completed;
-                _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                this.CurrentJobStatus.Status = JobState.Completed;
+                _jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
             }
             catch (Exception ex)
             {
@@ -125,7 +125,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
         private async Task<Dictionary<string, IEnumerable<ReportModel>>> FetchReports(ApplicationDbContext dbContext)
         {
-            ReportFetcher reportFetcher = new ReportFetcher(_logger, HttpClientFactory, LoadReportConnectionConfig());
+            ReportFetcher reportFetcher = new ReportFetcher(_logger, this.HttpClientFactory, this.LoadReportConnectionConfig());
 
             List<ProcessedReport> processedReports = dbContext.ProcessedReports.ToList();
 
@@ -133,7 +133,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             {
                 CurrentJobStatus.ProgressMessage = $"Fetching unprocessed reports... {percent} %";
                 CurrentJobStatus.SetProgress(percent, 100);
-                _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                _jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
             });
 
             return await reportFetcher.GetAllUnprocessedRecentReportsAsync(processedReports, fetchReportProgress);
@@ -141,13 +141,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
         private async Task ProcessReports(Dictionary<string, IEnumerable<ReportModel>> unprocessedReports)
         {
-            ReportProcessor reportProcessor = new ReportProcessor(_logger, _serviceScopeFactory, HttpClientFactory, LoadReportConnectionConfig());
+            ReportProcessor reportProcessor = new ReportProcessor(_logger, this._serviceScopeFactory, this.HttpClientFactory, this.LoadReportConnectionConfig());
 
             IProgress<int> processReportProgress = new Progress<int>(percent =>
             {
-                CurrentJobStatus.ProgressMessage = $"Processing unprocessed reports... {percent} %";
-                CurrentJobStatus.SetProgress(percent, 100);
-                _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                this.CurrentJobStatus.ProgressMessage = $"Processing unprocessed reports... {percent} %";
+                this.CurrentJobStatus.SetProgress(percent, 100);
+                _jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
             });
 
             await reportProcessor.ProcessReports(unprocessedReports, Entity, processReportProgress);

@@ -21,16 +21,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
         public ReportFetcher(ILogger<ReportEngineJob> logger, IHttpClientFactory httpClientFactory, ReportConfigModel reportConfig)
         {
-            Logger = logger;
-            HttpClientFactory = httpClientFactory;
-            reportConfiguration = reportConfig;
+            this.Logger = logger;
+            this.HttpClientFactory = httpClientFactory;
+            this.reportConfiguration = reportConfig;
         }
 
         public async Task<Dictionary<string, IEnumerable<ReportModel>>> GetAllUnprocessedRecentReportsAsync(List<ProcessedReport> processedReports, IProgress<int> progressReporter)
         {
-            Logger.LogInformation("Fetching all recent reports...");
+            this.Logger.LogInformation("Fetching all recent reports...");
 
-            Dictionary<string, string> userTokens = await GetUserLoginTokens();
+            Dictionary<string, string> userTokens = await this.GetUserLoginTokens();
 
             Dictionary<string, IEnumerable<ReportModel>> allUsersUnprocessedReports = new Dictionary<string, IEnumerable<ReportModel>>();
 
@@ -38,7 +38,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
             foreach (KeyValuePair<string, string> userToken in userTokens)
             {
-                KeyValuePair<string, IEnumerable<ReportModel>> userReports = await GetUserRecentReports(userToken);
+                KeyValuePair<string, IEnumerable<ReportModel>> userReports = await this.GetUserRecentReports(userToken);
 
                 IEnumerable<ReportModel> unprocessedReports = userReports.Value.Where(r => !processedReports.Select(p => p.ReportId).Contains(r.ReportId));
 
@@ -60,27 +60,27 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
             Dictionary<string, string> userTokens = new Dictionary<string, string>();
 
-            foreach (KeyValuePair<string, string> user in reportConfiguration.UserNamesAndPasswords)
+            foreach (KeyValuePair<string, string> user in this.reportConfiguration.UserNamesAndPasswords)
             {
                 try
                 {
-                    HttpClient client = HttpClientFactory.CreateClient("BlackLine");
+                    HttpClient client = this.HttpClientFactory.CreateClient("BlackLine");
 
                     client.Timeout = TimeSpan.FromMinutes(10);
 
                     List<KeyValuePair<string, string>> content = new List<KeyValuePair<string, string>>
                         {
                             new KeyValuePair<string, string>("grant_type", "password"),
-                            new KeyValuePair<string, string>("scope", reportConfiguration.Scope),
-                            new KeyValuePair<string, string>("username", user.Key),
-                            new KeyValuePair<string, string>("password", user.Value),
-                            new KeyValuePair<string, string>("client_id", reportConfiguration.ClientId),
-                            new KeyValuePair<string, string>("client_secret", reportConfiguration.ClientSecret)
+                            new KeyValuePair<string, string>("scope", this.reportConfiguration.Scope?.Trim()),
+                            new KeyValuePair<string, string>("username", user.Key?.Trim()),
+                            new KeyValuePair<string, string>("password", user.Value?.Trim()),
+                            new KeyValuePair<string, string>("client_id", this.reportConfiguration.ClientId?.Trim()),
+                            new KeyValuePair<string, string>("client_secret", this.reportConfiguration.ClientSecret?.Trim())
                         };
 
                     FormUrlEncodedContent formdata = new FormUrlEncodedContent(content);
 
-                    HttpResponseMessage response = await client.PostAsync(reportConfiguration.TokenUrl, formdata);
+                    HttpResponseMessage response = await client.PostAsync(this.reportConfiguration.TokenUrl, formdata);
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -98,9 +98,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 }
             }
 
-            if (userTokens.Count() <= 0)
+            if (!userTokens.Any())
             {
-                string users = string.Join($"{Environment.NewLine}", reportConfiguration.UserNamesAndPasswords.Select(u => u.Key));
+                string users = string.Join($"{Environment.NewLine}", this.reportConfiguration.UserNamesAndPasswords.Select(u => u.Key));
 
                 throw new ReportTokenFetchException($"No tokens were found for the specified users {Environment.NewLine} " +
                     $"{users}." +
@@ -114,13 +114,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
         {
             Logger.LogInformation($"Fetching reports for {userToken.Key}");
 
-            string reportsUrl = @$"https://{reportConfiguration.EnvironmentUrl}.{reportConfiguration.BaseUrl}/queryruns";
+            string reportsUrl = @$"https://{this.reportConfiguration.EnvironmentUrl}.{this.reportConfiguration.BaseUrl}/queryruns";
 
             List<ReportModel> reports = new List<ReportModel>();
 
             try
             {
-                HttpClient client = HttpClientFactory.CreateClient("BlackLine");
+                HttpClient client = this.HttpClientFactory.CreateClient("BlackLine");
 
                 client.Timeout = TimeSpan.FromMinutes(10);
 

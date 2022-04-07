@@ -32,14 +32,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
         public ReportProcessor(ILogger<ReportEngineJob> logger, IServiceScopeFactory serviceScopeFactory, IHttpClientFactory httpClientFactory, ReportConfigModel reportConfigModel)
         {
             Logger = logger;
-            ServiceScopeFactory = serviceScopeFactory;
-            HttpClientFactory = httpClientFactory;
-            ReportConfigModel = reportConfigModel;
+            this.ServiceScopeFactory = serviceScopeFactory;
+            this.HttpClientFactory = httpClientFactory;
+            this.ReportConfigModel = reportConfigModel;
         }
 
         public async Task ProcessReports(Dictionary<string, IEnumerable<ReportModel>> unprocessedReports, string entity, IProgress<int> processReportProgress)
         {
-            using (IServiceScope scope = ServiceScopeFactory.CreateScope())
+            using (IServiceScope scope = this.ServiceScopeFactory.CreateScope())
             {
                 ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
@@ -53,7 +53,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                     {
                         try
                         {
-                            await ProcessReportBatch(reportBatch, entity, processReportProgress, emailGroups);
+                            await this.ProcessReportBatch(reportBatch, entity, processReportProgress, emailGroups);
                         }
                         catch (Exception ex)
                         {
@@ -77,11 +77,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
                 SetReportFilters(report, entity);
 
-                if (await DownloadAndSaveReport(report))
+                if (await this.DownloadAndSaveReport(report))
                 {
-                    report.DaysRange = GetEmailGroupDays(emailGroups, report);
+                    report.DaysRange = this.GetEmailGroupDays(emailGroups, report);
 
-                    processedReports.Add(await ProcessReportFile(report));
+                    processedReports.Add(await this.ProcessReportFile(report));
                 }
 
                 count++;
@@ -89,12 +89,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 processReportProgress.Report(count * 100 / reports.Count());
             }
 
-            await SaveAndSendReports(processedReports, processReportProgress);
+            await this.SaveAndSendReports(processedReports, processReportProgress);
         }
 
         private async Task SaveAndSendReports(List<(ReportModel, Dictionary<int, string>)> processedReports, IProgress<int> processReportProgress)
         {
-            ReportSender reportSender = new ReportSender(Logger, ServiceScopeFactory, ReportConfigModel);
+            ReportSender reportSender = new ReportSender(this.Logger, this.ServiceScopeFactory, this.ReportConfigModel);
 
             await reportSender.SendAndSaveReportsToDb(processedReports, processReportProgress);
         }
@@ -103,19 +103,19 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
         {
             Logger.LogInformation($"Downloading report ID: {report.ReportId} Title: {report.Name}");
 
-            string tempFolder = Path.Combine(await FileHelpers.GetTempPath(ServiceScopeFactory), "Reports");
+            string tempFolder = Path.Combine(await FileHelpers.GetTempPath(this.ServiceScopeFactory), "Reports");
 
             Directory.CreateDirectory(tempFolder);
 
             report.TempReportPath = Path.Combine(tempFolder,
                                 $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{report.Name}." +
-                                (ReportConfigModel.ExportType == "Excel" ? "xlsx" : ReportConfigModel.ExportType));
+                                (this.ReportConfigModel.ExportType == "Excel" ? "xlsx" : this.ReportConfigModel.ExportType));
 
             string reportToDownload =
-                @$"https://{ReportConfigModel.EnvironmentUrl}.{ReportConfigModel.BaseUrl}/completedqueryrun/{report.ReportId}/{ReportConfigModel.ExportType}";
+                @$"https://{this.ReportConfigModel.EnvironmentUrl}.{this.ReportConfigModel.BaseUrl}/completedqueryrun/{report.ReportId}/{this.ReportConfigModel.ExportType}";
             try
             {
-                HttpClient client = HttpClientFactory.CreateClient("BlackLine");
+                HttpClient client = this.HttpClientFactory.CreateClient("BlackLine");
 
                 client.Timeout = TimeSpan.FromMinutes(10);
 
@@ -223,8 +223,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             {
                 using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
                 {
-                    string lastAccountNo = string.Empty;
-
                     while (reader.Read())
                     {
                         string col3 = reader.GetValue(3)?.ToString();
@@ -282,12 +280,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 daysRecordsPairs.TryAdd(report.DaysRange[i], items);
             }
 
-            string agingExcel = await CreateModifiedAgingExcel(report.TempReportPath, report.DaysRange);
+            string agingExcel = await this.CreateModifiedAgingExcel(report.TempReportPath, report.DaysRange);
 
             if (daysRecordsPairs.Any() && report.TempReportPath.ToLower().Contains("proofing"))
             {
                 report.TempReportPath = agingExcel;
-                return (report, await CreateCsvFile(daysRecordsPairs, ServiceScopeFactory));
+                return (report, await this.CreateCsvFile(daysRecordsPairs, this.ServiceScopeFactory));
             }
 
             return (report, new Dictionary<int, string>());
@@ -302,7 +300,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             string inputFileName = Path.GetFileName(inputFile);
 
             string outputFilePath =
-                Path.Combine(await FileHelpers.GetTempPath(ServiceScopeFactory), "Aged_" + inputFileName);
+                Path.Combine(await FileHelpers.GetTempPath(this.ServiceScopeFactory), "Aged_" + inputFileName);
 
             using (ExcelPackage package = new ExcelPackage(new FileInfo(inputFile)))
             {
@@ -321,7 +319,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                         return 0;
                     });
 
-                    maxDate = FromExcelSerialDate(maxDateInt);
+                    maxDate = this.FromExcelSerialDate(maxDateInt);
                 }
                 catch (Exception ex)
                 {
@@ -350,7 +348,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
                     if (dateFromExcel != null && int.TryParse(dateFromExcel, out int dateInt))
                     {
-                        DateTime outputDate = FromExcelSerialDate(dateInt);
+                        DateTime outputDate = this.FromExcelSerialDate(dateInt);
 
                         int diff = (maxDate - outputDate).Days;
 

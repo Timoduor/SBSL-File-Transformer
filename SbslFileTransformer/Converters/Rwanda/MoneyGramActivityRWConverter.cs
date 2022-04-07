@@ -115,7 +115,7 @@ namespace SbslFileTransformer.Converters.Rwanda
                         row.Col10 = reader.GetValue(22)?.ToString().Replace("\n", "");
                         //fx margin
                         row.Col11 = reader.GetValue(23)?.ToString().Replace("\n", "");
-                        //base amount
+                        //base amount 
                         row.Col12 = reader.GetValue(25)?.ToString().Replace("\n", "");
                         //fee amount
                         row.Col13 = reader.GetValue(26)?.ToString().Replace("\n", "");
@@ -146,7 +146,6 @@ namespace SbslFileTransformer.Converters.Rwanda
                                 //computed base amount
                                 row.Col18 = Math.Ceiling(baseamnt + feeamnt + (feeamnt * per)).ToString();
                                 //row.Col18 = Math.Round(baseamnt + feeamnt + (feeamnt * per),MidpointRounding.AwayFromZero).ToString();
-                                //row.Col18 = Math.Truncate(baseamnt + feeamnt + (feeamnt * per)).ToString();
                             }
                             if (reader.GetValue(12) != null && reader.GetValue(12).ToString() == "REC")
                             {
@@ -157,7 +156,6 @@ namespace SbslFileTransformer.Converters.Rwanda
                             if (reader.GetValue(12) != null && reader.GetValue(12).ToString() == "REF")
                             {
                                 //row.Col18 = Math.Round(baseamnt,MidpointRounding.AwayFromZero).ToString();
-                                //row.Col18 = Math.Truncate(baseamnt).ToString();
                                 row.Col18 = Math.Truncate(comm).ToString();
                             }
                             if (reader.GetValue(12) != null && reader.GetValue(12).ToString() == "RDT")
@@ -194,21 +192,21 @@ namespace SbslFileTransformer.Converters.Rwanda
                     }
                 }
             }
-            var finalList = new List<ExcelCols>();
-            finalList.Add(list[4]);
-            finalList[0].Col0 = list[3].Col0;
-            finalList[0].Col1 = list[3].Col1;
-            finalList[0].Col16 = list[3].Col16;
-            finalList[0].Col17 = list[3].Col17;
-            finalList[0].Col18 = list[3].Col18;
-            finalList[0].Col19 = list[3].Col19;
-            finalList[0].Col20 = list[3].Col20;
-            finalList[0].Col21 = list[3].Col21;
-            finalList[0].Col22 = list[3].Col22;
-            finalList[0].Col23 = list[3].Col23;
+            list[4].Col0 = list[3].Col0;
+            list[4].Col1 = list[3].Col1;
+            list[4].Col16 = list[3].Col16;
+            list[4].Col17 = list[3].Col17;
+            list[4].Col18 = list[3].Col18;
+            list[4].Col19 = list[3].Col19;
+            list[4].Col20 = list[3].Col20;
+            list[4].Col21 = list[3].Col21;
+            list[4].Col22 = list[3].Col22;
+            list[4].Col23 = list[3].Col23;
             double rev1 = 0.4;
             double rev2 = 0.5;
             double amntfinal = 0.022;
+            var zero = 0;
+            var finalList = new List<ExcelCols>();
             foreach (var rows in list)
             {
                 try
@@ -217,28 +215,33 @@ namespace SbslFileTransformer.Converters.Rwanda
                     {
                         continue;
                     }
-                    if (rows.Col6.Contains("SEN") && rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN"))
+                    if (rows.Col6.Contains("SEN") || rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN"))
                     {
                         //revenue
                         //rows.Col20 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col19)) * rev2).ToString();
                         rows.Col20 = (Convert.ToDouble(rows.Col15) * rev2 * -1).ToString();
                     }
-                    if (rows.Col6.Contains("SEN") && rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
+                    if (rows.Col6.Contains("SEN") || rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
                     {
                         //revenue
                         //rows.Col20 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col19)) * rev1).ToString();
                         rows.Col20 = (Convert.ToDouble(rows.Col15) * rev1 * -1).ToString();
                     }
-                    //else
-                    //{
-                    // rows.Col20 = ((Convert.ToDouble(rows.Col13) - Convert.ToDouble(rows.Col19)) * rev1).ToString();
-                    //}
-                    if (rows.Col6.Contains("SEN"))
+                    if (!string.IsNullOrEmpty(rows.Col16))
                     {
-                        //amount final
-                        rows.Col21 = (Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col19) + Convert.ToDouble(rows.Col20) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
+                        if (rows.Col6.Contains("SEN") && rows.Col16.Contains("MK"))
+                        {
+                            rows.Col20 = Convert.ToDouble(zero).ToString();
+                        }
                     }
-                    if (rows.Col6.Contains("SEN") && rows.Col16 != null && rows.Col16.Contains("MK") && rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN") || rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
+                    if (!string.IsNullOrEmpty(rows.Col16))
+                    {
+                        if (rows.Col6.Contains("REC") && rows.Col16.Contains("MK"))
+                        {
+                            rows.Col20 = Convert.ToDouble(zero).ToString();
+                        }
+                    }
+                    if (rows.Col6.Contains("SEN") || rows.Col1.Contains("COPEDU") || rows.Col1.Contains("GOSHEN") || rows.Col1.Contains("EXTRA") || rows.Col1.Contains("RIM") || rows.Col1.Contains("AB BANK"))
                     {
                         //amount final
                         //base amount + charge + revenue + (fee amount * amtfinal )
@@ -246,7 +249,7 @@ namespace SbslFileTransformer.Converters.Rwanda
                     }
                     if (rows.Col6.Contains("RSN"))
                     {
-                        //amount final
+                        //amount final   
                         rows.Col21 = (Convert.ToDouble(rows.Col12) + Convert.ToDouble(rows.Col19) + Convert.ToDouble(rows.Col20) + (Convert.ToDouble(rows.Col13) * amntfinal)).ToString();
                     }
                     if (rows.Col6.Contains("REC") || rows.Col6.Contains("RDT") || rows.Col6.Contains("REF"))
@@ -259,10 +262,12 @@ namespace SbslFileTransformer.Converters.Rwanda
                 }
                 catch (Exception)
                 {
+                    if (string.IsNullOrEmpty(rows.Col2))
+                    {
+                        continue;
+                    }
                 }
             }
-
-            finalList.RemoveAt(0);
 
             if (string.IsNullOrEmpty(outputFile))
             {
