@@ -88,7 +88,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
                         JObject data = JObject.Parse(respContent);
 
-                        userTokens.Add(user.Key, (string)data.SelectToken("access_token"));
+                        userTokens.Add(user.Key?.Trim(), (string)data.SelectToken("access_token"));
                     }
 
                 }
