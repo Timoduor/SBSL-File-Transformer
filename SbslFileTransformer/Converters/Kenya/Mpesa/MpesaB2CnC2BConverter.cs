@@ -97,8 +97,8 @@ namespace SbslFileTransformer.Converters.Kenya.Mpesa
 
             this.WriteToFile(list, outputFile);
 
-            //if (inputFile.ToLower().Contains("mmf") && !inputFile.ToLower().Contains("credit_receivable"))
-            //    this.GenerateMultiCurr(list.Skip(6).First(), inputFile, rootFolder);
+            if (inputFile.ToLower().Contains("mmf") && !(inputFile.ToLower().Contains("credit_rec") || inputFile.ToLower().Contains("prepaid_rec")))
+                this.GenerateMultiCurr(list.Skip(6).First(), inputFile, rootFolder);
         }
 
 
