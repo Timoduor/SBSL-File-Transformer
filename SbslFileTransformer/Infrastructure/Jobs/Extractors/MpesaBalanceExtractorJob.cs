@@ -14,7 +14,7 @@ using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
+namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 {
     public class MpesaBalanceExtractorJob : ConverterJobBase<MpesaBalanceExtractorJob>, IHostedService
     {
@@ -80,7 +80,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                     foreach (string file in files)
                     {
-                        if (((file.ToLower().Contains("mpesa") && file.Contains("Conv")) || file.ToLower().Contains("credit_receivable")) &&
+                        if ((file.ToLower().Contains("mpesa") && file.Contains("Conv") || file.ToLower().Contains("credit_rec") || file.ToLower().Contains("prepaid_rec")) &&
                             file.ToLower().Contains("imke"))
                         {
                             SftpUploadedFile fileToProcess =

@@ -22,6 +22,8 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
 
             List<MpesaBalCols> list = new List<MpesaBalCols>();
 
+            string narrative = "Mobile banking";
+
             using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
                 IExcelDataReader reader;
@@ -30,18 +32,28 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
                     reader = ExcelReaderFactory.CreateCsvReader(stream);
                 else
                     reader = ExcelReaderFactory.CreateReader(stream);
-
+                
                 using (reader)
                 {
                     // Choose one of either 1 or 2:
                     // 1. Use the reader methods
-
+                    
                     while (reader.Read())
                     {
                         string value = reader.GetValue(0)?.ToString();
 
                         if (string.IsNullOrEmpty(value)) continue;
                         MpesaBalCols row = new MpesaBalCols();
+
+                        if (reader.GetValue(0)?.ToString() == "Short Code:")
+                        {
+                            narrative = reader.GetValue(1)?.ToString();
+                        }
+
+                        if (reader.GetValue(0)?.ToString() == "Account:")
+                        {
+                            narrative += " " + reader.GetValue(1)?.ToString();
+                        }
 
                         if (DateTime.TryParseExact(reader.GetValue(1)?.ToString(), "dd-MM-yyyy HH:mm",
                             CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime resultDate))
@@ -75,11 +87,11 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
 
             if (list.Count > 0)
             {
-                CreateMultiCurrFile(inputFile, outputFolder, list);
+                CreateMultiCurrFile(inputFile, outputFolder, list, narrative);
             }
         }
-
-        private static void CreateMultiCurrFile(string inputFile, string outputFolder, List<MpesaBalCols> list)
+        
+        private static void CreateMultiCurrFile(string inputFile, string outputFolder, List<MpesaBalCols> list, string narrative = "Mobile banking")
         {
             string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
@@ -90,9 +102,9 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
 
             MpesaBalCols lastRow = list.OrderByDescending(i => i.BalDate)
                 .FirstOrDefault(c => c.BalDate == list.Max(r => r.BalDate));
-
+            
             string toAppend =
-                $"IMKE\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.BalDate):MM/dd/yyyy}\t\t\t\t{-lastRow.Amount}\tKES\n";
+                $"IMKE\t{lastRow.Account}\t{narrative}\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.BalDate):MM/dd/yyyy}\t\t\t\t{-lastRow.Amount}\tKES\n";
 
             if (!string.IsNullOrEmpty(toAppend)) File.WriteAllText(outputFile, toAppend);
         }
