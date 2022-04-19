@@ -91,7 +91,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
             }
         }
         
-        private static void CreateMultiCurrFile(string inputFile, string outputFolder, List<MpesaBalCols> list, string narrative = "Mobile banking")
+        private static void CreateMultiCurrFile(string inputFile, string outputFolder, List<MpesaBalCols> list, string narrative)
         {
             string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
@@ -104,7 +104,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
                 .FirstOrDefault(c => c.BalDate == list.Max(r => r.BalDate));
             
             string toAppend =
-                $"IMKE\t{lastRow.Account}\t{narrative}\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.BalDate):MM/dd/yyyy}\t\t\t\t{-lastRow.Amount}\tKES\n";
+                $"IMKE\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t{narrative.Substring(0,Math.Min(narrative.Length,60))}\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.BalDate):MM/dd/yyyy}\t\t\t\t{-lastRow.Amount}\tKES\n";
 
             if (!string.IsNullOrEmpty(toAppend)) File.WriteAllText(outputFile, toAppend);
         }
@@ -112,8 +112,11 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
         /// check file path if it contains Mpesa C2B Chango    Mpesa B2C Elma      Mpesa B2C Chango      Mpesa C2B and specify account numbers
         private string GetAccountNumber(string inputFile)
         {
-            if (inputFile.ToLower().Contains("credit_receivable"))
+            if (inputFile.ToLower().Contains("credit_rec"))
                 return "18000126505014";
+
+            if (inputFile.ToLower().Contains("prepaid_rec"))
+                return "18000126505015";
 
             if (inputFile.ToLower().Contains("mpesa") && inputFile.ToLower().Contains("c2b") &&
                 inputFile.ToLower().Contains("chango"))

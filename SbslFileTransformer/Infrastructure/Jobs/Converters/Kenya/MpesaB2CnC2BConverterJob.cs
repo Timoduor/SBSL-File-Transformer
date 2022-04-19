@@ -80,14 +80,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                     foreach (string file in files)
                     {
-                        if ((file.ToLower().Contains("mpesa") && !file.ToLower().Contains("lookup") &&
-                             !file.ToLower().Contains("lipa") && !file.ToLower().Contains("merchant")
-                             || file.ToLower().Contains("bank to till b2c") ||
-                             file.ToLower().Contains("banktotillb2c") || file.ToLower().Contains("credit_receivable") ||
-                             file.ToLower().Contains("mmf") && (file.ToLower().Contains("elma_paybill") ||
-                                                                file.ToLower().Contains("omni_paybill") ||
-                                                                file.ToLower().Contains("pyt_serv_paybill")))
-                            && file.ToLower().Contains("imke") && !file.Contains("Conv"))
+                        if (
+                                (
+                                     file.ToLower().Contains("mpesa") && !file.ToLower().Contains("lookup") &&
+                                     !file.ToLower().Contains("lipa") && !file.ToLower().Contains("merchant")
+                                     || file.ToLower().Contains("bank to till b2c") ||
+                                     file.ToLower().Contains("banktotillb2c") || file.ToLower().Contains("credit_rec") 
+                                     || file.ToLower().Contains("prepaid_rec") ||
+                                     file.ToLower().Contains("mmf") && 
+                                     (
+                                         file.ToLower().Contains("elma_paybill") ||
+                                                                        file.ToLower().Contains("omni_paybill") ||
+                                                                        file.ToLower().Contains("pyt_serv_paybill")
+                                     )
+                                 )
+                                && file.ToLower().Contains("imke") && !file.Contains("Conv")
+                            )
                         {
                             SftpUploadedFile fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>
