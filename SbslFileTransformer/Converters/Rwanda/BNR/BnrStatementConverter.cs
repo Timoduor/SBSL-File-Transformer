@@ -27,181 +27,169 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
 
         public void ConvertFile(string inputFile, string rootFolder, string outputFile = null)
         {
-            List<ExcelCols> list = new List<ExcelCols>();
-            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            var list = new List<ExcelCols>();
+            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
+                using (var reader = ExcelReaderFactory.CreateReader(stream))
                 {
                     string code = "Codes";
-
                     string status = "Status 2";
-
                     string DR_CR = "DR_CR";
-
                     string Type_id = "Type_id";
-
                     string Title = "";
-
                     int countHeader = 0;
-
                     while (reader.Read())
                     {
-                        ExcelCols row = new ExcelCols();
-
-                        string val = reader.GetValue(2)?.ToString();
-
+                        var row = new ExcelCols();
+                        var val1 = reader.GetValue(0)?.ToString();
+                        var val = reader.GetValue(2)?.ToString();
                         if (val != null && reader.GetValue(2).ToString().StartsWith("Code"))
+                        {
                             code = reader.GetValue(2)?.ToString();
-
-                        string value = reader.GetValue(4)?.ToString();
-
+                        }
                         //Logic for title
                         if (reader.GetValue(3) != null)
                         {
                             string rec = reader.GetValue(3).ToString();
                             if (rec.StartsWith("Debit transactions"))
+                            {
                                 Title = "Debit";
-                            else if (rec.StartsWith("Credit transactions")) Title = "Credit";
+                            }
+                            else if (rec.StartsWith("Credit transactions"))
+                            {
+                                Title = "Credit";
+                            }
                         }
-
-                        if (string.IsNullOrEmpty(value)) continue;
-
+                        var value = reader.GetValue(4)?.ToString();
+                        if (string.IsNullOrEmpty(value))
+                        {
+                            continue;
+                        }
                         if (code.Equals("Code - 032"))
+                        {
                             row.Col15 = "MT104";
+                        }
                         else if (code.Equals("Code - 012"))
+                        {
                             row.Col15 = "MT971";
+                        }
                         else if (code.Equals("Code - 011"))
+                        {
                             row.Col15 = "MT971";
-                        else if (reader.GetValue(5) != null &&
-                                 !code.Equals("Code - 011") &&
-                                 !code.Equals("Code - 012") &&
-                                 reader.GetValue(5).ToString().Equals("pacs.009. 001.08"))
+                        }
+                        else if (code.Equals("Code - 010") && val1.StartsWith("MACA"))
+                        {
+                            row.Col15 = "MT971";
+                        }
+                        else if (code.Equals("Code - 010") && !val1.StartsWith("MACA"))
+                        {
                             row.Col15 = "MT202";
+                        }
+                        else if (reader.GetValue(5) != null &&
+                          !code.Equals("Code - 011") &&
+                          !code.Equals("Code - 012") &&
+                          reader.GetValue(5).ToString().Equals("pacs.009. 001.08"))
+                        {
+                            row.Col15 = "MT202";
+                        }
                         else if (reader.GetValue(19) != null &&
-                                 !code.Equals("Code - 032") &&
-                                 reader.GetValue(19)?.ToString() == "Active" ||
-                                 reader.GetValue(19)?.ToString() == "Rejected")
+                          !code.Equals("Code - 032") &&
+                          reader.GetValue(19)?.ToString() == "Active" ||
+                          reader.GetValue(19)?.ToString() == "Rejected")
+                        {
                             row.Col15 = "MT102";
+                        }
                         else if (row.Col3 != null && row.Col13 != null &&
-                                 row.Col3.Contains("pacs.008. 001.08") &&
-                                 row.Col13.Contains("Bulk"))
+                           row.Col3.Contains("pacs.008. 001.08") &&
+                           row.Col13.Contains("Bulk"))
+                        {
                             row.Col15 = "MT102";
+                        }
                         else
+                        {
                             row.Col15 = "MT103";
-
-
+                        }
                         //logic for child node
-                        //the value at index 0 is null for the child row hence the check
-                        if (reader.GetValue(19)?.ToString() == "Active" ||
-                            reader.GetValue(19)?.ToString() == "Rejected")
+                        //The value at index 0 is null for the child row hence the check
+                        if (reader.GetValue(19)?.ToString() == "Active" || reader.GetValue(19)?.ToString() == "Rejected")
                         {
                             //logic to read child columns
-
                             //Reference
                             row.Col0 = reader.GetValue(4)?.ToString().Replace("\n", "");
-
                             //Codes colunm
                             row.Col1 = list.Last().Col1;
                             //Value Date
                             row.Col2 = list.Last().Col2;
-
                             row.Col3 = list.Last().Col3;
                             //Debit account
                             row.Col4 = list.Last().Col4;
                             //Odering customer
-                            row.Col5 = reader.GetValue(7) + reader.GetValue(10)?.ToString();
+                            row.Col5 = reader.GetValue(7)?.ToString() + reader.GetValue(10)?.ToString();
                             //Credit account
                             row.Col6 = list.Last().Col6;
-
-                            row.Col7 = reader.GetValue(13) + reader.GetValue(14)?.ToString();
-
+                            row.Col7 = reader.GetValue(13)?.ToString() + reader.GetValue(14)?.ToString();
                             row.Col8 = list.Last().Col8;
                             //Amount
-                            row.Col9 = reader.GetValue(18)?.ToString();
-                            ;
+                            row.Col9 = reader.GetValue(18)?.ToString(); ;
                             //Input time
                             row.Col10 = list.Last().Col10;
                             //Status
                             row.Col11 = list.Last().Col11;
                             //Modification time
                             row.Col12 = list.Last().Col12;
-                            //(Active) Status of subdirectory
+                            //(Active) Status of subdirectory 
                             row.Col13 = reader.GetValue(19)?.ToString();
                             //DR_CR
                             row.Col14 = Title;
-                            //method for the bulk colunm
+                            //method for the bulk colunm 
                             if (string.IsNullOrEmpty(list.Last().Col13?.ToLower()))
                             {
                                 list.Last().Col13 = "Bulk";
-                                if (list.Last().Col3.Contains("pacs.008. 001.08")) list.Last().Col15 = "MT102";
+                                if (list.Last().Col3.Contains("pacs.008. 001.08"))
+                                {
+                                    list.Last().Col15 = "MT102";
+                                }
                             }
-
                             list.Add(row);
                         }
-
                         else
                         {
                             //logic for parent
-
-                            //if (reader.GetValue(6) != null && reader.GetValue(6).ToString().Replace("\n", "").StartsWith("1240000") || reader.GetValue(6).ToString().Replace("\n", "").StartsWith("3208000") || reader.GetValue(6).ToString().Replace("\n", "").StartsWith("1000026561"))
-                            //{
-                            //    row.Col14 = "Debit";
-                            //}
-                            //else
-                            //{
-                            //    row.Col14 = "Credit";
-                            //}
-
                             //Reference
                             row.Col0 = reader.GetValue(0)?.ToString().Replace("\n", "");
-
-                            //Codes colunm
+                            //Codes colunm 
                             row.Col1 = code;
-
                             //Value Date
                             row.Col2 = reader.GetValue(4)?.ToString();
-
                             //Type
                             row.Col3 = reader.GetValue(5)?.ToString();
-
                             //Debit Account
                             row.Col4 = reader.GetValue(6)?.ToString().Replace("\n", "");
-
                             //Odering Customer/Drawer
                             row.Col5 = reader.GetValue(8)?.ToString();
-
                             //Credit Account
                             row.Col6 = reader.GetValue(11)?.ToString().Replace("\n", "");
-
                             //Beneficiary
                             row.Col7 = reader.GetValue(12)?.ToString();
-
                             //Remittance infos
                             row.Col8 = reader.GetValue(13)?.ToString();
-
                             //Amount
                             row.Col9 = reader.GetValue(14)?.ToString();
-
                             //Input Time
                             row.Col10 = reader.GetValue(15)?.ToString();
-
                             //Status
                             row.Col11 = reader.GetValue(17)?.ToString();
-
                             //Modification Time
                             row.Col12 = reader.GetValue(18)?.ToString();
                             //DR_CR
                             row.Col14 = Title;
-
                             if (countHeader == 0)
                             {
                                 row.Col13 = status;
                                 row.Col14 = DR_CR;
                                 row.Col15 = Type_id;
-
                                 countHeader++;
                             }
-
                             list.Add(row);
                         }
                     }
