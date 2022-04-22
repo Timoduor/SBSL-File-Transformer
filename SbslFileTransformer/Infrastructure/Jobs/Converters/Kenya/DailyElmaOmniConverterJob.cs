@@ -22,20 +22,20 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
         public DailyElmaOmniConverterJob(ILogger<DailyElmaOmniConverterJob> logger,
             IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
-            _logger = logger;
-            _serviceScopeFactory = serviceScopeFactory;
-            _emailSender = emailSender;
+            this._logger = logger;
+            this._serviceScopeFactory = serviceScopeFactory;
+            this._emailSender = emailSender;
         }
 
         protected override string JobName { get; set; } = nameof(DailyElmaOmniConverterJob);
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting Daily Elma Omni Settlement Job");
+            this._logger.LogInformation("Starting Daily Elma Omni Settlement Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await MonthlyOmniConverter(), null,
+            this._timer = new Timer(async state => await this.MonthlyOmniConverter(), null,
                 TimeSpan.FromSeconds(new Random().Next(60, 200)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
@@ -47,13 +47,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running Daily Elma Omni Settlement job");
+                this._logger.LogInformation("Running Daily Elma Omni Settlement job");
 
                 string prodFolder = string.Empty;
                 string sbFolder = string.Empty;
                 string Entity = string.Empty;
 
-                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
                 {
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
@@ -98,21 +98,21 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 }
                                 catch (Exception ex)
                                 {
-                                    await ProcessFileFailure(configurations, file, fileToProcess, ex);
+                                    await this.ProcessFileFailure(configurations, file, fileToProcess, ex);
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(DailyElmaOmniSettlementConverter));
+                                    this.CompleteFileProcessing(updatedFiles, fileToProcess, nameof(DailyElmaOmniSettlementConverter));
                                 }
                             }
                         }
                     }
-                    await SaveProcessedFilesStatuses(dbContext, updatedFiles);
+                    await this.SaveProcessedFilesStatuses(dbContext, updatedFiles);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                this._logger.LogError(ex, ex.Message);
             }
             finally
             {

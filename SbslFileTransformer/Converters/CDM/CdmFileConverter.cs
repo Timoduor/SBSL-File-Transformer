@@ -75,7 +75,7 @@ namespace SbslFileTransformer.Converters.CDM
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{fileName.Substring(Math.Max(0, fileName.Length - 10))}_IMKE.csv");
             }
 
-            WriteToFile(list, outputFile);
+            this.WriteToFile(list, outputFile);
         }
 
         private void WriteToFile(List<CdmCols> rows, string outputFile)

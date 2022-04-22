@@ -16,8 +16,8 @@ namespace SbslFileTransformer.Infrastructure.Encryption
 
         public EncryptionManager(IDataProtectionProvider dataProtectionProvider, ILogger<EncryptionManager> logger)
         {
-            _dataProtectionProvider = dataProtectionProvider;
-            _logger = logger;
+            this._dataProtectionProvider = dataProtectionProvider;
+            this._logger = logger;
 
             //if(Key == "9a3230c9-191c-4d9d-b803-4bab3d96888a")
             //    _logger.LogWarning("Please change the default encryption/decryption key");
@@ -29,13 +29,13 @@ namespace SbslFileTransformer.Infrastructure.Encryption
 
         public string Encrypt(string input = "")
         {
-            IDataProtector protector = _dataProtectionProvider.CreateProtector(Purpose);
+            IDataProtector protector = this._dataProtectionProvider.CreateProtector(this.Purpose);
             return protector.Protect(input);
         }
 
         public string Decrypt(string cipherText = "")
         {
-            IDataProtector protector = _dataProtectionProvider.CreateProtector(Purpose);
+            IDataProtector protector = this._dataProtectionProvider.CreateProtector(this.Purpose);
             return protector.Unprotect(cipherText);
         }
 

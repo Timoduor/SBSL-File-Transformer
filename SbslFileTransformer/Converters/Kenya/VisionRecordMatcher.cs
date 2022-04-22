@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacleMatcher;
 
 namespace SbslFileTransformer.Converters.Kenya
 {
@@ -17,24 +18,24 @@ namespace SbslFileTransformer.Converters.Kenya
 
         public VisionRecordMatcher(ApplicationDbContext dbContext)
         {
-            _dbContext = dbContext;
+            this._dbContext = dbContext;
         }
 
-        public async Task MatchFiles(string finacleFile, string outputPath)
+        public async Task MatchFiles(string finacleFile, string outputPath, VisionRecordType visionRecordType)
         {
-            List<FinacleRec> finacleRecords = GetRecordsFromFinacleFile(finacleFile);
+            List<FinacleRec> finacleRecords = this.GetRecordsFromFinacleFile(finacleFile);
 
             IEnumerable<string> finacleRefs = finacleRecords.Select(f => f.ReferenceNumber).Distinct();
 
             foreach (string finRef in finacleRefs)
             {
-                IEnumerable<VisionRecord> unmatchedVisionRecords = GetUnmatchedVisionRecords();
-                List<VisionRecord> matchedRecords = new List<VisionRecord>();
+                IEnumerable<VisionRecordCollection> unmatchedVisionRecords = this.GetUnmatchedVisionRecords();
+                List<VisionRecordCollection> matchedRecords = new List<VisionRecordCollection>();
 
                 if (finRef.Length != 20)
                     continue;
 
-                if (!IsDigitsOnly(finRef))
+                if (!this.IsDigitsOnly(finRef))
                 {
                     continue;
                 }
@@ -44,7 +45,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 double finacleDiff = finacleSumCredits - finacleSumDebits;
 
-                List<VisionRecord> matchedRecs = unmatchedVisionRecords.Where(v => v.ReferenceNumber == finRef).ToList();
+                List<VisionRecordCollection> matchedRecs = unmatchedVisionRecords.Where(v => v.ReferenceNumber == finRef).ToList();
 
                 double visionCredits = matchedRecs.Sum(v => v.CreditAmount);
                 double visionDebits = matchedRecs.Sum(v => v.DebitAmount);
@@ -55,12 +56,12 @@ namespace SbslFileTransformer.Converters.Kenya
                 {
                     matchedRecords.AddRange(matchedRecs);
 
-                    CreateFileForReferenceNumber(matchedRecs, finRef, outputPath);
+                    this.CreateFileForReferenceNumber(matchedRecs, finRef, outputPath);
 
                     matchedRecords.ForEach(v => v.Matched = true);
 
-                    _dbContext.VisionRecords.UpdateRange(matchedRecords);
-                    await _dbContext.SaveChangesAsync();
+                    this._dbContext.VisionRecordCollections.UpdateRange(matchedRecords);
+                    await this._dbContext.SaveChangesAsync();
                 }
             }
         }
@@ -76,7 +77,7 @@ namespace SbslFileTransformer.Converters.Kenya
             return true;
         }
 
-        private void CreateFileForReferenceNumber(IEnumerable<VisionRecord> matchedRecs, string referenceNumber, string outputPath)
+        private void CreateFileForReferenceNumber(IEnumerable<VisionRecordCollection> matchedRecs, string referenceNumber, string outputPath)
         {
             string outputFile = Path.Combine(outputPath, $"{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}_{referenceNumber}.csv");
 
@@ -85,21 +86,21 @@ namespace SbslFileTransformer.Converters.Kenya
                 throw new Exception($"Vision ref no. {referenceNumber} file {outputFile} already exists");
             }
 
-            GenerateFileForSelectedRecords(matchedRecs, outputFile);
+            this.GenerateFileForSelectedRecords(matchedRecs, outputFile);
         }
 
-        private List<VisionRecord> GetUnmatchedVisionRecords()
+        private List<VisionRecordCollection> GetUnmatchedVisionRecords()
         {
-            return _dbContext.VisionRecords.Where(v => v.Matched == false).ToList();
+            return this._dbContext.VisionRecordCollections.Where(v => v.Matched == false).ToList();
         }
 
-        private void GenerateFileForSelectedRecords(IEnumerable<VisionRecord> rows, string outputFile)
+        private void GenerateFileForSelectedRecords(IEnumerable<VisionRecordCollection> rows, string outputFile)
         {
             using (StreamWriter writer = new StreamWriter(outputFile))
             {
                 using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    foreach (VisionRecord row in rows)
+                    foreach (VisionRecordCollection row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();

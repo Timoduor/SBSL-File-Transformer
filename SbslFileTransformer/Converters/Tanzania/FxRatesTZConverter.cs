@@ -126,7 +126,7 @@ namespace SbslFileTransformer.Converters.Tanzania
                 outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_FxRs_{fileNameToUse}.csv");
             }
 
-            WriteToFile(list, outputFile);
+            this.WriteToFile(list, outputFile);
         }
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)

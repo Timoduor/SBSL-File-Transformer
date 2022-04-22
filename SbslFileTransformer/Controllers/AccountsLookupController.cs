@@ -20,16 +20,16 @@ namespace SbslFileTransformer.Controllers
 
         public AccountsLookupController(ApplicationDbContext dbContext, IWebHostEnvironment env)
         {
-            _dbContext = dbContext;
-            _hostingEnvironment = env;
+            this._dbContext = dbContext;
+            this._hostingEnvironment = env;
         }
 
         // GET: AccountsLookupController
         public ActionResult Index()
         {
-            IEnumerable<AccountsLookup> accounts = _dbContext.Accounts.OrderBy(a => a.Entity).ThenBy(a => a.Number);
+            IEnumerable<AccountsLookup> accounts = this._dbContext.Accounts.OrderBy(a => a.Entity).ThenBy(a => a.Number);
 
-            return View(accounts);
+            return this.View(accounts);
         }
 
         // GET: AccountsLookupController/Create
@@ -46,7 +46,7 @@ namespace SbslFileTransformer.Controllers
                 Value = v.Value.ToString()
             }).ToList(), "Value", "Text");
 
-            return View();
+            return this.View();
         }
 
         // POST: AccountsLookupController/Create
@@ -60,25 +60,25 @@ namespace SbslFileTransformer.Controllers
                 {
                     ViewBag.Message = "Invalid values entered!";
 
-                    return View(acc);
+                    return this.View(acc);
                 }
 
-                if (_dbContext.Accounts.Any())
+                if (this._dbContext.Accounts.Any())
                 {
                     ViewBag.Message = $"An entry with the account number {acc.Number} exists! Try editing it";
 
-                    return View(acc);
+                    return this.View(acc);
                 }
 
-                await _dbContext.Accounts.AddAsync(acc);
+                await this._dbContext.Accounts.AddAsync(acc);
 
-                await _dbContext.SaveChangesAsync();
+                await this._dbContext.SaveChangesAsync();
 
-                return RedirectToAction(nameof(Index));
+                return this.RedirectToAction(nameof(this.Index));
             }
             catch
             {
-                return View(acc);
+                return this.View(acc);
             }
         }
 
@@ -96,9 +96,9 @@ namespace SbslFileTransformer.Controllers
                 Value = v.Value.ToString()
             }).ToList(), "Value", "Text");
 
-            AccountsLookup account = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == id);
+            AccountsLookup account = await this._dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == id);
 
-            return View("Update", account);
+            return this.View("Update", account);
         }
 
         // POST: AccountsLookupController/Edit/5
@@ -112,10 +112,10 @@ namespace SbslFileTransformer.Controllers
                 {
                     ViewBag.Message = "Invalid values entered!";
 
-                    return View("Update", acc);
+                    return this.View("Update", acc);
                 }
 
-                AccountsLookup existing = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == acc.Id);
+                AccountsLookup existing = await this._dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == acc.Id);
 
                 if (existing != null)
                 {
@@ -125,32 +125,32 @@ namespace SbslFileTransformer.Controllers
                     existing.Name = acc.Name;
                     existing.Number = acc.Number;
 
-                    _dbContext.Entry(existing).State = EntityState.Modified;
+                    this._dbContext.Entry(existing).State = EntityState.Modified;
                 }
 
-                await _dbContext.SaveChangesAsync();
+                await this._dbContext.SaveChangesAsync();
 
-                return RedirectToAction(nameof(Index));
+                return this.RedirectToAction(nameof(this.Index));
             }
             catch
             {
-                return View("Update", acc);
+                return this.View("Update", acc);
             }
         }
 
         // GET: AccountsLookupController/Delete/5
         public async Task<ActionResult> Delete(int id)
         {
-            AccountsLookup account = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == id);
+            AccountsLookup account = await this._dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == id);
 
             if (account != null)
             {
-                _dbContext.Remove(account);
+                this._dbContext.Remove(account);
 
-                await _dbContext.SaveChangesAsync();
+                await this._dbContext.SaveChangesAsync();
             }
 
-            return RedirectToAction("Index");
+            return this.RedirectToAction("Index");
         }
 
         [HttpPost]
@@ -158,11 +158,11 @@ namespace SbslFileTransformer.Controllers
         {
             if (excel == null || excel.Length == 0)
             {
-                return Content("File not properly selected");
+                return this.Content("File not properly selected");
             }
             else
             {
-                string uploadFolder = Path.Combine(_hostingEnvironment.ContentRootPath, "AccountsUploads");
+                string uploadFolder = Path.Combine(this._hostingEnvironment.ContentRootPath, "AccountsUploads");
                 Directory.CreateDirectory(uploadFolder);
                 string filePath = Path.Combine(uploadFolder, excel.FileName);
                 using (FileStream stream = new FileStream(filePath, FileMode.Create))
@@ -170,23 +170,23 @@ namespace SbslFileTransformer.Controllers
                     await excel.CopyToAsync(stream);
                 }
 
-                string failedInserts = await AccountsHelper.ProcessedExcelUpload(filePath, _dbContext);
+                string failedInserts = await AccountsHelper.ProcessedExcelUpload(filePath, this._dbContext);
 
                 if (!string.IsNullOrEmpty(failedInserts))
                 {
-                    return Content(failedInserts);
+                    return this.Content(failedInserts);
                 }
             }
-            return RedirectToAction("Index");
+            return this.RedirectToAction("Index");
         }
 
         public async Task<ActionResult> DownloadSample()
         {
-            string sampleAccountsFile = Path.Combine(_hostingEnvironment.ContentRootPath, "AccountsUploads", "sample_accounts_format.xlsx");
+            string sampleAccountsFile = Path.Combine(this._hostingEnvironment.ContentRootPath, "AccountsUploads", "sample_accounts_format.xlsx");
 
             byte[] file = await System.IO.File.ReadAllBytesAsync(sampleAccountsFile);
 
-            return File(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "accounts_sample.xlsx");
+            return this.File(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "accounts_sample.xlsx");
         }
     }
 }

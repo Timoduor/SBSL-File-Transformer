@@ -16,7 +16,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Rwanda
 
         public MtnPushPullBalanceExtractor(string entity)
         {
-            _entity = entity;
+            this._entity = entity;
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
@@ -53,7 +53,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Rwanda
                 }
             }
 
-            GenerateMultiCurr(list.Last(), inputFile, rootFolder);
+            this.GenerateMultiCurr(list.Last(), inputFile, rootFolder);
         }
 
         private void GenerateMultiCurr(ExcelCols list, string inputFile, string rootFolder)
@@ -63,7 +63,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Rwanda
             string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
             string outputFile = Path.Combine(rootFolder,
-                $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_PUSHPULL_{_entity}.txt");
+                $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_PUSHPULL_{this._entity}.txt");
 
             StringBuilder toAppend = new StringBuilder();
 
@@ -79,7 +79,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Rwanda
                 string account = "20100243506064";
 
                 toAppend.Append(
-                    $"{_entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
+                    $"{this._entity}\t{account}\tMobile Banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
 
                 string text = toAppend.ToString();
 

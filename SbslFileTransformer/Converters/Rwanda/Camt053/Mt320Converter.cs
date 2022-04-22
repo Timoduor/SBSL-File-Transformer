@@ -33,10 +33,10 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
 
 
 
-                List<string> l = GetRtgsDetails_MT320_15A(sDet);
-                List<string> lb = GetRtgsDetails_MT320_15B(sDet);
-                List<string> lc = GetRtgsDetails_MT320_15C(sDet);
-                List<string> ld = GetRtgsDetails_MT320_15D(sDet);
+                List<string> l = this.GetRtgsDetails_MT320_15A(sDet);
+                List<string> lb = this.GetRtgsDetails_MT320_15B(sDet);
+                List<string> lc = this.GetRtgsDetails_MT320_15C(sDet);
+                List<string> ld = this.GetRtgsDetails_MT320_15D(sDet);
 
 
                 seq15A.NewSequenceA = "";

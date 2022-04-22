@@ -117,9 +117,9 @@ namespace SbslFileTransformer.Converters.Rwanda
 
                     string account = success ? result.ToString() : row.Account;
 
-                    toAppend.Append($"{Entity}\t{account}\tATM\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t\t{row.AmountMC}\t{GetAccountCurrency(row.Account)}\n");
+                    toAppend.Append($"{Entity}\t{account}\tATM\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t\t{row.AmountMC}\t{this.GetAccountCurrency(row.Account)}\n");
 
-                    toAppendGL.Append($"{Entity}\t{account}\tATM\t\t\t\t\t\t\t\t{GetAccountName(row.Account, lookUp)}\tATM\tA\tAsset\tTRUE\tTRUE\t\t{GetAccountCurrency(row.Account)}\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t{row.AmountGL}\n");
+                    toAppendGL.Append($"{Entity}\t{account}\tATM\t\t\t\t\t\t\t\t{this.GetAccountName(row.Account, lookUp)}\tATM\tA\tAsset\tTRUE\tTRUE\t\t{this.GetAccountCurrency(row.Account)}\t{ContentHelpers.GetLastDayOfTheMonth(row.ReconDate):MM/dd/yyyy}\t\t\t{row.AmountGL}\n");
                 }
 
                 //write multicurr file

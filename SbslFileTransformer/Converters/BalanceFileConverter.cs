@@ -99,7 +99,7 @@ namespace SbslFileTransformer.Converters
                                 if (filePath.ToLower().Contains("_sus") && Entity == "IMRW") multiplyBy = 1;
 
                                 string toAppend =
-                                    $"{Entity}\t{accNo}\t{functionalArea}\t\t\t\t\t\t\t\t{GetAccountName(accNo, lookUp)}\t{functionalArea}\tA\tAsset\tTRUE\tTRUE\t\t{currency}\t{ContentHelpers.GetLastDayOfTheMonth(date2):MM/dd/yyyy}\t\t\t{multiplyBy * DorC2 * closingBalance}\n";
+                                    $"{Entity}\t{accNo}\t{functionalArea}\t\t\t\t\t\t\t\t{this.GetAccountName(accNo, lookUp)}\t{functionalArea}\tA\tAsset\tTRUE\tTRUE\t\t{currency}\t{ContentHelpers.GetLastDayOfTheMonth(date2):MM/dd/yyyy}\t\t\t{multiplyBy * DorC2 * closingBalance}\n";
 
                                 output.Append(toAppend);
                             }
@@ -108,7 +108,7 @@ namespace SbslFileTransformer.Converters
                         reader.Close();
                     }
 
-                    string outputPath = GetFileOutputName(filePath, fileDate);
+                    string outputPath = this.GetFileOutputName(filePath, fileDate);
 
                     if (!File.Exists(outputPath))
                         await File.WriteAllTextAsync(outputPath, output.ToString());

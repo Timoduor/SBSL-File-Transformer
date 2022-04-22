@@ -141,7 +141,7 @@ namespace SbslFileTransformer.Converters.Rwanda
 
 
             outputFile = outputFolder + "\\Converted_" + Path.GetFileNameWithoutExtension(inputFile) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".csv";
-            WriteToFile(list, outputFile);
+            this.WriteToFile(list, outputFile);
         }
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)

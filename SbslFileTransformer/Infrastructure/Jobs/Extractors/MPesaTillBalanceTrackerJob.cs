@@ -17,15 +17,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
         public MPesaTillBalanceTrackerJob(IServiceScopeFactory serviceScopeFactory,
             ILogger<MPesaTillBalanceTrackerJob> logger)
         {
-            _serviceScopeFactory = serviceScopeFactory;
-            _logger = logger;
+            this._serviceScopeFactory = serviceScopeFactory;
+            this._logger = logger;
         }
 
         protected override string JobName { get; set; } = nameof(ImsBalanceExtractorJob);
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _timer = new Timer(async state => await UpdateMPesaBalances(), null,
+            this._timer = new Timer(async state => await this.UpdateMPesaBalances(), null,
                 TimeSpan.FromSeconds(new Random().Next(60, 200)), TimeSpan.FromMinutes(30));
 
             _semaphore = new SemaphoreSlim(1, 1);
@@ -39,13 +39,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running GL Balance Extractor Job");
+                this._logger.LogInformation("Running GL Balance Extractor Job");
 
                 string prodFolder = string.Empty;
                 string sbFolder = string.Empty;
                 string Entity = string.Empty;
 
-                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
                 {
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
@@ -73,7 +73,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                this._logger.LogError(ex, ex.Message);
             }
             finally
             {

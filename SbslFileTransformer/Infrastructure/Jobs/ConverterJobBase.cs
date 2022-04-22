@@ -57,15 +57,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 await _semaphore.WaitAsync();
 
-                if (!ValidateJobInputParams(out string missingMessage))
+                if (!this.ValidateJobInputParams(out string missingMessage))
                     throw new MissingFieldException($"{missingMessage}");
 
-                _logger.LogInformation($"Running {JobName} job");
+                this._logger.LogInformation($"Running {JobName} job");
 
                 string prodFolder = string.Empty;
                 string sbFolder = string.Empty;
 
-                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
                 {
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
@@ -85,17 +85,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
                     foreach (string file in files)
                     {
-                        if (!FilePathCheck(file))
+                        if (!this.FilePathCheck(file))
                             return;
                         if (FileMeetsConditions != null && !FileMeetsConditions(file))
                             return;
-                        await ProcessFileAsync(file);
+                        await this.ProcessFileAsync(file);
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                this._logger.LogError(ex, ex.Message);
             }
             finally
             {
@@ -130,7 +130,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         public virtual Task StopAsync(CancellationToken cancellationToken)
         {
             _semaphore.Dispose();
-            _timer.Dispose();
+            this._timer.Dispose();
             return Task.CompletedTask;
         }
 
@@ -138,10 +138,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             fileToProcess.Failed = true;
 
-            _logger.LogError(ex, ex.Message);
+            this._logger.LogError(ex, ex.Message);
 
             await EmailHelpers.SendEmails(configurations, string.IsNullOrEmpty(header) ? "Error in File Conversion" : header,
-                $"Problem with  file {file} \n\n {ex.Message}", new[] { file }, _emailSender);
+                $"Problem with  file {file} \n\n {ex.Message}", new[] { file }, this._emailSender);
         }
 
         protected void CompleteFileProcessing(List<SftpUploadedFile> updatedFiles, SftpUploadedFile fileToProcess, string converter)

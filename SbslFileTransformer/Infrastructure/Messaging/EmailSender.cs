@@ -25,7 +25,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
         public EmailSender(IServiceScopeFactory serviceScopeFactory, ILogger<EmailSender> logger,
             EncryptionManager encryptionManager)
         {
-            _logger = logger;
+            this._logger = logger;
 
             try
             {
@@ -40,7 +40,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
                     bool useDefaultCreds = Convert.ToBoolean(configurations.FirstOrDefault(c =>
                         c.Key == "UseDefaultCredentials" && c.ConfigType == ConfigurationType.Email)?.Value);
 
-                    _emailConfig = new SmtpConfigModel
+                    this._emailConfig = new SmtpConfigModel
                     {
                         Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port")?.Value),
                         UserName = configurations.FirstOrDefault(c => c.Key == "UserName")?.Value,
@@ -61,7 +61,7 @@ namespace SbslFileTransformer.Infrastructure.Messaging
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                this._logger.LogError(ex, ex.Message);
             }
         }
 
@@ -69,21 +69,20 @@ namespace SbslFileTransformer.Infrastructure.Messaging
             bool isHtml = false, IEnumerable<string> filePaths = null)
         {
             if (recipients == null || !recipients.Any())
-                recipients =
-                    _emailConfig.Recipients.Split(new[] { ',', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                recipients = this._emailConfig.Recipients.Split(new[] { ',', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 
             Message message = new Message(recipients, subject, content, filePaths);
 
-            (MimeMessage, Message) mimeMessage = CreateEmailMessage(message, isHtml);
+            (MimeMessage, Message) mimeMessage = this.CreateEmailMessage(message, isHtml);
 
-            await Send(mimeMessage);
+            await this.Send(mimeMessage);
         }
 
         private (MimeMessage, Message) CreateEmailMessage(Message message, bool isHtml = false)
         {
             MimeMessage emailMessage = new MimeMessage();
 
-            emailMessage.From.Add(new MailboxAddress(_emailConfig.Name, _emailConfig.EmailAddress));
+            emailMessage.From.Add(new MailboxAddress(this._emailConfig.Name, this._emailConfig.EmailAddress));
 
             emailMessage.To.AddRange(message.To);
 
@@ -113,15 +112,15 @@ namespace SbslFileTransformer.Infrastructure.Messaging
 
         private async Task Send((MimeMessage, Message) mailMessage)
         {
-            if (_emailConfig.UseDefaultCredentials)
-                using (SmtpClient client = new SmtpClient(_emailConfig.SmtpServer, _emailConfig.Port))
+            if (this._emailConfig.UseDefaultCredentials)
+                using (SmtpClient client = new SmtpClient(this._emailConfig.SmtpServer, this._emailConfig.Port))
                 {
-                    client.UseDefaultCredentials = _emailConfig.UseDefaultCredentials;
-                    client.EnableSsl = _emailConfig.UseSsl;
+                    client.UseDefaultCredentials = this._emailConfig.UseDefaultCredentials;
+                    client.EnableSsl = this._emailConfig.UseSsl;
 
                     MailMessage message = new MailMessage
                     {
-                        From = new MailAddress(_emailConfig.EmailAddress, _emailConfig.Name),
+                        From = new MailAddress(this._emailConfig.EmailAddress, this._emailConfig.Name),
                         Body = mailMessage.Item2.Content,
                         Subject = mailMessage.Item2.Subject
                     };
@@ -148,11 +147,11 @@ namespace SbslFileTransformer.Infrastructure.Messaging
             else
                 using (MailKit.Net.Smtp.SmtpClient client = new MailKit.Net.Smtp.SmtpClient())
                 {
-                    await client.ConnectAsync(_emailConfig.SmtpServer, _emailConfig.Port, _emailConfig.UseSsl);
+                    await client.ConnectAsync(this._emailConfig.SmtpServer, this._emailConfig.Port, this._emailConfig.UseSsl);
 
                     client.AuthenticationMechanisms.Remove("XOAUTH2");
 
-                    await client.AuthenticateAsync(_emailConfig.UserName, _emailConfig.Password);
+                    await client.AuthenticateAsync(this._emailConfig.UserName, this._emailConfig.Password);
 
                     await client.SendAsync(mailMessage.Item1);
 

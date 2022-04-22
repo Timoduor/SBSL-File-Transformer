@@ -21,29 +21,29 @@ namespace SbslFileTransformer.Controllers
 
         public HomeController(ILogger<HomeController> logger, IFileProvider fileProvider)
         {
-            _logger = logger;
-            _fileProvider = fileProvider;
+            this._logger = logger;
+            this._fileProvider = fileProvider;
         }
 
         [LicenseCheckExempt]
         public IActionResult Index()
         {
-            return View();
+            return this.View();
         }
 
         public IActionResult Eula()
         {
             try
             {
-                IFileInfo file = _fileProvider.GetDirectoryContents("Content").FirstOrDefault(f => f.Name == "eula.docx");
+                IFileInfo file = this._fileProvider.GetDirectoryContents("Content").FirstOrDefault(f => f.Name == "eula.docx");
 
-                return File(file.CreateReadStream(),
+                return this.File(file.CreateReadStream(),
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
-                return RedirectToAction("Index");
+                this._logger.LogError(ex, ex.Message);
+                return this.RedirectToAction("Index");
             }
         }
 
@@ -51,7 +51,7 @@ namespace SbslFileTransformer.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return this.View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }

@@ -25,7 +25,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
             string scontent = "";
             if (sType == "300")
             {
-                List<string> l = GetRtgsDetails(sDet);
+                List<string> l = this.GetRtgsDetails(sDet);
 
                 MandatorySequenceA seq15A = new MandatorySequenceA();
                 MandatorySequenceB seq15B = new MandatorySequenceB();

@@ -18,16 +18,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
     {
         public GLBalanceExtractorJob(IServiceScopeFactory serviceScopeFactory, ILogger<GLBalanceExtractorJob> logger, JobDisplayManager jobManager)
         {
-            _serviceScopeFactory = serviceScopeFactory;
-            _logger = logger;
-            _jobManager = jobManager;
+            this._serviceScopeFactory = serviceScopeFactory;
+            this._logger = logger;
+            this._jobManager = jobManager;
         }
 
         protected override string JobName { get; set; } = nameof(ImsBalanceExtractorJob);
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _timer = new Timer(async state => await ExtractGLBalances(), null,
+            this._timer = new Timer(async state => await this.ExtractGLBalances(), null,
                 TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
 
             _semaphore = new SemaphoreSlim(1, 1);
@@ -41,23 +41,23 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running GL Balance Extractor Job");
+                this._logger.LogInformation("Running GL Balance Extractor Job");
 
                 string prodFolder = string.Empty;
                 string sbFolder = string.Empty;
                 string Entity = string.Empty;
 
-                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
                 {
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    CurrentJobStatus = _jobManager.GetJobStatus(JobName);
+                    this.CurrentJobStatus = this._jobManager.GetJobStatus(JobName);
 
-                    if (CurrentJobStatus == null)
+                    if (this.CurrentJobStatus == null)
                     {
-                        CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Running };
+                        this.CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Running };
 
-                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                        this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
                     }
 
                     List<Configuration> configurations = dbContext.Configurations.ToList();
@@ -79,10 +79,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.csv", options));
 
-                    BalanceFileConverter converter = new BalanceFileConverter(_logger, _serviceScopeFactory, Entity);
+                    BalanceFileConverter converter = new BalanceFileConverter(this._logger, this._serviceScopeFactory, Entity);
 
-                    CurrentJobStatus.Status = JobState.Running;
-                    _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                    this.CurrentJobStatus.Status = JobState.Running;
+                    this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
 
                     int count = 0;
                     int total = files.Count;
@@ -93,22 +93,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                         if (Entity == "IMKE" && !file.ToUpper().Contains("IMKE"))
                             continue;
 
-                        await ProcessFile(file, converter);
+                        await this.ProcessFile(file, converter);
 
                         count++;
 
-                        CurrentJobStatus.ProgressMessage = $"Currently processing {file}... {count} of {total}";
-                        CurrentJobStatus.SetProgress(count, total);
-                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                        this.CurrentJobStatus.ProgressMessage = $"Currently processing {file}... {count} of {total}";
+                        this.CurrentJobStatus.SetProgress(count, total);
+                        this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
                     }
 
-                    CurrentJobStatus.Status = JobState.Completed;
-                    _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                    this.CurrentJobStatus.Status = JobState.Completed;
+                    this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                this._logger.LogError(ex, ex.Message);
             }
             finally
             {
@@ -204,7 +204,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, ex.Message);
+                    this._logger.LogError(ex, ex.Message);
                 }
             }
         }

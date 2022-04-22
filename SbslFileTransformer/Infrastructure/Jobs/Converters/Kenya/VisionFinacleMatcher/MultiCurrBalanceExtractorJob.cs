@@ -22,18 +22,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
         public MultiCurrBalanceExtractorJob(ILogger<MultiCurrBalanceExtractorJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender, JobDisplayManager jobManager)
         {
-            _logger = logger;
-            _serviceScopeFactory = serviceScopeFactory;
-            _emailSender = emailSender;
-            _jobManager = jobManager;
+            this._logger = logger;
+            this._serviceScopeFactory = serviceScopeFactory;
+            this._emailSender = emailSender;
+            this._jobManager = jobManager;
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting Vision Record Extractor Job");
+            this._logger.LogInformation("Starting Vision Record Extractor Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await VisionBalanceExtractor(), null,
+            this._timer = new Timer(async state => await this.VisionBalanceExtractor(), null,
                 TimeSpan.FromSeconds(new Random().Next(60, 200)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
@@ -45,27 +45,27 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running Record Matcher Extractor job");
+                this._logger.LogInformation("Running Record Matcher Extractor job");
 
                 string prodFolder = string.Empty;
                 string sbFolder = string.Empty;
                 string Entity = string.Empty;
 
-                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
                 {
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    CurrentJobStatus = _jobManager.GetJobStatus(JobName);
+                    this.CurrentJobStatus = this._jobManager.GetJobStatus(JobName);
 
-                    if (CurrentJobStatus == null)
+                    if (this.CurrentJobStatus == null)
                     {
-                        CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Running };
+                        this.CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Running };
 
-                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                        this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
                     }
 
-                    CurrentJobStatus.Status = JobState.Running;
-                    _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                    this.CurrentJobStatus.Status = JobState.Running;
+                    this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
 
                     List<Configuration> configurations = dbContext.Configurations.ToList();
 
@@ -97,6 +97,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                     {
                         if (file.ToLower().Contains("cards") && file.ToLower().Contains("bal") && file.ToLower().Contains("imke"))
                         {
+                            VisionRecordType visionRecordType = CommonHelpers.GetVisionRecordType(file);
+
                             SftpUploadedFile fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>
                                     f.FilePath.ToLower() == file.ToLower());
@@ -111,32 +113,33 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
 
                                     string rootFolder = isProd ? prodFolder : sbFolder;
 
-                                    extractor.ConvertFile(file, rootFolder);
+                                    extractor.ConvertFile(file, rootFolder, visionRecordType);
                                 }
                                 catch (Exception ex)
                                 {
-                                    await ProcessFileFailure(configurations, file, fileToProcess, ex);
+                                    await this.ProcessFileFailure(configurations, file, fileToProcess, ex);
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(VisionRecordExtractorJob));
+                                    this.CompleteFileProcessing(updatedFiles, fileToProcess, nameof(VisionRecordExtractorJob));
                                 }
                             }
                         }
-                        CurrentJobStatus.ProgressMessage = $"Currently processing {file}... {count} of {total}";
-                        CurrentJobStatus.SetProgress(count, total);
-                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+
+                        this.CurrentJobStatus.ProgressMessage = $"Currently processing {file}... {count} of {total}";
+                        this.CurrentJobStatus.SetProgress(count, total);
+                        this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
                     }
 
-                    await SaveProcessedFilesStatuses(dbContext, updatedFiles);
+                    await this.SaveProcessedFilesStatuses(dbContext, updatedFiles);
 
-                    CurrentJobStatus.Status = JobState.Completed;
-                    _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                    this.CurrentJobStatus.Status = JobState.Completed;
+                    this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                this._logger.LogError(ex, ex.Message);
             }
             finally
             {

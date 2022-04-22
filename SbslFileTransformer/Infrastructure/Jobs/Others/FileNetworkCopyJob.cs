@@ -17,17 +17,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
 
         public FileNetworkCopyJob(ILogger<FileNetworkCopyJob> logger, IServiceScopeFactory serviceScopeFactory)
         {
-            _logger = logger;
-            _serviceScopeFactory = serviceScopeFactory;
+            this._logger = logger;
+            this._serviceScopeFactory = serviceScopeFactory;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _logger.LogInformation("Starting network file transfer job");
+            this._logger.LogInformation("Starting network file transfer job");
 
-            _timer = new Timer(async state => await CopyFilesToNetworkPath(), null,
+            this._timer = new Timer(async state => await this.CopyFilesToNetworkPath(), null,
                 TimeSpan.FromSeconds(new Random().Next(60, 600)), TimeSpan.FromMinutes(20));
 
             return Task.CompletedTask;
@@ -39,9 +39,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running network file transfer Job");
+                this._logger.LogInformation("Running network file transfer Job");
 
-                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
                 {
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
@@ -75,13 +75,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
                     }
                     else
                     {
-                        _logger.LogWarning("Missing or mis-configured local or network path!");
+                        this._logger.LogWarning("Missing or mis-configured local or network path!");
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                this._logger.LogError(ex, ex.Message);
             }
             finally
             {

@@ -56,7 +56,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
         private async Task<Dictionary<string, string>> GetUserLoginTokens()
         {
-            Logger.LogInformation("Fetching User tokens");
+            this.Logger.LogInformation("Fetching User tokens");
 
             Dictionary<string, string> userTokens = new Dictionary<string, string>();
 
@@ -94,7 +94,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(ex, ex.Message);
+                    this.Logger.LogError(ex, ex.Message);
                 }
             }
 
@@ -112,7 +112,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
         private async Task<KeyValuePair<string, IEnumerable<ReportModel>>> GetUserRecentReports(KeyValuePair<string, string> userToken)
         {
-            Logger.LogInformation($"Fetching reports for {userToken.Key}");
+            this.Logger.LogInformation($"Fetching reports for {userToken.Key}");
 
             string reportsUrl = @$"https://{this.reportConfiguration.EnvironmentUrl}.{this.reportConfiguration.BaseUrl}/queryruns";
 
@@ -152,7 +152,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, ex.Message);
+                this.Logger.LogError(ex, ex.Message);
             }
 
             return new KeyValuePair<string, IEnumerable<ReportModel>>(userToken.Key, reports);

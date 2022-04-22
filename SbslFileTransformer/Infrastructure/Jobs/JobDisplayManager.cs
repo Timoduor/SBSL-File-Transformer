@@ -14,7 +14,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
         public JobDisplayManager(IMemoryCache memoryCache)
         {
-            _memoryCache = memoryCache;
+            this._memoryCache = memoryCache;
         }
 
         public List<string> GetJobNames()
@@ -35,7 +35,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
 
         public void SetJobStatus(string jobName, JobStatus status)
         {
-            _memoryCache.Set(jobName, status);
+            this._memoryCache.Set(jobName, status);
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         /// <returns></returns>
         public JobStatus GetJobStatus(string jobName)
         {
-            if (_memoryCache.TryGetValue(jobName, out JobStatus status))
+            if (this._memoryCache.TryGetValue(jobName, out JobStatus status))
             {
                 return status;
             }
@@ -59,12 +59,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         /// <returns></returns>
         public Dictionary<string, JobStatus> GetJobStatuses()
         {
-            List<string> jobs = GetJobNames();
+            List<string> jobs = this.GetJobNames();
             Dictionary<string, JobStatus> jobStatuses = new Dictionary<string, JobStatus>();
 
             foreach (string job in jobs)
             {
-                jobStatuses.Add(job, GetJobStatus(job));
+                jobStatuses.Add(job, this.GetJobStatus(job));
             }
 
             return jobStatuses;

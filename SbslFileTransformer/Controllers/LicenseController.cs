@@ -17,7 +17,7 @@ namespace SbslFileTransformer.Controllers
 
         public LicenseController(IFileProvider fileProvider)
         {
-            _fileProvider = fileProvider;
+            this._fileProvider = fileProvider;
         }
 
         // GET: License
@@ -26,7 +26,7 @@ namespace SbslFileTransformer.Controllers
             //displays the license info if it is ok else redirects to renew license
             LicenseInfo licenseInfo = new LicenseInfo();
 
-            string licensePath = _fileProvider.GetDirectoryContents("/").FirstOrDefault(f => f.Name == "license.lic")
+            string licensePath = this._fileProvider.GetDirectoryContents("/").FirstOrDefault(f => f.Name == "license.lic")
                 ?.PhysicalPath;
 
             LicenseStatus status = licenseInfo.GetLicenseStatus(out string licenseMessage);
@@ -46,10 +46,10 @@ namespace SbslFileTransformer.Controllers
             {
                 ViewBag.LicenseMessage += validationMsg;
 
-                return RedirectToAction("RenewLicense");
+                return this.RedirectToAction("RenewLicense");
             }
 
-            return View();
+            return this.View();
         }
 
         public ActionResult RenewLicense()
@@ -65,7 +65,7 @@ namespace SbslFileTransformer.Controllers
             ViewBag.LicenseMessage = licenseMessage;
             ViewBag.Status = status;
 
-            return View();
+            return this.View();
         }
 
         [HttpPost]
@@ -75,25 +75,25 @@ namespace SbslFileTransformer.Controllers
 
             if (licActivator.ValidateLicense(licKey, out string msg, out LicenseStatus status))
             {
-                string licensePath = _fileProvider.GetDirectoryContents("/").FirstOrDefault(f => f.Name == "license.lic")
+                string licensePath = this._fileProvider.GetDirectoryContents("/").FirstOrDefault(f => f.Name == "license.lic")
                     ?.PhysicalPath;
 
                 if (licensePath == null) licensePath = Path.Combine(Directory.GetCurrentDirectory(), "license.lic");
 
                 System.IO.File.WriteAllText(licensePath, licKey);
-                return RedirectToAction("Index");
+                return this.RedirectToAction("Index");
             }
 
             ViewBag.LicStatus = status;
             ViewBag.Uid = licActivator.GenerateUID();
             ViewBag.Message = msg;
 
-            return View();
+            return this.View();
         }
 
         public ActionResult FeatureDisabled()
         {
-            return View();
+            return this.View();
         }
     }
 }

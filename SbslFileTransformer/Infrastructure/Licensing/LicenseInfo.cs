@@ -28,7 +28,7 @@ namespace SbslFileTransformer.Infrastructure.Licensing
             {
                 assembly.GetManifestResourceStream("SbslFileTransformer.LicenseVerify.cer")?.CopyTo(mem);
 
-                _certPubicKeyData = mem.ToArray();
+                this._certPubicKeyData = mem.ToArray();
             }
 
             LicenseStatus status;
@@ -40,8 +40,7 @@ namespace SbslFileTransformer.Infrastructure.Licensing
             {
                 License = (ETLLicense)LicenseHandler.ParseLicenseFromBASE64String(
                     typeof(ETLLicense),
-                    File.ReadAllText(licensePath),
-                    _certPubicKeyData,
+                    File.ReadAllText(licensePath), this._certPubicKeyData,
                     out status,
                     out msg);
             }

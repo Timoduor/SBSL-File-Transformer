@@ -2,7 +2,7 @@
 
 namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
 {
-    public class VisionDebtor
+    public class VisionBalance
     {
         public DateTime BankingDate { get; set; }
         public string ContractNumber { get; set; }

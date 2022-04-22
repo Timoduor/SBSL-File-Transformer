@@ -14,6 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacleMatcher
 {
@@ -23,18 +24,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
         public VisionRecordExtractorJob(ILogger<VisionRecordExtractorJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender, JobDisplayManager jobManager)
         {
-            _logger = logger;
-            _serviceScopeFactory = serviceScopeFactory;
-            _emailSender = emailSender;
-            _jobManager = jobManager;
+            this._logger = logger;
+            this._serviceScopeFactory = serviceScopeFactory;
+            this._emailSender = emailSender;
+            this._jobManager = jobManager;
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting Vision Record Extractor Job");
+            this._logger.LogInformation("Starting Vision Record Extractor Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await VisionRecordExtractor(), null,
+            this._timer = new Timer(async state => await this.VisionRecordExtractor(), null,
                 TimeSpan.FromSeconds(new Random().Next(60, 200)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
@@ -46,27 +47,27 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running Record Matcher Extractor job");
+                this._logger.LogInformation("Running Record Matcher Extractor job");
 
                 string prodFolder = string.Empty;
                 string sbFolder = string.Empty;
                 string Entity = string.Empty;
 
-                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
                 {
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    CurrentJobStatus = _jobManager.GetJobStatus(JobName);
+                    this.CurrentJobStatus = this._jobManager.GetJobStatus(JobName);
 
-                    if (CurrentJobStatus == null)
+                    if (this.CurrentJobStatus == null)
                     {
-                        CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Running };
+                        this.CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Running };
 
-                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                        this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
                     }
 
-                    CurrentJobStatus.Status = JobState.Running;
-                    _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                    this.CurrentJobStatus.Status = JobState.Running;
+                    this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
 
                     List<Configuration> configurations = dbContext.Configurations.ToList();
 
@@ -74,8 +75,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
-
-
+                    
                     EnumerationOptions options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
@@ -94,9 +94,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
 
                     foreach (string file in files)
                     {
-                        if (file.ToLower().Contains("cards") && file.ToLower().Contains("credit_card")
-                            && file.ToLower().Contains("collections_cms") && file.ToLower().Contains("imke"))
+                        if (file.ToLower().Contains("cards") && file.ToLower().Contains("imke"))
                         {
+                            VisionRecordType visionRecordType = CommonHelpers.GetVisionRecordType(file);
+
+                            if (visionRecordType == VisionRecordType.None)
+                                continue;
+
                             SftpUploadedFile fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>
                                     f.FilePath.ToLower() == file.ToLower());
@@ -105,45 +109,46 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                             {
                                 try
                                 {
-                                    List<VisionRecord> records = GetRecordsFromVisionFile(file);
+                                    List<VisionRecordCollection> records = this.GetRecordsFromVisionFile(file);
 
-                                    await InsertRecordsToDb(records, dbContext);
+                                    await this.InsertRecordsToDb(records, dbContext, visionRecordType);
                                 }
                                 catch (Exception ex)
                                 {
-                                    await ProcessFileFailure(configurations, file, fileToProcess, ex);
+                                    await this.ProcessFileFailure(configurations, file, fileToProcess, ex);
                                 }
                                 finally
                                 {
-                                    CompleteFileProcessing(updatedFiles, fileToProcess, nameof(VisionRecordExtractorJob));
+                                    this.CompleteFileProcessing(updatedFiles, fileToProcess, nameof(VisionRecordExtractorJob));
                                 }
                             }
                         }
-                        CurrentJobStatus.ProgressMessage = $"Currently processing {file}... {count} of {total}";
-                        CurrentJobStatus.SetProgress(count, total);
-                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
-                    }
-                    await SaveProcessedFilesStatuses(dbContext, updatedFiles);
 
-                    CurrentJobStatus.Status = JobState.Completed;
-                    _jobManager.SetJobStatus(JobName, CurrentJobStatus);
+                        this.CurrentJobStatus.ProgressMessage = $"Currently processing {file}... {count} of {total}";
+                        this.CurrentJobStatus.SetProgress(count, total);
+                        this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
+                    }
+                    await this.SaveProcessedFilesStatuses(dbContext, updatedFiles);
+
+                    this.CurrentJobStatus.Status = JobState.Completed;
+                    this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                this._logger.LogError(ex, ex.Message);
             }
             finally
             {
                 _semaphore.Release();
             }
         }
-
-        private List<VisionRecord> GetRecordsFromVisionFile(string glFile)
+        
+        private List<VisionRecordCollection> GetRecordsFromVisionFile(string glFile)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            List<VisionRecord> glCmsRecs = new List<VisionRecord>();
+            List<VisionRecordCollection> glCmsRecs = new List<VisionRecordCollection>();
 
             using (FileStream stream = File.Open(glFile, FileMode.Open, FileAccess.Read))
             {
@@ -166,7 +171,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                             continue;
                         }
 
-                        VisionRecord glRec = new VisionRecord
+                        var glRec = new VisionRecordCollection
                         {
                             BankingDate = Convert.ToDateTime(reader.GetString(0)),
                             TransDetails = reader.GetString(1),
@@ -190,12 +195,29 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
             return glCmsRecs;
         }
 
-        private async Task InsertRecordsToDb(IEnumerable<VisionRecord> records, ApplicationDbContext dbContext)
+        private async Task InsertRecordsToDb(IEnumerable<VisionRecordCollection> records, ApplicationDbContext dbContext, VisionRecordType visionRecordType)
         {
-            if (dbContext.VisionRecords.Any(v => v.FileName == records.First().FileName))
+            if (
+                dbContext.VisionRecordCollections.Any(v => v.FileName.ToLower() == records.First().FileName.ToLower())
+                || dbContext.VisionRecordCreditSettlements.Any(v => v.FileName.ToLower() == records.First().FileName.ToLower())
+                || dbContext.VisionRecordDebtors.Any(v => v.FileName.ToLower() == records.First().FileName.ToLower())
+               )
+            {
                 return;
+            }
 
-            dbContext.VisionRecords.AddRange(records);
+            switch (visionRecordType)
+            {
+                case VisionRecordType.Collections:
+                    dbContext.VisionRecordCollections.AddRange(records);
+                    break;
+                case VisionRecordType.CreditSettlement:
+                    dbContext.VisionRecordCreditSettlements.AddRange((IEnumerable<VisionRecordCreditSettlement>)records);
+                    break;
+                case VisionRecordType.Debtors:
+                    dbContext.VisionRecordDebtors.AddRange((IEnumerable<VisionRecordDebtors>)records);
+                    break;
+            }
 
             await dbContext.SaveChangesAsync();
         }

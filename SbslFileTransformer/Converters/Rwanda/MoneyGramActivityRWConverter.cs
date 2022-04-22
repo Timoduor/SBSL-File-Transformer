@@ -18,7 +18,7 @@ namespace SbslFileTransformer.Converters.Rwanda
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            _logger = logger;
+            this._logger = logger;
         }
 
         public void ConvertFile(string inputFile, string outputFile = null)
@@ -289,7 +289,8 @@ namespace SbslFileTransformer.Converters.Rwanda
                 outputFile = Path.Combine(outputFolder,
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 20)).Replace(" ", "")}.csv");
             }
-            WriteToFile(finalList, outputFile);
+
+            this.WriteToFile(finalList, outputFile);
         }
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)

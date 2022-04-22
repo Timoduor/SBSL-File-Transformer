@@ -20,13 +20,13 @@ namespace SbslFileTransformer.Controllers
 
         public TaskController(ILogger<TaskController> logger, ApplicationDbContext dbContext)
         {
-            _logger = logger;
-            _dbContext = dbContext;
+            this._logger = logger;
+            this._dbContext = dbContext;
         }
 
         public IActionResult Index(Guid? pluginId)
         {
-            System.Collections.Generic.List<Plugin> plugins = _dbContext.Plugins.ToList();
+            System.Collections.Generic.List<Plugin> plugins = this._dbContext.Plugins.ToList();
 
             Plugin selectedPlugin = null;
 
@@ -57,18 +57,18 @@ namespace SbslFileTransformer.Controllers
                 });
             }
 
-            return View(taskVM);
+            return this.View(taskVM);
         }
 
         public IActionResult Jobs()
         {
-            return View();
+            return this.View();
         }
 
         [HttpPost]
         public IActionResult RunPlugin(string plugin, string file)
         {
-            return RedirectToAction("Index");
+            return this.RedirectToAction("Index");
         }
     }
 }

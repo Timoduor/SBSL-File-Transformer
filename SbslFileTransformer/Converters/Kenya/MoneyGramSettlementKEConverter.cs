@@ -16,7 +16,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
         public MoneyGramSettlementKEConverter(ILogger logger)
         {
-            _logger = logger;
+            this._logger = logger;
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
@@ -94,7 +94,7 @@ namespace SbslFileTransformer.Converters.Kenya
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
-            WriteToFile(list, outputFile);
+            this.WriteToFile(list, outputFile);
         }
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)

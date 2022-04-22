@@ -2,7 +2,7 @@
 
 namespace SbslFileTransformer.Models
 {
-    public class VisionRecord
+    public abstract class VisionRecordBase
     {
         public Guid Id { get; set; }
         public DateTime BankingDate { get; set; }

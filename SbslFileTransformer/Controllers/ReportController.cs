@@ -24,13 +24,13 @@ namespace SbslFileTransformer.Controllers
         public ReportController(ILogger<ReportController> logger,
             ApplicationDbContext dbContext) //, PluginManager pluginManager)
         {
-            _dbContext = dbContext;
-            _logger = logger;
+            this._dbContext = dbContext;
+            this._logger = logger;
         }
 
         public async Task<IActionResult> Index()
         {
-            System.Collections.Generic.List<Configuration> configurations = await _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Report)
+            System.Collections.Generic.List<Configuration> configurations = await this._dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Report)
                 .ToListAsync();
 
             ReportConfigModel config = new ReportConfigModel
@@ -44,22 +44,22 @@ namespace SbslFileTransformer.Controllers
             };
 
 
-            return View(config);
+            return this.View(config);
         }
 
         [HttpPost]
         public async Task<IActionResult> Index(ReportConfigModel config)
         {
-            await UpdateReportConfig(config);
+            await this.UpdateReportConfig(config);
 
-            return RedirectToAction("Index", "Config");
+            return this.RedirectToAction("Index", "Config");
         }
 
         public async Task<IActionResult> EmailGroups()
         {
-            System.Collections.Generic.List<EmailGroup> groups = await _dbContext.EmailGroups.ToListAsync();
+            System.Collections.Generic.List<EmailGroup> groups = await this._dbContext.EmailGroups.ToListAsync();
 
-            return View(groups);
+            return this.View(groups);
         }
 
         public IActionResult CreateGroup()
@@ -85,22 +85,22 @@ namespace SbslFileTransformer.Controllers
                     Value = ((int)v).ToString()
                 }).ToList(), "Value", "Text");
 
-            return View();
+            return this.View();
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateGroup(EmailGroup group)
         {
-            _dbContext.EmailGroups.Add(group);
+            this._dbContext.EmailGroups.Add(group);
 
-            await _dbContext.SaveChangesAsync();
+            await this._dbContext.SaveChangesAsync();
 
-            return RedirectToAction("EmailGroups");
+            return this.RedirectToAction("EmailGroups");
         }
 
         public async Task<IActionResult> EditGroup(int id)
         {
-            EmailGroup group = await _dbContext.EmailGroups.FindAsync(id);
+            EmailGroup group = await this._dbContext.EmailGroups.FindAsync(id);
 
             ViewBag.Countries = new SelectList(Enum.GetValues(typeof(Country)).Cast<Country>().Select(v =>
                 new SelectListItem
@@ -124,30 +124,30 @@ namespace SbslFileTransformer.Controllers
                 }).ToList(), "Value", "Text");
 
 
-            return View(group);
+            return this.View(group);
         }
 
         [HttpPost]
         public async Task<IActionResult> EditGroup(EmailGroup group)
         {
-            _dbContext.Update(group);
+            this._dbContext.Update(group);
 
-            await _dbContext.SaveChangesAsync();
+            await this._dbContext.SaveChangesAsync();
 
-            return RedirectToAction("EmailGroups");
+            return this.RedirectToAction("EmailGroups");
         }
 
         public async Task<IActionResult> Deactivate(int id, bool active)
         {
-            EmailGroup group = await _dbContext.EmailGroups.FindAsync(id);
+            EmailGroup group = await this._dbContext.EmailGroups.FindAsync(id);
 
             group.IsActive = active;
 
-            _dbContext.Update(group);
+            this._dbContext.Update(group);
 
-            await _dbContext.SaveChangesAsync();
+            await this._dbContext.SaveChangesAsync();
 
-            return RedirectToAction("EmailGroups");
+            return this.RedirectToAction("EmailGroups");
         }
 
         public async Task<IActionResult> Processed(int page = 1)
@@ -157,20 +157,20 @@ namespace SbslFileTransformer.Controllers
                 int count = 0;
                 int itemsPerPage = 10;
 
-                IOrderedEnumerable<ProcessedReport> uploadedFiles = _dbContext.ProcessedReports.OrderByDescending(f => f.ProcessedDate)
+                IOrderedEnumerable<ProcessedReport> uploadedFiles = this._dbContext.ProcessedReports.OrderByDescending(f => f.ProcessedDate)
                     .Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToList()
                     .OrderByDescending(f => f.ProcessedDate);
 
-                count = await _dbContext.ProcessedReports.CountAsync();
+                count = await this._dbContext.ProcessedReports.CountAsync();
 
                 StaticPagedList<ProcessedReport> pagedList = new StaticPagedList<ProcessedReport>(uploadedFiles, page, itemsPerPage, count);
 
-                return View(pagedList);
+                return this.View(pagedList);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
-                return RedirectToAction("Index", "Home");
+                this._logger.LogError(ex, ex.Message);
+                return this.RedirectToAction("Index", "Home");
             }
         }
 
@@ -186,7 +186,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             if (!string.IsNullOrEmpty(config.ClientId))
@@ -199,7 +199,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             if (!string.IsNullOrEmpty(config.ClientSecret))
@@ -212,7 +212,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             if (!string.IsNullOrEmpty(config.EmailBody))
@@ -225,7 +225,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             if (!string.IsNullOrEmpty(config.EmailHeader))
@@ -238,7 +238,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             if (!string.IsNullOrEmpty(config.EnvironmentUrl))
@@ -251,7 +251,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             if (!string.IsNullOrEmpty(config.ExportType))
@@ -264,7 +264,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             if (!string.IsNullOrEmpty(config.Scope))
@@ -277,7 +277,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             if (!string.IsNullOrEmpty(config.TokenUrl))
@@ -290,7 +290,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             if (!string.IsNullOrEmpty(config.UserToken))
@@ -303,13 +303,13 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
         }
 
         private async Task CreateOrUpdate(Configuration config)
         {
-            Configuration existing = await _dbContext.Configurations.FirstOrDefaultAsync(c =>
+            Configuration existing = await this._dbContext.Configurations.FirstOrDefaultAsync(c =>
                 c.Key.ToLower() == config.Key.ToLower() && c.ConfigType == config.ConfigType);
 
             if (existing != null)
@@ -317,15 +317,15 @@ namespace SbslFileTransformer.Controllers
                 existing.Value = config.Value;
                 existing.Updated = DateTime.Now;
 
-                _dbContext.Entry(existing).State = EntityState.Modified;
+                this._dbContext.Entry(existing).State = EntityState.Modified;
             }
             else
             {
                 config.Updated = DateTime.Now;
-                _dbContext.Add(config);
+                this._dbContext.Add(config);
             }
 
-            await _dbContext.SaveChangesAsync();
+            await this._dbContext.SaveChangesAsync();
         }
     }
 }

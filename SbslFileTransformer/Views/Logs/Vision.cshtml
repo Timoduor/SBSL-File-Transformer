@@ -1,6 +1,6 @@
 ﻿@using X.PagedList.Mvc.Core
 @using X.PagedList.Mvc.Core.Common
-@model X.PagedList.IPagedList<VisionRecord>
+@model X.PagedList.IPagedList<VisionRecordCollection>
 
 @{
     ViewData["Title"] = "Logs";
@@ -150,7 +150,7 @@
         $('.alert').alert();
 
         let timeoutID = null;
-        let endpoint = '/Logs/SearchVisionRecord';
+        let endpoint = '/Logs/SearchVisionRecordCollection';
 
         function findVisionRecord(str) {            
             console.log('search: ' + str);

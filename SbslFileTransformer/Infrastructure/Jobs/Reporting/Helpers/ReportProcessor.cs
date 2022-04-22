@@ -31,7 +31,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
         public ReportProcessor(ILogger<ReportEngineJob> logger, IServiceScopeFactory serviceScopeFactory, IHttpClientFactory httpClientFactory, ReportConfigModel reportConfigModel)
         {
-            Logger = logger;
+            this.Logger = logger;
             this.ServiceScopeFactory = serviceScopeFactory;
             this.HttpClientFactory = httpClientFactory;
             this.ReportConfigModel = reportConfigModel;
@@ -47,7 +47,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
                 foreach (KeyValuePair<string, IEnumerable<ReportModel>> reportUser in unprocessedReports)
                 {
-                    Logger.LogInformation($"Processing reports for user {reportUser.Key}");
+                    this.Logger.LogInformation($"Processing reports for user {reportUser.Key}");
 
                     foreach (IEnumerable<ReportModel> reportBatch in reportUser.Value.Batch(25))
                     {
@@ -57,7 +57,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                         }
                         catch (Exception ex)
                         {
-                            Logger.LogError(ex, $"Error processing report batch for user {reportUser.Key}");
+                            this.Logger.LogError(ex, $"Error processing report batch for user {reportUser.Key}");
                         }
                     }
                 }
@@ -73,7 +73,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
             foreach (ReportModel report in reports)
             {
-                Logger.LogInformation($"Processing report {report.Name} with ID {report.ReportId}");
+                this.Logger.LogInformation($"Processing report {report.Name} with ID {report.ReportId}");
 
                 SetReportFilters(report, entity);
 
@@ -101,7 +101,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
         private async Task<bool> DownloadAndSaveReport(ReportModel report)
         {
-            Logger.LogInformation($"Downloading report ID: {report.ReportId} Title: {report.Name}");
+            this.Logger.LogInformation($"Downloading report ID: {report.ReportId} Title: {report.Name}");
 
             string tempFolder = Path.Combine(await FileHelpers.GetTempPath(this.ServiceScopeFactory), "Reports");
 
@@ -139,7 +139,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, ex.Message);
+                this.Logger.LogError(ex, ex.Message);
             }
 
             return false;
@@ -261,7 +261,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                             }
                             catch (Exception ex)
                             {
-                                Logger.LogError(ex, ex.Message);
+                                this.Logger.LogError(ex, ex.Message);
                             }
                     }
                 }
@@ -323,7 +323,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(ex, "Error obtaining excel date");
+                    this.Logger.LogError(ex, "Error obtaining excel date");
                 }
 
                 sheet.InsertColumn(5, 1);

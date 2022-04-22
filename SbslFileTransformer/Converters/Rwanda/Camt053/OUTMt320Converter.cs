@@ -33,7 +33,7 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                 MandatorySequence320E seq15E = new MandatorySequence320E();
 
 
-                List<string> l = GetRtgsDetails320(sDet);
+                List<string> l = this.GetRtgsDetails320(sDet);
 
                 seq15A.NewSequenceA = "";
                 seq15A.SenderRef15A = l.First(p => p.StartsWith(":20:")).Split(':')[2].ToString();

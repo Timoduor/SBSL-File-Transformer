@@ -185,7 +185,7 @@ namespace SbslFileTransformer
             Tuple<IMemoryCache, ILogger<Startup>> appShutdownInput = new Tuple<IMemoryCache, ILogger<Startup>>(cache, logger);
 
             applicationLifetime.ApplicationStopping
-                .Register(i => OnAppShutdown((Tuple<IMemoryCache, ILogger<Startup>>)i), appShutdownInput);
+                .Register(i => this.OnAppShutdown((Tuple<IMemoryCache, ILogger<Startup>>)i), appShutdownInput);
 
             if (env.IsDevelopment())
             {

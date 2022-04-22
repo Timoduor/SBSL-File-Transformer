@@ -23,20 +23,20 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
         public ReportEngineJob(ILogger<ReportEngineJob> logger, EmailSender emailSender,
             IServiceScopeFactory serviceScopeFactory, IHttpClientFactory httpClientFactory, JobDisplayManager jobManager)
         {
-            _logger = logger;
-            _emailSender = emailSender;
-            _serviceScopeFactory = serviceScopeFactory;
-            _jobManager = jobManager;
+            this._logger = logger;
+            this._emailSender = emailSender;
+            this._serviceScopeFactory = serviceScopeFactory;
+            this._jobManager = jobManager;
             this.HttpClientFactory = httpClientFactory;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting Scheduled reporter job...");
+            this._logger.LogInformation("Starting Scheduled reporter job...");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            _timer = new Timer(async state => await this.ProcessNewReports(), null,
+            this._timer = new Timer(async state => await this.ProcessNewReports(), null,
                 TimeSpan.FromSeconds(new Random().Next(15, 30)), TimeSpan.FromMinutes(15));
 
             return Task.CompletedTask;
@@ -48,22 +48,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
             {
                 await _semaphore.WaitAsync();
 
-                _logger.LogInformation("Running reporting job...");
+                this._logger.LogInformation("Running reporting job...");
 
-                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
+                using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
                 {
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
                     Entity = dbContext.Configurations.FirstOrDefault(c =>
                                 c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
 
-                    this.CurrentJobStatus = _jobManager.GetJobStatus(JobName);
+                    this.CurrentJobStatus = this._jobManager.GetJobStatus(JobName);
 
                     if (this.CurrentJobStatus == null)
                     {
                         this.CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Starting };
 
-                        _jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
+                        this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
                     }
 
                     Dictionary<string, IEnumerable<ReportModel>> unprocessedReports = await this.FetchReports(dbContext);
@@ -72,11 +72,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                 }
 
                 this.CurrentJobStatus.Status = JobState.Completed;
-                _jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
+                this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                this._logger.LogError(ex, ex.Message);
             }
             finally
             {
@@ -86,9 +86,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
         private ReportConfigModel LoadReportConnectionConfig()
         {
-            _logger.LogInformation("Fetching report connection configuration");
+            this._logger.LogInformation("Fetching report connection configuration");
 
-            using (IServiceScope scope = _serviceScopeFactory.CreateScope())
+            using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
             {
                 ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
@@ -125,15 +125,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
         private async Task<Dictionary<string, IEnumerable<ReportModel>>> FetchReports(ApplicationDbContext dbContext)
         {
-            ReportFetcher reportFetcher = new ReportFetcher(_logger, this.HttpClientFactory, this.LoadReportConnectionConfig());
+            ReportFetcher reportFetcher = new ReportFetcher(this._logger, this.HttpClientFactory, this.LoadReportConnectionConfig());
 
             List<ProcessedReport> processedReports = dbContext.ProcessedReports.ToList();
 
             IProgress<int> fetchReportProgress = new Progress<int>(percent =>
             {
-                CurrentJobStatus.ProgressMessage = $"Fetching unprocessed reports... {percent} %";
-                CurrentJobStatus.SetProgress(percent, 100);
-                _jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
+                this.CurrentJobStatus.ProgressMessage = $"Fetching unprocessed reports... {percent} %";
+                this.CurrentJobStatus.SetProgress(percent, 100);
+                this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
             });
 
             return await reportFetcher.GetAllUnprocessedRecentReportsAsync(processedReports, fetchReportProgress);
@@ -141,13 +141,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
         private async Task ProcessReports(Dictionary<string, IEnumerable<ReportModel>> unprocessedReports)
         {
-            ReportProcessor reportProcessor = new ReportProcessor(_logger, this._serviceScopeFactory, this.HttpClientFactory, this.LoadReportConnectionConfig());
+            ReportProcessor reportProcessor = new ReportProcessor(this._logger, this._serviceScopeFactory, this.HttpClientFactory, this.LoadReportConnectionConfig());
 
             IProgress<int> processReportProgress = new Progress<int>(percent =>
             {
                 this.CurrentJobStatus.ProgressMessage = $"Processing unprocessed reports... {percent} %";
                 this.CurrentJobStatus.SetProgress(percent, 100);
-                _jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
+                this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
             });
 
             await reportProcessor.ProcessReports(unprocessedReports, Entity, processReportProgress);

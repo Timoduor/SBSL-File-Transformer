@@ -24,7 +24,7 @@ namespace SbslFileTransformer.Converters.Tanzania
 
 
             // Read the file line by line.
-            string[] lines = System.IO.File.ReadAllLines(fileIn);
+            string[] lines = File.ReadAllLines(fileIn);
             List<string> newLines = new List<string>();
             Boolean got_headers = false;
             // If your csv file has a header row, uncomment this next line
@@ -70,7 +70,7 @@ namespace SbslFileTransformer.Converters.Tanzania
 
             }
 
-            System.IO.File.WriteAllLines(fileOut, newLines.ToArray());
+            File.WriteAllLines(fileOut, newLines.ToArray());
         }
         //public void ConvertFile(string inputFile,string rootfolder="")
         //{

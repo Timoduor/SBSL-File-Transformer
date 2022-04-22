@@ -29,10 +29,10 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
                 MandatorySequenceE seq15E = new MandatorySequenceE();
 
 
-                List<string> l = GetRtgsDetails_MT300_15A(sDet);
-                List<string> lb = GetRtgsDetails_MT300_15B(sDet);
-                List<string> lc = GetRtgsDetails_MT300_15C(sDet);
-                List<string> le = GetRtgsDetails_MT300_15E(sDet);
+                List<string> l = this.GetRtgsDetails_MT300_15A(sDet);
+                List<string> lb = this.GetRtgsDetails_MT300_15B(sDet);
+                List<string> lc = this.GetRtgsDetails_MT300_15C(sDet);
+                List<string> le = this.GetRtgsDetails_MT300_15E(sDet);
 
                 seq15A.NewSequenceA = "";
                 seq15A.SenderRef15A = l.First(p => p.StartsWith("20:")).Split('|')[1].ToString();

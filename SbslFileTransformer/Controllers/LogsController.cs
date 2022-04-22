@@ -24,11 +24,11 @@ namespace SbslFileTransformer.Controllers
 
         public LogsController(ILogger<LogsController> logger, ApplicationDbContext dbContext, JobDisplayManager jobManager)
         {
-            _logger = logger;
-            _dbContext = dbContext;
-            _jobManager = jobManager;
+            this._logger = logger;
+            this._dbContext = dbContext;
+            this._jobManager = jobManager;
 
-            _logsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            this._logsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 "SBSL_ETL", "logs");
         }
 
@@ -39,41 +39,41 @@ namespace SbslFileTransformer.Controllers
                 int count = 0;
                 int itemsPerPage = 10;
 
-                List<SftpUploadedFile> uploadedFiles = _dbContext.UploadedFiles.OrderByDescending(f => f.UploadedDate)
+                List<SftpUploadedFile> uploadedFiles = this._dbContext.UploadedFiles.OrderByDescending(f => f.UploadedDate)
                     .Skip((page - 1) * itemsPerPage).OrderByDescending(f => f.UploadedDate).Take(itemsPerPage).ToList();
 
-                count = _dbContext.UploadedFiles.Count();
+                count = this._dbContext.UploadedFiles.Count();
 
                 ViewBag.TotalCount = count;
 
                 StaticPagedList<SftpUploadedFile> pagedList = new StaticPagedList<SftpUploadedFile>(uploadedFiles, page, itemsPerPage, count);
 
-                return View(pagedList);
+                return this.View(pagedList);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
-                return RedirectToAction("Index", "Home");
+                this._logger.LogError(ex, ex.Message);
+                return this.RedirectToAction("Index", "Home");
             }
         }
 
         public IActionResult SearchUploadedFile(string search)
         {
-            List<SftpUploadedFile> uploadedFiles = _dbContext.UploadedFiles.Where(f => f.Name.Contains(search) || f.FilePath.Contains(search) || f.Md5.Contains(search))
+            List<SftpUploadedFile> uploadedFiles = this._dbContext.UploadedFiles.Where(f => f.Name.Contains(search) || f.FilePath.Contains(search) || f.Md5.Contains(search))
                     .OrderByDescending(f => f.UploadedDate).Take(200).ToList();
 
-            return Json(uploadedFiles);
+            return this.Json(uploadedFiles);
         }
 
         public IActionResult SearchVisionRecord(string search)
         {
-            List<VisionRecord> uploadedFiles = _dbContext.VisionRecords
+            List<VisionRecordCollection> uploadedFiles = this._dbContext.VisionRecordCollections
                         .Where(f => f.TransDetails.Contains(search) || f.TransID.Contains(search) || f.GLTransCode.Contains(search)
                         || f.FileName.Contains(search) || f.ReferenceNumber.Contains(search) || f.CardNumber.Contains(search)
                         || f.ContractNumber.Contains(search) || f.CustomerName.Contains(search) || f.AccountNumber.Contains(search))
                     .OrderByDescending(f => f.DateExtracted).Take(500).ToList();
 
-            return Json(uploadedFiles);
+            return this.Json(uploadedFiles);
         }
 
         public IActionResult Entries(int page = 1)
@@ -82,7 +82,7 @@ namespace SbslFileTransformer.Controllers
             {
                 int itemsPerPage = 10;
 
-                IOrderedEnumerable<SqliteLog> sqliteLogs = GetSqliteLogs(page, itemsPerPage, out int count);
+                IOrderedEnumerable<SqliteLog> sqliteLogs = this.GetSqliteLogs(page, itemsPerPage, out int count);
 
                 ViewBag.TotalCount = count;
 
@@ -90,12 +90,12 @@ namespace SbslFileTransformer.Controllers
 
                 StaticPagedList<SqliteLog> pagedList = new StaticPagedList<SqliteLog>(sqliteLogs, page, itemsPerPage, count);
 
-                return View(pagedList);
+                return this.View(pagedList);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
-                return RedirectToAction("Index", "Home");
+                this._logger.LogError(ex, ex.Message);
+                return this.RedirectToAction("Index", "Home");
             }
         }
 
@@ -105,7 +105,7 @@ namespace SbslFileTransformer.Controllers
             {
                 int itemsPerPage = 10;
 
-                IEnumerable<FileInfo> latestFiles = GetLogFiles(page, itemsPerPage, out int count);
+                IEnumerable<FileInfo> latestFiles = this.GetLogFiles(page, itemsPerPage, out int count);
 
                 ViewBag.TotalCount = count;
 
@@ -114,12 +114,12 @@ namespace SbslFileTransformer.Controllers
 
                 StaticPagedList<FileInfo> pagedList = new StaticPagedList<FileInfo>(fileInfos, page, itemsPerPage, count);
 
-                return View(pagedList);
+                return this.View(pagedList);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
-                return RedirectToAction("Index", "Home");
+                this._logger.LogError(ex, ex.Message);
+                return this.RedirectToAction("Index", "Home");
             }
         }
 
@@ -128,71 +128,71 @@ namespace SbslFileTransformer.Controllers
             //To show GROUPED logs, processed reports and uploaded files
             try
             {
-                DateTime filesMaxDate = this._dbContext.UploadedFiles.Any() ? _dbContext.UploadedFiles.Select(d => d.UploadedDate).Max() : DateTime.Now;
+                DateTime filesMaxDate = this._dbContext.UploadedFiles.Any() ? this._dbContext.UploadedFiles.Select(d => d.UploadedDate).Max() : DateTime.Now;
 
-                Dictionary<string, int> filesPerDay = _dbContext.UploadedFiles.ToList().Where(f => f.UploadedDate > filesMaxDate.AddDays(-14))
+                Dictionary<string, int> filesPerDay = this._dbContext.UploadedFiles.ToList().Where(f => f.UploadedDate > filesMaxDate.AddDays(-14))
                     .GroupBy(f => f.UploadedDate.Date)
                     .ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd ddd"), g => g.Count());
 
-                Dictionary<string, int> filesPerMonth = _dbContext.UploadedFiles.ToList().Where(f => f.UploadedDate > filesMaxDate.AddMonths(-7))
+                Dictionary<string, int> filesPerMonth = this._dbContext.UploadedFiles.ToList().Where(f => f.UploadedDate > filesMaxDate.AddMonths(-7))
                     .GroupBy(f => f.UploadedDate.Month)
                     .ToDictionary(g => CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(g.Key), g => g.Count());
 
-                Dictionary<string, int> logs = GetLast7DaysSqliteLogs(-7).GroupBy(l => l.Date.Date).OrderByDescending(g => g.Key)
+                Dictionary<string, int> logs = this.GetLast7DaysSqliteLogs(-7).GroupBy(l => l.Date.Date).OrderByDescending(g => g.Key)
                     .ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
 
                 DateTime reportsMaxDate = DateTime.Now;
 
-                if (_dbContext.ProcessedReports.Any())
-                    reportsMaxDate = _dbContext.ProcessedReports.Select(d => d.ProcessedDate).Max();
+                if (this._dbContext.ProcessedReports.Any())
+                    reportsMaxDate = this._dbContext.ProcessedReports.Select(d => d.ProcessedDate).Max();
 
-                Dictionary<string, int> reports = _dbContext.ProcessedReports.ToList()
+                Dictionary<string, int> reports = this._dbContext.ProcessedReports.ToList()
                     .Where(r => r.ProcessedDate > reportsMaxDate.AddDays(-7)).GroupBy(r => r.ProcessedDate.Date)
                     .ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
 
-                return View(new ChartObjects { UploadedFilesPerDay = filesPerDay, UploadedFilesPerMonth = filesPerMonth, Logs = logs, Reports = reports });
+                return this.View(new ChartObjects { UploadedFilesPerDay = filesPerDay, UploadedFilesPerMonth = filesPerMonth, Logs = logs, Reports = reports });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                this._logger.LogError(ex, ex.Message);
             }
 
-            return RedirectToAction("Index", "Logs");
+            return this.RedirectToAction("Index", "Logs");
         }
 
         public IActionResult DownloadLogFile(string name)
         {
             try
             {
-                string logPathFiles = Path.Combine(_logsFolder, "log_files");
+                string logPathFiles = Path.Combine(this._logsFolder, "log_files");
 
                 IEnumerable<FileInfo> files = Directory.GetFiles(logPathFiles).Select(f => new FileInfo(f));
 
                 FileInfo file = files.FirstOrDefault(f => f.Name == name);
 
-                byte[] bytes = ReadAllBytes2(file.FullName);
+                byte[] bytes = this.ReadAllBytes2(file.FullName);
 
-                return File(bytes, "text/plain");
+                return this.File(bytes, "text/plain");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
-                return RedirectToAction("Files");
+                this._logger.LogError(ex, ex.Message);
+                return this.RedirectToAction("Files");
             }
         }
 
         public IActionResult CurrentJobStatuses()
         {
-            IOrderedEnumerable<KeyValuePair<string, JobStatus>> jobs = _jobManager.GetJobStatuses().OrderByDescending(j => j.Key);
+            IOrderedEnumerable<KeyValuePair<string, JobStatus>> jobs = this._jobManager.GetJobStatuses().OrderByDescending(j => j.Key);
 
-            return Json(jobs);
+            return this.Json(jobs);
         }
 
         public IActionResult JobStatus()
         {
-            IOrderedEnumerable<KeyValuePair<string, JobStatus>> jobs = _jobManager.GetJobStatuses().OrderByDescending(j => j.Key);
+            IOrderedEnumerable<KeyValuePair<string, JobStatus>> jobs = this._jobManager.GetJobStatuses().OrderByDescending(j => j.Key);
 
-            return View(jobs);
+            return this.View(jobs);
         }
 
         public IActionResult Vision(int page = 1)
@@ -202,21 +202,21 @@ namespace SbslFileTransformer.Controllers
                 int count = 0;
                 int itemsPerPage = 10;
 
-                ViewBag.TotalCount = _dbContext.VisionRecords.LongCount();
+                ViewBag.TotalCount = this._dbContext.VisionRecordCollections.LongCount();
 
-                List<VisionRecord> visionRecords = _dbContext.VisionRecords.OrderByDescending(f => f.DateExtracted)
+                List<VisionRecordCollection> visionRecords = this._dbContext.VisionRecordCollections.OrderByDescending(f => f.DateExtracted)
                     .Skip((page - 1) * itemsPerPage).OrderByDescending(f => f.DateExtracted).Take(itemsPerPage).ToList();
 
-                count = _dbContext.VisionRecords.Count();
+                count = this._dbContext.VisionRecordCollections.Count();
 
-                StaticPagedList<VisionRecord> pagedList = new StaticPagedList<VisionRecord>(visionRecords, page, itemsPerPage, count);
+                StaticPagedList<VisionRecordCollection> pagedList = new StaticPagedList<VisionRecordCollection>(visionRecords, page, itemsPerPage, count);
 
-                return View(pagedList);
+                return this.View(pagedList);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
-                return RedirectToAction("Index", "Home");
+                this._logger.LogError(ex, ex.Message);
+                return this.RedirectToAction("Index", "Home");
             }
         }
 
@@ -235,7 +235,7 @@ namespace SbslFileTransformer.Controllers
 
         private IEnumerable<FileInfo> GetLogFiles(int page, int itemsPerPage, out int totalCount)
         {
-            string logPathFiles = Path.Combine(_logsFolder, "log_files");
+            string logPathFiles = Path.Combine(this._logsFolder, "log_files");
 
             IEnumerable<FileInfo> files = Directory.GetFiles(logPathFiles).Select(f => new FileInfo(f));
 

@@ -42,7 +42,7 @@ namespace SbslFileTransformer.Converters.Tanzania
             if (!Directory.Exists(outputFolder)) Directory.CreateDirectory(outputFolder);
             StringBuilder toAppend = new StringBuilder();
 
-            string[] lines = System.IO.File.ReadAllLines(fileIn);
+            string[] lines = File.ReadAllLines(fileIn);
             List<string> newLines = new List<string>();
             DateTime FileDate_ = Convert.ToDateTime(lines[0].Split(',')[11]);
             string fileName = Path.GetFileNameWithoutExtension(inputFile);

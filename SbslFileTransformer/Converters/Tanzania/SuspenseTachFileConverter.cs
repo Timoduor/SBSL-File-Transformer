@@ -91,7 +91,7 @@ namespace SbslFileTransformer.Converters.Tanzania
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_TACH_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
-            WriteToFile(list, outputFile);
+            this.WriteToFile(list, outputFile);
         }
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)

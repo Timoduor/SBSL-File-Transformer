@@ -25,27 +25,27 @@ namespace SbslFileTransformer.Controllers
         public ConfigController(ApplicationDbContext dbContext, EncryptionManager encryptionManager,
             EmailSender emailSender)
         {
-            _dbContext = dbContext;
-            _encryptionManager = encryptionManager;
-            _emailSender = emailSender;
+            this._dbContext = dbContext;
+            this._encryptionManager = encryptionManager;
+            this._emailSender = emailSender;
         }
 
         public async Task<IActionResult> Index()
         {
-            System.Collections.Generic.List<Configuration> configs = await _dbContext.Configurations.Where(c => c.Key != "Password").OrderBy(c => c.ConfigType).OrderBy(c => c.ConfigType)
+            System.Collections.Generic.List<Configuration> configs = await this._dbContext.Configurations.Where(c => c.Key != "Password").OrderBy(c => c.ConfigType).OrderBy(c => c.ConfigType)
                 .ToListAsync();
 
             ViewBag.ServiceName = configs
                 .FirstOrDefault(c => c.Key == "ServiceName" && c.ConfigType == ConfigurationType.Service).Value;
 
-            return View(configs);
+            return this.View(configs);
         }
 
 
         public IActionResult RestartService(string serviceName)
         {
             if (string.IsNullOrEmpty(serviceName))
-                serviceName = _dbContext.Configurations
+                serviceName = this._dbContext.Configurations
                     .First(c => c.Key == "ServiceName" && c.ConfigType == ConfigurationType.Service).Value;
 
             if (string.IsNullOrEmpty(serviceName))
@@ -53,7 +53,7 @@ namespace SbslFileTransformer.Controllers
 
             FileHelpers.RestartService();
 
-            return RedirectToAction("Index");
+            return this.RedirectToAction("Index");
         }
 
         public IActionResult Create()
@@ -65,13 +65,12 @@ namespace SbslFileTransformer.Controllers
                     Value = ((int)v).ToString()
                 }).ToList(), "Value", "Text");
 
-            return View();
+            return this.View();
         }
 
         public IActionResult Update(int configType, string key)
         {
-            Configuration config =
-                _dbContext.Configurations.FirstOrDefault(c =>
+            Configuration config = this._dbContext.Configurations.FirstOrDefault(c =>
                     c.ConfigType == (ConfigurationType)configType && c.Key == key);
 
             ViewBag.ConfigTypes = new SelectList(Enum.GetValues(typeof(ConfigurationType)).Cast<ConfigurationType>()
@@ -81,25 +80,25 @@ namespace SbslFileTransformer.Controllers
                     Value = ((int)v).ToString()
                 }).ToList(), "Value", "Text", configType);
 
-            return View(config);
+            return this.View(config);
         }
 
         [HttpPost]
         public async Task<IActionResult> Create(Configuration config)
         {
             if (!ModelState.IsValid)
-                return View(config);
+                return this.View(config);
 
             //If ConfigType and Key combination exist then it will be UPDATED!!
-            await CreateOrUpdate(config);
+            await this.CreateOrUpdate(config);
 
-            return RedirectToAction("Index");
+            return this.RedirectToAction("Index");
         }
 
 
         public async Task<IActionResult> Sftp()
         {
-            System.Collections.Generic.List<Configuration> configurations = await _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
+            System.Collections.Generic.List<Configuration> configurations = await this._dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp)
                 .ToListAsync();
 
             if (configurations.Count >= 8)
@@ -124,15 +123,15 @@ namespace SbslFileTransformer.Controllers
                         .FirstOrDefault(c => c.Key == "SandboxFolder" && c.ConfigType == ConfigurationType.Sftp)?.Value
                 };
 
-                return View(config);
+                return this.View(config);
             }
 
-            return View(new SftpConfigModel());
+            return this.View(new SftpConfigModel());
         }
 
         public async Task<IActionResult> Smtp()
         {
-            System.Collections.Generic.List<Configuration> configurations = await _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Email)
+            System.Collections.Generic.List<Configuration> configurations = await this._dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Email)
                 .ToListAsync();
 
             if (configurations.Count >= 5)
@@ -158,26 +157,26 @@ namespace SbslFileTransformer.Controllers
                         c.Key == "UseDefaultCredentials" && c.ConfigType == ConfigurationType.Email)?.Value)
                 };
 
-                return View(config);
+                return this.View(config);
             }
 
-            return View(new SmtpConfigModel());
+            return this.View(new SmtpConfigModel());
         }
 
         [HttpPost]
         public async Task<IActionResult> UpdateSmtpConfig(SmtpConfigModel config)
         {
-            await UpdateSmtp(config);
+            await this.UpdateSmtp(config);
 
-            return RedirectToAction("Index");
+            return this.RedirectToAction("Index");
         }
 
         [HttpPost]
         public async Task<IActionResult> UpdateConfig(SftpConfigModel config)
         {
-            await UpdateSftp(config);
+            await this.UpdateSftp(config);
 
-            return RedirectToAction("Index");
+            return this.RedirectToAction("Index");
         }
 
         public async Task<IActionResult> SendTestEmail()
@@ -196,10 +195,10 @@ namespace SbslFileTransformer.Controllers
                 testFiles[i] = Path.ChangeExtension(testFiles[i], ".txt");
             }
 
-            await _emailSender.SendMessage(null, "Test Email from Windows Box",
+            await this._emailSender.SendMessage(null, "Test Email from Windows Box",
                 "This is to confirm that the windows box can send emails with attachments", false, testFiles);
 
-            return RedirectToAction("Smtp");
+            return this.RedirectToAction("Smtp");
         }
 
 
@@ -216,7 +215,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             //update host
@@ -226,11 +225,11 @@ namespace SbslFileTransformer.Controllers
                 {
                     ConfigType = ConfigurationType.Email,
                     Key = "Password",
-                    Value = _encryptionManager.Encrypt(config.Password),
+                    Value = this._encryptionManager.Encrypt(config.Password),
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             //update host
@@ -244,7 +243,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             {
@@ -256,7 +255,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             //update host
@@ -270,7 +269,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             //update host
@@ -284,7 +283,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             //update host
@@ -298,7 +297,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             //update host
@@ -312,7 +311,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             //update host
@@ -326,7 +325,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
         }
 
@@ -343,7 +342,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             //update host
@@ -357,7 +356,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             //update host
@@ -371,7 +370,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             //update host
@@ -385,7 +384,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
             }
 
             if (!string.IsNullOrEmpty(config.ProductionFolder))
@@ -398,7 +397,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
 
                 Configuration config2 = new Configuration
                 {
@@ -408,7 +407,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(config2);
+                await this.CreateOrUpdate(config2);
             }
 
             if (!string.IsNullOrEmpty(config.SandboxFolder))
@@ -421,7 +420,7 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(configuration);
+                await this.CreateOrUpdate(configuration);
 
                 Configuration config2 = new Configuration
                 {
@@ -431,13 +430,13 @@ namespace SbslFileTransformer.Controllers
                     Updated = DateTime.Now
                 };
 
-                await CreateOrUpdate(config2);
+                await this.CreateOrUpdate(config2);
             }
         }
 
         private async Task CreateOrUpdate(Configuration config)
         {
-            Configuration existing = await _dbContext.Configurations.FirstOrDefaultAsync(c =>
+            Configuration existing = await this._dbContext.Configurations.FirstOrDefaultAsync(c =>
                 c.Key.ToLower() == config.Key.ToLower() && c.ConfigType == config.ConfigType);
 
             if (existing != null)
@@ -445,15 +444,15 @@ namespace SbslFileTransformer.Controllers
                 existing.Value = config.Value;
                 existing.Updated = DateTime.Now;
 
-                _dbContext.Entry(existing).State = EntityState.Modified;
+                this._dbContext.Entry(existing).State = EntityState.Modified;
             }
             else
             {
                 config.Updated = DateTime.Now;
-                _dbContext.Add(config);
+                this._dbContext.Add(config);
             }
 
-            await _dbContext.SaveChangesAsync();
+            await this._dbContext.SaveChangesAsync();
         }
     }
 }

@@ -128,7 +128,7 @@ namespace SbslFileTransformer.Converters.Rwanda
             }
             outputFile = Path.Combine(outputFolder, $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{Path.GetFileNameWithoutExtension(inputFile)}_fxpostsum_{"IMRW"}.txt");
             //outputFile = outputFile + "\\Converted_" + Path.GetFileNameWithoutExtension(inputFile) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".txt";
-            WriteToFile(list, outputFile);
+            this.WriteToFile(list, outputFile);
         }
 
 

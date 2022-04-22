@@ -19,9 +19,9 @@ namespace SbslFileTransformer.Controllers
         public AuthController(ILogger<AuthController> logger, SignInManager<ApplicationUser> signInManager,
             UserManager<ApplicationUser> userManager)
         {
-            _logger = logger;
-            _signInManager = signInManager;
-            _userManager = userManager;
+            this._logger = logger;
+            this._signInManager = signInManager;
+            this._userManager = userManager;
         }
 
         [AllowAnonymous]
@@ -29,7 +29,7 @@ namespace SbslFileTransformer.Controllers
         {
             ViewBag.returnUrl = returnUrl;
             ViewData["Title"] = "Login";
-            return View();
+            return this.View();
         }
 
         [AllowAnonymous]
@@ -37,19 +37,19 @@ namespace SbslFileTransformer.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginModel model, string returnUrl)
         {
-            if (!ModelState.IsValid) return View();
+            if (!ModelState.IsValid) return this.View();
 
             try
             {
-                ApplicationUser user = await _userManager.FindByEmailAsync(model.Username) ??
-                           await _userManager.FindByNameAsync(model.Username);
+                ApplicationUser user = await this._userManager.FindByEmailAsync(model.Username) ??
+                           await this._userManager.FindByNameAsync(model.Username);
 
                 if (user != null)
                 {
-                    if (!await _userManager.IsEmailConfirmedAsync(user))
+                    if (!await this._userManager.IsEmailConfirmedAsync(user))
                     {
                         TempData["ErrorMessage"] = "Please confirm your email address to log in.";
-                        return View(model);
+                        return this.View(model);
                     }
 
 
@@ -57,17 +57,17 @@ namespace SbslFileTransformer.Controllers
                     {
                         TempData["ErrorMessage"] =
                             $"Problem with user login for '{model.Username}'. Please contact admin for assistance";
-                        return View(model);
+                        return this.View(model);
                     }
 
                     Microsoft.AspNetCore.Identity.SignInResult result =
-                        await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, false);
+                        await this._signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, false);
 
                     if (result.Succeeded)
                     {
                         if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                            return Redirect(returnUrl);
-                        return RedirectToAction("Index", "Home");
+                            return this.Redirect(returnUrl);
+                        return this.RedirectToAction("Index", "Home");
                     }
 
                     TempData["ErrorMessage"] = "Invalid username or password";
@@ -79,19 +79,19 @@ namespace SbslFileTransformer.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Problem logging in!");
+                this._logger.LogError(ex, "Problem logging in!");
                 TempData["ErrorMessage"] = "Error occured log in. Contact support for help";
             }
 
-            return RedirectToAction("Login");
+            return this.RedirectToAction("Login");
         }
 
         [Authorize]
         public async Task<IActionResult> Logout()
         {
-            await _signInManager.SignOutAsync();
+            await this._signInManager.SignOutAsync();
 
-            return RedirectToAction("Login");
+            return this.RedirectToAction("Login");
         }
     }
 }

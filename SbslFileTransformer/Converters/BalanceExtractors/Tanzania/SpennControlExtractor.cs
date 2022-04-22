@@ -35,7 +35,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Tanzania
                 }
             }
 
-            GenerateMultiCurr(bal, inputFile, outputFolder);
+            this.GenerateMultiCurr(bal, inputFile, outputFolder);
         }
 
         private void GenerateMultiCurr(W2BCols item, string inputFile, string outputFolder)

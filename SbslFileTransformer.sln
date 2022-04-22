@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30413.136
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32408.312
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SbslFileTransformer", "SbslFileTransformer\SbslFileTransformer.csproj", "{7E9F9300-6F64-4C70-9583-D648D558C433}"
 EndProject
@@ -9,7 +9,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Licensing", "Licensing\Lice
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MigrateDatabase", "MigrateDatabase\MigrateDatabase.csproj", "{ACB721EF-7DDD-48CE-962D-A8DCE4AED97B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SbslServiceManager", "SbslServiceManager\SbslServiceManager.csproj", "{CFEA3F9D-18D9-4354-B0E6-5B0997733F90}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SbslServiceManager", "SbslServiceManager\SbslServiceManager.csproj", "{CFEA3F9D-18D9-4354-B0E6-5B0997733F90}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E4B82B42-4A72-49F7-926B-91403AAD2EA7}"
+	ProjectSection(SolutionItems) = preProject
+		stylecop.json = stylecop.json
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

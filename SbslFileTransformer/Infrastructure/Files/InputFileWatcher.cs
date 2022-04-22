@@ -17,9 +17,9 @@ namespace SbslFileTransformer.Infrastructure.Files
 
         public InputFileWatcher(string inputFolder, ILogger logger)
         {
-            _logger = logger;
+            this._logger = logger;
 
-            _fileWatcher = new FileSystemWatcher
+            this._fileWatcher = new FileSystemWatcher
             {
                 Path = inputFolder,
                 EnableRaisingEvents = true,
@@ -27,44 +27,44 @@ namespace SbslFileTransformer.Infrastructure.Files
             };
 
 
-            _fileWatcher.NotifyFilter = NotifyFilters.FileName
-                                        | NotifyFilters.DirectoryName;
+            this._fileWatcher.NotifyFilter = NotifyFilters.FileName
+                                             | NotifyFilters.DirectoryName;
 
-            _fileWatcher.Created += OnCreated;
+            this._fileWatcher.Created += this.OnCreated;
 
-            _fileWatcher.Changed += OnChanged;
+            this._fileWatcher.Changed += this.OnChanged;
             //_fileWatcher.Deleted += OnDeleted;//MIGHT NEED THESE LATER ON
             //_fileWatcher.Renamed += OnRenamed;
 
-            _fileWatcher.Error += _fileWatcher_Error;
+            this._fileWatcher.Error += this._fileWatcher_Error;
         }
 
         public void Dispose()
         {
-            _fileWatcher.Dispose();
+            this._fileWatcher.Dispose();
         }
 
         private void _fileWatcher_Error(object sender, ErrorEventArgs e)
         {
-            _logger.LogError(e.GetException(), e.GetException().Message);
+            this._logger.LogError(e.GetException(), e.GetException().Message);
         }
 
         private async void OnChanged(object sender, FileSystemEventArgs e)
         {
             await Task.Delay(20 * 1000); //20 second delay before file starts uploading
 
-            await ProcessFile(e.FullPath);
+            await this.ProcessFile(e.FullPath);
 
-            _logger.LogInformation($"File {e.FullPath} changed!");
+            this._logger.LogInformation($"File {e.FullPath} changed!");
         }
 
         private async void OnCreated(object sender, FileSystemEventArgs e)
         {
             await Task.Delay(20 * 1000); //20 second delay before file starts uploading
 
-            await ProcessFile(e.FullPath);
+            await this.ProcessFile(e.FullPath);
 
-            _logger.LogInformation($"File {e.FullPath} created!");
+            this._logger.LogInformation($"File {e.FullPath} created!");
         }
     }
 }

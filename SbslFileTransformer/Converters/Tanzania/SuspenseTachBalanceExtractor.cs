@@ -13,7 +13,7 @@ namespace SbslFileTransformer.Converters.Tanzania
 
         public SuspenseTachBalanceExtractor(string entity)
         {
-            _entity = entity;
+            this._entity = entity;
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
@@ -50,7 +50,7 @@ namespace SbslFileTransformer.Converters.Tanzania
                 }
             }
 
-            GenerateMultiCurr(row, inputFile, rootFolder);
+            this.GenerateMultiCurr(row, inputFile, rootFolder);
         }
 
         private void GenerateMultiCurr(ExcelCols list, string inputFile, string rootFolder)
@@ -60,7 +60,7 @@ namespace SbslFileTransformer.Converters.Tanzania
             string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
             string outputFile = Path.Combine(rootFolder,
-                $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_SUS_{_entity}.txt");
+                $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_SUS_{this._entity}.txt");
 
             StringBuilder toAppend = new StringBuilder();
 
@@ -79,7 +79,7 @@ namespace SbslFileTransformer.Converters.Tanzania
             amount = (Convert.ToDouble(amount) * -1).ToString("N2");
             
             toAppend.Append(
-                 $"{_entity}\t{account}\tSuspense\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
+                 $"{this._entity}\t{account}\tSuspense\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
 
             string text = toAppend.ToString();
 

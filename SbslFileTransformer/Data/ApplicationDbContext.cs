@@ -19,6 +19,8 @@ namespace SbslFileTransformer.Data
         public DbSet<AccountsLookup> Accounts { get; set; }
         public DbSet<EmailGroup> EmailGroups { get; set; }
         public DbSet<ProcessedReport> ProcessedReports { get; set; }
-        public DbSet<VisionRecord> VisionRecords { get; set; }
+        public DbSet<VisionRecordCollection> VisionRecordCollections { get; set; }
+        public DbSet<VisionRecordCreditSettlement> VisionRecordCreditSettlements { get; set; }
+        public DbSet<VisionRecordDebtors> VisionRecordDebtors { get; set; }
     }
 }

@@ -95,6 +95,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
 
                     foreach (string file in files)
                     {
+                        VisionRecordType visionRecordType = CommonHelpers.GetVisionRecordType(file);
+
                         if (file.ToLower().Contains("cards") && file.ToLower().Contains("credit_card")
                             && file.ToLower().Contains("collections_gl") && file.ToLower().Contains("imke"))
                         {
@@ -111,7 +113,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
 
                                 try
                                 {
-                                    await mpesaConverter.MatchFiles(file, outputPath);
+                                    await mpesaConverter.MatchFiles(file, outputPath, visionRecordType);
                                 }
                                 catch (Exception ex)
                                 {

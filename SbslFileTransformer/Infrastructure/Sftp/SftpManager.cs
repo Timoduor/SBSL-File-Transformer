@@ -21,12 +21,12 @@ namespace SbslFileTransformer.Infrastructure.Sftp
 
         public SftpManager(ILogger<SftpManager> logger, ApplicationDbContext dbContext)
         {
-            _logger = logger;
-            _dbContext = dbContext;
+            this._logger = logger;
+            this._dbContext = dbContext;
 
-            List<Models.Configuration> configurations = _dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
+            List<Models.Configuration> configurations = this._dbContext.Configurations.Where(c => c.ConfigType == ConfigurationType.Sftp).ToList();
 
-            _config = new SftpConfig
+            this._config = new SftpConfig
             {
                 Host = configurations.FirstOrDefault(c => c.Key == "Host")?.Value,
                 Port = Convert.ToInt32(configurations.FirstOrDefault(c => c.Key == "Port")?.Value),
@@ -43,7 +43,7 @@ namespace SbslFileTransformer.Infrastructure.Sftp
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, $"Failed in listing files under [{remoteDirectory}]");
+                this._logger.LogError(exception, $"Failed in listing files under [{remoteDirectory}]");
                 return null;
             }
             finally
@@ -60,7 +60,7 @@ namespace SbslFileTransformer.Infrastructure.Sftp
                 {
                     string directoryPath = Path.GetDirectoryName(remoteFilePath);
 
-                    CreateAllDirectories(client, directoryPath);
+                    this.CreateAllDirectories(client, directoryPath);
 
                     using (FileStream s = File.OpenRead(localFilePath))
                     {
@@ -71,7 +71,7 @@ namespace SbslFileTransformer.Infrastructure.Sftp
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogError(exception, $"Failed in uploading file [{localFilePath}] to [{remoteFilePath}]");
+                    this._logger.LogError(exception, $"Failed in uploading file [{localFilePath}] to [{remoteFilePath}]");
                 }
             }
 
@@ -100,18 +100,17 @@ namespace SbslFileTransformer.Infrastructure.Sftp
 
         public void DownloadFile(string remoteFilePath, string localFilePath)
         {
-            using SftpClient client = new SftpClient(_config.Host, _config.Port == 0 ? 22 : _config.Port, _config.UserName,
-                _config.Password);
+            using SftpClient client = new SftpClient(this._config.Host, this._config.Port == 0 ? 22 : this._config.Port, this._config.UserName, this._config.Password);
             try
             {
                 client.Connect();
                 using FileStream s = File.Create(localFilePath);
                 client.DownloadFile(remoteFilePath, s);
-                _logger.LogInformation($"Finished downloading file [{localFilePath}] from [{remoteFilePath}]");
+                this._logger.LogInformation($"Finished downloading file [{localFilePath}] from [{remoteFilePath}]");
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, $"Failed in downloading file [{localFilePath}] from [{remoteFilePath}]");
+                this._logger.LogError(exception, $"Failed in downloading file [{localFilePath}] from [{remoteFilePath}]");
             }
             finally
             {
@@ -121,17 +120,16 @@ namespace SbslFileTransformer.Infrastructure.Sftp
 
         public void DeleteFile(string remoteFilePath)
         {
-            using SftpClient client = new SftpClient(_config.Host, _config.Port == 0 ? 22 : _config.Port, _config.UserName,
-                _config.Password);
+            using SftpClient client = new SftpClient(this._config.Host, this._config.Port == 0 ? 22 : this._config.Port, this._config.UserName, this._config.Password);
             try
             {
                 client.Connect();
                 client.DeleteFile(remoteFilePath);
-                _logger.LogInformation($"File [{remoteFilePath}] deleted.");
+                this._logger.LogInformation($"File [{remoteFilePath}] deleted.");
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, $"Failed in deleting file [{remoteFilePath}]");
+                this._logger.LogError(exception, $"Failed in deleting file [{remoteFilePath}]");
             }
             finally
             {

@@ -161,9 +161,9 @@ namespace SbslFileTransformer.Converters.Kenya
                 }
             }
 
-            List<ExcelCols> list2 = ProduceSecondList(inputFile).Skip(1).ToList();
+            List<ExcelCols> list2 = this.ProduceSecondList(inputFile).Skip(1).ToList();
 
-            List<ExcelCols> list4 = CombineTheTwoLists(list, list2);
+            List<ExcelCols> list4 = this.CombineTheTwoLists(list, list2);
 
             if (string.IsNullOrEmpty(outputFile))
             {
@@ -176,7 +176,7 @@ namespace SbslFileTransformer.Converters.Kenya
                     $"{DateTime.Now:yyyy_MM_dd_HH_mm}_WUAKE_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
             }
 
-            WriteToFile(list4, outputFile);
+            this.WriteToFile(list4, outputFile);
         }
 
         private List<ExcelCols> ProduceSecondList(string inputFile)
