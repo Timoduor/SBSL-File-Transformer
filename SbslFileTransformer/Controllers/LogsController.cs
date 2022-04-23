@@ -65,17 +65,6 @@ namespace SbslFileTransformer.Controllers
             return this.Json(uploadedFiles);
         }
 
-        public IActionResult SearchVisionRecord(string search)
-        {
-            List<VisionRecordCollection> uploadedFiles = this._dbContext.VisionRecordCollections
-                        .Where(f => f.TransDetails.Contains(search) || f.TransID.Contains(search) || f.GLTransCode.Contains(search)
-                        || f.FileName.Contains(search) || f.ReferenceNumber.Contains(search) || f.CardNumber.Contains(search)
-                        || f.ContractNumber.Contains(search) || f.CustomerName.Contains(search) || f.AccountNumber.Contains(search))
-                    .OrderByDescending(f => f.DateExtracted).Take(500).ToList();
-
-            return this.Json(uploadedFiles);
-        }
-
         public IActionResult Entries(int page = 1)
         {
             try
@@ -194,12 +183,37 @@ namespace SbslFileTransformer.Controllers
 
             return this.View(jobs);
         }
+        
+        public IActionResult SearchVisionRecord(string search)
+        {
+            List<VisionRecordCollection> visionCollections = this._dbContext.VisionRecordCollections
+                .Where(f => f.TransDetails.Contains(search) || f.TransID.Contains(search) || f.GLTransCode.Contains(search)
+                            || f.FileName.Contains(search) || f.ReferenceNumber.Contains(search) || f.CardNumber.Contains(search)
+                            || f.ContractNumber.Contains(search) || f.CustomerName.Contains(search) || f.AccountNumber.Contains(search))
+                .OrderByDescending(f => f.DateExtracted).Take(500).ToList();
+
+            List<VisionRecordCreditSettlement> visionSettlements = this._dbContext.VisionRecordCreditSettlements
+                .Where(f => f.TransDetails.Contains(search) || f.TransID.Contains(search) || f.GLTransCode.Contains(search)
+                            || f.FileName.Contains(search) || f.ReferenceNumber.Contains(search) || f.CardNumber.Contains(search)
+                            || f.ContractNumber.Contains(search) || f.CustomerName.Contains(search) || f.AccountNumber.Contains(search))
+                .OrderByDescending(f => f.DateExtracted).Take(500).ToList();
+
+            List<VisionRecordDebtors> visionDebtors = this._dbContext.VisionRecordDebtors
+                .Where(f => f.TransDetails.Contains(search) || f.TransID.Contains(search) || f.GLTransCode.Contains(search)
+                            || f.FileName.Contains(search) || f.ReferenceNumber.Contains(search) || f.CardNumber.Contains(search)
+                            || f.ContractNumber.Contains(search) || f.CustomerName.Contains(search) || f.AccountNumber.Contains(search))
+                .OrderByDescending(f => f.DateExtracted).Take(500).ToList();
+
+            IEnumerable<VisionRecordBase> visionRecords =
+                ((IEnumerable<VisionRecordBase>)visionCollections).Union(visionDebtors).Union(visionSettlements);
+
+            return this.Json(visionRecords);
+        }
 
         public IActionResult Vision(int page = 1)
         {
             try
             {
-                int count = 0;
                 int itemsPerPage = 10;
 
                 ViewBag.TotalCount = this._dbContext.VisionRecordCollections.LongCount();
@@ -207,9 +221,19 @@ namespace SbslFileTransformer.Controllers
                 List<VisionRecordCollection> visionRecords = this._dbContext.VisionRecordCollections.OrderByDescending(f => f.DateExtracted)
                     .Skip((page - 1) * itemsPerPage).OrderByDescending(f => f.DateExtracted).Take(itemsPerPage).ToList();
 
-                count = this._dbContext.VisionRecordCollections.Count();
+                List<VisionRecordCreditSettlement> visionRecordsSett = this._dbContext.VisionRecordCreditSettlements.OrderByDescending(f => f.DateExtracted)
+                    .Skip((page - 1) * itemsPerPage).OrderByDescending(f => f.DateExtracted).Take(itemsPerPage).ToList();
 
-                StaticPagedList<VisionRecordCollection> pagedList = new StaticPagedList<VisionRecordCollection>(visionRecords, page, itemsPerPage, count);
+                List<VisionRecordDebtors> visionRecordsDebt = this._dbContext.VisionRecordDebtors.OrderByDescending(f => f.DateExtracted)
+                    .Skip((page - 1) * itemsPerPage).OrderByDescending(f => f.DateExtracted).Take(itemsPerPage).ToList();
+
+                int count = this._dbContext.VisionRecordCollections.Count() + this._dbContext.VisionRecordCreditSettlements.Count() + this._dbContext.VisionRecordDebtors.Count();
+
+                IEnumerable<VisionRecordBase> combinedVisionRecords = ((IEnumerable<VisionRecordBase>)visionRecords).Union(visionRecordsDebt).Union(visionRecordsSett);
+
+                int combinedCount = combinedVisionRecords.Count();
+
+                StaticPagedList<VisionRecordBase> pagedList = new StaticPagedList<VisionRecordBase>(combinedVisionRecords, page, combinedCount, count);
 
                 return this.View(pagedList);
             }

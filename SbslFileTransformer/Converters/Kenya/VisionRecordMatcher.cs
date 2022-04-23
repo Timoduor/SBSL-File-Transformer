@@ -23,14 +23,14 @@ namespace SbslFileTransformer.Converters.Kenya
 
         public async Task MatchFiles(string finacleFile, string outputPath, VisionRecordType visionRecordType)
         {
-            List<FinacleRec> finacleRecords = this.GetRecordsFromFinacleFile(finacleFile);
+            List<FinacleRec> finacleRecords = this.GetRecordsFromFinacleFile(finacleFile, visionRecordType);
 
             IEnumerable<string> finacleRefs = finacleRecords.Select(f => f.ReferenceNumber).Distinct();
 
             foreach (string finRef in finacleRefs)
             {
-                IEnumerable<VisionRecordCollection> unmatchedVisionRecords = this.GetUnmatchedVisionRecords();
-                List<VisionRecordCollection> matchedRecords = new List<VisionRecordCollection>();
+                IEnumerable<VisionRecordBase> unmatchedVisionRecords = this.GetUnmatchedVisionRecords(visionRecordType);
+                List<VisionRecordBase> matchedRecords = new List<VisionRecordBase>();
 
                 if (finRef.Length != 20)
                     continue;
@@ -45,7 +45,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 double finacleDiff = finacleSumCredits - finacleSumDebits;
 
-                List<VisionRecordCollection> matchedRecs = unmatchedVisionRecords.Where(v => v.ReferenceNumber == finRef).ToList();
+                List<VisionRecordBase> matchedRecs = unmatchedVisionRecords.Where(v => v.ReferenceNumber == finRef).ToList();
 
                 double visionCredits = matchedRecs.Sum(v => v.CreditAmount);
                 double visionDebits = matchedRecs.Sum(v => v.DebitAmount);
@@ -56,11 +56,28 @@ namespace SbslFileTransformer.Converters.Kenya
                 {
                     matchedRecords.AddRange(matchedRecs);
 
-                    this.CreateFileForReferenceNumber(matchedRecs, finRef, outputPath);
+                    this.CreateFileForReferenceNumber(matchedRecs, finRef, outputPath, visionRecordType);
 
-                    matchedRecords.ForEach(v => v.Matched = true);
+                    matchedRecords.ForEach(v =>
+                    {
+                        v.Matched = true;
+                        v.DateMatched = DateTime.Now;
+                        v.MatchingFile = finacleFile;
+                    });
 
-                    this._dbContext.VisionRecordCollections.UpdateRange(matchedRecords);
+                    switch (visionRecordType)
+                    {
+                        case VisionRecordType.Collections:
+                            this._dbContext.VisionRecordCollections.UpdateRange(matchedRecords.Select(r => (VisionRecordCollection)r));
+                            break;
+                        case VisionRecordType.CreditSettlement:
+                            this._dbContext.VisionRecordCreditSettlements.UpdateRange(matchedRecords.Select(r => (VisionRecordCreditSettlement)r));
+                            break;
+                        case VisionRecordType.Debtors:
+                            this._dbContext.VisionRecordDebtors.UpdateRange(matchedRecords.Select(r => (VisionRecordDebtors)r));
+                            break;
+                    }
+                    
                     await this._dbContext.SaveChangesAsync();
                 }
             }
@@ -77,9 +94,9 @@ namespace SbslFileTransformer.Converters.Kenya
             return true;
         }
 
-        private void CreateFileForReferenceNumber(IEnumerable<VisionRecordCollection> matchedRecs, string referenceNumber, string outputPath)
+        private void CreateFileForReferenceNumber(IEnumerable<VisionRecordBase> matchedRecs, string referenceNumber, string outputPath, VisionRecordType visionRecordType)
         {
-            string outputFile = Path.Combine(outputPath, $"{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}_{referenceNumber}.csv");
+            string outputFile = Path.Combine(outputPath, $"{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}_{visionRecordType}_{referenceNumber}.csv");
 
             if (File.Exists(outputFile))
             {
@@ -89,18 +106,33 @@ namespace SbslFileTransformer.Converters.Kenya
             this.GenerateFileForSelectedRecords(matchedRecs, outputFile);
         }
 
-        private List<VisionRecordCollection> GetUnmatchedVisionRecords()
+        private IEnumerable<VisionRecordBase> GetUnmatchedVisionRecords(VisionRecordType visionRecordType)
         {
-            return this._dbContext.VisionRecordCollections.Where(v => v.Matched == false).ToList();
+            IEnumerable<VisionRecordBase> visionRecords = new List<VisionRecordBase>();
+
+            switch (visionRecordType)
+            {
+                case VisionRecordType.Collections:
+                    visionRecords = this._dbContext.VisionRecordCollections.Where(v => v.Matched == false).Select(r => (VisionRecordBase)r);
+                    break;
+                case VisionRecordType.CreditSettlement:
+                    visionRecords = this._dbContext.VisionRecordCreditSettlements.Where(v => v.Matched == false).Select(r => (VisionRecordBase)r);
+                    break;
+                case VisionRecordType.Debtors:
+                    visionRecords = this._dbContext.VisionRecordDebtors.Where(v => v.Matched == false).Select(r => (VisionRecordBase)r);
+                    break;
+            }
+
+            return visionRecords;
         }
 
-        private void GenerateFileForSelectedRecords(IEnumerable<VisionRecordCollection> rows, string outputFile)
+        private void GenerateFileForSelectedRecords(IEnumerable<VisionRecordBase> rows, string outputFile)
         {
             using (StreamWriter writer = new StreamWriter(outputFile))
             {
                 using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    foreach (VisionRecordCollection row in rows)
+                    foreach (VisionRecordBase row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();
@@ -109,7 +141,7 @@ namespace SbslFileTransformer.Converters.Kenya
             }
         }
 
-        private List<FinacleRec> GetRecordsFromFinacleFile(string cmsFile)
+        private List<FinacleRec> GetRecordsFromFinacleFile(string cmsFile, VisionRecordType visionRecordType)
         {
             List<FinacleRec> finacleRecs = new List<FinacleRec>();
 

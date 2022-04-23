@@ -1,6 +1,6 @@
 ﻿@using X.PagedList.Mvc.Core
 @using X.PagedList.Mvc.Core.Common
-@model X.PagedList.IPagedList<VisionRecordCollection>
+@model X.PagedList.IPagedList<VisionRecordBase>
 
 @{
     ViewData["Title"] = "Logs";
@@ -78,6 +78,9 @@
                         <th>
                             Date Matched
                         </th>
+                        <th>
+                            Matching File
+                        </th>
                     </tr>
                     </thead>
                     <tbody id="searchReplace">
@@ -126,8 +129,11 @@
                             <td>
                                 @Html.DisplayFor(modelItem => item.DateExtracted)
                             </td>
-                             <td>
+                            <td>
                                 @Html.DisplayFor(modelItem => item.DateMatched)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.MatchingFile)
                             </td>
                         </tr>
                     }
