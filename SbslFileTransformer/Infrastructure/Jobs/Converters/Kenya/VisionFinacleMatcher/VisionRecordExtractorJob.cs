@@ -14,7 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Newtonsoft.Json;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacleMatcher
 {
@@ -109,7 +109,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                             {
                                 try
                                 {
-                                    List<VisionRecordCollection> records = this.GetRecordsFromVisionFile(file);
+                                    List<VisionRecordBase> records = this.GetRecordsFromVisionFile(file);
 
                                     await this.InsertRecordsToDb(records, dbContext, visionRecordType);
                                 }
@@ -144,11 +144,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
             }
         }
         
-        private List<VisionRecordCollection> GetRecordsFromVisionFile(string glFile)
+        private List<VisionRecordBase> GetRecordsFromVisionFile(string glFile)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            List<VisionRecordCollection> glCmsRecs = new List<VisionRecordCollection>();
+            List<VisionRecordBase> glCmsRecs = new List<VisionRecordBase>();
 
             using (FileStream stream = File.Open(glFile, FileMode.Open, FileAccess.Read))
             {
@@ -171,9 +171,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                             continue;
                         }
 
+                        if (!DateTime.TryParse(reader.GetString(0), out DateTime result))
+                            return new List<VisionRecordBase>();
+
                         var glRec = new VisionRecordCollection
                         {
-                            BankingDate = Convert.ToDateTime(reader.GetString(0)),
+                            BankingDate = result,
                             TransDetails = reader.GetString(1),
                             TransID = reader.GetString(2),
                             ReferenceNumber = reader.GetString(3),
@@ -195,12 +198,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
             return glCmsRecs;
         }
 
-        private async Task InsertRecordsToDb(IEnumerable<VisionRecordCollection> records, ApplicationDbContext dbContext, VisionRecordType visionRecordType)
+        private async Task InsertRecordsToDb(List<VisionRecordBase> records, ApplicationDbContext dbContext, VisionRecordType visionRecordType)
         {
+            if (records == null || !records.Any())
+                return;
+
+            var fileName = records.First().FileName.ToLower();
+
             if (
-                dbContext.VisionRecordCollections.Any(v => v.FileName.ToLower() == records.First().FileName.ToLower())
-                || dbContext.VisionRecordCreditSettlements.Any(v => v.FileName.ToLower() == records.First().FileName.ToLower())
-                || dbContext.VisionRecordDebtors.Any(v => v.FileName.ToLower() == records.First().FileName.ToLower())
+                dbContext.VisionRecordCollections.Any(v => v.FileName.ToLower() == fileName)
+                || dbContext.VisionRecordCreditSettlements.Any(v => v.FileName.ToLower() == fileName)
+                || dbContext.VisionRecordDebtors.Any(v => v.FileName.ToLower() == fileName)
                )
             {
                 return;
@@ -209,13 +217,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
             switch (visionRecordType)
             {
                 case VisionRecordType.Collections:
-                    dbContext.VisionRecordCollections.AddRange(records);
+                    dbContext.VisionRecordCollections.AddRange(CommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordCollection>(records));
                     break;
                 case VisionRecordType.CreditSettlement:
-                    dbContext.VisionRecordCreditSettlements.AddRange((IEnumerable<VisionRecordCreditSettlement>)records);
+                    dbContext.VisionRecordCreditSettlements.AddRange(CommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordCreditSettlement>(records));
                     break;
                 case VisionRecordType.Debtors:
-                    dbContext.VisionRecordDebtors.AddRange((IEnumerable<VisionRecordDebtors>)records);
+                    dbContext.VisionRecordDebtors.AddRange(CommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordDebtors>(records));
                     break;
             }
 

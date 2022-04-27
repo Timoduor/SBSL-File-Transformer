@@ -68,13 +68,13 @@ namespace SbslFileTransformer.Converters.Kenya
                     switch (visionRecordType)
                     {
                         case VisionRecordType.Collections:
-                            this._dbContext.VisionRecordCollections.UpdateRange(matchedRecords.Select(r => (VisionRecordCollection)r));
+                            this._dbContext.VisionRecordCollections.UpdateRange(CommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordCollection>(matchedRecords));
                             break;
                         case VisionRecordType.CreditSettlement:
-                            this._dbContext.VisionRecordCreditSettlements.UpdateRange(matchedRecords.Select(r => (VisionRecordCreditSettlement)r));
+                            this._dbContext.VisionRecordCreditSettlements.UpdateRange(CommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordCreditSettlement>(matchedRecords));
                             break;
                         case VisionRecordType.Debtors:
-                            this._dbContext.VisionRecordDebtors.UpdateRange(matchedRecords.Select(r => (VisionRecordDebtors)r));
+                            this._dbContext.VisionRecordDebtors.UpdateRange(CommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordDebtors>(matchedRecords));
                             break;
                     }
                     

@@ -1,4 +1,7 @@
-﻿namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacleMatcher
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
+
+namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacleMatcher
 {
     public class CommonHelpers
     {
@@ -34,6 +37,14 @@
             }
 
             return visionRecordType;
+        }
+
+        public static List<TChild> ConvertParentToChild<TParent, TChild>(List<TParent> records)
+        {
+            var serializedParent = JsonConvert.SerializeObject(records);
+            List<TChild> result = JsonConvert.DeserializeObject<List<TChild>>(serializedParent);
+
+            return result;
         }
     }
 }

@@ -46,7 +46,12 @@ namespace SbslFileTransformer
         {
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseMySql(
-                    Configuration.GetConnectionString("DefaultConnection")));
+                    Configuration.GetConnectionString("DefaultConnection"))
+#if DEBUG
+                    .EnableDetailedErrors()
+                    .EnableSensitiveDataLogging()
+#endif
+            );
 
             string keyStore = Path.Combine(Directory.GetCurrentDirectory(), "keys");
 
