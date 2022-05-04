@@ -95,10 +95,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
 
                     foreach (string file in files)
                     {
-                        if (file.ToLower().Contains("cards") && file.ToLower().Contains("credit_card")
-                                                             && file.ToLower().Contains("collections_gl") && file.ToLower().Contains("imke"))
+                        if (
+                            file.ToLower().Contains("cards") && file.ToLower().Contains("imke") && 
+                            ((file.ToLower().Contains("credit_card") && file.ToLower().Contains("collections_gl")) || 
+                             ((file.ToLower().Contains("debtors") || file.ToLower().Contains("credit_sett")) && file.ToLower().Contains("finacle")))
+                           )
                         {
-                            VisionRecordType visionRecordType = CommonHelpers.GetVisionRecordType(file);
+                            VisionRecordType visionRecordType = VisionCommonHelpers.GetVisionRecordType(file);
 
                             SftpUploadedFile fileToProcess = uploadedFiles.FirstOrDefault(f =>
                                      f.FilePath.ToLower() == file.ToLower());

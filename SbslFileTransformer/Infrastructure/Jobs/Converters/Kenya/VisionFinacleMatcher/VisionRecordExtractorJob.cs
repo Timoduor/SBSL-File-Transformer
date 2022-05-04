@@ -96,7 +96,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                     {
                         if (file.ToLower().Contains("cards") && file.ToLower().Contains("imke"))
                         {
-                            VisionRecordType visionRecordType = CommonHelpers.GetVisionRecordType(file);
+                            VisionRecordType visionRecordType = VisionCommonHelpers.GetVisionRecordType(file);
 
                             if (visionRecordType == VisionRecordType.None)
                                 continue;
@@ -217,13 +217,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
             switch (visionRecordType)
             {
                 case VisionRecordType.Collections:
-                    dbContext.VisionRecordCollections.AddRange(CommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordCollection>(records));
+                    dbContext.VisionRecordCollections.AddRange(VisionCommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordCollection>(records));
                     break;
                 case VisionRecordType.CreditSettlement:
-                    dbContext.VisionRecordCreditSettlements.AddRange(CommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordCreditSettlement>(records));
+                    dbContext.VisionRecordCreditSettlements.AddRange(VisionCommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordCreditSettlement>(records));
                     break;
                 case VisionRecordType.Debtors:
-                    dbContext.VisionRecordDebtors.AddRange(CommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordDebtors>(records));
+                    dbContext.VisionRecordDebtors.AddRange(VisionCommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordDebtors>(records));
                     break;
             }
 

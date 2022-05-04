@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacleMatcher
 {
-    public class CommonHelpers
+    public class VisionCommonHelpers
     {
         public static VisionRecordType GetVisionRecordType(string file)
         {

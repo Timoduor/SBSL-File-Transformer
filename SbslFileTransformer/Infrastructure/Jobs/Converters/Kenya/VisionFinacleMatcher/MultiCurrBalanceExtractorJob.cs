@@ -97,7 +97,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                     {
                         if (file.ToLower().Contains("cards") && file.ToLower().Contains("bal") && file.ToLower().Contains("imke"))
                         {
-                            VisionRecordType visionRecordType = CommonHelpers.GetVisionRecordType(file);
+                            VisionRecordType visionRecordType = VisionCommonHelpers.GetVisionRecordType(file);
 
                             SftpUploadedFile fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>
