@@ -76,6 +76,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
                         list.Add(row);
                     }
                 }
+                stream.Close();
             }
 
             IEnumerable<VisionBalance> distinct = list.GroupBy(b => b.ContractNumber).Select(x => x.FirstOrDefault());

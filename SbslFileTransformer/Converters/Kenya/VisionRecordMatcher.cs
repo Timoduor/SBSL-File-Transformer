@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacleMatcher;
 
 namespace SbslFileTransformer.Converters.Kenya
@@ -65,22 +66,27 @@ namespace SbslFileTransformer.Converters.Kenya
                         v.MatchingFile = finacleFile;
                     });
 
-                    switch (visionRecordType)
-                    {
-                        case VisionRecordType.Collections:
-                            this._dbContext.VisionRecordCollections.UpdateRange(VisionCommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordCollection>(matchedRecords));
-                            break;
-                        case VisionRecordType.CreditSettlement:
-                            this._dbContext.VisionRecordCreditSettlements.UpdateRange(VisionCommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordCreditSettlement>(matchedRecords));
-                            break;
-                        case VisionRecordType.Debtors:
-                            this._dbContext.VisionRecordDebtors.UpdateRange(VisionCommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordDebtors>(matchedRecords));
-                            break;
-                    }
-                    
-                    await this._dbContext.SaveChangesAsync();
+                    await this.UpdateVisionRecords(visionRecordType, matchedRecords);
                 }
             }
+        }
+
+        private async Task UpdateVisionRecords(VisionRecordType visionRecordType, List<VisionRecordBase> matchedRecords)
+        {
+            switch (visionRecordType)
+            {
+                case VisionRecordType.Collections:
+                    this._dbContext.VisionRecordCollections.UpdateRange(VisionCommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordCollection>(matchedRecords));
+                    break;
+                case VisionRecordType.CreditSettlement:
+                    this._dbContext.VisionRecordCreditSettlements.UpdateRange(VisionCommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordCreditSettlement>(matchedRecords));
+                    break;
+                case VisionRecordType.Debtors:
+                    this._dbContext.VisionRecordDebtors.UpdateRange(VisionCommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordDebtors>(matchedRecords));
+                    break;
+            }
+
+            await this._dbContext.SaveChangesAsync();
         }
 
         private bool IsDigitsOnly(string str)
@@ -113,13 +119,16 @@ namespace SbslFileTransformer.Converters.Kenya
             switch (visionRecordType)
             {
                 case VisionRecordType.Collections:
-                    visionRecords = this._dbContext.VisionRecordCollections.Where(v => v.Matched == false).Select(r => (VisionRecordBase)r);
+                    visionRecords = this._dbContext.VisionRecordCollections.Where(v => v.Matched == false)
+                        .Select(r => (VisionRecordBase)r).AsNoTracking();
                     break;
                 case VisionRecordType.CreditSettlement:
-                    visionRecords = this._dbContext.VisionRecordCreditSettlements.Where(v => v.Matched == false).Select(r => (VisionRecordBase)r);
+                    visionRecords = this._dbContext.VisionRecordCreditSettlements.Where(v => v.Matched == false)
+                        .Select(r => (VisionRecordBase)r).AsNoTracking();
                     break;
                 case VisionRecordType.Debtors:
-                    visionRecords = this._dbContext.VisionRecordDebtors.Where(v => v.Matched == false).Select(r => (VisionRecordBase)r);
+                    visionRecords = this._dbContext.VisionRecordDebtors.Where(v => v.Matched == false)
+                        .Select(r => (VisionRecordBase)r).AsNoTracking();
                     break;
             }
 
@@ -186,6 +195,7 @@ namespace SbslFileTransformer.Converters.Kenya
                         finacleRecs.Add(finacleRec);
                     }
                 }
+                stream.Close();
             }
 
             return finacleRecs;
