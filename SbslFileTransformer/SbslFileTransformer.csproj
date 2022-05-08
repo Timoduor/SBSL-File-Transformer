@@ -98,6 +98,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="C:\Projects\SBSL\SbslFileTransformer\SbslFileTransformer\.editorconfig" />
     <None Include="Images\sbsl.jpg">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
@@ -151,5 +152,9 @@
       </ReferencePath>
     </ItemGroup>
   </Target>
+
+  <ItemGroup>
+    <EditorConfigFiles Remove="C:\Projects\SBSL\SbslFileTransformer\SbslFileTransformer\.editorconfig" />
+  </ItemGroup>
 
 </Project>
