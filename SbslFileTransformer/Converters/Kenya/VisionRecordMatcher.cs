@@ -73,19 +73,8 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private async Task UpdateVisionRecords(VisionRecordType visionRecordType, List<VisionRecordBase> matchedRecords)
         {
-            switch (visionRecordType)
-            {
-                case VisionRecordType.Collections:
-                    this._dbContext.VisionRecordCollections.UpdateRange(VisionCommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordCollection>(matchedRecords));
-                    break;
-                case VisionRecordType.CreditSettlement:
-                    this._dbContext.VisionRecordCreditSettlements.UpdateRange(VisionCommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordCreditSettlement>(matchedRecords));
-                    break;
-                case VisionRecordType.Debtors:
-                    this._dbContext.VisionRecordDebtors.UpdateRange(VisionCommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordDebtors>(matchedRecords));
-                    break;
-            }
-
+            this._dbContext.VisionRecordCollections.UpdateRange(VisionCommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordCollection>(matchedRecords));
+            
             await this._dbContext.SaveChangesAsync();
         }
 
@@ -114,24 +103,9 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private IEnumerable<VisionRecordBase> GetUnmatchedVisionRecords(VisionRecordType visionRecordType)
         {
-            IEnumerable<VisionRecordBase> visionRecords = new List<VisionRecordBase>();
-
-            switch (visionRecordType)
-            {
-                case VisionRecordType.Collections:
-                    visionRecords = this._dbContext.VisionRecordCollections.Where(v => v.Matched == false)
-                        .Select(r => (VisionRecordBase)r).AsNoTracking();
-                    break;
-                case VisionRecordType.CreditSettlement:
-                    visionRecords = this._dbContext.VisionRecordCreditSettlements.Where(v => v.Matched == false)
-                        .Select(r => (VisionRecordBase)r).AsNoTracking();
-                    break;
-                case VisionRecordType.Debtors:
-                    visionRecords = this._dbContext.VisionRecordDebtors.Where(v => v.Matched == false)
-                        .Select(r => (VisionRecordBase)r).AsNoTracking();
-                    break;
-            }
-
+            IEnumerable<VisionRecordBase> visionRecords = this._dbContext.VisionRecordCollections.Where(v => v.Matched == false)
+                .Select(r => (VisionRecordBase)r).AsNoTracking();
+            
             return visionRecords;
         }
 
