@@ -40,7 +40,7 @@ namespace SbslFileTransformer.Converters.Kenya
                 {
                     continue;
                 }
-
+                
                 double finacleSumCredits = finacleRecords.Where(f => f.ReferenceNumber == finRef && f.DebitCredit == "Credit").Sum(f => f.Amount);
                 double finacleSumDebits = finacleRecords.Where(f => f.ReferenceNumber == finRef && f.DebitCredit == "Debit").Sum(f => f.Amount);
 
@@ -50,21 +50,32 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 double visionCredits = matchedRecs.Sum(v => v.CreditAmount);
                 double visionDebits = matchedRecs.Sum(v => v.DebitAmount);
-
+                
                 double visionDiff = visionCredits - visionDebits;
 
                 if (Math.Abs(Math.Round(finacleDiff, 2)) == Math.Abs(Math.Round(visionDiff, 2)) && matchedRecs.Count() > 0)
                 {
-                    matchedRecords.AddRange(matchedRecs);
+                    string finacleAccount = finacleRecords.FirstOrDefault(f => f.ReferenceNumber == finRef)?.AccountNumber;
 
-                    this.CreateFileForReferenceNumber(matchedRecs, finRef, outputPath, visionRecordType);
+                    matchedRecs.ForEach(v =>
+                    {
+                        v.Matched = true;
+                        v.DateMatched = DateTime.Now;
+                        v.MatchingFile = finacleFile;
+                        v.FinacleAccount = finacleAccount;
+                    });
 
                     matchedRecords.ForEach(v =>
                     {
                         v.Matched = true;
                         v.DateMatched = DateTime.Now;
                         v.MatchingFile = finacleFile;
+                        v.FinacleAccount = finacleAccount;
                     });
+                    
+                    this.CreateFileForReferenceNumber(matchedRecs, finRef, outputPath, visionRecordType);
+
+                    matchedRecords.AddRange(matchedRecs);
 
                     await this.UpdateVisionRecords(visionRecordType, matchedRecords);
                 }

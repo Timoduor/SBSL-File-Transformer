@@ -21,5 +21,6 @@ namespace SbslFileTransformer.Models
         public DateTime DateExtracted { get; set; }
         public DateTime? DateMatched { get; set; }
         public string MatchingFile { get; set; }
+        public string FinacleAccount { get; set; }
     }
 }

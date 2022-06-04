@@ -39,7 +39,8 @@ namespace SbslFileTransformer.Controllers
             {
                 {"IMKE", "IMKE"},
                 {"IMRW", "IMRW"},
-                {"IMTZ", "IMTZ"}
+                {"IMTZ", "IMTZ"},
+                {"IMUG", "IMUG"}
             }.Select(v => new SelectListItem
             {
                 Text = v.Key.ToString(),

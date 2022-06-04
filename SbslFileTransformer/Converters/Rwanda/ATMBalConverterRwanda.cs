@@ -136,7 +136,7 @@ namespace SbslFileTransformer.Converters.Rwanda
 
         private string GetAccountCurrency(string account)
         {
-            string currency = Entity == "IMKE" ? "KES" : Entity == "IMTZ" ? "TZS" : "RWF";
+            string currency = Entity == "IMKE" ? "KES" : Entity == "IMTZ" ? "TZS" : Entity == "IMRW" ? "RWF" : "UGX";
 
             using (IServiceScope scope = ServiceScopeFactory.CreateScope())
             {

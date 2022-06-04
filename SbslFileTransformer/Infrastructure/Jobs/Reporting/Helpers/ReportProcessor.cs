@@ -165,6 +165,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
             if (entity == "IMTZ") country = Country.Tanzania;
             if (entity == "IMRW") country = Country.Rwanda;
+            if (entity == "IMUG") country = Country.Uganda;
 
             //SET COUNTRY
             //Kenya
@@ -173,6 +174,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             if (report.Name.ToLower().Contains("rwanda")) country = Country.Rwanda;
             //Tanzania
             if (report.Name.ToLower().Contains("tanzania")) country = Country.Tanzania;
+            //Uganda
+            if (report.Name.ToLower().Contains("uganda")) country = Country.Uganda;
 
             //SET SPRINT
 

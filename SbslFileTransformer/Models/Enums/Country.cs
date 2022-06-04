@@ -4,6 +4,7 @@
     {
         Kenya,
         Rwanda,
-        Tanzania
+        Tanzania,
+        Uganda
     }
 }
