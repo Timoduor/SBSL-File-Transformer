@@ -9,17 +9,21 @@ using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacleMatcher
 {
     public class VisionRecordExtractorJob : ConverterJobBase<VisionRecordExtractorJob>, IHostedService
     {
+        int batchSize = 5000;
+
         protected override string JobName { get; set; } = nameof(VisionRecordExtractorJob);
         public VisionRecordExtractorJob(ILogger<VisionRecordExtractorJob> logger, IServiceScopeFactory serviceScopeFactory,
             EmailSender emailSender, JobDisplayManager jobManager)
@@ -76,7 +80,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
 
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
-                    
+
                     EnumerationOptions options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
@@ -110,9 +114,25 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                             {
                                 try
                                 {
-                                    List<VisionRecordBase> records = this.GetRecordsFromVisionFile(file);
+                                    Stopwatch recordReader = new Stopwatch();
+                                    recordReader.Start();
 
-                                    await this.InsertRecordsToDb(records, dbContext, visionRecordType);
+                                    List<VisionRecordBase> records = await this.GetRecordsFromVisionFile(file);
+
+                                    this._logger.LogInformation($"It took {recordReader.ElapsedMilliseconds / 1000} seconds to READ {records.Count} vision records from file");
+
+                                    recordReader.Restart();
+
+                                    List<Task> tasks = new List<Task>();
+
+                                    foreach (IEnumerable<VisionRecordBase> batch in records.Batch(batchSize))
+                                    {
+                                        tasks.Add(this.InsertRecordsToDb(batch.ToList()));
+                                    }
+
+                                    await Task.WhenAll(tasks);
+
+                                    this._logger.LogInformation($"It took {recordReader.ElapsedMilliseconds / 1000} seconds to SAVE the records to the database");
                                 }
                                 catch (Exception ex)
                                 {
@@ -144,8 +164,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                 _semaphore.Release();
             }
         }
-        
-        private List<VisionRecordBase> GetRecordsFromVisionFile(string glFile)
+
+        private async Task<List<VisionRecordBase>> GetRecordsFromVisionFile(string glFile)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -160,65 +180,67 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                 else
                     reader = ExcelReaderFactory.CreateReader(stream);
 
-                using (reader)
+                DataSet dataSet = reader.AsDataSet(new ExcelDataSetConfiguration()
                 {
-                    int count = 0;
-
-                    while (reader.Read())
+                    ConfigureDataTable = t => new ExcelDataTableConfiguration()
                     {
-                        if (count < 1)
-                        {
-                            count++;
-                            continue;
-                        }
-
-                        if (!DateTime.TryParse(reader.GetString(0), out DateTime result))
-                            return new List<VisionRecordBase>();
-
-                        var glRec = new VisionRecordCollection
-                        {
-                            BankingDate = result,
-                            TransDetails = reader.GetString(1),
-                            TransID = reader.GetString(2),
-                            ReferenceNumber = reader.GetString(3),
-                            GLTransCode = reader.GetString(4),
-                            CardNumber = reader.GetString(5),
-                            CreditAmount = Convert.ToDouble(reader.GetString(6)),
-                            DebitAmount = Convert.ToDouble(reader.GetString(7)),
-                            CustomerName = reader.GetString(8),
-                            ContractNumber = reader.GetString(9),
-                            AccountNumber = reader.GetString(10),
-                            FileName = glFile,
-                            DateExtracted = DateTime.Now
-                        };
-
-                        glCmsRecs.Add(glRec);
+                        UseHeaderRow = false
                     }
+                });
+
+                foreach (IEnumerable<DataRow> rows in dataSet.Tables[0].Rows.OfType<DataRow>().Batch(batchSize))
+                {
+                    AddRecordsToList(rows, glCmsRecs, glFile);
                 }
                 stream.Close();
             }
+
             return glCmsRecs;
         }
 
-        private async Task InsertRecordsToDb(List<VisionRecordBase> records, ApplicationDbContext dbContext, VisionRecordType visionRecordType)
+        private void AddRecordsToList(IEnumerable<DataRow> rows, List<VisionRecordBase> glCmsRecs, string glFile)
+        {
+            foreach (var row in rows)
+            {
+                if (!DateTime.TryParse(row[0]?.ToString(), out DateTime result))
+                    continue;
+
+                var glRec = new VisionRecordCollection
+                {
+                    BankingDate = result,
+                    TransDetails = row[1]?.ToString(),
+                    TransID = row[2]?.ToString(),
+                    ReferenceNumber = row[3]?.ToString(),
+                    GLTransCode = row[4]?.ToString(),
+                    CardNumber = row[5]?.ToString(),
+                    CreditAmount = Convert.ToDouble(row[6]?.ToString()),
+                    DebitAmount = Convert.ToDouble(row[7]?.ToString()),
+                    CustomerName = row[8]?.ToString(),
+                    ContractNumber = row[9]?.ToString(),
+                    AccountNumber = row[10]?.ToString(),
+                    FileName = glFile,
+                    DateExtracted = DateTime.Now
+                };
+
+                glCmsRecs.Add(glRec);
+            }
+        }
+
+        private async Task InsertRecordsToDb(List<VisionRecordBase> records)
         {
             if (records == null || !records.Any())
                 return;
-
-            var fileName = records.First().FileName.ToLower();
-
-            if (
-                dbContext.VisionRecordCollections.Any(v => v.FileName.ToLower() == fileName)
-                || dbContext.VisionRecordCreditSettlements.Any(v => v.FileName.ToLower() == fileName)
-                || dbContext.VisionRecordDebtors.Any(v => v.FileName.ToLower() == fileName)
-               )
-            {
-                return;
-            }
-
-            dbContext.VisionRecordCollections.AddRange(VisionCommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordCollection>(records));
             
-            await dbContext.SaveChangesAsync();
+            using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
+            {
+                using (ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>())
+                {
+                    dbContext.VisionRecordCollections.AddRange(
+                        VisionCommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordCollection>(records));
+
+                    await dbContext.SaveChangesAsync();
+                }
+            }
         }
     }
 }
