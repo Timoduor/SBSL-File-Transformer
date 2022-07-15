@@ -71,7 +71,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda
 
 
                     List<string> files_ = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".log")).ToList();
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".log")));
+                    files_.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".log")));
 
                     RW_ATMJournalConverter ATMJournalConverter = new RW_ATMJournalConverter();
 
@@ -110,7 +110,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    ATMJournalConverter.ConvertFile_WinkaATMjrn(file);
+                                    ATMJournalConverter.ConvertFile_NCR(file);
+                                    //ATMJournalConverter.ConvertFile_WinkaATMjrn(file);
 
                                 }
                                 catch (Exception ex)

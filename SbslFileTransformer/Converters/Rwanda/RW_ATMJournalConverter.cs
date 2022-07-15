@@ -206,6 +206,7 @@ namespace SbslFileTransformer.Converters.Rwanda
             }
         }
 
+
         private List<string> GetJournalDetails(string[] d, string ATMNO = "")
         {
             bool gotcardno = false;
@@ -624,6 +625,402 @@ namespace SbslFileTransformer.Converters.Rwanda
             public Boolean Cashtaken { get; set; }
 
         }
+        public void ConvertFile_NCR(string inputFile)
+        {
 
+            string ATMNO = "";
+            string outputFolder = null;
+
+            string outputFile = "";
+
+            if (string.IsNullOrEmpty(outputFolder))
+            {
+                outputFolder = Path.GetDirectoryName(inputFile);
+            }
+
+            outputFolder = Path.GetFullPath(Path.Combine(outputFolder, @"..\")) + "Conv";
+            if (!Directory.Exists(outputFolder))
+                Directory.CreateDirectory(outputFolder);
+
+            string[] sDet = File.ReadAllLines(inputFile);
+            try
+            {
+                if (sDet[0].Length != 0)
+                {
+                    ATMNO = sDet[0].Split(" ")[0].Trim();
+                }
+            }
+            catch (Exception)
+            { }
+            string content = File.ReadAllText(inputFile);
+
+
+            string[] sGrp = content.Split("TRANSACTION START");
+            string[] sGrp_s = content.Split("SUPERVISOR MODE ENTRY");
+            string scontent = "";
+            string scontent_ = "";
+            string scontent_sup = "";
+            ATMJournal ATMflds = new ATMJournal();
+
+            bool hascashcount = false;
+
+            try
+            {
+                if (sGrp.Length != 0)
+                {
+
+                    for (int i = 1; i < sGrp.Length - 1; i++)
+                    {
+
+                        List<string> lx = this.GetJournalDetails_NCR(sGrp[i].Split("\r"), ATMNO);
+                        if (lx.Count > 0)
+                        {
+                            ATMflds.CARDNo = lx.Any(p => p.StartsWith("CARDNO:")) ? lx.First(p => p.StartsWith("CARDNO:")).Split(':')[1].ToString().Replace("|", "") : "";
+                            ATMflds.trnDATE = lx.Any(p => p.StartsWith("DATE:")) ? lx.First(p => p.StartsWith("DATE:")).Replace("DATE:", "") : "";
+                            ATMflds.AMOUNT = lx.Any(p => p.StartsWith("AMOUNT:")) ? lx.First(p => p.StartsWith("AMOUNT:")).Split(":")[1].Trim().Split(" ")[0] : "0";
+                            ATMflds.UTRNNO = lx.Any(p => p.StartsWith("SEQ:")) ? lx.First(p => p.StartsWith("SEQ:")).Split(':')[1].ToString().Replace("|", "") : "";
+                            ATMflds.ReasonCode = lx.Any(p => p.StartsWith("RESPONSE CODE:")) ? lx.First(p => p.StartsWith("RESPONSE CODE:")).Split(':')[1].ToString().Replace("|", "") : "";
+                            ATMflds.AtmNo = lx.Any(p => p.StartsWith("ATMNO:")) ? lx.First(p => p.StartsWith("ATMNO:")).Split(':')[1].ToString().Replace("|", "") : "";
+                            ATMflds.AUTHNO = lx.Any(p => p.StartsWith("AUTHNO:")) ? lx.First(p => p.StartsWith("AUTHNO:")).Split(':')[1].ToString().Replace("|", "") : "";
+
+                            ATMflds.Cashtaken = lx.Any(p => p.StartsWith("CASH TAKEN")) ? true : false;
+
+                            if (ATMflds.Cashtaken == true)
+                            {
+                                ATMflds.SUCCESSFUL = "APPROVED";
+                            }
+                            else
+                            {
+                                ATMflds.SUCCESSFUL = "DECLINED";
+                            }
+                            if (ATMflds.CARDNo != "" && ATMflds.AMOUNT != "0")
+                            {
+                                ATMNO = ATMflds.AtmNo;
+                                if (scontent_sup != "")
+                                {
+
+                                    if (scontent == "")
+                                    {
+
+                                        scontent += ATMflds.CARDNo.Trim() + "," + ATMflds.trnDATE.Trim() + "," + ATMflds.AMOUNT.Trim() + "," + ATMflds.UTRNNO.Trim() + "," + ATMflds.SUCCESSFUL.Trim() + "," + ATMflds.ReasonCode.Trim() + "," + ATMflds.AUTHNO.Trim() + "," + ATMflds.AtmNo.Trim() + Environment.NewLine;
+
+                                    }
+                                    else
+                                    {
+                                        scontent += ATMflds.CARDNo.Trim() + "," + ATMflds.trnDATE.Trim() + "," + ATMflds.AMOUNT.Trim() + "," + ATMflds.UTRNNO.Trim() + "," + ATMflds.SUCCESSFUL.Trim() + "," + ATMflds.ReasonCode.Trim() + "," + ATMflds.AUTHNO.Trim() + "," + ATMflds.AtmNo.Trim() + Environment.NewLine;
+
+                                    }
+                                }
+                                else
+                                {
+                                    if (scontent == "")
+                                    {
+                                        scontent = "CARD NO, DATE ,   AMOUNT,UTRN NO ,TRAN STAT,RC,AUTH NO,ATM NO" + Environment.NewLine;
+                                        scontent += ATMflds.CARDNo.Trim() + "," + ATMflds.trnDATE.Trim() + "," + ATMflds.AMOUNT.Trim() + "," + ATMflds.UTRNNO.Trim() + "," + ATMflds.SUCCESSFUL.Trim() + "," + ATMflds.ReasonCode.Trim() + "," + ATMflds.AUTHNO.Trim() + "," + ATMflds.AtmNo.Trim() + Environment.NewLine;
+
+                                    }
+                                    else
+                                    {
+                                        scontent += ATMflds.CARDNo.Trim() + "," + ATMflds.trnDATE.Trim() + "," + ATMflds.AMOUNT.Trim() + "," + ATMflds.UTRNNO.Trim() + "," + ATMflds.SUCCESSFUL.Trim() + "," + ATMflds.ReasonCode.Trim() + "," + ATMflds.AUTHNO.Trim() + "," + ATMflds.AtmNo.Trim() + Environment.NewLine;
+
+                                    }
+
+                                }
+
+                            }
+                        }
+                    }
+
+                }
+            }
+            catch (Exception xc)
+            {
+                string sx = xc.Message;
+            }
+            //*****
+            try
+            {
+
+                if (sGrp_s.Length != 0)
+                {
+                    for (int i = 1; i < sGrp_s.Length - 1; i++)
+                    {
+                        List<string> ly = this.GetJournalDetails_supervisor(sGrp_s[i].Split("\n"), ATMNO);
+                        if (ly != null)
+                        {
+
+                            ATMflds.CARDNo = ly.Any(p => p.StartsWith("CARDNO:")) ? ly.First(p => p.StartsWith("CARDNO:")).Split(':')[1].ToString().Replace("|", "") : "";
+                            ATMflds.trnDATE = ly.Any(p => p.StartsWith("DATE:")) ? ly.First(p => p.StartsWith("DATE:")).Replace("DATE:", "") : "";
+                            ATMflds.AMOUNT = ly.Any(p => p.StartsWith("AMOUNT:")) ? ly.First(p => p.StartsWith("AMOUNT:")).Split(":")[1].Trim().Split(" ")[0] : "0";
+                            ATMflds.UTRNNO = ly.Any(p => p.StartsWith("SEQ:")) ? ly.First(p => p.StartsWith("SEQ:")).Split(':')[1].ToString().Replace("|", "") : "";
+                            ATMflds.ReasonCode = ly.Any(p => p.StartsWith("RESPONSE CODE:")) ? ly.First(p => p.StartsWith("RESPONSE CODE:")).Split(':')[1].ToString().Replace("|", "") : "";
+                            ATMflds.AtmNo = ly.Any(p => p.StartsWith("ATMNO:")) ? ly.First(p => p.StartsWith("ATMNO:")).Split(':')[1].ToString().Replace("|", "") : ATMNO;
+                            ATMflds.AUTHNO = ly.Any(p => p.StartsWith("AUTHNO:")) ? ly.First(p => p.StartsWith("AUTHNO:")).Split(':')[1].ToString().Replace("|", "") : "";
+
+                            ATMflds.AMOUNT_REMAINING = ly.Any(p => p.StartsWith("AMOUNTR:")) ? ly.First(p => p.StartsWith("AMOUNTR:")).Split(":")[1].Trim().Split(" ")[0] : "0";
+                            if (hascashcount == true)
+                            {
+
+
+                            }
+                            if (hascashcount != true)
+                            {
+                                if (ATMflds.ReasonCode != "" && ATMflds.AMOUNT != "0" && ATMflds.SUCCESSFUL.Trim() == "APPROVED")
+                                {
+                                    if (scontent_sup == "")
+                                    {
+
+                                        scontent_sup += ATMflds.CARDNo.Trim() + "," + ATMflds.trnDATE.Trim() + "," + ATMflds.AMOUNT + "," + ATMflds.UTRNNO.Trim() + "," + ATMflds.SUCCESSFUL + "," + ATMflds.ReasonCode.Trim() + "," + ATMflds.AUTHNO.Trim() + "," + ATMflds.AtmNo.Trim() + Environment.NewLine;
+
+                                    }
+                                    else
+                                    {
+                                        scontent_sup += ATMflds.CARDNo.Trim() + "," + ATMflds.trnDATE.Trim() + "," + ATMflds.AMOUNT + "," + ATMflds.UTRNNO.Trim() + "," + ATMflds.SUCCESSFUL + "," + ATMflds.ReasonCode.Trim() + "," + ATMflds.AUTHNO.Trim() + "," + ATMflds.AtmNo.Trim() + Environment.NewLine;
+
+                                    }
+                                    if (ATMflds.AMOUNT_REMAINING != "0")
+                                    {
+                                        scontent_sup += ATMflds.CARDNo.Trim() + "," + ATMflds.trnDATE.Trim() + "," + ATMflds.AMOUNT_REMAINING + "," + ATMflds.UTRNNO.Trim() + "," + ATMflds.SUCCESSFUL + ",CASH LOADED AT ATM," + ATMflds.AUTHNO + "," + ATMflds.AtmNo.Trim() + Environment.NewLine;
+
+                                        if (ATMflds.AMOUNT != ATMflds.AMOUNT_REMAINING)
+                                        {
+                                            scontent_sup += ATMflds.CARDNo.Trim() + "," + ATMflds.trnDATE.Trim() + "," + (Convert.ToDecimal(ATMflds.AMOUNT) - Convert.ToDecimal(ATMflds.AMOUNT_REMAINING)) + "," + ATMflds.UTRNNO.Trim() + "," + ATMflds.SUCCESSFUL + ",CASH REMAINING DIFFERENCE," + ATMflds.AUTHNO.Trim() + "," + ATMflds.AtmNo.Trim() + Environment.NewLine;
+                                        }
+                                    }
+                                    hascashcount = false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception x)
+            {
+                string df = x.Message;
+            }
+            //*****
+            if (scontent_sup != "")
+            {
+                scontent_ += scontent;
+                scontent_ += scontent_sup;
+            }
+            else
+            {
+                scontent_ += scontent;
+            }
+
+            outputFile = outputFolder + "\\Converted_ATMJournal_" + Path.GetFileNameWithoutExtension(inputFile) + "_" + DateTime.Now.ToString("yyyy_MM_dd_HHmmssfff") + ".csv";
+            WriteFile(outputFile, scontent_);
+
+
+        }
+
+        private List<string> GetJournalDetails_NCR(string[] d, string ATMNO = "")
+        {
+            bool gotcardno = false;
+            bool gotdate = false;
+            bool gotamount = false;
+            bool gotcashtaken = false;
+            bool gotRC = false;
+            bool gotSEQ = false;
+            bool gotATM = false;
+            bool gotATHNO = false;
+            bool refusedtxn = false;
+            List<string> l = new List<string>();
+            for (int i = 1; i < d.Length - 1; i++)
+            {
+
+                try
+                {
+                    if (d[i].Contains("REFUSED TRANSACTION"))
+                    {
+                        if (refusedtxn == false)
+                        {
+                            l.Add("REFUSED:" + (d[i]));
+                            refusedtxn = true;
+                        }
+
+
+                    }
+                    if (d[i].Contains("WITHDRAWAL ("))
+                    {
+                        if (gotcardno != true)
+                        {
+                            l.Add("CARDNO:" + d[i].Substring(0, 16) + "|");
+                            gotcardno = true;
+                        }
+                    }
+                    if (d[i].Contains("CARD"))
+                    {
+                        if (gotcardno != true)
+                        {
+                            if (d[i].Length > 22)
+                                if (d[i].Contains(") TAKEN"))
+                                {
+                                    l.Add("CARDNO:" + d[i].Substring(14, 16) + "|");
+                                    gotcardno = true;
+                                }
+                                else
+                                {
+                                    if (d[i].Contains("CARD NO:"))
+                                    {
+                                        if (d[i].Length > 35)
+                                        {
+                                            l.Add(d[i].Split("\r\n")[0] + "|");
+                                            gotcardno = true;
+                                        }
+                                        else
+                                        {
+                                            l.Add("CARDNO:" + d[i].Split("\r\n")[0].Replace("CARD NO:", "") + "|");
+                                            gotcardno = true;
+                                        }
+
+                                    }
+                                }
+                        }
+                    }
+
+                    if (d[i].Contains("ATN"))
+                    {
+                        if (gotdate != true)
+                        {
+                            if (d[i + 1].ToString().Length < 45)
+                            {
+                                l.Add("DATE:" + d[i].Substring(0, 8).Replace(".", "/") + " " + d[i].Substring(9, 5));
+                                gotdate = true;
+                                if (gotATM != true)
+                                {
+                                    try
+                                    {
+                                        l.Add("ATMNO:" + d[i].Substring(15, 8));
+                                        gotATM = true;
+                                    }
+                                    catch (Exception)
+                                    {
+                                        l.Add("ATMNO:" + ATMNO);
+                                    }
+
+                                }
+                            }
+                            else
+                            {
+                                l.Add(d[i].ToString());
+                                gotdate = true;
+                            }
+                        }
+                    }
+                    if (d[i].Contains("DATE:"))
+                    {
+                        if (gotdate != true)
+                        {
+                            if (d[i].ToString().Length < 45)
+                            {
+                                l.Add("DATE:" + d[i].Substring(5, 8).Replace(".", "/") + " " + d[i].Substring(19, 5));
+                                gotdate = true;
+                            }
+                            else
+                            {
+                                l.Add(d[i].ToString());
+                                gotdate = true;
+                            }
+
+                        }
+
+                    }
+                    if (d[i].Contains("AMOUNT:"))
+                    {
+                        if (gotamount != true)
+                        {
+                            l.Add(d[i]);
+                            gotamount = true;
+
+                        }
+                    }
+
+
+                    if (d[i].Contains("ATM:"))
+                    {
+                        if (gotATM != true)
+                        {
+                            l.Add("ATMNO:" + d[i].Replace("ATM:", "").Split(" ")[0].Trim());
+                            gotATM = true;
+
+                        }
+                    }
+
+
+                    if (d[i].Contains("AUTH. NO:"))
+                    {
+                        if (gotATHNO != true)
+                        {
+                            l.Add("AUTHNO:" + d[i].Split(':')[1].Trim() + "|");
+                            gotATHNO = true;
+
+                        }
+                    }
+                    if (d[i].Contains("CASH TAKEN"))
+                    {
+                        if (gotcashtaken != true)
+                        {
+                            if (d[i].Split("\r\n")[0].Length < 20)
+                            {
+                                l.Add(d[i].Split("\r\n")[0].Substring(9, 10) + "|");
+                                gotcashtaken = true;
+                            }
+                            else
+                            {
+                                l.Add(d[i].Split("\r\n")[0] + "|");
+                                gotcashtaken = true;
+                            }
+                        }
+
+                    }
+                    if (d[i].Contains("RESPONSE CODE:"))
+                    {
+                        if (gotRC != true)
+                        {
+                            l.Add(d[i].Split("\r\n")[0] + "|");
+                            if (gotcashtaken == false)
+                            {
+                                if (d[i].Split(":")[1].Trim() == "1")
+                                {
+                                    l.Add("CASH TAKEN:" + d[i].Split("\r\n")[0] + "|");
+                                    gotcashtaken = true;
+                                }
+                            }
+
+                            gotRC = true;
+                        }
+
+                    }
+
+
+                    if (d[i].Contains("SEQ:"))
+                    {
+                        if (gotSEQ != true)
+                        {
+                            if (d[i].Split("\r\n")[0].Length < 45)
+                            {
+                                l.Add(d[i].Split("\r\n")[0].Split(" ")[2] + "|");
+                                gotSEQ = true;
+                            }
+                            else
+                            {
+                                l.Add(d[i].Split("\r\n")[0] + "|");
+                                gotSEQ = true;
+                            }
+                        }
+
+                    }
+                }
+                catch (Exception e)
+                {
+                    string err = e.Message;
+                }
+
+            }
+
+            return l;
+        }
     }
 }

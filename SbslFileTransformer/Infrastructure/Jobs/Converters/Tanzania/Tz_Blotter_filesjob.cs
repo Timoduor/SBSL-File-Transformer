@@ -29,7 +29,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            this._logger.LogInformation("Starting ATM Journal Converter Job");
+
+            _logger.LogInformation("Starting TZ BLOTTER Converter Job");
+
+
+
 
             _semaphore = new SemaphoreSlim(1, 1);
 
