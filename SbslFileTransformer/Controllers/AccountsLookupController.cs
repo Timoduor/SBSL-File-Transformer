@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using System;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -10,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace SbslFileTransformer.Controllers
 {
@@ -17,11 +19,13 @@ namespace SbslFileTransformer.Controllers
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly IWebHostEnvironment _hostingEnvironment;
+        private readonly ILogger<AccountsLookupController> _logger;
 
-        public AccountsLookupController(ApplicationDbContext dbContext, IWebHostEnvironment env)
+        public AccountsLookupController(ApplicationDbContext dbContext, IWebHostEnvironment env, ILogger<AccountsLookupController> logger)
         {
             this._dbContext = dbContext;
             this._hostingEnvironment = env;
+            this._logger = logger;
         }
 
         // GET: AccountsLookupController
@@ -60,13 +64,18 @@ namespace SbslFileTransformer.Controllers
                 if (!ModelState.IsValid)
                 {
                     ViewBag.Message = "Invalid values entered!";
+                    _logger.LogError("Invalid values entered for accounts lookup!");
 
                     return this.View(acc);
                 }
 
                 if (this._dbContext.Accounts.Any())
                 {
-                    ViewBag.Message = $"An entry with the account number {acc.Number} exists! Try editing it";
+                    var message = $"An entry with the account number {acc.Number} exists! Try editing it";
+
+                    ViewBag.Message = message;
+
+                    _logger.LogError(message);
 
                     return this.View(acc);
                 }
@@ -77,8 +86,9 @@ namespace SbslFileTransformer.Controllers
 
                 return this.RedirectToAction(nameof(this.Index));
             }
-            catch
+            catch(Exception ex)
             {
+                _logger.LogError(ex, "Error in creating account lookup");
                 return this.View(acc);
             }
         }
@@ -90,7 +100,8 @@ namespace SbslFileTransformer.Controllers
             {
                 {"IMKE", "IMKE"},
                 {"IMRW", "IMRW"},
-                {"IMTZ", "IMTZ"}
+                {"IMTZ", "IMTZ"},
+                {"IMUG", "IMUG"}
             }.Select(v => new SelectListItem
             {
                 Text = v.Key.ToString(),
