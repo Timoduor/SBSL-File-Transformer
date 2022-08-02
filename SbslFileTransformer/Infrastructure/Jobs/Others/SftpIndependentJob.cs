@@ -37,7 +37,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
         {
             try
             {
-                this._logger.LogInformation("Starting SFTP Independent...");
+                this._logger.LogInformation("Starting SFTP Independent Upload Job...");
 
                 _semaphore = new SemaphoreSlim(1, 1);
 
@@ -63,11 +63,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
                     this._timers.Add(timerSB);
                 }
 
-                this._logger.LogInformation("SFTP Independent Job Started Successfully!");
+                this._logger.LogInformation("SFTP Independent Upload Job Started Successfully!");
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, ex.Message + " Error starting SFTP independent job");
+                this._logger.LogError(ex, ex.Message + " Error starting SFTP independent Upload job");
             }
 
             return Task.CompletedTask;
@@ -75,7 +75,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            this._logger.LogInformation("SFTP Independent Job stopped");
+            this._logger.LogInformation("SFTP Independent Upload Job stopped");
 
             foreach (Timer timer in this._timers) await timer.DisposeAsync();
         }

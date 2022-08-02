@@ -110,7 +110,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Converters\Uganda\" />
     <Folder Include="Data\Migrations\" />
+    <Folder Include="Infrastructure\Jobs\Converters\Uganda\" />
     <Folder Include="logs\" />
     <Folder Include="Resources\" />
   </ItemGroup>
