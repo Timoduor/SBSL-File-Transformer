@@ -41,7 +41,7 @@ namespace SbslFileTransformer.Converters.Kenya
                         TranAmount = decimal.Parse(amount),
                         Currency = lines[i].Substring(114, 4).Trim(),
                         SettledAmount = lines[i].Substring(118, 15).Trim(),
-                        Terminal = lines[i + 1].Substring(63, 22).Trim()
+                        Terminal = lines[i + 1].Substring(60, 22).Trim()
                     };
 
                     records.Add(rec);
