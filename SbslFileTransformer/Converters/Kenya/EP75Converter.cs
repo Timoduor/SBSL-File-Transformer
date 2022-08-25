@@ -20,7 +20,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 string cardno = lines[i].Substring(20, 20).Trim();
 
-                if (int.TryParse(batch, out int batchNio) && cardno.Length == 16)
+                if (int.TryParse(batch, out int batchNio) && cardno.Length < 20)
                 {
                     string amount = lines[i].Substring(101, 13).Trim();
 
