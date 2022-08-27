@@ -16,6 +16,9 @@ namespace SbslFileTransformer.Models
         public string CustomerName { get; set; }
         public string ContractNumber { get; set; }
         public string AccountNumber { get; set; }
+        public string ChequeNo { get; set; }
+        public string AuthorizationCode { get; set; }
+        //metadata
         public bool Matched { get; set; }
         public string FileName { get; set; }
         public DateTime DateExtracted { get; set; }

@@ -218,6 +218,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                     CustomerName = row[8]?.ToString(),
                     ContractNumber = row[9]?.ToString(),
                     AccountNumber = row[10]?.ToString(),
+                    ChequeNo = row[11]?.ToString(),
+                    AuthorizationCode = row[12]?.ToString(),
                     FileName = glFile,
                     DateExtracted = DateTime.Now
                 };
