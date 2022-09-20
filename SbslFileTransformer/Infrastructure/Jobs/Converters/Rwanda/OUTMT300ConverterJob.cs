@@ -63,6 +63,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda
                     EnumerationOptions options = new EnumerationOptions { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
                     List<string> files = Directory.GetFiles(prodFolder, "*.TXT", options).ToList();
+                    files.AddRange( Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".txt")));
 
                     OUTMt300Converter mt300Converter = new OUTMt300Converter();
 
