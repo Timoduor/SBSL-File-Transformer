@@ -192,6 +192,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                 {
                     AddRecordsToList(rows, glCmsRecs, glFile);
                 }
+
+                await stream.FlushAsync();
+
                 stream.Close();
             }
 

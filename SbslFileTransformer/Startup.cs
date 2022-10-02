@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters.Rwanda;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Helpers;
@@ -27,8 +26,12 @@ using Serilog;
 using System;
 using System.IO;
 using System.Threading;
+using HealthChecks.UI.Client;
 using SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda;
 using SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda.BNR;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using SbslFileTransformer.Infrastructure.Jobs.Extractors.Uganda;
+using SbslFileTransformer.Middleware;
 
 namespace SbslFileTransformer
 {
@@ -52,6 +55,9 @@ namespace SbslFileTransformer
                     .EnableSensitiveDataLogging()
 #endif
             );
+
+            services.AddHealthChecks();
+            services.AddMiniProfiler(options => options.RouteBasePath = "/profiler").AddEntityFramework();
 
             string keyStore = Path.Combine(Directory.GetCurrentDirectory(), "keys");
 
@@ -173,6 +179,10 @@ namespace SbslFileTransformer
             services.AddHostedService<PesaLinkGl2ConverterJob>();
             services.AddHostedService<PesaLinkStatementConverterJob>();
 
+            //Uganda
+            services.AddHostedService<AirtelUgandaBalanceExtractorJob>();
+            services.AddHostedService<MtnUgandaBalanceExtractorJob>();
+
             //special scenario jobs
             services.AddHostedService<RecordMatcherJob>();
             services.AddHostedService<VisionRecordExtractorJob>();
@@ -187,6 +197,15 @@ namespace SbslFileTransformer
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider,
             ILogger<Startup> logger, IHostApplicationLifetime applicationLifetime, IMemoryCache cache)
         {
+            app.UseRequestResponseLoggingMiddleware();
+
+            app.UseHealthChecks("/health", new HealthCheckOptions
+            {
+                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+            });
+
+            app.UseMiniProfiler();
+
             Tuple<IMemoryCache, ILogger<Startup>> appShutdownInput = new Tuple<IMemoryCache, ILogger<Startup>>(cache, logger);
 
             applicationLifetime.ApplicationStopping

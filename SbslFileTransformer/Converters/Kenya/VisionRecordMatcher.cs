@@ -26,27 +26,27 @@ namespace SbslFileTransformer.Converters.Kenya
         {
             List<FinacleRec> finacleRecords = this.GetRecordsFromFinacleFile(finacleFile, visionRecordType);
 
-            IEnumerable<string> finacleRefs = finacleRecords.Select(f => f.ReferenceNumber).Distinct();
+            IEnumerable<Tuple<string, string>> finacleRefs = finacleRecords.Select(f => new Tuple<string, string>(f.ReferenceNumber, f.AccountNumber)).Distinct();
 
-            foreach (string finRef in finacleRefs)
+            foreach (Tuple<string, string> finRef in finacleRefs)
             {
                 IEnumerable<VisionRecordBase> unmatchedVisionRecords = this.GetUnmatchedVisionRecords(visionRecordType);
                 List<VisionRecordBase> matchedRecords = new List<VisionRecordBase>();
 
-                if (finRef.Length != 20)
+                if (finRef.Item1.Length != 20)
                     continue;
 
-                if (!this.IsDigitsOnly(finRef))
+                if (!this.IsDigitsOnly(finRef.Item1))
                 {
                     continue;
                 }
                 
-                double finacleSumCredits = finacleRecords.Where(f => f.ReferenceNumber == finRef && f.DebitCredit == "Credit").Sum(f => f.Amount);
-                double finacleSumDebits = finacleRecords.Where(f => f.ReferenceNumber == finRef && f.DebitCredit == "Debit").Sum(f => f.Amount);
+                double finacleSumCredits = finacleRecords.Where(f => f.ReferenceNumber == finRef.Item1 && f.AccountNumber == finRef.Item2 && f.DebitCredit == "Credit").Sum(f => f.Amount);
+                double finacleSumDebits = finacleRecords.Where(f => f.ReferenceNumber == finRef.Item1 && f.AccountNumber == finRef.Item2 && f.DebitCredit == "Debit").Sum(f => f.Amount);
 
                 double finacleDiff = finacleSumCredits - finacleSumDebits;
 
-                List<VisionRecordBase> matchedRecs = unmatchedVisionRecords.Where(v => v.ReferenceNumber == finRef).ToList();
+                List<VisionRecordBase> matchedRecs = unmatchedVisionRecords.Where(v => v.ReferenceNumber == finRef.Item1 && v.AccountNumber == finRef.Item2).ToList();
 
                 double visionCredits = matchedRecs.Sum(v => v.CreditAmount);
                 double visionDebits = matchedRecs.Sum(v => v.DebitAmount);
@@ -55,7 +55,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 if (Math.Abs(Math.Round(finacleDiff, 2)) == Math.Abs(Math.Round(visionDiff, 2)) && matchedRecs.Count() > 0)
                 {
-                    string finacleAccount = finacleRecords.FirstOrDefault(f => f.ReferenceNumber == finRef)?.AccountNumber;
+                    string finacleAccount = finacleRecords.FirstOrDefault(f => f.ReferenceNumber == finRef.Item1 && f.AccountNumber == finRef.Item2)?.AccountNumber;
 
                     matchedRecs.ForEach(v =>
                     {
@@ -73,7 +73,7 @@ namespace SbslFileTransformer.Converters.Kenya
                         v.FinacleAccount = finacleAccount;
                     });
                     
-                    this.CreateFileForReferenceNumber(matchedRecs, finRef, outputPath, visionRecordType);
+                    this.CreateFileForReferenceNumber(matchedRecs, finRef.Item1, finRef.Item2, outputPath, visionRecordType);
 
                     matchedRecords.AddRange(matchedRecs);
 
@@ -100,13 +100,13 @@ namespace SbslFileTransformer.Converters.Kenya
             return true;
         }
 
-        private void CreateFileForReferenceNumber(IEnumerable<VisionRecordBase> matchedRecs, string referenceNumber, string outputPath, VisionRecordType visionRecordType)
+        private void CreateFileForReferenceNumber(IEnumerable<VisionRecordBase> matchedRecs, string referenceNumber, string accountNumber, string outputPath, VisionRecordType visionRecordType)
         {
-            string outputFile = Path.Combine(outputPath, $"{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}_{visionRecordType}_{referenceNumber}.csv");
+            string outputFile = Path.Combine(outputPath, $"{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}_{visionRecordType}_{referenceNumber}_{accountNumber}.csv");
 
             if (File.Exists(outputFile))
             {
-                throw new Exception($"Vision ref no. {referenceNumber} file {outputFile} already exists");
+                throw new Exception($"Vision Ref No. {referenceNumber} and A/C No. {accountNumber} file {outputFile} already exists");
             }
 
             this.GenerateFileForSelectedRecords(matchedRecs, outputFile);

@@ -23,7 +23,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
             this._jobManager = jobManager;
         }
 
-        protected override string JobName { get; set; } = nameof(ImsBalanceExtractorJob);
+        protected override string JobName { get; set; } = nameof(GLBalanceExtractorJob);
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
