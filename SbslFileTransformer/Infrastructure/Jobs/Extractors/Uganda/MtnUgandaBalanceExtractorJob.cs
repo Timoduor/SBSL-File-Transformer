@@ -78,7 +78,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors.Uganda
 
                     foreach (string file in files)
                     {
-                        if (file.ToLower().Contains("imug") && file.Contains("mobile_banking") && file.ToLower().Contains("mtn"))
+                        if (file.ToLower().Contains("imug") && file.ToLower().Contains("mobile_banking") && file.ToLower().Contains("mtn"))
                         {
                             SftpUploadedFile fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>

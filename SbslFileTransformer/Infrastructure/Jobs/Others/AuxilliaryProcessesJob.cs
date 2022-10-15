@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
+using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 using MySqlBackup = MySql.Data.MySqlClient.MySqlBackup;
 using MySqlCommand = MySqlDataAlias::MySql.Data.MySqlClient.MySqlCommand;
@@ -52,6 +53,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
             Timer timerClearTemp = new Timer(async state => await this.ClearTempFolder(), null,
                 TimeSpan.FromSeconds(new Random().Next(60, 600)), TimeSpan.FromHours(1));
             this._timers.Add(timerClearTemp);
+
+            Timer timerClearOldUploadedFiles = new Timer(async state => await this.ClearOldUploadedFilesRecords(), null,
+                TimeSpan.FromSeconds(new Random().Next(60, 600)), TimeSpan.FromHours(2));
+            this._timers.Add(timerClearOldUploadedFiles);
 
             return Task.CompletedTask;
         }
@@ -257,6 +262,45 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
             catch (Exception ex)
             {
                 this._logger.LogError(ex, ex.Message);
+            }
+        }
+
+        private async Task ClearOldUploadedFilesRecords()
+        {
+            using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
+            {
+                ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                string key = "UploadedFilesMaxAgeInDays";
+                string defaultAge = "750";
+
+                string configuration = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
+                    b.ConfigType == ConfigurationType.Setting && b.Key == key))?.Value;
+
+                if (configuration == null)
+                {
+                    await dbContext.Configurations.AddAsync(new Configuration
+                    {
+                        ConfigType = ConfigurationType.Setting,
+                        Key = key,
+                        Updated = DateTime.Now,
+                        Value = defaultAge
+                    });
+
+                    await dbContext.SaveChangesAsync();
+
+                    configuration = defaultAge;
+                }
+
+                double ageInDaysToClear = Convert.ToDouble(configuration);
+
+                var compareDate = DateTime.Now.AddDays(-ageInDaysToClear);
+
+                IQueryable<SftpUploadedFile> entitiesToRemove = dbContext.UploadedFiles.Where(f => f.UploadedDate < compareDate);
+
+                dbContext.RemoveRange(entitiesToRemove);
+
+                await dbContext.SaveChangesAsync();
             }
         }
     }

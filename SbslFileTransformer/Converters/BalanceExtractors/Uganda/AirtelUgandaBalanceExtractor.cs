@@ -33,29 +33,44 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Uganda
                     {
                         if (reader.GetValue(1)?.ToString().ToLower().Contains("SERVICE_NAME") ?? false)
                             continue;
+
                         AirtelCols row = new AirtelCols();
+
                         if (DateTime.TryParseExact(reader.GetValue(0)?.ToString(), "dd/MM/yyyy HH:mm",
-                            CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime resultDate))
+                                CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime resultDate))
                             row.ReconDate = resultDate;
+                        else if (DateTime.TryParseExact(reader.GetValue(0)?.ToString(), "dd/MM/yyyy HH:mm:ss",
+                                     CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime resultDate2))
+                            row.ReconDate = resultDate2;
                         else
                             continue;
+
                         row.Account = "220003016";
+
                         row.Amount = Convert.ToDouble(reader.GetValue(8)?.ToString());
+
                         list.Add(row);
                     }
                 }
             }
+
             if (list.Count > 0)
             {
                 string fileName = Path.GetFileNameWithoutExtension(inputFile);
-                string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
+
+                string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 21)).Replace(" ", "");
+
                 string outputFile = Path.Combine(outputFolder,
                     $"MultiCurr_{DateTime.Now:dd_MM_yyyy}_{fileNameToAppend}_AirtelUG.txt");
+
                 AirtelCols firstRow = list.OrderByDescending(i => i.ReconDate)
                     .FirstOrDefault(c => c.ReconDate == list.Max(r => r.ReconDate));
+
                 string toAppend =
                     $"IMUG\t{firstRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(firstRow.ReconDate):MM/dd/yyyy}\t\t\t\t{firstRow.Amount}\tUGX\n";
-                if (!string.IsNullOrEmpty(toAppend)) File.WriteAllText(outputFile, toAppend);
+
+                if (!string.IsNullOrEmpty(toAppend)) 
+                    File.WriteAllText(outputFile, toAppend);
             }
         }
 
