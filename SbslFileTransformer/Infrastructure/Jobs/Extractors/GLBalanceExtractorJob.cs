@@ -199,6 +199,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                     else if (file.ToLower().Contains("pos_pay"))
                         await converter.Execute(file, "CARDS RWANDA");
 
+                    else if (file.ToLower().Contains("mobile_banking"))
+                        await converter.Execute(file, "Mobile Banking");
+
                     else
                         await converter.Execute(file);
                 }
