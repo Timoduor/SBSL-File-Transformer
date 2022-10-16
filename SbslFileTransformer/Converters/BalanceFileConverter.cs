@@ -271,6 +271,13 @@ namespace SbslFileTransformer.Converters
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                         $"GLAccounts_{fileDate:yyyyMMdd}_CARDS_{subFileName}_{Entity}.txt");
             }
+            
+            if (Path.GetFileName(filePath).ToLower().StartsWith("imug_mobile"))
+            {
+                subFileName = Path.GetFileName(filePath).Substring(4, 25);
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath),
+                        $"GLAccounts_{fileDate:yyyyMMdd}_MB_{subFileName}_{Entity}.txt");
+            }
 
             return outputPath;
         }

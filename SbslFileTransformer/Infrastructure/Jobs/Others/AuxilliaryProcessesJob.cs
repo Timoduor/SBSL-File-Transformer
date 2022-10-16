@@ -272,7 +272,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
                 ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
                 string key = "UploadedFilesMaxAgeInDays";
-                string defaultAge = "750";
+                string defaultAge = "1000";
 
                 string configuration = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
                     b.ConfigType == ConfigurationType.Setting && b.Key == key))?.Value;

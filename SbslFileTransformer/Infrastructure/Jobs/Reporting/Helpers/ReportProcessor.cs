@@ -49,7 +49,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 {
                     this.Logger.LogInformation($"Processing reports for user {reportUser.Key}");
 
-                    foreach (IEnumerable<ReportModel> reportBatch in reportUser.Value.Batch(25))
+                    foreach (IEnumerable<ReportModel> reportBatch in reportUser.Value.Batch(5))
                     {
                         try
                         {
