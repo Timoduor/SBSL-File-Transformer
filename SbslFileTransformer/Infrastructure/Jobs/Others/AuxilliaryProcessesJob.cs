@@ -58,14 +58,19 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
                 TimeSpan.FromSeconds(new Random().Next(60, 600)), TimeSpan.FromHours(2));
             this._timers.Add(timerClearOldUploadedFiles);
 
+            Timer timerClearOldVisionRecords = new Timer(async state => await this.ClearOldVisionRecords(), null,
+                TimeSpan.FromSeconds(new Random().Next(60, 600)), TimeSpan.FromHours(2));
+            this._timers.Add(timerClearOldVisionRecords);
+
             return Task.CompletedTask;
         }
-
+        
         public Task StopAsync(CancellationToken cancellationToken)
         {
             this._logger.LogInformation("Auxilliary Services stopped!");
 
-            foreach (Timer timer in this._timers) timer.Dispose();
+            foreach (Timer timer in this._timers) 
+                timer.Dispose();
 
             return Task.CompletedTask;
         }
@@ -297,6 +302,46 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
                 var compareDate = DateTime.Now.AddDays(-ageInDaysToClear);
 
                 IQueryable<SftpUploadedFile> entitiesToRemove = dbContext.UploadedFiles.Where(f => f.UploadedDate < compareDate);
+
+                dbContext.RemoveRange(entitiesToRemove);
+
+                await dbContext.SaveChangesAsync();
+            }
+        }
+
+        private async Task ClearOldVisionRecords()
+        {
+            using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
+            {
+                ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                string key = "VisionRecordsMaxAgeInDays";
+                string defaultAge = "1000";
+
+                string configuration = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
+                    b.ConfigType == ConfigurationType.Setting && b.Key == key))?.Value;
+
+                if (configuration == null)
+                {
+                    await dbContext.Configurations.AddAsync(new Configuration
+                    {
+                        ConfigType = ConfigurationType.Setting,
+                        Key = key,
+                        Updated = DateTime.Now,
+                        Value = defaultAge
+                    });
+
+                    await dbContext.SaveChangesAsync();
+
+                    configuration = defaultAge;
+                }
+
+                double ageInDaysToClear = Convert.ToDouble(configuration);
+
+                var compareDate = DateTime.Now.AddDays(-ageInDaysToClear);
+
+                IQueryable<VisionRecordCollection> entitiesToRemove =
+                    dbContext.VisionRecordCollections.Where(f => f.DateExtracted < compareDate);
 
                 dbContext.RemoveRange(entitiesToRemove);
 
