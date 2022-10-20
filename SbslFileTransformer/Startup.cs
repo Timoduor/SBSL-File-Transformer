@@ -182,6 +182,7 @@ namespace SbslFileTransformer
             //Uganda
             services.AddHostedService<AirtelUgandaBalanceExtractorJob>();
             services.AddHostedService<MtnUgandaBalanceExtractorJob>();
+            services.AddHostedService <UG_OUTMT300ConverterJob>();
 
             //special scenario jobs
             services.AddHostedService<RecordMatcherJob>();
