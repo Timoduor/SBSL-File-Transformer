@@ -1,4 +1,5 @@
-﻿using SbslFileTransformer.Models.Enums;
+﻿using System;
+using SbslFileTransformer.Models.Enums;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Models
 {
@@ -12,6 +13,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Models
         public string Notes { get; set; }
         public string StartTime { get; set; }
         public string Status { get; set; }
+        public DateTime ReportDate { get; set; }
         public string UserToken { get; set; }
         public Country Country { get; set; } = Country.Kenya;
         public Sprint Sprint { get; set; } = Sprint.Nostro;

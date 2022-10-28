@@ -26,7 +26,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             this.reportConfiguration = reportConfig;
         }
 
-        public async Task<Dictionary<string, IEnumerable<ReportModel>>> GetAllUnprocessedRecentReportsAsync(List<ProcessedReport> processedReports, IProgress<int> progressReporter)
+        public async Task<Dictionary<string, IEnumerable<ReportModel>>> GetAllUnprocessedRecentReportsAsync(List<long> processedReportsIds, IProgress<int> progressReporter)
         {
             this.Logger.LogInformation("Fetching all recent reports...");
 
@@ -40,7 +40,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             {
                 KeyValuePair<string, IEnumerable<ReportModel>> userReports = await this.GetUserRecentReports(userToken);
 
-                IEnumerable<ReportModel> unprocessedReports = userReports.Value.Where(r => !processedReports.Select(p => p.ReportId).Contains(r.ReportId));
+                IEnumerable<ReportModel> unprocessedReports = userReports.Value.Where(r => !processedReportsIds.Contains(r.ReportId));
 
                 allUsersUnprocessedReports.Add(userToken.Key, unprocessedReports);
 
@@ -139,13 +139,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                         {
                             Creator = item.creatorFirstAndLastName,
                             EndTime = item.endTime,
-                            Message = item.endTime,
+                            Message = item.message,
                             Name = item.name,
                             Notes = item.notes,
                             ReportId = item.id,
                             StartTime = item.startTime,
                             Status = item.status,
-                            UserToken = userToken.Value
+                            UserToken = userToken.Value,
+                            ReportDate = Convert.ToDateTime(item.endTime)
                         });
                 }
 
@@ -155,7 +156,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 this.Logger.LogError(ex, ex.Message);
             }
 
-            return new KeyValuePair<string, IEnumerable<ReportModel>>(userToken.Key, reports);
+            return new KeyValuePair<string, IEnumerable<ReportModel>>(userToken.Key, reports.Where(r => r.ReportDate > DateTime.Now.AddDays(-31)));
         }
     }
 }

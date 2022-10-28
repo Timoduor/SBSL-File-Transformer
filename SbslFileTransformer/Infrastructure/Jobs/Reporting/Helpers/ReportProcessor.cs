@@ -317,7 +317,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 {
                     maxDateInt = sheet.Cells["D:D"].Max(c =>
                     {
-                        if (int.TryParse(c.Value?.ToString(), out int result)) return result;
+                        if (int.TryParse(c.Value?.ToString(), out int result)) 
+                            return result;
 
                         return 0;
                     });
@@ -370,7 +371,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                         if (daysRange.Length >= 4 && diff > daysRange[2] && diff <= daysRange[3])
                             sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Yellow);
 
-                        if (diff > 30) sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Red);
+                        if (diff > 30) 
+                            sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Red);
                     }
                 }
 

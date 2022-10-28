@@ -127,7 +127,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
         {
             ReportFetcher reportFetcher = new ReportFetcher(this._logger, this.HttpClientFactory, this.LoadReportConnectionConfig());
 
-            List<ProcessedReport> processedReports = dbContext.ProcessedReports.ToList();
+            List<long> processedReportsIds = dbContext.ProcessedReports.Select(r => r.ReportId).ToList();
 
             IProgress<int> fetchReportProgress = new Progress<int>(percent =>
             {
@@ -136,7 +136,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                 this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
             });
 
-            return await reportFetcher.GetAllUnprocessedRecentReportsAsync(processedReports, fetchReportProgress);
+            return await reportFetcher.GetAllUnprocessedRecentReportsAsync(processedReportsIds, fetchReportProgress);
         }
 
         private async Task ProcessReports(Dictionary<string, IEnumerable<ReportModel>> unprocessedReports)

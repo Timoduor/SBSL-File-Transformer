@@ -272,80 +272,98 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
 
         private async Task ClearOldUploadedFilesRecords()
         {
-            using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
+            try
             {
-                ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-
-                string key = "UploadedFilesMaxAgeInDays";
-                string defaultAge = "1000";
-
-                string configuration = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
-                    b.ConfigType == ConfigurationType.Setting && b.Key == key))?.Value;
-
-                if (configuration == null)
+                using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
                 {
-                    await dbContext.Configurations.AddAsync(new Configuration
+                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                    string key = "UploadedFilesMaxAgeInDays";
+                    string defaultAge = "365";
+
+                    string configuration = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
+                        b.ConfigType == ConfigurationType.Setting && b.Key == key))?.Value;
+
+                    if (configuration == null)
                     {
-                        ConfigType = ConfigurationType.Setting,
-                        Key = key,
-                        Updated = DateTime.Now,
-                        Value = defaultAge
-                    });
+                        await dbContext.Configurations.AddAsync(new Configuration
+                        {
+                            ConfigType = ConfigurationType.Setting,
+                            Key = key,
+                            Updated = DateTime.Now,
+                            Value = defaultAge
+                        });
+
+                        await dbContext.SaveChangesAsync();
+
+                        configuration = defaultAge;
+                    }
+
+                    double ageInDaysToClear = Convert.ToDouble(configuration);
+
+                    var compareDate = DateTime.Now.AddDays(-ageInDaysToClear);
+
+                    IQueryable<SftpUploadedFile> uploadedFilesToRemove =
+                        dbContext.UploadedFiles.Where(f => f.UploadedDate < compareDate);
+                    IQueryable<ProcessedReport> processedReportsToRemove =
+                        dbContext.ProcessedReports.Where(f => f.ProcessedDate < compareDate);
+
+                    dbContext.RemoveRange(uploadedFilesToRemove);
+                    dbContext.RemoveRange(processedReportsToRemove);
 
                     await dbContext.SaveChangesAsync();
-
-                    configuration = defaultAge;
                 }
-
-                double ageInDaysToClear = Convert.ToDouble(configuration);
-
-                var compareDate = DateTime.Now.AddDays(-ageInDaysToClear);
-
-                IQueryable<SftpUploadedFile> entitiesToRemove = dbContext.UploadedFiles.Where(f => f.UploadedDate < compareDate);
-
-                dbContext.RemoveRange(entitiesToRemove);
-
-                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError(ex, ex.Message);
             }
         }
 
         private async Task ClearOldVisionRecords()
         {
-            using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
+            try
             {
-                ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-
-                string key = "VisionRecordsMaxAgeInDays";
-                string defaultAge = "1000";
-
-                string configuration = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
-                    b.ConfigType == ConfigurationType.Setting && b.Key == key))?.Value;
-
-                if (configuration == null)
+                using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
                 {
-                    await dbContext.Configurations.AddAsync(new Configuration
+                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                    string key = "VisionRecordsMaxAgeInDays";
+                    string defaultAge = "30";
+
+                    string configuration = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
+                        b.ConfigType == ConfigurationType.Setting && b.Key == key))?.Value;
+
+                    if (configuration == null)
                     {
-                        ConfigType = ConfigurationType.Setting,
-                        Key = key,
-                        Updated = DateTime.Now,
-                        Value = defaultAge
-                    });
+                        await dbContext.Configurations.AddAsync(new Configuration
+                        {
+                            ConfigType = ConfigurationType.Setting,
+                            Key = key,
+                            Updated = DateTime.Now,
+                            Value = defaultAge
+                        });
+
+                        await dbContext.SaveChangesAsync();
+
+                        configuration = defaultAge;
+                    }
+
+                    double ageInDaysToClear = Convert.ToDouble(configuration);
+
+                    var compareDate = DateTime.Now.AddDays(-ageInDaysToClear);
+
+                    IQueryable<VisionRecordCollection> entitiesToRemove =
+                        dbContext.VisionRecordCollections.Where(f => f.DateExtracted < compareDate);
+
+                    dbContext.RemoveRange(entitiesToRemove);
 
                     await dbContext.SaveChangesAsync();
-
-                    configuration = defaultAge;
                 }
-
-                double ageInDaysToClear = Convert.ToDouble(configuration);
-
-                var compareDate = DateTime.Now.AddDays(-ageInDaysToClear);
-
-                IQueryable<VisionRecordCollection> entitiesToRemove =
-                    dbContext.VisionRecordCollections.Where(f => f.DateExtracted < compareDate);
-
-                dbContext.RemoveRange(entitiesToRemove);
-
-                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError(ex, ex.Message);
             }
         }
     }
