@@ -266,6 +266,14 @@ namespace SbslFileTransformer.Converters
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_POSPAY_{Entity}.txt");
 
+            if (filePath.ToLower().Contains("spenn_micro"))
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath),
+                    $"GLAccounts_{fileDate:yyyyMMdd}_SPENN_{Entity}.txt");
+
+            if (filePath.ToLower().Contains("ria_bal"))
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath),
+                    $"GLAccounts_{fileDate:yyyyMMdd}_RIA_{Entity}.txt");
+
             if (Path.GetFileName(filePath).ToLower().StartsWith("card"))
             {
                 subFileName = Path.GetFileName(filePath).Substring(4, 10);

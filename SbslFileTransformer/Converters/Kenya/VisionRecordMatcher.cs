@@ -115,7 +115,7 @@ namespace SbslFileTransformer.Converters.Kenya
         private IEnumerable<VisionRecordBase> GetUnmatchedVisionRecords(VisionRecordType visionRecordType)
         {
             IEnumerable<VisionRecordBase> visionRecords = this._dbContext.VisionRecordCollections.Where(v => v.Matched == false)
-                .Select(r => (VisionRecordBase)r).AsNoTracking();
+                .Select(r => (VisionRecordBase)r).AsNoTracking().ToList();
             
             return visionRecords;
         }

@@ -202,6 +202,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                     else if (file.ToLower().Contains("mobile_banking"))
                         await converter.Execute(file, "Mobile Banking");
 
+                    else if (file.ToLower().Contains("spenn_micro"))
+                        await converter.Execute(file, "SPENN");
+
+                    else if (file.ToLower().Contains("ria_bal"))
+                        await converter.Execute(file, "RIA");
+
                     else
                         await converter.Execute(file);
                 }
