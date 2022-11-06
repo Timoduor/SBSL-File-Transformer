@@ -24,13 +24,14 @@ namespace SbslFileTransformer.Converters.Kenya
 
         public async Task MatchFiles(string finacleFile, string outputPath, VisionRecordType visionRecordType)
         {
-            List<FinacleRec> finacleRecords = this.GetRecordsFromFinacleFile(finacleFile, visionRecordType);
+            List<FinacleRec> finacleRecords = await Task.Run(() => this.GetRecordsFromFinacleFile(finacleFile, visionRecordType));
 
             IEnumerable<Tuple<string, string>> finacleRefs = finacleRecords.Select(f => new Tuple<string, string>(f.ReferenceNumber, f.AccountNumber)).Distinct();
 
             foreach (Tuple<string, string> finRef in finacleRefs)
             {
-                IEnumerable<VisionRecordBase> unmatchedVisionRecords = this.GetUnmatchedVisionRecords(visionRecordType);
+                IEnumerable<VisionRecordBase> unmatchedVisionRecords = await this.GetUnmatchedVisionRecords(visionRecordType);
+
                 List<VisionRecordBase> matchedRecords = new List<VisionRecordBase>();
 
                 if (finRef.Item1.Length != 20)
@@ -40,7 +41,7 @@ namespace SbslFileTransformer.Converters.Kenya
                 {
                     continue;
                 }
-                
+
                 double finacleSumCredits = finacleRecords.Where(f => f.ReferenceNumber == finRef.Item1 && f.AccountNumber == finRef.Item2 && f.DebitCredit == "Credit").Sum(f => f.Amount);
                 double finacleSumDebits = finacleRecords.Where(f => f.ReferenceNumber == finRef.Item1 && f.AccountNumber == finRef.Item2 && f.DebitCredit == "Debit").Sum(f => f.Amount);
 
@@ -50,7 +51,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
                 double visionCredits = matchedRecs.Sum(v => v.CreditAmount);
                 double visionDebits = matchedRecs.Sum(v => v.DebitAmount);
-                
+
                 double visionDiff = visionCredits - visionDebits;
 
                 if (Math.Abs(Math.Round(finacleDiff, 2)) == Math.Abs(Math.Round(visionDiff, 2)) && matchedRecs.Count() > 0)
@@ -72,8 +73,8 @@ namespace SbslFileTransformer.Converters.Kenya
                         v.MatchingFile = finacleFile;
                         v.FinacleAccount = finacleAccount;
                     });
-                    
-                    this.CreateFileForReferenceNumber(matchedRecs, finRef.Item1, finRef.Item2, outputPath, visionRecordType);
+
+                    await this.CreateFileForReferenceNumber(matchedRecs, finRef.Item1, finRef.Item2, outputPath, visionRecordType);
 
                     matchedRecords.AddRange(matchedRecs);
 
@@ -85,7 +86,7 @@ namespace SbslFileTransformer.Converters.Kenya
         private async Task UpdateVisionRecords(VisionRecordType visionRecordType, List<VisionRecordBase> matchedRecords)
         {
             this._dbContext.VisionRecordCollections.UpdateRange(VisionCommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordCollection>(matchedRecords));
-            
+
             await this._dbContext.SaveChangesAsync();
         }
 
@@ -100,7 +101,7 @@ namespace SbslFileTransformer.Converters.Kenya
             return true;
         }
 
-        private void CreateFileForReferenceNumber(IEnumerable<VisionRecordBase> matchedRecs, string referenceNumber, string accountNumber, string outputPath, VisionRecordType visionRecordType)
+        private async Task CreateFileForReferenceNumber(IEnumerable<VisionRecordBase> matchedRecs, string referenceNumber, string accountNumber, string outputPath, VisionRecordType visionRecordType)
         {
             string outputFile = Path.Combine(outputPath, $"{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}_{visionRecordType}_{referenceNumber}_{accountNumber}.csv");
 
@@ -109,28 +110,25 @@ namespace SbslFileTransformer.Converters.Kenya
                 throw new Exception($"Vision Ref No. {referenceNumber} and A/C No. {accountNumber} file {outputFile} already exists");
             }
 
-            this.GenerateFileForSelectedRecords(matchedRecs, outputFile);
+            await this.GenerateFileForSelectedRecords(matchedRecs, outputFile);
         }
 
-        private IEnumerable<VisionRecordBase> GetUnmatchedVisionRecords(VisionRecordType visionRecordType)
+        private async Task<IEnumerable<VisionRecordBase>> GetUnmatchedVisionRecords(VisionRecordType visionRecordType)
         {
-            IEnumerable<VisionRecordBase> visionRecords = this._dbContext.VisionRecordCollections.Where(v => v.Matched == false)
-                .Select(r => (VisionRecordBase)r).AsNoTracking().ToList();
-            
+            IEnumerable<VisionRecordBase> visionRecords = await this._dbContext.VisionRecordCollections.Where(v => v.Matched == false)
+                .Select(r => (VisionRecordBase)r).AsNoTracking().ToListAsync();
+
             return visionRecords;
         }
 
-        private void GenerateFileForSelectedRecords(IEnumerable<VisionRecordBase> rows, string outputFile)
+        private async Task GenerateFileForSelectedRecords(IEnumerable<VisionRecordBase> rows, string outputFile)
         {
             using (StreamWriter writer = new StreamWriter(outputFile))
             {
                 using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    foreach (VisionRecordBase row in rows)
-                    {
-                        csv.WriteRecord(row);
-                        csv.NextRecord();
-                    }
+                    await csv.WriteRecordsAsync(rows);
+                    await csv.NextRecordAsync();
                 }
             }
         }
