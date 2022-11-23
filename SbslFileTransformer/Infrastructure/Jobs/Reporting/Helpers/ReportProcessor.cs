@@ -309,26 +309,38 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             {
                 ExcelWorksheet sheet = package.Workbook.Worksheets.First();
 
-                int maxDateInt = 0;
-
                 DateTime maxDate = DateTime.Now;
 
-                try
+                bool isFirstReportDate = true;
+
+                for (int n = 1; n <= sheet.Dimension.Rows; n++)
                 {
-                    maxDateInt = sheet.Cells["D:D"].Max(c =>
+                    try
                     {
-                        if (int.TryParse(c.Value?.ToString(), out int result)) 
-                            return result;
+                        var dateFromExcel = sheet.Cells[$"D{n}"].Value?.ToString();
 
-                        return 0;
-                    });
+                        if (DateTime.TryParse(dateFromExcel, out DateTime newMaxDate))
+                        {
+                            if (isFirstReportDate)
+                            {
+                                maxDate = newMaxDate;
+                                isFirstReportDate = false;
+                            }
 
-                    maxDate = this.FromExcelSerialDate(maxDateInt);
+                            if (newMaxDate > maxDate)
+                            {
+                                maxDate = newMaxDate;
+                            }
+
+                            
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        this.Logger.LogError(ex, "Error obtaining excel date");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    this.Logger.LogError(ex, "Error obtaining excel date");
-                }
+
 
                 sheet.InsertColumn(5, 1);
 
@@ -350,28 +362,37 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 {
                     string dateFromExcel = sheet.Cells[$"D{i}"].Value?.ToString();
 
-                    if (dateFromExcel != null && int.TryParse(dateFromExcel, out int dateInt))
+                    if (!string.IsNullOrEmpty(dateFromExcel))
                     {
-                        DateTime outputDate = this.FromExcelSerialDate(dateInt);
+                        if (!DateTime.TryParse(dateFromExcel, out DateTime outputDate))
+                        {
+                            if(double.TryParse(dateFromExcel, out double doubleFromExcel))
+                            {
+                                outputDate = DateTime.FromOADate(doubleFromExcel);
+                            }
+                            else
+                            {
+                                continue;
+                            }
+                        }
 
                         int diff = (maxDate - outputDate).Days;
 
-                        sheet.Cells[$"E{i}"].Formula =
-                            $"=IF(NOT(ISBLANK(D{i})),DATEDIF(D{i}, {maxDateInt}, \"D\"),\"\")";
+                        sheet.Cells[$"E{i}"].Value = diff;
 
                         sheet.Cells[$"E{i}"].Style.Numberformat.Format = "0";
 
 
-                        if (daysRange.Length >= 2 && diff >= daysRange[0] && diff <= daysRange[1])
+                        if (diff >= 0 && diff <= 7)
                             sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.GreenYellow);
 
-                        if (daysRange.Length >= 3 && diff > daysRange[1] && diff <= daysRange[2])
+                        if (diff > 7 && diff <= 14)
                             sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.RosyBrown);
 
-                        if (daysRange.Length >= 4 && diff > daysRange[2] && diff <= daysRange[3])
+                        if (diff > 14 && diff <= 30)
                             sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Yellow);
 
-                        if (diff > 30) 
+                        if (diff > 30)
                             sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Red);
                     }
                 }
