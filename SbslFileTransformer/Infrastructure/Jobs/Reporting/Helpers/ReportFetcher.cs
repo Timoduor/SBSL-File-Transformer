@@ -135,7 +135,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                     dynamic data = JArray.Parse(result);
 
                     foreach (dynamic item in data)
-                        reports.Add(new ReportModel
+                    {
+                        var reportItem = new ReportModel
                         {
                             Creator = item.creatorFirstAndLastName,
                             EndTime = item.endTime,
@@ -146,8 +147,19 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                             StartTime = item.startTime,
                             Status = item.status,
                             UserToken = userToken.Value,
-                            ReportDate = Convert.ToDateTime(item.endTime)
-                        });
+                        };
+
+                        if (DateTime.TryParse(item?.endTime?.ToString(), out DateTime reportDate))
+                        {
+                            reportItem.ReportDate = reportDate;
+                        }
+                        else
+                        {
+                            reportItem.ReportDate = DateTime.Now;
+                        }
+
+                        reports.Add(reportItem);
+                    }
                 }
 
             }

@@ -12,6 +12,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using SbslFileTransformer.Infrastructure.Jobs.Reporting.Models;
 using SbslFileTransformer.Models.ViewModels;
 
@@ -109,10 +110,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
                     Scope = reportConfigurations.FirstOrDefault(c => c.Key == "Scope")?.Value,
                     TokenUrl = reportConfigurations.FirstOrDefault(c => c.Key == "TokenUrl")?.Value,
                     ClientId = reportConfigurations.FirstOrDefault(c => c.Key == "ClientId")?.Value,
-                    ClientSecret = reportConfigurations.FirstOrDefault(c => c.Key == "ClientSecret")?.Value
+                    ClientSecret = reportConfigurations.FirstOrDefault(c => c.Key == "ClientSecret")?.Value,
+                    UserNamesAndPasswords = new Dictionary<string, string>()
                 };
-
-                config.UserNamesAndPasswords = new Dictionary<string, string>();
 
                 foreach (Configuration login in userLogins)
                 {
@@ -127,7 +127,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
         {
             ReportFetcher reportFetcher = new ReportFetcher(this._logger, this.HttpClientFactory, this.LoadReportConnectionConfig());
 
-            List<long> processedReportsIds = dbContext.ProcessedReports.Select(r => r.ReportId).ToList();
+            List<long> processedReportsIds = dbContext.ProcessedReports.AsNoTracking().Select(r => r.ReportId).ToList();
 
             IProgress<int> fetchReportProgress = new Progress<int>(percent =>
             {
@@ -152,7 +152,5 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
             await reportProcessor.ProcessReports(unprocessedReports, Entity, processReportProgress);
         }
-
-
     }
 }

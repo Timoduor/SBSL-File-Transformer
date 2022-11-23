@@ -37,6 +37,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors.Uganda
         }
 
         private async Task ExtractMultiCurrBalances()
+        
         {
             try
             {

@@ -43,7 +43,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Uganda
                             continue;
 
                         row.Account = "220003015";
-                        row.Amount = Convert.ToDouble(reader.GetValue(22)?.ToString());
+                        row.Amount = Convert.ToDouble(reader.GetValue(14)?.ToString());
                         list.Add(row);
                     }
                 }
@@ -56,7 +56,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Uganda
                 string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
                 string outputFile = Path.Combine(outputFolder,
-                    $"MultiCurr_{DateTime.Now:dd_MM_yyyy}_{fileNameToAppend}_MtnUG.txt");
+                    $"MultiCurr_{DateTime.Now:dd_MM_yyyy}_{fileNameToAppend}_MW2B.txt");
 
                 MtnCols firstRow = list.OrderByDescending(i => i.ReconDate)
                     .FirstOrDefault(c => c.ReconDate == list.Max(r => r.ReconDate));
@@ -97,7 +97,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Uganda
                             continue;
 
                         row.Account = "115001204";
-                        row.Amount = Convert.ToDouble(reader.GetValue(22)?.ToString());
+                        row.Amount = Convert.ToDouble(reader.GetValue(14)?.ToString());
                         list.Add(row);
                     }
                 }
@@ -110,7 +110,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Uganda
                 string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
                 string outputFile = Path.Combine(outputFolder,
-                    $"MultiCurr_{DateTime.Now:dd_MM_yyyy}_{fileNameToAppend}_MtnUG.txt");
+                    $"MultiCurr_{DateTime.Now:dd_MM_yyyy}_{fileNameToAppend}_MB2W.txt");
 
                 MtnCols firstRow = list.OrderByDescending(i => i.ReconDate)
                     .FirstOrDefault(c => c.ReconDate == list.Max(r => r.ReconDate));

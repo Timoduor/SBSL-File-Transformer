@@ -198,7 +198,7 @@ namespace SbslFileTransformer
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider,
             ILogger<Startup> logger, IHostApplicationLifetime applicationLifetime, IMemoryCache cache)
         {
-            app.UseRequestResponseLoggingMiddleware();
+            //app.UseRequestResponseLoggingMiddleware();
 
             app.UseHealthChecks("/health", new HealthCheckOptions
             {
