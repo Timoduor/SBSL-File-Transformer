@@ -331,14 +331,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                             {
                                 maxDate = newMaxDate;
                             }
-
-                            
                         }
                     }
                     catch (Exception ex)
                     {
                         this.Logger.LogError(ex, "Error obtaining excel date");
                     }
+                }
+
+                //recon date cannot be in the future
+                if (maxDate > DateTime.Now.AddDays(1))
+                {
+                    maxDate = DateTime.Now;
                 }
 
 
