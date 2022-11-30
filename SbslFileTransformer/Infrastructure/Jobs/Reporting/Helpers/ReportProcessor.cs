@@ -310,42 +310,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 ExcelWorksheet sheet = package.Workbook.Worksheets.First();
 
                 DateTime maxDate = DateTime.Now;
-
-                bool isFirstReportDate = true;
-
-                for (int n = 1; n <= sheet.Dimension.Rows; n++)
-                {
-                    try
-                    {
-                        var dateFromExcel = sheet.Cells[$"D{n}"].Value?.ToString();
-
-                        if (DateTime.TryParse(dateFromExcel, out DateTime newMaxDate))
-                        {
-                            if (isFirstReportDate)
-                            {
-                                maxDate = newMaxDate;
-                                isFirstReportDate = false;
-                            }
-
-                            if (newMaxDate > maxDate)
-                            {
-                                maxDate = newMaxDate;
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        this.Logger.LogError(ex, "Error obtaining excel date");
-                    }
-                }
-
-                //recon date cannot be in the future
-                if (maxDate > DateTime.Now.AddDays(1))
-                {
-                    maxDate = DateTime.Now;
-                }
-
-
+                
                 sheet.InsertColumn(5, 1);
 
                 //set maxDate only if it is not a balance proofing report
@@ -430,12 +395,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             }
 
             return dict;
-        }
-
-        private DateTime FromExcelSerialDate(int SerialDate)
-        {
-            if (SerialDate > 59) SerialDate -= 1; //Excel/Lotus 2/29/1900 bug
-            return new DateTime(1899, 12, 31).AddDays(SerialDate);
         }
     }
 }
