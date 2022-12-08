@@ -310,6 +310,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 ExcelWorksheet sheet = package.Workbook.Worksheets.First();
 
                 DateTime maxDate = DateTime.Now;
+
+                maxDate = DateTime.Now.DayOfWeek == DayOfWeek.Monday ? maxDate.AddDays(-2) : maxDate.AddDays(-1);
                 
                 sheet.InsertColumn(5, 1);
 
