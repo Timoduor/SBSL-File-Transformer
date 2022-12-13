@@ -226,6 +226,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             {
                 using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
                 {
+                    DateTime maxDate = DateTime.Now;
+
+                    maxDate = DateTime.Now.DayOfWeek == DayOfWeek.Monday ? maxDate.AddDays(-2) : maxDate.AddDays(-1);
+
                     while (reader.Read())
                     {
                         string col3 = reader.GetValue(3)?.ToString();
@@ -234,9 +238,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                         if (DateTime.TryParse(col3, out DateTime postedDate))
                             try
                             {
-                                int daysOverdue =
-                                    Convert.ToInt32((DateTime.Now - postedDate)
-                                        .TotalDays); //datetime.now should be max posted date
+                                int daysOverdue = Convert.ToInt32((maxDate.Date - postedDate.Date).Days);
 
                                 OpenItem openItem = new OpenItem
                                 {
@@ -270,6 +272,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 }
             }
 
+            int[] daysRange = new[] { 0, 7, 14, 30 };
+
+            report.DaysRange = daysRange;
+
             for (int i = 0; i < report.DaysRange.Length; i++)
             {
                 List<OpenItem> items;
@@ -288,7 +294,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             if (daysRecordsPairs.Any() && report.TempReportPath.ToLower().Contains("proofing"))
             {
                 report.TempReportPath = agingExcel;
-                return (report, await this.CreateCsvFile(daysRecordsPairs, this.ServiceScopeFactory));
+                return (report, await this.CreateCsvFiles(daysRecordsPairs, this.ServiceScopeFactory));
             }
 
             return (report, new Dictionary<int, string>());
@@ -347,23 +353,23 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                             }
                         }
 
-                        int diff = (maxDate - outputDate).Days;
+                        int diff = (maxDate.Date - outputDate.Date).Days;
 
                         sheet.Cells[$"E{i}"].Value = diff;
 
                         sheet.Cells[$"E{i}"].Style.Numberformat.Format = "0";
 
 
-                        if (diff >= 0 && diff <= 7)
+                        if (diff >= daysRange[0] && diff <= daysRange[1])
                             sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.GreenYellow);
 
-                        if (diff > 7 && diff <= 14)
+                        if (diff > daysRange[1] && diff <= daysRange[2])
                             sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.RosyBrown);
 
-                        if (diff > 14 && diff <= 30)
+                        if (diff > daysRange[2] && diff <= daysRange[3])
                             sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Yellow);
 
-                        if (diff > 30)
+                        if (diff > daysRange[3])
                             sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Red);
                     }
                 }
@@ -375,7 +381,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             return outputFilePath;
         }
 
-        private async Task<Dictionary<int, string>> CreateCsvFile(Dictionary<int, List<OpenItem>> items,
+        private async Task<Dictionary<int, string>> CreateCsvFiles(Dictionary<int, List<OpenItem>> items,
             IServiceScopeFactory serviceScopeFactory)
         {
             Dictionary<int, string> dict = new Dictionary<int, string>();
