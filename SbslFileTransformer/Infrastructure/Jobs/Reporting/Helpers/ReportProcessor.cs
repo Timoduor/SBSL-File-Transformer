@@ -73,20 +73,29 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
             foreach (ReportModel report in reports)
             {
-                this.Logger.LogInformation($"Processing report {report.Name} with ID {report.ReportId}");
-
-                SetReportFilters(report, entity);
-
-                if (await this.DownloadAndSaveReport(report))
+                try
                 {
-                    report.DaysRange = this.GetEmailGroupDays(emailGroups, report);
+                    this.Logger.LogInformation($"Processing report {report.Name} with ID {report.ReportId}");
 
-                    processedReports.Add(await this.ProcessReportFile(report));
+                    SetReportFilters(report, entity);
+
+                    if (await this.DownloadAndSaveReport(report))
+                    {
+                        report.DaysRange = this.GetEmailGroupDays(emailGroups, report);
+
+                        (ReportModel, Dictionary<int, string>) processed = await this.ProcessReportFile(report);
+
+                        processedReports.Add(processed);
+                    }
+
+                    count++;
+
+                    processReportProgress.Report(count * 100 / reports.Count());
                 }
-
-                count++;
-
-                processReportProgress.Report(count * 100 / reports.Count());
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, $"Error processing report {report.Name} with ID {report.ReportId}");
+                }
             }
 
             await this.SaveAndSendReports(processedReports, processReportProgress);
@@ -272,7 +281,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 }
             }
 
-            int[] daysRange = new[] { 0, 7, 14, 30 };
+            int[] daysRange = new[] { 3, 7, 14, 30 };
 
             report.DaysRange = daysRange;
 
@@ -291,10 +300,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
             string agingExcel = await this.CreateModifiedAgingExcel(report.TempReportPath, report.DaysRange);
 
-            if (daysRecordsPairs.Any() && report.TempReportPath.ToLower().Contains("proofing"))
+            if (daysRecordsPairs.Any() && !report.TempReportPath.ToLower().Contains("proofing"))
             {
                 report.TempReportPath = agingExcel;
-                return (report, await this.CreateCsvFiles(daysRecordsPairs, this.ServiceScopeFactory));
+                return (report, await this.CreateCsvFiles(daysRecordsPairs, this.ServiceScopeFactory, report.Name));
             }
 
             return (report, new Dictionary<int, string>());
@@ -382,14 +391,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
         }
 
         private async Task<Dictionary<int, string>> CreateCsvFiles(Dictionary<int, List<OpenItem>> items,
-            IServiceScopeFactory serviceScopeFactory)
+            IServiceScopeFactory serviceScopeFactory, string reportName)
         {
             Dictionary<int, string> dict = new Dictionary<int, string>();
 
             foreach (KeyValuePair<int, List<OpenItem>> group in items)
             {
                 string tempFilePath = Path.Combine(await FileHelpers.GetTempPath(serviceScopeFactory),
-                    DateTime.Now.ToString("yyyy_MM_dd_") + group.Key + "_Days_Overdue_.csv");
+                    $"{DateTime.Now.ToString("yyyy_MM_dd_")}_{reportName}_{group.Key}_Days_Overdue_.csv");
 
                 using (StreamWriter writer = new StreamWriter(tempFilePath))
                 {

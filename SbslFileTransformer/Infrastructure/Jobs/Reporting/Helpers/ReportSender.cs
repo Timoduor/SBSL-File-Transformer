@@ -128,6 +128,36 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             }
         }
 
+        public static IEnumerable<string> GetEmails(int duration, ReportModel report, IServiceScopeFactory serviceScopeFactory)
+        {
+            List<string> emails = new List<string>();
+
+            using (IServiceScope scope = serviceScopeFactory.CreateScope())
+            {
+                ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                IQueryable<EmailGroup> groups = dbContext.EmailGroups
+                    .Where(g => g.Country == report.Country 
+                                && g.AgeAlertDuration <= duration
+                                && g.Sprint == report.Sprint 
+                                && g.Category == report.Category 
+                                && g.IsActive);
+
+                if (report.Category == ReportCategory.Default)
+                    groups = dbContext.EmailGroups.Where(g => g.AgeAlertDuration <= duration 
+                                                              && g.Country == report.Country 
+                                                              && g.Sprint == report.Sprint 
+                                                              && g.IsActive);
+
+                IEnumerable<string> groupEmails = groups.ToList().Select(g => g.Emails);
+
+                foreach (string group in groupEmails)
+                    emails.AddRange(@group.Split(new[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries));
+
+                return emails;
+            }
+        }
+
         private async Task SaveToDb(List<ProcessedReport> reports)
         {
             using (IServiceScope scope = this.serviceScopeFactory.CreateScope())
@@ -139,32 +169,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 await dbContext.SaveChangesAsync();
             }
         }
-
-        public static IEnumerable<string> GetEmails(int duration, ReportModel report, IServiceScopeFactory serviceScopeFactory)
-        {
-            List<string> emails = new List<string>();
-
-            using (IServiceScope scope = serviceScopeFactory.CreateScope())
-            {
-                ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-
-                IQueryable<EmailGroup> groups = dbContext.EmailGroups.Where(g =>
-                    g.AgeAlertDuration == duration && g.Country == report.Country && g.Sprint == report.Sprint &&
-                    g.Category == report.Category && g.IsActive);
-
-                if (report.Category == ReportCategory.Default)
-                    groups = dbContext.EmailGroups.Where(g =>
-                        g.AgeAlertDuration == duration && g.Country == report.Country && g.Sprint == report.Sprint && g.IsActive);
-
-                IEnumerable<string> groupEmails = groups.ToList().Select(g => g.Emails);
-
-                foreach (string group in groupEmails)
-                    emails.AddRange(@group.Split(new[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries));
-
-                return emails;
-            }
-        }
-
+        
         private async Task<string> AdjustBalanceValue(string inputFile)
         {
             string inputFileName = Path.GetFileName(inputFile);
