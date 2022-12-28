@@ -78,7 +78,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors.Uganda
 
                     foreach (string file in files)
                     {
-                        if (file.ToLower().Contains("imug") && file.ToLower().Contains("mobile_banking") && file.ToLower().Contains("airtel"))
+                        if (file.ToLower().Contains("imug") && file.ToLower().Contains("mobile_banking") && file.ToLower().Contains("airtel") &&  file.ToLower().Contains("w2b"))
                         {
                             SftpUploadedFile fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>
@@ -107,6 +107,37 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors.Uganda
 
                                     updatedFiles.Add(fileToProcess);
                                 }
+                        }
+                        else if ( file.ToLower().Contains("imug") && file.ToLower().Contains("mobile_banking") && file.ToLower().Contains("airtel") && file.ToLower().Contains("b2w"))
+                        {
+                            SftpUploadedFile fileToProcess =
+                                uploadedFiles.FirstOrDefault(f =>
+                                    f.FilePath.ToLower() == file.ToLower());
+
+                            if (fileToProcess != null && fileToProcess.BalanceExtracted == false)
+                                try
+                                {
+                                    bool isProd = Convert.ToBoolean(
+                                        configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ??
+                                        false.ToString());
+
+                                    string rootFolder = isProd ? prodFolder : sbFolder;
+
+                                    mpesaConverter.ConvertFile_B2W(file, rootFolder);
+                                }
+                                catch (Exception ex)
+                                {
+                                    await this.ProcessFileFailure(configurations, file, fileToProcess, ex);
+                                }
+                                finally
+                                {
+                                    fileToProcess.BalanceExtracted = true;
+
+                                    fileToProcess.ConvertedBy = nameof(AirtelUgandaBalanceExtractor);
+
+                                    updatedFiles.Add(fileToProcess);
+                                }
+
                         }
                     }
                     await this.SaveProcessedFilesStatuses(dbContext, updatedFiles);
