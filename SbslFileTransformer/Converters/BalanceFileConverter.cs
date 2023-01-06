@@ -288,6 +288,15 @@ namespace SbslFileTransformer.Converters
                         $"GLAccounts_{fileDate:yyyyMMdd}_MB_{subFileName}_{Entity}.txt");
             }
 
+            //IMUG_WU_
+            if (Path.GetFileName(filePath).ToLower().StartsWith("imug_wu"))
+            {
+                subFileName = Path.GetFileName(filePath).Substring(4, 25);
+                outputPath = Path.Combine(Path.GetDirectoryName(filePath),
+                        $"GLAccounts_{fileDate:yyyyMMdd}_WU_{subFileName}_{Entity}.txt");
+            }
+
+
             return outputPath;
         }
 
