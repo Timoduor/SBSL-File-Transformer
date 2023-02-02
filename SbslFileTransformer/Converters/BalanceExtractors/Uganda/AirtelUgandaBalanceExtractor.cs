@@ -107,7 +107,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Uganda
 
                         row.Account = "115001205";
 
-                        row.Amount = Convert.ToDouble(reader.GetValue(8)?.ToString());
+                        row.Amount = Convert.ToDouble(reader.GetValue(9)?.ToString());
 
                         list.Add(row);
                     }
