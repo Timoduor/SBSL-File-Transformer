@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using SbslFileTransformer.Converters.Rwanda.BNR;
+using System.Linq;
 
 namespace SbslFileTransformer.Converters.Kenya
 {
@@ -68,7 +69,7 @@ namespace SbslFileTransformer.Converters.Kenya
             string nonDelivarableOperator = "Non-Deliverable Indicator";
 
             string brokerIdentification = "Broker Identification -Name&Addr";
-
+            int z = 0;
 
             ExcelCols row = new ExcelCols();
 
@@ -159,7 +160,18 @@ namespace SbslFileTransformer.Converters.Kenya
                     }
                     else if (value.StartsWith(":87A:"))
                     {
-                        row.Col7 = value.Split(':')[2].Replace("\n", "");
+                        string value_ = value.Split(':')[2].Replace("\n", "");
+                        bool containsDigitsOnly = value_.All(char.IsDigit);
+
+                        if (containsDigitsOnly == true)
+                        {
+                            row.Col7 = lines[z + 1];// value.Split(':')[2].Replace("\n", "");
+                        }
+                        else
+                        {
+                            row.Col7 = value.Split(':')[2].Replace("\n", "");
+                        }
+                       
                     }
                     else if (value.StartsWith(":17F:"))
                     {
@@ -242,7 +254,7 @@ namespace SbslFileTransformer.Converters.Kenya
                         previousIs57A_2 = false;
                     }
                 }
-
+                z++;
                 countHeader++;
             }
 
