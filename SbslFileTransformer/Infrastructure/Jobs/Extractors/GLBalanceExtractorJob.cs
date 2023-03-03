@@ -136,7 +136,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                     else if (file.ToLower().Contains("br_sus"))
                         await converter.Execute(file, "Branch Suspense");
 
-                    else if (file.ToLower().Contains("mg_sus"))
+                    else if (file.ToLower().Contains("mg_sus") || file.ToLower().Contains("mg_balances") )
                         await converter.Execute(file, "Moneygram");
 
                     else if (file.ToLower().Contains("wu_sus") || file.ToLower().Contains("wu_balances") || file.ToLower().Contains("westernunion_balance"))
