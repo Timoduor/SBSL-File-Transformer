@@ -104,6 +104,8 @@ namespace SbslFileTransformer.Converters
                                     multiplyBy = -1;
                                 if (filePath.ToLower().Contains("wu_balances") && Entity == "IMUG" && DorC2 == 1)
                                     multiplyBy = 1;
+                                if (filePath.ToLower().Contains("mg_balances") && Entity == "IMUG" && DorC2 == 1)
+                                    multiplyBy = 1;
                                 string toAppend =
                                     $"{Entity}\t{accNo}\t{functionalArea}\t\t\t\t\t\t\t\t{this.GetAccountName(accNo, lookUp)}\t{functionalArea}\tA\tAsset\tTRUE\tTRUE\t\t{currency}\t{ContentHelpers.GetLastDayOfTheMonth(date2):MM/dd/yyyy}\t\t\t{multiplyBy * DorC2 * closingBalance}\n";
 

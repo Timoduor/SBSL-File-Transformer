@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters.Kenya;
+using SbslFileTransformer.Converters.Uganda;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
@@ -72,7 +72,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options)
                         .Where(f => f.ToLower().EndsWith(".xlsx")));
 
-                    MoneyGramActivityKEConverter mgramConverter = new MoneyGramActivityKEConverter(this._logger);
+                    MoneyGramActivityUGConverter mgramConverter = new MoneyGramActivityUGConverter(this._logger);
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
@@ -100,7 +100,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters
                                 }
                                 finally
                                 {
-                                    this.CompleteFileProcessing(updatedFiles, fileToProcess, nameof(MoneyGramActivityKEConverter));
+                                    this.CompleteFileProcessing(updatedFiles, fileToProcess, nameof(MoneyGramActivityUGConverter));
                                 }
                         }
                     }
