@@ -245,31 +245,58 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                         if (string.IsNullOrEmpty(col3)) continue;
 
                         if (DateTime.TryParse(col3, out DateTime postedDate))
+                        {
                             try
                             {
                                 int daysOverdue = Convert.ToInt32((maxDate.Date - postedDate.Date).Days);
 
                                 OpenItem openItem = new OpenItem
                                 {
-                                    DaysOverdue = daysOverdue,
-                                    PostedDate = postedDate,
-                                    AccName = reader.GetValue(2)?.ToString(),
-                                    //Account = lastAccountNo,
-                                    Amount = reader.GetValue(4)?.ToString(),
-                                    Entity = reader.GetValue(1)?.ToString(),
-                                    //ActiveCertStatus = reader.GetValue(14)?.ToString(),
-                                    //FunctionalArea = reader.GetValue(13)?.ToString(),
-                                    //ItemId = Convert.ToInt32(reader.GetValue(15)?.ToString()),
-                                    ItemSide = reader.GetValue(8)?.ToString(),
-                                    ItemSubType = reader.GetValue(5)?.ToString(),
-
-                                    Reference1 = reader.GetValue(10)?.ToString(),
-                                    Reference2 = reader.GetValue(11)?.ToString(),
-                                    Reference3 = reader.GetValue(12)?.ToString(),
-                                    TheyBalance = reader.GetValue(7)?.ToString(),
-                                    TransNarrative = reader.GetValue(9)?.ToString(),
-                                    WeBalance = reader.GetValue(6)?.ToString()
+                                    DaysOverdue = daysOverdue, 
+                                    PostedDate = postedDate
                                 };
+
+                                if(reader.TryGetValue(1, out object entity))
+                                    openItem.Entity = entity?.ToString();
+
+                                if(reader.TryGetValue(2, out object accName))
+                                    openItem.AccName = accName?.ToString();
+
+                                if(reader.TryGetValue(4, out object amount))
+                                    openItem.Amount = amount?.ToString();
+
+                                if(reader.TryGetValue(5, out object itemSubType))
+                                    openItem.ItemSubType = itemSubType?.ToString();
+
+                                if (reader.TryGetValue(6, out object weBalance))
+                                    openItem.WeBalance =  weBalance?.ToString();
+
+                                if(reader.TryGetValue(7, out object theyBalance))
+                                    openItem.TheyBalance = theyBalance?.ToString();
+
+                                if(reader.TryGetValue(8, out object itemSide))
+                                    openItem.ItemSide = itemSide?.ToString();
+
+                                if(reader.TryGetValue(9, out object transNarrative))
+                                    openItem.TransNarrative = transNarrative?.ToString();
+
+                                if(reader.TryGetValue(10, out object ref1))
+                                    openItem.Reference1 = ref1?.ToString();
+
+                                if(reader.TryGetValue(11, out object ref2))
+                                    openItem.Reference2 = ref2?.ToString();
+
+                                if(reader.TryGetValue(12, out object ref3))
+                                    openItem.Reference3 = ref3?.ToString();
+
+                                if(reader.TryGetValue(14, out object activeStatus))
+                                    openItem.ActiveCertStatus = activeStatus?.ToString();
+
+                                if(reader.TryGetValue(13, out object funcArea))
+                                    openItem.FunctionalArea = funcArea?.ToString();
+
+                                if(reader.TryGetValue(15, out object itemId))
+                                    openItem.ItemId = itemId?.ToString();
 
                                 openItems.Add(openItem);
                             }
@@ -277,6 +304,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                             {
                                 this.Logger.LogError(ex, ex.Message);
                             }
+                        }
                     }
                 }
             }
