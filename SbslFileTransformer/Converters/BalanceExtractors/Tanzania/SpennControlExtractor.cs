@@ -25,7 +25,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Tanzania
                 {
                     while (reader.Read())
                     {
-                        if (DateTime.TryParseExact(reader.GetValue(3)?.ToString(), "yyyyMMd",
+                        if (DateTime.TryParseExact(reader.GetValue(3)?.ToString(), "yyyy-MM-dd",
                             CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result)) bal.Date = result;
 
                         bal.Amount = Convert.ToDouble(reader.GetValue(2)?.ToString()) * -1;
