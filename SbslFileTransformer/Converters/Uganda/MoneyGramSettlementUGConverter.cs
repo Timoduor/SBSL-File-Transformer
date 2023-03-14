@@ -98,201 +98,214 @@ namespace SbslFileTransformer.Converters.Uganda
 
                 this.WriteToFile(list, outputFile);
             }
-            public void ConvertFile(string inputFile, string outputFile = null)
+        public void ConvertFile(string inputFile, string outputFile= null)
+        {
+            var list = new List<ExcelCols>();
+
+            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                var list = new List<ExcelCols>();
-
-                using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+                using (var reader = ExcelReaderFactory.CreateReader(stream))
                 {
-                    using (var reader = ExcelReaderFactory.CreateReader(stream))
+                    int countHeader = 0;
+
+                    double per = 0.2;
+
+                    string ccy = "ccy";
+
+                    string agentName = "Branch Name";
+
+
+
+                    //string excise = "Excise duty";
+
+                    //string computedbaseamnt = "Computed Base Amount";
+
+                    string currentDate = string.Empty;
+                    string branchName = string.Empty;
+
+                    while (reader.Read())
                     {
-                        int countHeader = 0;
+                        var row = new ExcelCols();
 
-                        double per = 0.2;
+                        var value = reader.GetValue(1)?.ToString();
 
-                        string ccy = "ccy";
 
-                        string agentName = "Branch Name";
+                        var val = reader.GetValue(0)?.ToString();
 
-                        //string excise = "Excise duty";
 
-                        //string computedbaseamnt = "Computed Base Amount";
+                        if (!string.IsNullOrEmpty(value) && (value.Contains("Settlement Currency :") || value.Contains("Settlement Id") || value.Contains("Business Date:") || value.Contains("Orient") || value.Contains("KAMPALA") || value.Contains("UG")))
 
-                        string currentDate = string.Empty;
-                        string branchName = string.Empty;
-
-                        while (reader.Read())
                         {
-                            var row = new ExcelCols();
 
-                            var value = reader.GetValue(1)?.ToString();
-
-
-                            if (!string.IsNullOrEmpty(value) && (value.Contains("Account Number :") || value.Contains("Settlement Currency :") || value.Contains("Settlement Id") || value.Contains("Business Date:") || value.Contains("Orient") || value.Contains("KAMPALA") || value.Contains("UG")))
-
-                            {
-
-                                continue;
-                            }
-
-                            var value3 = reader.GetValue(9)?.ToString();
-
-                            if (!string.IsNullOrEmpty(value3) && (value3.Contains("Receive") || value3.Contains("Total") || value3.Contains("Grand Total")))
-                            {
-                                continue;
-                            }
-
-                            var value4 = reader.GetValue(10)?.ToString();
-
-                            if (!string.IsNullOrEmpty(value4) && value4.Contains("USD"))
-                            {
-                                continue;
-                            }
-
-                            var value5 = reader.GetValue(13)?.ToString();
-
-                            if (!string.IsNullOrEmpty(value5) && value5.Contains("Transaction Currency"))
-                            {
-                                continue;
-                            }
-
-                            var value6 = reader.GetValue(30)?.ToString();
-
-                            if (!string.IsNullOrEmpty(value6) && (value6.Contains("Account Net Due")))
-                            {
-                                continue;
-                            }
-
-                            var value7 = reader.GetValue(19)?.ToString();
-                            if (!string.IsNullOrEmpty(value7) && (value7.Contains("stl")))
-                            {
-                                continue;
-                            }
-                            var value8 = reader.GetValue(31)?.ToString();
-                            if (!string.IsNullOrEmpty(value8) && value8.Contains("Grand Total Net Due"))
-                            {
-                                continue;
-                            }
-                            var value9 = reader.GetValue(32)?.ToString();
-                            if (!string.IsNullOrEmpty(value9) && value9.Contains("Total Net Due"))
-                            {
-                                continue;
-                            }
-                            //tran date
-                            row.Col0 = reader.GetValue(1)?.ToString().Replace("\n", "");
-                            if (!string.IsNullOrEmpty(row.Col0))
-                            {
-                                currentDate = row.Col0;
-                            }
-                            //tran id
-                            row.Col1 = reader.GetValue(3)?.ToString().Replace("\n", "");
-                            //ref #
-                            row.Col2 = reader.GetValue(7)?.ToString().Replace("\n", "");
-
-                            //adding values below a colunm
-                            //agent name
-                            row.Col3 = reader.GetValue(8)?.ToString().Replace("\n", "");
-                            if (!string.IsNullOrEmpty(row.Col3))
-                            {
-                                branchName = branchName + row.Col3;
-                                //branchName += row.Col3;
-                            }
-                            //prod
-                            row.Col4 = reader.GetValue(9)?.ToString().Replace("\n", "");
-                            //type
-                            row.Col5 = reader.GetValue(10)?.ToString().Replace("\n", "");
-                            //origin cntry
-                            row.Col6 = reader.GetValue(11)?.ToString().Replace("\n", "");
-                            //rev cntry
-                            row.Col7 = reader.GetValue(13)?.ToString().Replace("\n", "");
-                            //fx rate
-                            row.Col8 = reader.GetValue(15)?.ToString().Replace("\n", "");
-
-                            if (!string.IsNullOrEmpty(row.Col8) && string.IsNullOrEmpty(row.Col0))
-                            {
-                                row.Col0 = currentDate;
-                            }
-                            if (!string.IsNullOrEmpty(row.Col8) && string.IsNullOrEmpty(row.Col3))
-                            {
-                                row.Col3 = branchName;
-                            }
-                            //fx date
-                            row.Col9 = reader.GetValue(19)?.ToString().Replace("\n", "");
-                            //fx margin
-                            row.Col10 = reader.GetValue(20)?.ToString().Replace("\n", "") + reader.GetValue(21)?.ToString();
-                            //ccy
-                            row.Col11 = reader.GetValue(22)?.ToString();
-                            //base amount 
-                            row.Col12 = reader.GetValue(23)?.ToString().Replace("\n", "");
-                            //fee amount
-                            row.Col13 = reader.GetValue(24)?.ToString().Replace("\n", "") + reader.GetValue(25)?.ToString();
-                            //fx rev share amount
-                            row.Col14 = reader.GetValue(28)?.ToString().Replace("\n", "") + reader.GetValue(29)?.ToString() + reader.GetValue(30)?.ToString();
-                            //commission amount
-                            row.Col15 = reader.GetValue(32)?.ToString().Replace("\n", "") + reader.GetValue(33)?.ToString();
-
-                            //total
-                            row.Col16 = reader.GetValue(35)?.ToString();
-
-
-                            if (countHeader == 1)
-                            {
-                                row.Col3 = agentName;
-                                row.Col11 = ccy;
-                                //row.Col14 = excise;
-                                //row.Col15 = computedbaseamnt;
-                            }
-
-                            countHeader++;
-
-                            try
-                            {
-                                double baseamnt = Convert.ToDouble(reader.GetValue(25));
-                                double feeamnt = Convert.ToDouble(reader.GetValue(26));
-
-                                if (reader.GetValue(11) != null && reader.GetValue(12) != null && reader.GetValue(11).ToString() == "MT" && reader.GetValue(12).ToString() == "SEN")
-                                {
-                                    row.Col15 = (baseamnt + feeamnt + (feeamnt * per)).ToString();
-                                }
-                                else
-                                {
-                                    row.Col15 = reader.GetValue(25)?.ToString();
-                                }
-
-                            }
-                            catch (Exception)
-                            {
-
-                            }
-
-                            if (!string.IsNullOrEmpty(row.Col0))
-                                list.Add(row);
+                            continue;
                         }
+
+                        var value3 = reader.GetValue(9)?.ToString();
+
+                        if (!string.IsNullOrEmpty(value3) && (value3.Contains("Receive") || value3.Contains("Total") || value3.Contains("Grand Total")))
+                        {
+                            continue;
+                        }
+
+                        var value4 = reader.GetValue(10)?.ToString();
+
+                        if (!string.IsNullOrEmpty(value4) && value4.Contains("USD"))
+                        {
+                            continue;
+                        }
+
+                        var value5 = reader.GetValue(13)?.ToString();
+
+                        if (!string.IsNullOrEmpty(value5) && value5.Contains("Transaction Currency"))
+                        {
+                            continue;
+                        }
+
+                        var value6 = reader.GetValue(30)?.ToString();
+
+                        if (!string.IsNullOrEmpty(value6) && (value6.Contains("Account Net Due")))
+                        {
+                            continue;
+                        }
+
+                        var value7 = reader.GetValue(19)?.ToString();
+                        if (!string.IsNullOrEmpty(value7) && (value7.Contains("stl")))
+                        {
+                            continue;
+                        }
+                        var value8 = reader.GetValue(31)?.ToString();
+                        if (!string.IsNullOrEmpty(value8) && value8.Contains("Grand Total Net Due"))
+                        {
+                            continue;
+                        }
+                        var value9 = reader.GetValue(32)?.ToString();
+                        if (!string.IsNullOrEmpty(value9) && value9.Contains("Total Net Due"))
+                        {
+                            continue;
+                        }
+                        var value10 = reader.GetValue(12)?.ToString();
+                        if (!string.IsNullOrEmpty(value10) && value10.Contains("Account Total:"))
+                        {
+                            continue;
+                        }
+                        //tran date
+                        row.Col0 = reader.GetValue(1)?.ToString().Replace("\n", "");
+                        if (!string.IsNullOrEmpty(row.Col0))
+                        {
+                            currentDate = row.Col0;
+                        }
+                        //tran id
+                        row.Col1 = reader.GetValue(3)?.ToString().Replace("\n", "");
+                        //ref #
+                        row.Col2 = reader.GetValue(7)?.ToString().Replace("\n", "");
+
+                        //adding values below a colunm
+                        //agent name
+                        row.Col3 = reader.GetValue(8)?.ToString().Replace("\n", "");
+                        if (!string.IsNullOrEmpty(row.Col3) || string.IsNullOrEmpty(val))
+                        {
+                            if (!string.IsNullOrEmpty(row.Col0) && row.Col0.Contains("Account Number"))
+                            {
+                                branchName = "";
+                            }
+                            branchName += row.Col3;
+                        }
+                        //prod
+                        row.Col4 = reader.GetValue(9)?.ToString().Replace("\n", "");
+                        //type
+                        row.Col5 = reader.GetValue(10)?.ToString().Replace("\n", "");
+                        //origin cntry
+                        row.Col6 = reader.GetValue(11)?.ToString().Replace("\n", "");
+                        //rev cntry
+                        row.Col7 = reader.GetValue(13)?.ToString().Replace("\n", "");
+                        //fx rate
+                        row.Col8 = reader.GetValue(15)?.ToString().Replace("\n", "");
+
+                        if (!string.IsNullOrEmpty(row.Col8) && string.IsNullOrEmpty(row.Col0))
+                        {
+                            row.Col0 = currentDate;
+                        }
+                        if (!string.IsNullOrEmpty(row.Col8) && string.IsNullOrEmpty(row.Col3))
+                        {
+                            row.Col3 = branchName;
+                        }
+                        //fx date
+                        row.Col9 = reader.GetValue(19)?.ToString().Replace("\n", "");
+                        //fx margin
+                        row.Col10 = reader.GetValue(20)?.ToString().Replace("\n", "") + reader.GetValue(21)?.ToString();
+                        //ccy
+                        row.Col11 = reader.GetValue(22)?.ToString();
+                        //base amount 
+                        row.Col12 = reader.GetValue(23)?.ToString().Replace("\n", "");
+                        //fee amount
+                        row.Col13 = reader.GetValue(24)?.ToString().Replace("\n", "") + reader.GetValue(25)?.ToString();
+                        //fx rev share amount
+                        row.Col14 = reader.GetValue(28)?.ToString().Replace("\n", "") + reader.GetValue(29)?.ToString() + reader.GetValue(30)?.ToString();
+                        //commission amount
+                        row.Col15 = reader.GetValue(32)?.ToString().Replace("\n", "") + reader.GetValue(33)?.ToString();
+
+                        //total
+                        row.Col16 = reader.GetValue(35)?.ToString();
+
+
+                        if (countHeader == 1)
+                        {
+                            row.Col3 = agentName;
+                            row.Col11 = ccy;
+                            //row.Col14 = excise;
+                            //row.Col15 = computedbaseamnt;
+                        }
+
+                        countHeader++;
+
+                        try
+                        {
+                            double baseamnt = Convert.ToDouble(reader.GetValue(25));
+                            double feeamnt = Convert.ToDouble(reader.GetValue(26));
+
+                            if (reader.GetValue(11) != null && reader.GetValue(12) != null && reader.GetValue(11).ToString() == "MT" && reader.GetValue(12).ToString() == "SEN")
+                            {
+                                row.Col15 = (baseamnt + feeamnt + (feeamnt * per)).ToString();
+                            }
+                            else
+                            {
+                                row.Col15 = reader.GetValue(25)?.ToString();
+                            }
+
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+
+                        if (!string.IsNullOrEmpty(row.Col0))
+                            list.Add(row);
                     }
                 }
-
-                var list2 = ProduceSecondList(inputFile).Skip(1).ToList();
-
-                var list3 = CombineTheTwoLists(list, list2);
-
-
-
-                if (string.IsNullOrEmpty(outputFile))
-                {
-                    string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
-                    Directory.CreateDirectory(outputFolder);
-
-                    string fileName = Path.GetFileNameWithoutExtension(inputFile);
-
-                    outputFile = Path.Combine(outputFolder,
-                        $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
-                }
-
-                WriteToFile(list3, outputFile);
             }
 
+            var list2 = ProduceSecondList(inputFile).Skip(1).ToList();
 
-            private List<ExcelCols> ProduceSecondList(string inputFile)
+            var list3 = CombineTheTwoLists(list, list2);
+
+
+
+            if (string.IsNullOrEmpty(outputFile))
+            {
+                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                Directory.CreateDirectory(outputFolder);
+
+                string fileName = Path.GetFileNameWithoutExtension(inputFile);
+
+                outputFile = Path.Combine(outputFolder,
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_MG_{fileName.Substring(Math.Max(0, fileName.Length - 14)).Replace(" ", "")}.csv");
+            }
+
+            WriteToFile(list3, outputFile);
+        }
+
+
+        private List<ExcelCols> ProduceSecondList(string inputFile)
             {
                 var list3 = new List<ExcelCols>();
 
