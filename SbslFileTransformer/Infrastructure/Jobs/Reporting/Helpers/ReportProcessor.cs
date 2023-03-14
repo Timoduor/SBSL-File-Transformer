@@ -244,7 +244,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                         string col3 = reader.GetValue(3)?.ToString();
                         if (string.IsNullOrEmpty(col3)) continue;
 
-                        if (DateTime.TryParse(col3, out DateTime postedDate))
+                        if (DateTime.TryParseExact(col3, new string[2]{"M/d/yyyy","MM/dd/yyyy"}, DateTimeFormatInfo.InvariantInfo, DateTimeStyles.None, out DateTime postedDate))
                         {
                             try
                             {
