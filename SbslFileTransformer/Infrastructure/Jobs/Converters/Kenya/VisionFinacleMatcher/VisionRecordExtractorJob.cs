@@ -184,7 +184,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                 {
                     ConfigureDataTable = t => new ExcelDataTableConfiguration()
                     {
-                        UseHeaderRow = false
+                        UseHeaderRow = true
                     }
                 });
 
@@ -223,6 +223,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                     AccountNumber = row[10]?.ToString(),
                     ChequeNo = row[11]?.ToString(),
                     AuthorizationCode = row[12]?.ToString(),
+                    PrimaryEntryIDT = row[13]?.ToString(),
                     FileName = glFile,
                     DateExtracted = DateTime.Now
                 };

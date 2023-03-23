@@ -7,7 +7,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
     {
         public static VisionRecordType GetVisionRecordType(string file)
         {
-            VisionRecordType visionRecordType = VisionRecordType.None;
+            VisionRecordType visionRecordType = VisionRecordType.Collections;
 
             if (
                 (file.ToLower().Contains("credit_card") && file.ToLower().Contains("collections_cms")) ||

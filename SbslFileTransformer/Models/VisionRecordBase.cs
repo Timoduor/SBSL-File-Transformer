@@ -25,5 +25,6 @@ namespace SbslFileTransformer.Models
         public DateTime? DateMatched { get; set; }
         public string MatchingFile { get; set; }
         public string FinacleAccount { get; set; }
+        public string PrimaryEntryIDT { get; set; }
     }
 }
