@@ -52,7 +52,7 @@ namespace SbslFileTransformer.Converters.Rwanda
                 if (sGrp.Length != 0)
                 {
 
-                    for (int i = 1; i < sGrp.Length - 1; i++)
+                    for (int i = 1; i < sGrp.Length ; i++)
                     {
 
                         List<string> lx = this.GetJournalDetails(sGrp[i].Split("\n"), ATMNO);
