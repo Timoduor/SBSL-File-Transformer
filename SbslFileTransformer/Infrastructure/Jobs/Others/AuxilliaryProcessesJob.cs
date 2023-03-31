@@ -99,8 +99,26 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
                         string productionFolder = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
                             b.ConfigType == ConfigurationType.Sftp && b.Key == "ProductionFolder")).Value;
 
+                        string key = "ArchiveAllFilesOlderThanDays";
+                        string defaultPeriod = "60";
+
                         string backUpAllFilesPeriod = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
-                            b.ConfigType == ConfigurationType.Setting && b.Key == "BackUpAllFilesPeriod")).Value;
+                            b.ConfigType == ConfigurationType.Setting && b.Key == key)).Value;
+
+                        if (string.IsNullOrEmpty(backUpAllFilesPeriod))
+                        {
+                            await dbContext.Configurations.AddAsync(new Configuration
+                            {
+                                ConfigType = ConfigurationType.Setting,
+                                Key = key,
+                                Updated = DateTime.Now,
+                                Value = defaultPeriod
+                            });
+
+                            await dbContext.SaveChangesAsync();
+
+                            backUpAllFilesPeriod = defaultPeriod;
+                        }
 
                         List<Models.SftpUploadedFile> oldUploadedFiles = await
                             dbContext.UploadedFiles.Where(f => f.UploadedDate < DateTime.Now.AddDays(-7)).ToListAsync();
@@ -118,8 +136,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
                             RecurseSubdirectories = true,
                             MatchCasing = MatchCasing.CaseInsensitive
                         };
-
-
+                        
                         double.TryParse(backUpAllFilesPeriod, out double period);
 
                         memCache.Set(nameof(AuxilliaryProcessesJob), JobState.Running);
@@ -127,8 +144,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
                         foreach (string file in Directory.GetFiles(productionFolder, "*.*", searchOptions))
                         {
                             FileInfo props = new FileInfo(file);
-
-                            if (props.LastWriteTime < DateTime.Now.AddDays(-30))
+                            
+                            if (props.LastWriteTime < DateTime.Now.AddDays(-period))
                             {
                                 string destination = Path.Combine(backUpPath, Path.GetFileName(file));
 
@@ -284,7 +301,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
                     string configuration = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
                         b.ConfigType == ConfigurationType.Setting && b.Key == key))?.Value;
 
-                    if (configuration == null)
+                    if (string.IsNullOrEmpty(configuration))
                     {
                         await dbContext.Configurations.AddAsync(new Configuration
                         {
@@ -334,7 +351,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
                     string configuration = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
                         b.ConfigType == ConfigurationType.Setting && b.Key == key))?.Value;
 
-                    if (configuration == null)
+                    if (string.IsNullOrEmpty(configuration))
                     {
                         await dbContext.Configurations.AddAsync(new Configuration
                         {
