@@ -81,7 +81,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                     files.AddRange(
                         Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")));
 
-                    VisionRecordMatcher mpesaConverter = new VisionRecordMatcher(dbContext);
+                    VisionRecordMatcher mpesaConverter = new VisionRecordMatcher(dbContext, _logger);
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 

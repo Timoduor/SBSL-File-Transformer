@@ -99,59 +99,19 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
                         string productionFolder = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
                             b.ConfigType == ConfigurationType.Sftp && b.Key == "ProductionFolder")).Value;
 
-                        string key = "ArchiveAllFilesOlderThanDays";
-                        string defaultPeriod = "60";
+                        var backUpAllFilesPeriod = await GetBackupAllFilesPeriod(dbContext);
 
-                        string backUpAllFilesPeriod = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
-                            b.ConfigType == ConfigurationType.Setting && b.Key == key)).Value;
+                        var backUpUploadedFiles = await GetUploadedFilesArchiveMaxAge(dbContext);
 
-                        if (string.IsNullOrEmpty(backUpAllFilesPeriod))
-                        {
-                            await dbContext.Configurations.AddAsync(new Configuration
-                            {
-                                ConfigType = ConfigurationType.Setting,
-                                Key = key,
-                                Updated = DateTime.Now,
-                                Value = defaultPeriod
-                            });
+                        double.TryParse(backUpUploadedFiles, out double periodUploaded);
 
-                            await dbContext.SaveChangesAsync();
-
-                            backUpAllFilesPeriod = defaultPeriod;
-                        }
-
-                        List<Models.SftpUploadedFile> oldUploadedFiles = await
-                            dbContext.UploadedFiles.Where(f => f.UploadedDate < DateTime.Now.AddDays(-7)).ToListAsync();
-
-                        foreach (Models.SftpUploadedFile file in oldUploadedFiles)
-                        {
-                            string source = file.FilePath;
-                            string destination = Path.Combine(backUpPath, Path.GetFileName(file.FilePath));
-
-                            if (File.Exists(source)) File.Move(source, destination, true);
-                        }
-
-                        EnumerationOptions searchOptions = new EnumerationOptions
-                        {
-                            RecurseSubdirectories = true,
-                            MatchCasing = MatchCasing.CaseInsensitive
-                        };
-                        
-                        double.TryParse(backUpAllFilesPeriod, out double period);
-
+                        await DeleteOldUploadedFiles(dbContext, backUpPath, periodUploaded);
+                       
                         memCache.Set(nameof(AuxilliaryProcessesJob), JobState.Running);
 
-                        foreach (string file in Directory.GetFiles(productionFolder, "*.*", searchOptions))
-                        {
-                            FileInfo props = new FileInfo(file);
-                            
-                            if (props.LastWriteTime < DateTime.Now.AddDays(-period))
-                            {
-                                string destination = Path.Combine(backUpPath, Path.GetFileName(file));
+                        double.TryParse(backUpAllFilesPeriod, out double period);
 
-                                File.Move(file, destination, true);
-                            }
-                        }
+                        ArchiveAllOldFiles(backUpPath, productionFolder, period);
 
                         memCache.Set(nameof(AuxilliaryProcessesJob), JobState.Completed);
                     }
@@ -165,6 +125,94 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
 
                 _semaphore.Release();
             }
+        }
+
+        private static void ArchiveAllOldFiles(string backUpPath, string productionFolder, double period)
+        {
+            EnumerationOptions searchOptions = new EnumerationOptions
+            {
+                RecurseSubdirectories = true,
+                MatchCasing = MatchCasing.CaseInsensitive
+            };
+
+            foreach (string file in Directory.GetFiles(productionFolder, "*.*", searchOptions))
+            {
+                FileInfo props = new FileInfo(file);
+
+                if (props.LastWriteTime < DateTime.Now.AddDays(-period))
+                {
+                    string destination = Path.Combine(backUpPath, Path.GetFileName(file));
+
+                    File.Move(file, destination, true);
+                }
+            }
+        }
+
+        private static async Task DeleteOldUploadedFiles(ApplicationDbContext dbContext, string backUpPath, double periodUploaded)
+        {
+            List<Models.SftpUploadedFile> oldUploadedFiles = await
+                                        dbContext.UploadedFiles.Where(f => f.UploadedDate < DateTime.Now.AddDays(-periodUploaded)).ToListAsync();
+
+            foreach (Models.SftpUploadedFile file in oldUploadedFiles)
+            {
+                string source = file.FilePath;
+                string destination = Path.Combine(backUpPath, Path.GetFileName(file.FilePath));
+
+                if (File.Exists(source))
+                    File.Move(source, destination, true);
+            }
+        }
+
+        private static async Task<string> GetUploadedFilesArchiveMaxAge(ApplicationDbContext dbContext)
+        {
+            string keyUploadedMaxAge = "UploadedFileArchiveMaxAge";
+            string maxUploadedFileAge = "7";
+
+            string backUpUploadedFiles = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
+                b.ConfigType == ConfigurationType.Setting && b.Key == keyUploadedMaxAge))?.Value;
+
+            if (string.IsNullOrEmpty(backUpUploadedFiles))
+            {
+                await dbContext.Configurations.AddAsync(new Configuration
+                {
+                    ConfigType = ConfigurationType.Setting,
+                    Key = keyUploadedMaxAge,
+                    Updated = DateTime.Now,
+                    Value = maxUploadedFileAge
+                });
+
+                await dbContext.SaveChangesAsync();
+
+                backUpUploadedFiles = maxUploadedFileAge;
+            }
+
+            return backUpUploadedFiles;
+        }
+
+        private static async Task<string> GetBackupAllFilesPeriod(ApplicationDbContext dbContext)
+        {
+            string key = "ArchiveAllFilesOlderThanDays";
+            string defaultPeriod = "30";
+
+            string backUpAllFilesPeriod = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
+                b.ConfigType == ConfigurationType.Setting && b.Key == key))?.Value;
+
+            if (string.IsNullOrEmpty(backUpAllFilesPeriod))
+            {
+                await dbContext.Configurations.AddAsync(new Configuration
+                {
+                    ConfigType = ConfigurationType.Setting,
+                    Key = key,
+                    Updated = DateTime.Now,
+                    Value = defaultPeriod
+                });
+
+                await dbContext.SaveChangesAsync();
+
+                backUpAllFilesPeriod = defaultPeriod;
+            }
+
+            return backUpAllFilesPeriod;
         }
 
         private async Task ClearTempFolder()
@@ -241,49 +289,61 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
                                    backUpFolder;
                 }
 
-                string backUpDirectory = Path.Combine(backUpFolder, "SBSLETL_DB_Backup");
+                var backUpDirectory = PerformDBBackup(connectionString, backUpFolder);
 
-                Directory.CreateDirectory(backUpDirectory);
-
-                string backUpFile = Path.Combine(backUpDirectory, $"{DateTime.Now:yyyy_MM_dd_HH}.sql");
-
-                using (var conn = new MySqlConnection(connectionString))
-                {
-                    using (var cmd = new MySqlCommand())
-                    {
-                        using (MySqlBackup mb = new MySqlBackup(cmd))
-                        {
-                            cmd.Connection = conn;
-                            conn.Open();
-                            mb.ExportToFile(backUpFile);
-                            conn.Close();
-                        }
-                    }
-                }
-
-                //DELETE OLD BACKUPS 2 days or older
-                EnumerationOptions searchOptions = new EnumerationOptions
-                {
-                    RecurseSubdirectories = true,
-                    MatchCasing = MatchCasing.CaseInsensitive
-                };
-
+                //DELETE OLD BACKUPS 2 days or older 
                 memCache?.Set(nameof(AuxilliaryProcessesJob), JobState.Running);
 
-                foreach (string file in Directory.GetFiles(backUpDirectory, "*.*", searchOptions))
-                {
-                    FileInfo props = new FileInfo(file);
-
-                    if (props.LastWriteTime < DateTime.Now.AddDays(-2) ||
-                        props.CreationTime < DateTime.Now.AddDays(-2))
-                        File.Delete(file);
-                }
+                DeleteOldDBBackupFiles(backUpDirectory);
 
                 memCache?.Set(nameof(AuxilliaryProcessesJob), JobState.Completed);
             }
             catch (Exception ex)
             {
                 this._logger.LogError(ex, ex.Message);
+            }
+        }
+
+        private static string PerformDBBackup(string connectionString, string backUpFolder)
+        {
+            string backUpDirectory = Path.Combine(backUpFolder, "SBSLETL_DB_Backup");
+
+            Directory.CreateDirectory(backUpDirectory);
+
+            string backUpFile = Path.Combine(backUpDirectory, $"{DateTime.Now:yyyy_MM_dd_HH}.sql");
+
+            using (var conn = new MySqlConnection(connectionString))
+            {
+                using (var cmd = new MySqlCommand())
+                {
+                    using (MySqlBackup mb = new MySqlBackup(cmd))
+                    {
+                        cmd.Connection = conn;
+                        conn.Open();
+                        mb.ExportToFile(backUpFile);
+                        conn.Close();
+                    }
+                }
+            }
+
+            return backUpDirectory;
+        }
+
+        private static void DeleteOldDBBackupFiles(string backUpDirectory)
+        {
+            EnumerationOptions searchOptions = new EnumerationOptions
+            {
+                RecurseSubdirectories = true,
+                MatchCasing = MatchCasing.CaseInsensitive
+            };
+
+            foreach (string file in Directory.GetFiles(backUpDirectory, "*.*", searchOptions))
+            {
+                FileInfo props = new FileInfo(file);
+
+                if (props.LastWriteTime < DateTime.Now.AddDays(-2) ||
+                    props.CreationTime < DateTime.Now.AddDays(-2))
+                    File.Delete(file);
             }
         }
 

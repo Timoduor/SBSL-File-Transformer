@@ -10,27 +10,41 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacleMatcher;
+using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace SbslFileTransformer.Converters.Kenya
 {
     public class VisionRecordMatcher
     {
         private readonly ApplicationDbContext _dbContext;
+        private readonly ILogger<RecordMatcherJob> _logger;
 
-        public VisionRecordMatcher(ApplicationDbContext dbContext)
+        public VisionRecordMatcher(ApplicationDbContext dbContext, ILogger<RecordMatcherJob> logger)
         {
             this._dbContext = dbContext;
+            this._logger = logger;
         }
 
         public async Task MatchFiles(string finacleFile, string outputPath, VisionRecordType visionRecordType)
         {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
             List<FinacleRec> finacleRecords = await Task.Run(() => this.GetRecordsFromFinacleFile(finacleFile, visionRecordType));
+
+            _logger.LogWarning($"{finacleFile} took {stopwatch.ElapsedMilliseconds/1000} seconds to extract");
 
             IEnumerable<Tuple<string, string>> finacleRefs = finacleRecords.Select(f => new Tuple<string, string>(f.ReferenceNumber, f.AccountNumber)).Distinct();
 
+            stopwatch.Restart();
+
+            List<VisionRecordBase> unmatchedVisionRecords = await this.GetUnmatchedVisionRecords(visionRecordType);
+
+            _logger.LogWarning($"It took {stopwatch.ElapsedMilliseconds / 1000} seconds to extract {unmatchedVisionRecords.Count()} unmatched vision records");
+
             foreach (Tuple<string, string> finRef in finacleRefs)
             {
-                IEnumerable<VisionRecordBase> unmatchedVisionRecords = await this.GetUnmatchedVisionRecords(visionRecordType);
+                stopwatch.Restart();
 
                 List<VisionRecordBase> matchedRecords = new List<VisionRecordBase>();
 
@@ -79,6 +93,8 @@ namespace SbslFileTransformer.Converters.Kenya
                     matchedRecords.AddRange(matchedRecs);
 
                     await this.UpdateVisionRecords(visionRecordType, matchedRecords);
+
+                    _logger.LogWarning($"It took {stopwatch.ElapsedMilliseconds / 1000} seconds to match records for Finacle Ref Num: {finRef.Item1} {finRef.Item2}");
                 }
             }
         }
@@ -113,10 +129,10 @@ namespace SbslFileTransformer.Converters.Kenya
             await this.GenerateFileForSelectedRecords(matchedRecs, outputFile);
         }
 
-        private async Task<IEnumerable<VisionRecordBase>> GetUnmatchedVisionRecords(VisionRecordType visionRecordType)
+        private async Task<List<VisionRecordBase>> GetUnmatchedVisionRecords(VisionRecordType visionRecordType)
         {
-            IEnumerable<VisionRecordBase> visionRecords = await this._dbContext.VisionRecordCollections.Where(v => v.Matched == false)
-                .Select(r => (VisionRecordBase)r).AsNoTracking().ToListAsync();
+            List<VisionRecordBase> visionRecords = await this._dbContext.VisionRecordCollections.Where(v => v.Matched == false)
+                .Select(r => (VisionRecordBase)r).ToListAsync();
 
             return visionRecords;
         }
