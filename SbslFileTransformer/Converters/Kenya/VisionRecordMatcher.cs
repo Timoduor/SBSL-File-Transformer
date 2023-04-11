@@ -78,15 +78,7 @@ namespace SbslFileTransformer.Converters.Kenya
                         v.DateMatched = DateTime.Now;
                         v.MatchingFile = finacleFile;
                         v.FinacleAccount = finacleAccount;
-                    });
-
-                    matchedRecords.ForEach(v =>
-                    {
-                        v.Matched = true;
-                        v.DateMatched = DateTime.Now;
-                        v.MatchingFile = finacleFile;
-                        v.FinacleAccount = finacleAccount;
-                    });
+                    });                    
 
                     await this.CreateFileForReferenceNumber(matchedRecs, finRef.Item1, finRef.Item2, outputPath, visionRecordType);
 
@@ -131,7 +123,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private async Task<List<VisionRecordBase>> GetUnmatchedVisionRecords(VisionRecordType visionRecordType)
         {
-            List<VisionRecordBase> visionRecords = await this._dbContext.VisionRecordCollections.Where(v => v.Matched == false)
+            List<VisionRecordBase> visionRecords = await this._dbContext.VisionRecordCollections.AsNoTracking().Where(v => v.Matched == false)
                 .Select(r => (VisionRecordBase)r).ToListAsync();
 
             return visionRecords;
