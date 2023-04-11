@@ -100,7 +100,11 @@ namespace SbslFileTransformer.Converters
                                     multiplyBy = 1;
                                 if (filePath.ToLower().Contains("_sus") && Entity == "IMUG")
                                     multiplyBy = 1;
+                                if (filePath.ToLower().Contains("_agency") && Entity == "IMUG")
+                                    multiplyBy = 1;
                                 if (filePath.ToLower().Contains("_sus") && Entity == "IMUG" && DorC2==-1)
+                                    multiplyBy = -1;
+                                if (filePath.ToLower().Contains("_agency") && Entity == "IMUG" && DorC2 == -1)
                                     multiplyBy = -1;
                                 if (filePath.ToLower().Contains("wu_balances") && Entity == "IMUG" && DorC2 == 1)
                                     multiplyBy = 1;
