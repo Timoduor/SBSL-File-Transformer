@@ -326,7 +326,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 daysRecordsPairs.TryAdd(report.DaysRange[i], items);
             }
 
-            string agingExcel = await this.CreateModifiedAgingExcel(report.TempReportPath, report.DaysRange);
+            string agingExcel = await this.CreateModifiedAgingExcel(report.TempReportPath, report.DaysRange, report.ReportId);
 
             if (daysRecordsPairs.Any() && !report.TempReportPath.ToLower().Contains("proofing"))
             {
@@ -337,7 +337,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             return (report, new Dictionary<int, string>());
         }
 
-        private async Task<string> CreateModifiedAgingExcel(string inputFile, int[] daysRange)
+        private async Task<string> CreateModifiedAgingExcel(string inputFile, int[] daysRange, long id)
         {
             //ignore balance proofing reports
             if (inputFile.ToLower().Contains("proofing"))
@@ -348,71 +348,79 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             string outputFilePath =
                 Path.Combine(await FileHelpers.GetTempPath(this.ServiceScopeFactory), "Aged_" + inputFileName);
 
-            using (ExcelPackage package = new ExcelPackage(new FileInfo(inputFile)))
+            try
             {
-                ExcelWorksheet sheet = package.Workbook.Worksheets.First();
-
-                DateTime maxDate = DateTime.Now;
-
-                maxDate = DateTime.Now.DayOfWeek == DayOfWeek.Monday ? maxDate.AddDays(-2) : maxDate.AddDays(-1);
-                
-                sheet.InsertColumn(5, 1);
-
-                //set maxDate only if it is not a balance proofing report
-                if (!inputFileName.ToLower().Contains("proofing"))
+                using (ExcelPackage package = new ExcelPackage(new FileInfo(inputFile)))
                 {
-                    sheet.Cells["A5"].Value = $"Recon Date: {maxDate:MM/dd/yyyy}";
-                }
+                    ExcelWorksheet sheet = package.Workbook.Worksheets.First();
 
-                sheet.Cells["A5"].Style.Font.Bold = true;
-                //set header
-                sheet.Cells["E6"].Value = "DAYS OVERDUE";
+                    DateTime maxDate = DateTime.Now;
 
-                //set formula for cells
-                ExcelCellAddress start = sheet.Dimension.Start;
-                ExcelCellAddress end = sheet.Dimension.End;
+                    maxDate = DateTime.Now.DayOfWeek == DayOfWeek.Monday ? maxDate.AddDays(-2) : maxDate.AddDays(-1);
 
-                for (int i = start.Row + 7; i <= end.Row; i++)
-                {
-                    string dateFromExcel = sheet.Cells[$"D{i}"].Value?.ToString();
+                    sheet.InsertColumn(5, 1);
 
-                    if (!string.IsNullOrEmpty(dateFromExcel))
+                    //set maxDate only if it is not a balance proofing report
+                    if (!inputFileName.ToLower().Contains("proofing"))
                     {
-                        if (!DateTime.TryParse(dateFromExcel, out DateTime outputDate))
-                        {
-                            if(double.TryParse(dateFromExcel, out double doubleFromExcel))
-                            {
-                                outputDate = DateTime.FromOADate(doubleFromExcel);
-                            }
-                            else
-                            {
-                                continue;
-                            }
-                        }
-
-                        int diff = (maxDate.Date - outputDate.Date).Days;
-
-                        sheet.Cells[$"E{i}"].Value = diff;
-
-                        sheet.Cells[$"E{i}"].Style.Numberformat.Format = "0";
-
-
-                        if (diff >= daysRange[0] && diff <= daysRange[1])
-                            sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.GreenYellow);
-
-                        if (diff > daysRange[1] && diff <= daysRange[2])
-                            sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.RosyBrown);
-
-                        if (diff > daysRange[2] && diff <= daysRange[3])
-                            sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Yellow);
-
-                        if (diff > daysRange[3])
-                            sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Red);
+                        sheet.Cells["A5"].Value = $"Recon Date: {maxDate:MM/dd/yyyy}";
                     }
-                }
 
-                //save new excel
-                await package.SaveAsAsync(new FileInfo(outputFilePath));
+                    sheet.Cells["A5"].Style.Font.Bold = true;
+                    //set header
+                    sheet.Cells["E6"].Value = "DAYS OVERDUE";
+
+                    //set formula for cells
+                    ExcelCellAddress start = sheet.Dimension.Start;
+                    ExcelCellAddress end = sheet.Dimension.End;
+
+                    for (int i = start.Row + 7; i <= end.Row; i++)
+                    {
+                        string dateFromExcel = sheet.Cells[$"D{i}"].Value?.ToString();
+
+                        if (!string.IsNullOrEmpty(dateFromExcel))
+                        {
+                            if (!DateTime.TryParse(dateFromExcel, out DateTime outputDate))
+                            {
+                                if (double.TryParse(dateFromExcel, out double doubleFromExcel))
+                                {
+                                    outputDate = DateTime.FromOADate(doubleFromExcel);
+                                }
+                                else
+                                {
+                                    continue;
+                                }
+                            }
+
+                            int diff = (maxDate.Date - outputDate.Date).Days;
+
+                            sheet.Cells[$"E{i}"].Value = diff;
+
+                            sheet.Cells[$"E{i}"].Style.Numberformat.Format = "0";
+
+
+                            if (diff >= daysRange[0] && diff <= daysRange[1])
+                                sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.GreenYellow);
+
+                            if (diff > daysRange[1] && diff <= daysRange[2])
+                                sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.RosyBrown);
+
+                            if (diff > daysRange[2] && diff <= daysRange[3])
+                                sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Yellow);
+
+                            if (diff > daysRange[3])
+                                sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Red);
+                        }
+                    }
+
+                    //save new excel
+                    await package.SaveAsAsync(new FileInfo(outputFilePath));
+                }
+            }
+            catch(Exception ex)
+            {
+                File.Create(outputFilePath).Close();
+                this.Logger.LogError(ex, $"Error Creating modified Aging Excel file {outputFilePath} for input file: {inputFile} with ID: {id}");
             }
 
             return outputFilePath;

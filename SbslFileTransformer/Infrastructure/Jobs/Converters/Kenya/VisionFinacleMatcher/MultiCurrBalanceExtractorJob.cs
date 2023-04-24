@@ -29,7 +29,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            this._logger.LogInformation("Starting Vision Record Extractor Job");
+            this._logger.LogInformation("Starting MultiCurrBalance Extractor Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
@@ -45,7 +45,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
             {
                 await _semaphore.WaitAsync();
 
-                this._logger.LogInformation("Running Record Matcher Extractor job");
+                this._logger.LogInformation("Running MultiCurrBalance Extractor job");
 
                 string prodFolder = string.Empty;
                 string sbFolder = string.Empty;

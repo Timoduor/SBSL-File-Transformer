@@ -1,4 +1,6 @@
-﻿using ExcelDataReader;
+﻿extern alias MySqlDataAlias;
+
+using ExcelDataReader;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -22,7 +24,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
 {
     public class VisionRecordExtractorJob : ConverterJobBase<VisionRecordExtractorJob>, IHostedService
     {
-        int batchSize = 5000;
+        int batchSize = 100000;
 
         protected override string JobName { get; set; } = nameof(VisionRecordExtractorJob);
         public VisionRecordExtractorJob(ILogger<VisionRecordExtractorJob> logger, IServiceScopeFactory serviceScopeFactory,
@@ -114,12 +116,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                             {
                                 try
                                 {
-                                    Stopwatch recordReader = new Stopwatch();
-                                    recordReader.Start();
+                                    Stopwatch recordReader = Stopwatch.StartNew();
 
                                     List<VisionRecordBase> records = await this.GetRecordsFromVisionFile(file);
 
-                                    this._logger.LogInformation($"It took {recordReader.ElapsedMilliseconds / 1000} seconds to READ {records.Count} vision records from file");
+                                    this._logger.LogInformation($"It took {recordReader.ElapsedMilliseconds / 1000} seconds to READ {records.Count} vision records from file {file}");
 
                                     recordReader.Restart();
 
@@ -132,7 +133,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
 
                                     await Task.WhenAll(tasks);
 
-                                    this._logger.LogInformation($"It took {recordReader.ElapsedMilliseconds / 1000} seconds to SAVE the records to the database");
+                                    this._logger.LogInformation($"It took {recordReader.ElapsedMilliseconds / 1000} seconds to SAVE the {records.Count} records from file {file} to the database");
                                 }
                                 catch (Exception ex)
                                 {
@@ -167,9 +168,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
 
         private async Task<List<VisionRecordBase>> GetRecordsFromVisionFile(string glFile)
         {
+            this._logger.LogInformation($"Started Vision Record Extraction for {glFile.ToUpper()}");
+
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             List<VisionRecordBase> glCmsRecs = new List<VisionRecordBase>();
+
+            Stopwatch sw = Stopwatch.StartNew();
 
             using (FileStream stream = File.Open(glFile, FileMode.Open, FileAccess.Read))
             {
@@ -180,17 +185,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                 else
                     reader = ExcelReaderFactory.CreateReader(stream);
 
-                DataSet dataSet = reader.AsDataSet(new ExcelDataSetConfiguration()
+                while (reader.Read())
                 {
-                    ConfigureDataTable = t => new ExcelDataTableConfiguration()
-                    {
-                        UseHeaderRow = true
-                    }
-                });
+                    if (!DateTime.TryParse(reader.GetValue(0)?.ToString(), out DateTime result))
+                        continue;
 
-                foreach (IEnumerable<DataRow> rows in dataSet.Tables[0].Rows.OfType<DataRow>().Batch(batchSize))
-                {
-                    AddRecordsToList(rows, glCmsRecs, glFile);
+                    AddRecordsToList(reader, result, glCmsRecs, glFile);
                 }
 
                 await stream.FlushAsync();
@@ -198,54 +198,51 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
                 stream.Close();
             }
 
+            this._logger.LogInformation($"Finished Vision Record Extraction for {glFile.ToUpper()} in {sw.ElapsedMilliseconds} milliseconds");
+
             return glCmsRecs;
         }
 
-        private void AddRecordsToList(IEnumerable<DataRow> rows, List<VisionRecordBase> glCmsRecs, string glFile)
+        private void AddRecordsToList(IExcelDataReader reader, DateTime extractedDate, List<VisionRecordBase> glCmsRecs, string glFile)
         {
-            foreach (var row in rows)
+            var glRec = new VisionRecordCollection
             {
-                if (!DateTime.TryParse(row[0]?.ToString(), out DateTime result))
-                    continue;
+                BankingDate = extractedDate,
+                TransDetails = reader.GetValue(1)?.ToString(),
+                TransID = reader.GetValue(2)?.ToString(),
+                ReferenceNumber = reader.GetValue(3)?.ToString(),
+                GLTransCode = reader.GetValue(4)?.ToString(),
+                CardNumber = reader.GetValue(5)?.ToString(),
+                CreditAmount = Convert.ToDouble(reader.GetValue(6)?.ToString()),
+                DebitAmount = Convert.ToDouble(reader.GetValue(7)?.ToString()),
+                CustomerName = reader.GetValue(8)?.ToString(),
+                ContractNumber = reader.GetValue(9)?.ToString(),
+                AccountNumber = reader.GetValue(10)?.ToString(),
+                ChequeNo = reader.GetValue(11)?.ToString(),
+                AuthorizationCode = reader.GetValue(12)?.ToString(),
+                PrimaryEntryIDT = reader.GetValue(13)?.ToString(),
+                FileName = glFile,
+                DateExtracted = DateTime.Now
+            };
 
-                var glRec = new VisionRecordCollection
-                {
-                    BankingDate = result,
-                    TransDetails = row[1]?.ToString(),
-                    TransID = row[2]?.ToString(),
-                    ReferenceNumber = row[3]?.ToString(),
-                    GLTransCode = row[4]?.ToString(),
-                    CardNumber = row[5]?.ToString(),
-                    CreditAmount = Convert.ToDouble(row[6]?.ToString()),
-                    DebitAmount = Convert.ToDouble(row[7]?.ToString()),
-                    CustomerName = row[8]?.ToString(),
-                    ContractNumber = row[9]?.ToString(),
-                    AccountNumber = row[10]?.ToString(),
-                    ChequeNo = row[11]?.ToString(),
-                    AuthorizationCode = row[12]?.ToString(),
-                    PrimaryEntryIDT = row[13]?.ToString(),
-                    FileName = glFile,
-                    DateExtracted = DateTime.Now
-                };
-
-                glCmsRecs.Add(glRec);
-            }
+            glCmsRecs.Add(glRec);
         }
 
         private async Task InsertRecordsToDb(List<VisionRecordBase> records)
         {
-            if (records == null || !records.Any())
-                return;
-            
+            Stopwatch sw = Stopwatch.StartNew();
+
             using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
             {
                 using (ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>())
                 {
-                    dbContext.VisionRecordCollections.AddRange(
-                        VisionCommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordCollection>(records));
+                    await dbContext.VisionRecordCollections
+                        .AddRangeAsync(VisionCommonHelpers.ConvertParentToChild<VisionRecordBase, VisionRecordCollection>(records));
 
                     await dbContext.SaveChangesAsync();
                 }
+
+                this._logger.LogInformation($"Added {records.Count} vision records to DbContext in {sw.ElapsedMilliseconds} milliseconds");
             }
         }
     }

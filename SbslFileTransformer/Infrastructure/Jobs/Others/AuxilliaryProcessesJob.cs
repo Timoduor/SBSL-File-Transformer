@@ -221,7 +221,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
             {
                 string tempFolder = await FileHelpers.GetTempPath(this._serviceScopeFactory);
 
-                //DELETE OLD BACKUPS 2 days or older
+                //DELETE OLD BACKUPS 7 days or older
                 EnumerationOptions searchOptions = new EnumerationOptions
                 {
                     RecurseSubdirectories = true,
@@ -291,7 +291,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
 
                 var backUpDirectory = PerformDBBackup(connectionString, backUpFolder);
 
-                //DELETE OLD BACKUPS 2 days or older 
+                //DELETE OLD BACKUPS 7 days or older 
                 memCache?.Set(nameof(AuxilliaryProcessesJob), JobState.Running);
 
                 DeleteOldDBBackupFiles(backUpDirectory);
@@ -341,8 +341,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
             {
                 FileInfo props = new FileInfo(file);
 
-                if (props.LastWriteTime < DateTime.Now.AddDays(-2) ||
-                    props.CreationTime < DateTime.Now.AddDays(-2))
+                if (props.LastWriteTime < DateTime.Now.AddDays(-7) ||
+                    props.CreationTime < DateTime.Now.AddDays(-7))
                     File.Delete(file);
             }
         }
@@ -406,7 +406,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
                     string key = "VisionRecordsMaxAgeInDays";
-                    string defaultAge = "30";
+                    string defaultAge = "14";
 
                     string configuration = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
                         b.ConfigType == ConfigurationType.Setting && b.Key == key))?.Value;
