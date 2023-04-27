@@ -41,12 +41,16 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
                     while (reader.Read())
                     {
                         var row = new ExcelCols();
+
                         var val1 = reader.GetValue(0)?.ToString();
+
                         var val = reader.GetValue(2)?.ToString();
+
                         if (val != null && reader.GetValue(2).ToString().StartsWith("Code"))
                         {
                             code = reader.GetValue(2)?.ToString();
                         }
+
                         //Logic for title
                         if (reader.GetValue(3) != null)
                         {
@@ -60,15 +64,30 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
                                 Title = "Credit";
                             }
                         }
+
                         var value = reader.GetValue(4)?.ToString();
+
                         if (string.IsNullOrEmpty(value))
                         {
                             continue;
                         }
+
+
                         if (code.Equals("Code - 032"))
                         {
                             row.Col15 = "MT104";
                         }
+                        if (code.Equals("Code - 035"))
+                        {
+                            row.Col15 = "MT104";
+                        }
+
+                        //if (row.Col3 != null && code.Equals("Code - 035") 
+                        //    && row.Col3.Contains("pacs.003. 001.08"))
+                        //{
+                        //    row.Col15 = "MT104";
+                        //}
+
                         else if (code.Equals("Code - 012"))
                         {
                             row.Col15 = "MT971";
@@ -77,31 +96,42 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
                         {
                             row.Col15 = "MT971";
                         }
-                        else if (code.Equals("Code - 010") && val1.StartsWith("MACA"))
+                        else if (code.Equals("Code - 010"))
                         {
                             row.Col15 = "MT971";
                         }
-                        else if (code.Equals("Code - 010") && !val1.StartsWith("MACA"))
-                        {
-                            row.Col15 = "MT202";
-                        }
+
+                        //else if (code.Equals("Code - 010") && val1.StartsWith("MACA"))
+                        //{
+                        //    row.Col15 = "MT971";
+                        //}
+
+                        //else if (code.Equals("Code - 010") && !val1.StartsWith("MACA"))
+                        //{
+                        //    row.Col15 = "MT202";
+                        //}
+
                         else if (reader.GetValue(5) != null &&
+                          !code.Equals("Code - 010") &&
                           !code.Equals("Code - 011") &&
                           !code.Equals("Code - 012") &&
                           reader.GetValue(5).ToString().Equals("pacs.009. 001.08"))
                         {
                             row.Col15 = "MT202";
                         }
+
                         else if (reader.GetValue(19) != null &&
                           !code.Equals("Code - 032") &&
                           reader.GetValue(19)?.ToString() == "Active" ||
                           reader.GetValue(19)?.ToString() == "Rejected")
                         {
                             row.Col15 = "MT102";
+
                         }
+
                         else if (row.Col3 != null && row.Col13 != null &&
-                           row.Col3.Contains("pacs.008. 001.08") &&
-                           row.Col13.Contains("Bulk"))
+                            row.Col3.Contains("pacs.008. 001.08") &&
+                            row.Col13.Contains("Bulk"))
                         {
                             row.Col15 = "MT102";
                         }
@@ -109,17 +139,22 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
                         {
                             row.Col15 = "MT103";
                         }
+
+
                         //logic for child node
                         //The value at index 0 is null for the child row hence the check
                         if (reader.GetValue(19)?.ToString() == "Active" || reader.GetValue(19)?.ToString() == "Rejected")
                         {
                             //logic to read child columns
+
                             //Reference
                             row.Col0 = reader.GetValue(4)?.ToString().Replace("\n", "");
+
                             //Codes colunm
                             row.Col1 = list.Last().Col1;
                             //Value Date
                             row.Col2 = list.Last().Col2;
+
                             row.Col3 = list.Last().Col3;
                             //Debit account
                             row.Col4 = list.Last().Col4;
@@ -127,7 +162,9 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
                             row.Col5 = reader.GetValue(7)?.ToString() + reader.GetValue(10)?.ToString();
                             //Credit account
                             row.Col6 = list.Last().Col6;
+
                             row.Col7 = reader.GetValue(13)?.ToString() + reader.GetValue(14)?.ToString();
+
                             row.Col8 = list.Last().Col8;
                             //Amount
                             row.Col9 = reader.GetValue(18)?.ToString(); ;
@@ -152,47 +189,65 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
                             }
                             list.Add(row);
                         }
+
                         else
                         {
                             //logic for parent
+
+
                             //Reference
                             row.Col0 = reader.GetValue(0)?.ToString().Replace("\n", "");
+
                             //Codes colunm 
                             row.Col1 = code;
+
                             //Value Date
                             row.Col2 = reader.GetValue(4)?.ToString();
+
                             //Type
                             row.Col3 = reader.GetValue(5)?.ToString();
+
                             //Debit Account
                             row.Col4 = reader.GetValue(6)?.ToString().Replace("\n", "");
+
                             //Odering Customer/Drawer
                             row.Col5 = reader.GetValue(8)?.ToString();
+
                             //Credit Account
                             row.Col6 = reader.GetValue(11)?.ToString().Replace("\n", "");
+
                             //Beneficiary
                             row.Col7 = reader.GetValue(12)?.ToString();
+
                             //Remittance infos
                             row.Col8 = reader.GetValue(13)?.ToString();
+
                             //Amount
                             row.Col9 = reader.GetValue(14)?.ToString();
+
                             //Input Time
                             row.Col10 = reader.GetValue(15)?.ToString();
+
                             //Status
                             row.Col11 = reader.GetValue(17)?.ToString();
+
                             //Modification Time
                             row.Col12 = reader.GetValue(18)?.ToString();
                             //DR_CR
                             row.Col14 = Title;
+
                             if (countHeader == 0)
                             {
                                 row.Col13 = status;
                                 row.Col14 = DR_CR;
                                 row.Col15 = Type_id;
+
                                 countHeader++;
                             }
                             list.Add(row);
                         }
                     }
+
                 }
             }
 

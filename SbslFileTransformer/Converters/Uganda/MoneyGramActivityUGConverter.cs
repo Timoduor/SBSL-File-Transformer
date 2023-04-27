@@ -70,7 +70,7 @@ namespace SbslFileTransformer.Converters.Uganda
                         row.Col2 = reader.GetValue(8)?.ToString().Replace("\n", "");
 
                         //agent name
-                        row.Col3 = reader.GetValue(6)?.ToString().Replace("\n", "");
+                        row.Col3 = reader.GetValue(6)?.ToString().Replace("\n", "").Substring(24);
                         if (string.IsNullOrEmpty(row.Col3) || string.IsNullOrEmpty(val))
                         {
 
