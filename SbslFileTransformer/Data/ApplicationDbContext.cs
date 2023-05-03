@@ -23,5 +23,6 @@ namespace SbslFileTransformer.Data
         public DbSet<VisionRecordCollection> VisionRecordCollections { get; set; }
         public DbSet<VisionRecordCreditSettlement> VisionRecordCreditSettlements { get; set; }
         public DbSet<VisionRecordDebtors> VisionRecordDebtors { get; set; }
+        public DbSet<ReportConfiguration> ReportConfigurations { get; set; }
     }
 }

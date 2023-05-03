@@ -1,0 +1,83 @@
+﻿@model ReportConfiguration
+<div class="row">
+    <div class="col-md-6">
+        <h4>Report Details</h4>
+    </div>
+    <div class="col-md-6">
+        <a class="btn btn-info float-right" asp-area="" asp-controller="ReportConfiguration" asp-action="Index">Back to Report Config List</a>
+    </div>
+</div>
+<br />
+<section class="vh-80" style="background-color: #f4f5f7;">
+    <div class="container py-5 h-50">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col col-lg-12 mb-4 mb-lg-0">
+                <div class="card mb-3" style="border-radius: .5rem;">
+                    <div class="row g-0">
+                        <div class="col-md-4"
+                             style="border-top-left-radius: .5rem; border-bottom-left-radius: .5rem;">
+                            <div class="card-body p-4">                                
+                                <h4>Description</h4>
+                                <p>(Id=@Model.Id)</p>
+                                <hr />
+                                <p style="height: 600px; overflow:auto;">@Model.ReportDescription</p>
+                                <i class="far fa-edit mb-5"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body p-4">
+                                <div class="row">
+                                    <div class="col-md-6 d-flex justify-content-start">
+                                        <h5>Days Overdue:&nbsp; <b>@Model.DaysOverdue</b></h5>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h5>Is Enabled: &nbsp;</h5>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <input type="checkbox" checked="@Model.IsEnabled" onclick="return false" class="form-control form-control-sm" style="vertical-align: middle;" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br/>   
+                                <hr class="mt-0 mb-4">
+                                <h6>Report Name Keywords</h6>
+                                <hr class="mt-0 mb-4">
+                                <div class="row pt-1" style="height: 150px; overflow:auto;">
+                                    <ol>
+                                        @foreach (var keyword in Model.NameKeywords.Split(','))
+                                        {
+                                            <li>@keyword</li>
+                                        }
+                                    </ol>
+                                </div>
+                                <h6>Report Column Keywords</h6>
+                                <hr class="mt-0 mb-4">
+                                <div class="row pt-1" style="height: 150px; overflow:auto;">
+                                    <ol>
+                                        @foreach (var keyword in Model.ColumnKeywords.Split(','))
+                                        {
+                                            <li>@keyword</li>
+                                        }
+                                    </ol>
+                                </div>
+                                <h6>Recipient Emails</h6>
+                                <hr class="mt-0 mb-4">
+                                <div class="row pt-1" style="height: 150px; overflow:auto;">
+                                    <ol class="list-inline-item">
+                                        @foreach (var keyword in Model.RecipientEmails.Split(','))
+                                        {
+                                            <li>@keyword</li>
+                                        }
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

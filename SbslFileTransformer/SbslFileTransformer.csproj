@@ -133,6 +133,9 @@
     <None Update="DLLs\BouncyCastle.Crypto.dll">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
+    <None Update="EscalationUploads\sample_escalations.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="InstallScripts\Install.ps1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

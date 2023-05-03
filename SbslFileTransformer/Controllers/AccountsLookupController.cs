@@ -182,7 +182,7 @@ namespace SbslFileTransformer.Controllers
                     await excel.CopyToAsync(stream);
                 }
 
-                string failedInserts = await AccountsHelper.ProcessedExcelUpload(filePath, this._dbContext);
+                string failedInserts = await UploadHelpers.ProcessedAccountsExcelUpload(filePath, this._dbContext);
 
                 if (!string.IsNullOrEmpty(failedInserts))
                 {
