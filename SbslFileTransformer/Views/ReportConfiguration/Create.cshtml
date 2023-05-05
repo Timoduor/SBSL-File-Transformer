@@ -1,0 +1,63 @@
+﻿@model ReportConfiguration
+
+<div class="row">
+    <div class="col-md-6">
+        <h4>Create New Configuration</h4>
+    </div>
+    <div class="col-md-6">
+        <a class="btn btn-info float-right" asp-area="" asp-controller="ReportConfiguration" asp-action="Index">Back to Report Config List</a>
+    </div>
+</div>
+<br />
+
+<section class="vh-80" style="background-color: #f4f5f7;">
+    <div class="container py-5 h-50">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col col-lg-12 mb-4 mb-lg-0">
+                <div class="card mb-3" style="border-radius: .5rem;">
+
+                    <form asp-controller="ReportConfiguration" asp-action="Create" method="post" class="form-check form-group col-form-label-lg form-row form-text">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="form-group">
+                            <label asp-for="ReportDescription">Report Description:</label>
+                            <input asp-for="ReportDescription" class="form-control" />
+                            <span asp-validation-for="ReportDescription" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="NameKeywords">Name Keywords:</label>
+                            <input asp-for="NameKeywords" class="form-control" />
+                            <span asp-validation-for="NameKeywords" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="ColumnKeywords">Column Keywords:</label>
+                            <input asp-for="ColumnKeywords" class="form-control" />
+                            <span asp-validation-for="ColumnKeywords" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="DaysOverdue">Column Keywords:</label>
+                            <input asp-for="DaysOverdue" class="form-control" />
+                            <span asp-validation-for="DaysOverdue" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="RecipientEmails">Recipient Emails:</label>
+                            <input asp-for="RecipientEmails" class="form-control" />
+                            <span asp-validation-for="RecipientEmails" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="submit" value="Create" class="btn btn-primary" />
+                                </div>
+                                <div class="col-md-6">
+                                    <a asp-controller="ReportConfiguration" asp-action="Index" class="btn btn-dark">Cancel</a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

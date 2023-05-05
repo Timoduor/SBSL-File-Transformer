@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
+using SbslFileTransformer.Models;
 
 namespace SbslFileTransformer.Controllers
 {
@@ -44,42 +46,76 @@ namespace SbslFileTransformer.Controllers
         // GET: ReportConfigurationController/Create
         public ActionResult Create()
         {
-            return View();
+            var configuration = new ReportConfiguration();
+
+            return View(configuration);
         }
 
         // POST: ReportConfigurationController/Create
         [HttpPost]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<ActionResult> Create(ReportConfiguration configuration)
         {
             try
-            {                
+            {
+                if (!string.IsNullOrEmpty(configuration.ReportDescription?.Trim())
+                    && !string.IsNullOrEmpty(configuration.NameKeywords?.Trim())
+                    && !string.IsNullOrEmpty(configuration.ColumnKeywords?.Trim())
+                    && !string.IsNullOrEmpty(configuration.RecipientEmails?.Trim()))
+                {
+                    configuration.IsEnabled = true;
+
+                    await _dbContext.ReportConfigurations.AddAsync(configuration);
+
+                    await _dbContext.SaveChangesAsync();
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Some required fields are missing!");
+                    return View(configuration);
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError("Error creating report config", ex);
-                return View();
+                return View(configuration);
             }
 
             return RedirectToAction(nameof(Index));
         }
 
         // GET: ReportConfigurationController/Edit/5
-        public ActionResult Edit(int id)
+        public async Task<ActionResult> Edit(int id)
         {
-            return View();
+            var config = await _dbContext.ReportConfigurations.FindAsync(id);
+
+            return View(config);
         }
 
         // POST: ReportConfigurationController/Edit/5
         [HttpPost]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<ActionResult> Edit(ReportConfiguration configuration)
         {
             try
-            {                
+            {
+                if (!string.IsNullOrEmpty(configuration.ReportDescription?.Trim())
+                    && !string.IsNullOrEmpty(configuration.NameKeywords?.Trim())
+                    && !string.IsNullOrEmpty(configuration.ColumnKeywords?.Trim())
+                    && !string.IsNullOrEmpty(configuration.RecipientEmails?.Trim()))
+                {
+                    var config = _dbContext.ReportConfigurations.Update(configuration);
+
+                    await _dbContext.SaveChangesAsync();
+                }
+                else
+                {
+                    ModelState.AddModelError("","Some required fields are missing!");
+                    return View(configuration);
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError("Error editing report config", ex);
-                return View();
+                return View(configuration);
             }
 
             return RedirectToAction(nameof(Index));
@@ -128,15 +164,15 @@ namespace SbslFileTransformer.Controllers
         {
             try
             {
-                 var report = await _dbContext.ReportConfigurations.FindAsync(Convert.ToInt32(collection["id"]));
+                var report = await _dbContext.ReportConfigurations.FindAsync(Convert.ToInt32(collection["id"]));
 
                 report.IsEnabled = Convert.ToBoolean(collection["IsEnabled"]);
 
                 _dbContext.Update(report);
 
-                await _dbContext.SaveChangesAsync();                
+                await _dbContext.SaveChangesAsync();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError("Error saving report config enable/disable state", ex);
             }

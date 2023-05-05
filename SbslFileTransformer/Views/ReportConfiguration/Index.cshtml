@@ -116,7 +116,7 @@
                                 <a class="btn btn-primary btn-sm" asp-controller="ReportConfiguration" asp-action="Details" asp-route-id="@Model[i].Id">View</a>
                             </td>
                             <td style="max-width:5%">
-                                <a class="btn btn-secondary btn-sm" asp-controller="ReportConfiguration" asp-action="Edit" asp-route-id="@Model[i].Id">Edit</a>
+                                <a class="btn btn-dark btn-sm" asp-controller="ReportConfiguration" asp-action="Edit" asp-route-id="@Model[i].Id">Edit</a>
                             </td>
                             <td style="max-width:5%">
                                 <input type="checkbox" checked="@Model[i].IsEnabled" data-toggle="modal" data-id="@Model[i].Id" data-target="#disableModal" class="form-control form-control-sm" asp-controller="ReportConfiguration" asp-action="Disable" asp-route-id="@Model[i].Id" />
