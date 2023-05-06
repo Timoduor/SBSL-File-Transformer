@@ -426,28 +426,28 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             return outputFilePath;
         }
 
-        private async Task<Dictionary<int, string>> CreateCsvFiles(Dictionary<int, List<OpenItem>> items,
-            IServiceScopeFactory serviceScopeFactory, string reportName)
-        {
-            Dictionary<int, string> dict = new Dictionary<int, string>();
-
-            foreach (KeyValuePair<int, List<OpenItem>> group in items)
+            private async Task<Dictionary<int, string>> CreateCsvFiles(Dictionary<int, List<OpenItem>> items,
+                IServiceScopeFactory serviceScopeFactory, string reportName)
             {
-                string tempFilePath = Path.Combine(await FileHelpers.GetTempPath(serviceScopeFactory),
-                    $"{DateTime.Now.ToString("yyyy_MM_dd_")}_{reportName}_{group.Key}_Days_Overdue_.csv");
+                Dictionary<int, string> dict = new Dictionary<int, string>();
 
-                using (StreamWriter writer = new StreamWriter(tempFilePath))
+                foreach (KeyValuePair<int, List<OpenItem>> group in items)
                 {
-                    using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                    string tempFilePath = Path.Combine(await FileHelpers.GetTempPath(serviceScopeFactory),
+                        $"{DateTime.Now.ToString("yyyy_MM_dd_")}_{reportName}_{group.Key}_Days_Overdue_.csv");
+
+                    using (StreamWriter writer = new StreamWriter(tempFilePath))
                     {
-                        await csv.WriteRecordsAsync(group.Value);
+                        using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                        {
+                            await csv.WriteRecordsAsync(group.Value);
+                        }
                     }
+
+                    dict.Add(group.Key, tempFilePath);
                 }
 
-                dict.Add(group.Key, tempFilePath);
+                return dict;
             }
-
-            return dict;
-        }
     }
 }

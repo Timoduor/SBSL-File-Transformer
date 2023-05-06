@@ -21,5 +21,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Models
         public string FunctionalArea { get; set; }
         public string ActiveCertStatus { get; set; }
         public string ItemId { get; set; }
+        public string Column16 { get; set; }
+        public string Column17 { get; set; }
+        public string Column18 { get; set; }
+        public string Column19 { get; set; }
+        public string Column20 { get; set; }
     }
 }

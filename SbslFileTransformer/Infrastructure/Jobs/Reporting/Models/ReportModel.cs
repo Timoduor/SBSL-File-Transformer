@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using SbslFileTransformer.Models.Enums;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Models
@@ -20,5 +21,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Models
         public ReportCategory Category { get; set; } = ReportCategory.Default;
         public string TempReportPath { get; set; }
         public int[] DaysRange { get; set; }
+
+        public string ModifiedReportPath { get; set; } 
+
+        public List<OpenItem> ReportContent { get; set; }
     }
 }

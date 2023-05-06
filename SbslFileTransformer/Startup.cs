@@ -32,6 +32,9 @@ using SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda.BNR;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using SbslFileTransformer.Infrastructure.Jobs.Extractors.Uganda;
 using SbslFileTransformer.Middleware;
+using SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2.Interfaces;
+using SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers;
+using SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2;
 
 namespace SbslFileTransformer
 {
@@ -89,9 +92,15 @@ namespace SbslFileTransformer
             services.AddTransient<EncryptionManager>();
             services.AddTransient<EmailSender>();
 
+            //Reporting
+            //services.AddHostedService<ReportEngineJob>();
+            services.AddTransient<IReportsDownloader, ReportListDownloader>();
+            services.AddTransient<IReportProcessor, ReportProcessorV2>();
+            services.AddHostedService<ReportEngineJobV2>();
+
             //SPRINT 1
             services.AddHostedService<SftpIndependentJob>();
-            services.AddHostedService<ReportEngineJob>();
+            
             services.AddHostedService<MtBalanceExtractorJob>();
             services.AddHostedService<AuxilliaryProcessesJob>();
             services.AddHostedService<GLBalanceExtractorJob>();
