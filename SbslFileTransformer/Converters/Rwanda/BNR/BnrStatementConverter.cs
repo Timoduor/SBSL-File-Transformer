@@ -77,7 +77,7 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
                         {
                             row.Col15 = "MT104";
                         }
-                        if (code.Equals("Code - 035"))
+                        else if (code.Equals("Code - 035"))
                         {
                             row.Col15 = "MT104";
                         }
