@@ -84,7 +84,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2
                     this.Logger.LogInformation($"Processing report {report.Name} with ID {report.ReportId}");
 
                     if (await this.ReportsDownloader.DownloadReportAndUpdateLocalPath(report))
-                    {                        
+                    {
                         List<KeyValuePair<ReportModel, ReportConfiguration>> matchedEscalations = GetMatchedEscalations(report, escalations);
 
                         string modifiedExcel = await GenerateModifiedExcelReport(report, matchedEscalations.Select(e => e.Value.DaysOverdue).ToArray());
@@ -212,7 +212,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2
         /// <returns></returns>
         private List<KeyValuePair<ReportModel, ReportConfiguration>> GetMatchedEscalations(ReportModel report, List<ReportConfiguration> escalations)
         {
-            
+
             List<KeyValuePair<ReportModel, ReportConfiguration>> matchedConfiguration = new List<KeyValuePair<ReportModel, ReportConfiguration>>();
 
             List<OpenItem> reportContent = GetReportContent(report.TempReportPath);
@@ -292,13 +292,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2
                         {
                             string col3 = string.Empty;
 
-                            if(reader.TryGetValue(3, out object postedDateString))
+                            if (reader.TryGetValue(3, out object postedDateString))
                             {
-                                if(!string.IsNullOrEmpty(postedDateString?.ToString()))
+                                if (!string.IsNullOrEmpty(postedDateString?.ToString()))
                                     col3 = postedDateString?.ToString();
                             }
 
-                            if (string.IsNullOrEmpty(col3)) 
+                            if (string.IsNullOrEmpty(col3))
                                 continue;
 
                             if (DateTime.TryParseExact(col3, new string[2] { "M/d/yyyy", "MM/dd/yyyy" }, DateTimeFormatInfo.InvariantInfo, DateTimeStyles.None, out DateTime postedDate))
@@ -381,7 +381,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logger.LogError(ex, $"Error fetching report content for report Path: {path}");
             }
@@ -415,7 +415,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2
 
                     escalationReports.Add(escalationReport);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Logger.LogError(ex, "Error generating escalation reports");
                 }
@@ -448,7 +448,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2
 
                 var newProcessed = new List<EscalationReport>();
 
-                foreach (long reportId in reportIds) 
+                foreach (long reportId in reportIds)
                 {
                     var first = processed.FirstOrDefault(p => p.OriginalReport.ReportId == reportId);
 
@@ -489,7 +489,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2
                 {
                     List<string> recipients = report.Escalation.RecipientEmails.Split(',').ToList();
 
-                    await emailSender.SendMessage(recipients, ReportConfigModel.EmailHeader + $" Report ID: {report.OriginalReport.ReportId}", 
+                    await emailSender.SendMessage(recipients, ReportConfigModel.EmailHeader + $" Report ID: {report.OriginalReport.ReportId}",
                                                         this.ReportConfigModel.EmailBody + Environment.NewLine + $"{report.Escalation.DaysOverdue} Days overdue" +
                                                         Environment.NewLine +
                                                         $"Report Name {report.OriginalReport.Name}" + Environment.NewLine +
@@ -497,7 +497,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2
                                                         $"COMMENTS:- {report.OriginalReport.Notes}", false,
                                     new[] { report.OriginalReport.TempReportPath, report.OriginalReport.ModifiedReportPath, report.OverdueReportPath });
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     this.Logger.LogError(ex, $"Error sending report with ID: {report.OriginalReport.ReportId}");
                 }
