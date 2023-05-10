@@ -9,6 +9,11 @@
     <link rel="stylesheet" href="~/css/site.css" />
 </head>
 <body>
+    <div id="loading" style="height: 100%; width: 100%; position: fixed; text-align: center; z-index: 9999999; top: 0; left: 0; right: 0; bottom: 0; cursor: progress; margin-top: 100px;">
+        <img src="~/img/loading4.gif" alt="Loading..."  />
+        <h2>Loading...</h2>
+    </div>
+
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container">
@@ -71,6 +76,20 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/charts/chart.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        window.addEventListener('beforeunload', function (e) {
+            $('#loading').show();
+        });
+
+        function hideLoader() {
+            $('#loading').hide();
+        }
+
+        $(window).ready(hideLoader);
+        // Hide loader after 60 seconds, even if the page hasn't finished loading
+        setTimeout(hideLoader, 60 * 1000);
+    </script>
 
     @RenderSection("Scripts", false)
 </body>

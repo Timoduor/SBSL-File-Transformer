@@ -102,6 +102,10 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+    <None Include="wwwroot\img\loading1.gif" />
+    <None Include="wwwroot\img\loading2.gif" />
+    <None Include="wwwroot\img\loading3.gif" />
+    <None Include="wwwroot\img\loading4.gif" />
   </ItemGroup>
 
   <ItemGroup>
@@ -109,6 +113,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Content\images\" />
     <Folder Include="Data\Migrations\" />
     <Folder Include="logs\" />
     <Folder Include="Resources\" />
