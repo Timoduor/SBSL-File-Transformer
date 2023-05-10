@@ -45,7 +45,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2
 
                 EmailSender emailSender = scope.ServiceProvider.GetService<EmailSender>();
 
-                List<ReportConfiguration> escalations = await dbContext.ReportConfigurations.ToListAsync();
+                List<ReportConfiguration> escalations = await dbContext.ReportConfigurations.Where(e => e.IsEnabled).ToListAsync();
 
                 foreach (KeyValuePair<string, IEnumerable<ReportModel>> reportUser in unprocessedReports)
                 {
@@ -212,11 +212,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2
         /// <returns></returns>
         private List<KeyValuePair<ReportModel, ReportConfiguration>> GetMatchedEscalations(ReportModel report, List<ReportConfiguration> escalations)
         {
+            
             List<KeyValuePair<ReportModel, ReportConfiguration>> matchedConfiguration = new List<KeyValuePair<ReportModel, ReportConfiguration>>();
 
             List<OpenItem> reportContent = GetReportContent(report.TempReportPath);
 
-            List<string> reportText = reportContent.SelectMany(x => new string[]
+            report.ReportContent = reportContent;
+
+            List<string> reportTextTokens = reportContent.SelectMany(x => new string[]
                         {
                             x.AccName,
                             x.ActiveCertStatus,
@@ -237,14 +240,18 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2
                             x.TheyBalance,
                             x.TransNarrative,
                             x.ItemSubType
-                        }).ToList();
+                        }).Select(t => t?.ToLower()).ToList();
 
             foreach (ReportConfiguration escalation in escalations)
             {
                 try
                 {
-                    if (report.Name.Split(' ').ToList().ContainsAllItems(escalation.NameKeywords.Split(',').ToList())
-                        && reportText.ContainsAllItems(escalation.ColumnKeywords.Split(',').ToList()))
+                    List<string> reportNameTokens = report.Name.Split(' ').Select(n => n.ToLower()).ToList();
+                    List<string> escalationNameTokens = escalation.NameKeywords.Split(',').Select(n => n.ToLower()).ToList();
+                    List<string> escalationColumnTokens = escalation.ColumnKeywords.Split(',').Select(c => c.ToLower()).ToList();
+
+                    if (reportNameTokens.ContainsAllItems(escalationNameTokens)
+                        && reportTextTokens.ContainsAllItems(escalationColumnTokens))
                     {
                         matchedConfiguration.Add(new KeyValuePair<ReportModel, ReportConfiguration>(report, escalation));
                     }
@@ -264,97 +271,112 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2
 
             List<OpenItem> openItems = new List<OpenItem>();
 
-            using (FileStream stream = File.Open(path, FileMode.Open, FileAccess.Read))
+            try
             {
-                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
+                using (FileStream stream = File.Open(path, FileMode.Open, FileAccess.Read))
                 {
-                    DateTime maxDate = DateTime.Now;
-
-                    maxDate = DateTime.Now.DayOfWeek == DayOfWeek.Monday ? maxDate.AddDays(-2) : maxDate.AddDays(-1);
-
-                    while (reader.Read())
+                    using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
                     {
-                        string col3 = reader.GetValue(3)?.ToString();
-                        if (string.IsNullOrEmpty(col3)) continue;
+                        DateTime maxDate = DateTime.Now;
 
-                        if (DateTime.TryParseExact(col3, new string[2] { "M/d/yyyy", "MM/dd/yyyy" }, DateTimeFormatInfo.InvariantInfo, DateTimeStyles.None, out DateTime postedDate))
+                        maxDate = DateTime.Now.DayOfWeek == DayOfWeek.Monday ? maxDate.AddDays(-2) : maxDate.AddDays(-1);
+
+                        while (reader.Read())
                         {
-                            try
+                            string col3 = string.Empty;
+
+                            if(reader.TryGetValue(3, out object postedDateString))
                             {
-                                int daysOverdue = Convert.ToInt32((maxDate.Date - postedDate.Date).Days);
-
-                                OpenItem openItem = new OpenItem
-                                {
-                                    DaysOverdue = daysOverdue,
-                                    PostedDate = postedDate
-                                };
-
-                                if (reader.TryGetValue(1, out object entity))
-                                    openItem.Entity = entity?.ToString();
-
-                                if (reader.TryGetValue(2, out object accName))
-                                    openItem.AccName = accName?.ToString();
-
-                                if (reader.TryGetValue(4, out object amount))
-                                    openItem.Amount = amount?.ToString();
-
-                                if (reader.TryGetValue(5, out object itemSubType))
-                                    openItem.ItemSubType = itemSubType?.ToString();
-
-                                if (reader.TryGetValue(6, out object weBalance))
-                                    openItem.WeBalance = weBalance?.ToString();
-
-                                if (reader.TryGetValue(7, out object theyBalance))
-                                    openItem.TheyBalance = theyBalance?.ToString();
-
-                                if (reader.TryGetValue(8, out object itemSide))
-                                    openItem.ItemSide = itemSide?.ToString();
-
-                                if (reader.TryGetValue(9, out object transNarrative))
-                                    openItem.TransNarrative = transNarrative?.ToString();
-
-                                if (reader.TryGetValue(10, out object ref1))
-                                    openItem.Reference1 = ref1?.ToString();
-
-                                if (reader.TryGetValue(11, out object ref2))
-                                    openItem.Reference2 = ref2?.ToString();
-
-                                if (reader.TryGetValue(12, out object ref3))
-                                    openItem.Reference3 = ref3?.ToString();
-
-                                if (reader.TryGetValue(14, out object activeStatus))
-                                    openItem.ActiveCertStatus = activeStatus?.ToString();
-
-                                if (reader.TryGetValue(13, out object funcArea))
-                                    openItem.FunctionalArea = funcArea?.ToString();
-
-                                if (reader.TryGetValue(15, out object itemId))
-                                    openItem.ItemId = itemId?.ToString();
-
-                                if (reader.TryGetValue(16, out object itemId16))
-                                    openItem.Column16 = itemId16?.ToString();
-
-                                if (reader.TryGetValue(17, out object itemId17))
-                                    openItem.Column17 = itemId17?.ToString();
-
-                                if (reader.TryGetValue(18, out object itemId18))
-                                    openItem.Column18 = itemId18?.ToString();
-
-                                if (reader.TryGetValue(19, out object itemId19))
-                                    openItem.Column19 = itemId19?.ToString();
-
-                                if (reader.TryGetValue(20, out object itemId20))
-                                    openItem.Column20 = itemId20?.ToString();
-
-                                openItems.Add(openItem);
+                                if(!string.IsNullOrEmpty(postedDateString?.ToString()))
+                                    col3 = postedDateString?.ToString();
                             }
-                            catch (Exception ex)
+
+                            if (string.IsNullOrEmpty(col3)) 
+                                continue;
+
+                            if (DateTime.TryParseExact(col3, new string[2] { "M/d/yyyy", "MM/dd/yyyy" }, DateTimeFormatInfo.InvariantInfo, DateTimeStyles.None, out DateTime postedDate))
                             {
-                                this.Logger.LogError(ex, ex.Message);
+                                try
+                                {
+                                    int daysOverdue = Convert.ToInt32((maxDate.Date - postedDate.Date).Days);
+
+                                    OpenItem openItem = new OpenItem
+                                    {
+                                        DaysOverdue = daysOverdue,
+                                        PostedDate = postedDate
+                                    };
+
+                                    if (reader.TryGetValue(1, out object entity))
+                                        openItem.Entity = entity?.ToString();
+
+                                    if (reader.TryGetValue(2, out object accName))
+                                        openItem.AccName = accName?.ToString();
+
+                                    if (reader.TryGetValue(4, out object amount))
+                                        openItem.Amount = amount?.ToString();
+
+                                    if (reader.TryGetValue(5, out object itemSubType))
+                                        openItem.ItemSubType = itemSubType?.ToString();
+
+                                    if (reader.TryGetValue(6, out object weBalance))
+                                        openItem.WeBalance = weBalance?.ToString();
+
+                                    if (reader.TryGetValue(7, out object theyBalance))
+                                        openItem.TheyBalance = theyBalance?.ToString();
+
+                                    if (reader.TryGetValue(8, out object itemSide))
+                                        openItem.ItemSide = itemSide?.ToString();
+
+                                    if (reader.TryGetValue(9, out object transNarrative))
+                                        openItem.TransNarrative = transNarrative?.ToString();
+
+                                    if (reader.TryGetValue(10, out object ref1))
+                                        openItem.Reference1 = ref1?.ToString();
+
+                                    if (reader.TryGetValue(11, out object ref2))
+                                        openItem.Reference2 = ref2?.ToString();
+
+                                    if (reader.TryGetValue(12, out object ref3))
+                                        openItem.Reference3 = ref3?.ToString();
+
+                                    if (reader.TryGetValue(14, out object activeStatus))
+                                        openItem.ActiveCertStatus = activeStatus?.ToString();
+
+                                    if (reader.TryGetValue(13, out object funcArea))
+                                        openItem.FunctionalArea = funcArea?.ToString();
+
+                                    if (reader.TryGetValue(15, out object itemId))
+                                        openItem.ItemId = itemId?.ToString();
+
+                                    if (reader.TryGetValue(16, out object itemId16))
+                                        openItem.Column16 = itemId16?.ToString();
+
+                                    if (reader.TryGetValue(17, out object itemId17))
+                                        openItem.Column17 = itemId17?.ToString();
+
+                                    if (reader.TryGetValue(18, out object itemId18))
+                                        openItem.Column18 = itemId18?.ToString();
+
+                                    if (reader.TryGetValue(19, out object itemId19))
+                                        openItem.Column19 = itemId19?.ToString();
+
+                                    if (reader.TryGetValue(20, out object itemId20))
+                                        openItem.Column20 = itemId20?.ToString();
+
+                                    openItems.Add(openItem);
+                                }
+                                catch (Exception ex)
+                                {
+                                    this.Logger.LogError(ex, "Error fetching columns out of report");
+                                }
                             }
                         }
                     }
                 }
+            }
+            catch(Exception ex)
+            {
+                Logger.LogError(ex, $"Error fetching report content for report Path: {path}");
             }
 
             return openItems;
@@ -371,15 +393,25 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2
 
             foreach (var escalation in matchedEscalations)
             {
-                EscalationReport escalationReport = new EscalationReport();
+                try
+                {
+                    EscalationReport escalationReport = new EscalationReport();
 
-                escalationReport.OriginalReport = report;
+                    escalationReport.OriginalReport = report;
+                    escalationReport.Escalation = escalation.Value;
 
-                int daysOverdue = escalation.Value.DaysOverdue;
+                    int daysOverdue = escalation.Value.DaysOverdue;
 
-                List<OpenItem> overdueItems = escalation.Key.ReportContent.Where(i => i.DaysOverdue >= daysOverdue).ToList();
+                    List<OpenItem> overdueItems = escalation.Key.ReportContent.Where(i => i.DaysOverdue >= daysOverdue).OrderBy(i => i.DaysOverdue).ToList();
 
-                escalationReport.OverdueReportPath = await CreateCsvFiles(overdueItems, daysOverdue, report.Name);
+                    escalationReport.OverdueReportPath = await CreateCsvFiles(overdueItems, daysOverdue, report.Name);
+
+                    escalationReports.Add(escalationReport);
+                }
+                catch(Exception ex)
+                {
+                    Logger.LogError(ex, "Error generating escalation reports");
+                }
             }
 
             return escalationReports;
@@ -403,37 +435,65 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2
 
         private async Task SaveProcessedEscalations(List<EscalationReport> processed, ApplicationDbContext dbContext)
         {
-            foreach (var report in processed)
+            try
             {
-                await dbContext.ProcessedReports.AddAsync(new ProcessedReport()
-                {
-                    ReportId = report.OriginalReport.ReportId,
-                    Creator = report.OriginalReport.Creator,
-                    EndTime = report.OriginalReport.EndTime,
-                    Message = report.OriginalReport.Message,
-                    Name = report.OriginalReport.Name,
-                    ProcessedDate = DateTime.Now,
-                    Notes = report.OriginalReport.Notes,
-                    StartTime = report.OriginalReport.StartTime,
-                    Status = report.OriginalReport.Status
-                });
+                IEnumerable<long> reportIds = processed.Select(p => p.OriginalReport.ReportId).Distinct();
 
+                var newProcessed = new List<EscalationReport>();
+
+                foreach (long reportId in reportIds) 
+                {
+                    var first = processed.FirstOrDefault(p => p.OriginalReport.ReportId == reportId);
+
+                    newProcessed.Add(first);
+                }
+
+                foreach (var report in newProcessed)
+                {
+                    if (!dbContext.ProcessedReports.Any(p => p.Id == report.OriginalReport.ReportId))
+                    {
+                        await dbContext.ProcessedReports.AddAsync(new ProcessedReport()
+                        {
+                            ReportId = report.OriginalReport.ReportId,
+                            Creator = report.OriginalReport.Creator,
+                            EndTime = report.OriginalReport.EndTime,
+                            Message = report.OriginalReport.Message,
+                            Name = report.OriginalReport.Name,
+                            ProcessedDate = DateTime.Now,
+                            Notes = report.OriginalReport.Notes,
+                            StartTime = report.OriginalReport.StartTime,
+                            Status = report.OriginalReport.Status
+                        });
+                    }
+                }
+                await dbContext.SaveChangesAsync();
             }
-            await dbContext.SaveChangesAsync();
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, $"Error saving processed report batch with report IDs: {string.Join(",", processed.Select(p => p.OriginalReport.ReportId).ToList())}");
+            }
         }
 
         private async Task SendGeneratedEscalations(List<EscalationReport> processed, EmailSender emailSender)
         {
             foreach (var report in processed)
             {
-                List<string> recipients = report.Escalation.RecipientEmails.Split(',').ToList();
+                try
+                {
+                    List<string> recipients = report.Escalation.RecipientEmails.Split(',').ToList();
 
-                await emailSender.SendMessage(recipients, ReportConfigModel.EmailHeader + $" Report ID: {report.OriginalReport.ReportId}", this.ReportConfigModel.EmailBody + Environment.NewLine + $"{report.Escalation.DaysOverdue} Days overdue" +
-                                                                                                                                           Environment.NewLine +
-                                                                                                                                           $"Report Name {report.OriginalReport.Name}" + Environment.NewLine +
-                                                                                                                                           $"Report generated by: {report.OriginalReport.Creator}" + Environment.NewLine +
-                                                                                                                                           $"COMMENTS:- {report.OriginalReport.Notes}", false,
-                                new[] { report.OriginalReport.TempReportPath, report.OriginalReport.ModifiedReportPath, report.OverdueReportPath });
+                    await emailSender.SendMessage(recipients, ReportConfigModel.EmailHeader + $" Report ID: {report.OriginalReport.ReportId}", 
+                                                        this.ReportConfigModel.EmailBody + Environment.NewLine + $"{report.Escalation.DaysOverdue} Days overdue" +
+                                                        Environment.NewLine +
+                                                        $"Report Name {report.OriginalReport.Name}" + Environment.NewLine +
+                                                        $"Report generated by: {report.OriginalReport.Creator}" + Environment.NewLine +
+                                                        $"COMMENTS:- {report.OriginalReport.Notes}", false,
+                                    new[] { report.OriginalReport.TempReportPath, report.OriginalReport.ModifiedReportPath, report.OverdueReportPath });
+                }
+                catch(Exception ex)
+                {
+                    this.Logger.LogError(ex, $"Error sending report with ID: {report.OriginalReport.ReportId}");
+                }
             }
         }
     }

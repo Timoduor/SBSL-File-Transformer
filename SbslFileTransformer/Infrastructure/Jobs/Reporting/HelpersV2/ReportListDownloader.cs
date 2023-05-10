@@ -29,8 +29,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
         {
             this.Logger = logger;
             this.HttpClientFactory = httpClientFactory;
-            this.reportConfiguration = LoadReportConnectionConfig();
             this.ServiceScopeFactory = serviceScopeFactory;
+            this.reportConfiguration = LoadReportConnectionConfig();
         }
 
         /// <summary>
