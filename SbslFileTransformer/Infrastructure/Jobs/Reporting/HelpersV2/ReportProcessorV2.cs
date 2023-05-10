@@ -219,7 +219,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2
 
             report.ReportContent = reportContent;
 
-            List<string> reportTextTokens = reportContent.SelectMany(x => new string[]
+            List<string> reportColumnTokens = reportContent.SelectMany(x => new string[]
                         {
                             x.AccName,
                             x.ActiveCertStatus,
@@ -241,6 +241,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2
                             x.TransNarrative,
                             x.ItemSubType
                         }).Select(t => t?.ToLower()).ToList();
+
+            List<string> reportTextTokens = new List<string>();
+
+            foreach (var columnToken in reportColumnTokens)
+            {
+                reportTextTokens.AddRange(columnToken.Split(new char[] { ' ', '\t', '\n', '\r' }));
+            }
 
             foreach (ReportConfiguration escalation in escalations)
             {
