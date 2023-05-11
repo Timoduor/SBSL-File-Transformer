@@ -95,7 +95,7 @@ namespace SbslFileTransformer
             //Reporting
             //services.AddHostedService<ReportEngineJob>();
             services.AddTransient<IReportsDownloader, ReportListDownloader>();
-            services.AddTransient<IReportProcessor, ReportProcessorV2>();
+            services.AddTransient<IReportProcessor, ReportProcessor>();
             services.AddHostedService<ReportEngineJobV2>();
 
             //SPRINT 1

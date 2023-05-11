@@ -22,14 +22,14 @@ using System.Drawing;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2
 {
-    public class ReportProcessorV2 : IReportProcessor
+    public class ReportProcessor : IReportProcessor
     {
         readonly ILogger<ReportEngineJobV2> Logger;
         readonly IServiceScopeFactory ServiceScopeFactory;
         readonly ReportConfigModel ReportConfigModel;
         readonly IReportsDownloader ReportsDownloader;
 
-        public ReportProcessorV2(ILogger<ReportEngineJobV2> logger, IServiceScopeFactory serviceScopeFactory, IReportsDownloader reportsDownloader)
+        public ReportProcessor(ILogger<ReportEngineJobV2> logger, IServiceScopeFactory serviceScopeFactory, IReportsDownloader reportsDownloader)
         {
             this.Logger = logger;
             this.ServiceScopeFactory = serviceScopeFactory;
