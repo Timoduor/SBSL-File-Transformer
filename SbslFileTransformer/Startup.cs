@@ -1,5 +1,10 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System;
+using System.IO;
+using System.Threading;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -15,26 +20,19 @@ using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Infrastructure.Jobs.Converters;
 using SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya;
 using SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacleMatcher;
+using SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda;
+using SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda.BNR;
 using SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania;
 using SbslFileTransformer.Infrastructure.Jobs.Extractors;
+using SbslFileTransformer.Infrastructure.Jobs.Extractors.Uganda;
 using SbslFileTransformer.Infrastructure.Jobs.Others;
 using SbslFileTransformer.Infrastructure.Jobs.Reporting;
+using SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers;
+using SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers.Interfaces;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Infrastructure.Sftp;
 using SbslFileTransformer.Models.Enums;
 using Serilog;
-using System;
-using System.IO;
-using System.Threading;
-using HealthChecks.UI.Client;
-using SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda;
-using SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda.BNR;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using SbslFileTransformer.Infrastructure.Jobs.Extractors.Uganda;
-using SbslFileTransformer.Middleware;
-using SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2.Interfaces;
-using SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers;
-using SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2;
 
 namespace SbslFileTransformer
 {
@@ -84,7 +82,7 @@ namespace SbslFileTransformer
 
             services.AddHttpClient("BlackLine", c =>
             {
-                c.Timeout = TimeSpan.FromSeconds(25);                
+                c.Timeout = TimeSpan.FromSeconds(25);
             });
 
             services.AddTransient<JobDisplayManager>();
@@ -96,11 +94,11 @@ namespace SbslFileTransformer
             //services.AddHostedService<ReportEngineJob>();
             services.AddTransient<IReportsDownloader, ReportListDownloader>();
             services.AddTransient<IReportProcessor, ReportProcessor>();
-            services.AddHostedService<ReportEngineJobV2>();
+            services.AddHostedService<ReportEngineJob>();
 
             //SPRINT 1
             services.AddHostedService<SftpIndependentJob>();
-            
+
             services.AddHostedService<MtBalanceExtractorJob>();
             services.AddHostedService<AuxilliaryProcessesJob>();
             services.AddHostedService<GLBalanceExtractorJob>();
@@ -191,7 +189,7 @@ namespace SbslFileTransformer
             //Uganda
             services.AddHostedService<AirtelUgandaBalanceExtractorJob>();
             services.AddHostedService<MtnUgandaBalanceExtractorJob>();
-            services.AddHostedService <UG_OUTMT300ConverterJob>();
+            services.AddHostedService<UG_OUTMT300ConverterJob>();
             services.AddHostedService<MoneyGramActivityUGConverterJob>();
             services.AddHostedService<MoneyGramSettlementUGConverterJob>();
 

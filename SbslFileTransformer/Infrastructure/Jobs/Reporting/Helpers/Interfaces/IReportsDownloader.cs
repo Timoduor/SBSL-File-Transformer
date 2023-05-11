@@ -1,10 +1,10 @@
-﻿using SbslFileTransformer.Infrastructure.Jobs.Reporting.Models;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System;
+using SbslFileTransformer.Infrastructure.Jobs.Reporting.Models;
 using SbslFileTransformer.Models.ViewModels;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2.Interfaces
+namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers.Interfaces
 {
     public interface IReportsDownloader
     {

@@ -1,9 +1,9 @@
-﻿using CsvHelper;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using CsvHelper;
 using SbslFileTransformer.Converters.Rwanda.BNR;
 
 namespace SbslFileTransformer.Converters.Kenya

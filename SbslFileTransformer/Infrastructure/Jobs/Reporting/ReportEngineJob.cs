@@ -1,27 +1,27 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Messaging;
-using SbslFileTransformer.Models.Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers.Interfaces;
 using SbslFileTransformer.Infrastructure.Jobs.Reporting.Models;
-using SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2.Interfaces;
+using SbslFileTransformer.Infrastructure.Messaging;
+using SbslFileTransformer.Models.Enums;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 {
-    public class ReportEngineJobV2 : ConverterJobBase<ReportEngineJobV2>, IHostedService
+    public class ReportEngineJob : ConverterJobBase<ReportEngineJob>, IHostedService
     {
         private IReportsDownloader _reportsDownloader;
         IReportProcessor _reportProcessor;
 
-        protected override string JobName { get; set; } = nameof(ReportEngineJobV2);
-        public ReportEngineJobV2(ILogger<ReportEngineJobV2> logger, EmailSender emailSender,
+        protected override string JobName { get; set; } = nameof(ReportEngineJob);
+        public ReportEngineJob(ILogger<ReportEngineJob> logger, EmailSender emailSender,
             IServiceScopeFactory serviceScopeFactory, IHttpClientFactory httpClientFactory, JobDisplayManager jobManager, IReportsDownloader reportsDownloader, IReportProcessor reportProcessor)
         {
             this._logger = logger;

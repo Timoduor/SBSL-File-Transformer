@@ -1,17 +1,17 @@
-﻿using CsvHelper;
-using ExcelDataReader;
-using SbslFileTransformer.Data;
-using SbslFileTransformer.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using CsvHelper;
+using ExcelDataReader;
 using Microsoft.EntityFrameworkCore;
-using SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacleMatcher;
-using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacleMatcher;
+using SbslFileTransformer.Models;
 
 namespace SbslFileTransformer.Converters.Kenya
 {
@@ -32,7 +32,7 @@ namespace SbslFileTransformer.Converters.Kenya
 
             List<FinacleRec> finacleRecords = await Task.Run(() => this.GetRecordsFromFinacleFile(finacleFile, visionRecordType));
 
-            _logger.LogWarning($"{finacleFile} took {stopwatch.ElapsedMilliseconds/1000} seconds to extract");
+            _logger.LogWarning($"{finacleFile} took {stopwatch.ElapsedMilliseconds / 1000} seconds to extract");
 
             IEnumerable<Tuple<string, string>> finacleRefs = finacleRecords.Select(f => new Tuple<string, string>(f.ReferenceNumber, f.AccountNumber)).Distinct();
 
@@ -78,7 +78,7 @@ namespace SbslFileTransformer.Converters.Kenya
                         v.DateMatched = DateTime.Now;
                         v.MatchingFile = finacleFile;
                         v.FinacleAccount = finacleAccount;
-                    });                    
+                    });
 
                     await this.CreateFileForReferenceNumber(matchedRecs, finRef.Item1, finRef.Item2, outputPath, visionRecordType);
 

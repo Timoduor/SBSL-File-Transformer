@@ -32,12 +32,12 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
                     reader = ExcelReaderFactory.CreateCsvReader(stream);
                 else
                     reader = ExcelReaderFactory.CreateReader(stream);
-                
+
                 using (reader)
                 {
                     // Choose one of either 1 or 2:
                     // 1. Use the reader methods
-                    
+
                     while (reader.Read())
                     {
                         string value = reader.GetValue(0)?.ToString();
@@ -90,7 +90,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
                 CreateMultiCurrFile(inputFile, outputFolder, list, narrative);
             }
         }
-        
+
         private static void CreateMultiCurrFile(string inputFile, string outputFolder, List<MpesaBalCols> list, string narrative)
         {
             string fileName = Path.GetFileNameWithoutExtension(inputFile);
@@ -102,9 +102,9 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
 
             MpesaBalCols lastRow = list.OrderByDescending(i => i.BalDate)
                 .FirstOrDefault(c => c.BalDate == list.Max(r => r.BalDate));
-            
+
             string toAppend =
-                $"IMKE\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t{narrative.Substring(0,Math.Min(narrative.Length,60))}\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.BalDate):MM/dd/yyyy}\t\t\t\t{-lastRow.Amount}\tKES\n";
+                $"IMKE\t{lastRow.Account}\tMobile banking\t\t\t\t\t\t\t\t{narrative.Substring(0, Math.Min(narrative.Length, 60))}\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.BalDate):MM/dd/yyyy}\t\t\t\t{-lastRow.Amount}\tKES\n";
 
             if (!string.IsNullOrEmpty(toAppend)) File.WriteAllText(outputFile, toAppend);
         }

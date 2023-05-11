@@ -1,12 +1,12 @@
-﻿using CsvHelper;
-using ExcelDataReader;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
+using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters.Rwanda.BNR;
 
 namespace SbslFileTransformer.Converters.Uganda
@@ -22,7 +22,7 @@ namespace SbslFileTransformer.Converters.Uganda
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
-        public void ConvertFile(string inputFile, string outputFile=null)
+        public void ConvertFile(string inputFile, string outputFile = null)
         {
             var list = new List<ExcelCols>();
 

@@ -1,11 +1,11 @@
-﻿using ExcelDataReader;
-using SbslFileTransformer.Infrastructure.Helpers;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Text;
-using System;
 using System.Linq;
+using System.Text;
+using ExcelDataReader;
+using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Converters.BalanceExtractors.Uganda
 {
@@ -131,7 +131,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Uganda
                 string toAppend =
                     $"IMUG\t{firstRow.Account}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(firstRow.ReconDate):MM/dd/yyyy}\t\t\t\t{firstRow.Amount}\tUGX\n";
 
-                if (!string.IsNullOrEmpty(toAppend)) 
+                if (!string.IsNullOrEmpty(toAppend))
                     File.WriteAllText(outputFile, toAppend);
             }
         }

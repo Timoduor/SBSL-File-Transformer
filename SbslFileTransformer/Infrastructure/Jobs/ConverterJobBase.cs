@@ -1,17 +1,17 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Helpers;
-using SbslFileTransformer.Infrastructure.Messaging;
-using SbslFileTransformer.Models;
-using SbslFileTransformer.Models.Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Helpers;
+using SbslFileTransformer.Infrastructure.Messaging;
+using SbslFileTransformer.Models;
+using SbslFileTransformer.Models.Enums;
 
 namespace SbslFileTransformer.Infrastructure.Jobs
 {

@@ -1,16 +1,16 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Converters;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 {
@@ -136,7 +136,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                     else if (file.ToLower().Contains("br_sus"))
                         await converter.Execute(file, "Branch Suspense");
 
-                    else if (file.ToLower().Contains("mg_sus") || file.ToLower().Contains("mg_balances") )
+                    else if (file.ToLower().Contains("mg_sus") || file.ToLower().Contains("mg_balances"))
                         await converter.Execute(file, "Moneygram");
 
                     else if (file.ToLower().Contains("wu_sus") || file.ToLower().Contains("wu_balances") || file.ToLower().Contains("westernunion_balance"))

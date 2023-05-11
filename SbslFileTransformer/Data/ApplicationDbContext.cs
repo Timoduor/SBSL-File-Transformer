@@ -9,7 +9,7 @@ namespace SbslFileTransformer.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
-            
+
         }
 
         public DbSet<Plugin> Plugins { get; set; }

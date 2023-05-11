@@ -28,7 +28,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacle
             }
 
             if (
-                (file.ToLower().Contains("debtors") && file.ToLower().Contains("vision"))||
+                (file.ToLower().Contains("debtors") && file.ToLower().Contains("vision")) ||
                 (file.ToLower().Contains("debtors") && file.ToLower().Contains("finacle")) ||
                 (file.ToLower().Contains("debtors") && file.ToLower().Contains("bal"))
                )

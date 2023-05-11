@@ -1,10 +1,10 @@
-﻿using SbslFileTransformer.Infrastructure.Messaging;
-using SbslFileTransformer.Models;
-using SbslFileTransformer.Models.Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using SbslFileTransformer.Infrastructure.Messaging;
+using SbslFileTransformer.Models;
+using SbslFileTransformer.Models.Enums;
 
 namespace SbslFileTransformer.Infrastructure.Helpers
 {

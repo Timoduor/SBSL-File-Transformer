@@ -1,9 +1,9 @@
-﻿using SbslFileTransformer.Infrastructure.Jobs.Reporting.Models;
+﻿using System;
 using System.Collections.Generic;
-using System;
 using System.Threading.Tasks;
+using SbslFileTransformer.Infrastructure.Jobs.Reporting.Models;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2.Interfaces
+namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers.Interfaces
 {
     public interface IReportProcessor
     {

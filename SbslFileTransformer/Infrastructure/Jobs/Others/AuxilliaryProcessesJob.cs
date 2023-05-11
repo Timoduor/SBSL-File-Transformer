@@ -64,12 +64,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
 
             return Task.CompletedTask;
         }
-        
+
         public Task StopAsync(CancellationToken cancellationToken)
         {
             this._logger.LogInformation("Auxilliary Services stopped!");
 
-            foreach (Timer timer in this._timers) 
+            foreach (Timer timer in this._timers)
                 timer.Dispose();
 
             return Task.CompletedTask;
@@ -106,7 +106,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
                         double.TryParse(backUpUploadedFiles, out double periodUploaded);
 
                         await DeleteOldUploadedFiles(dbContext, backUpPath, periodUploaded);
-                       
+
                         memCache.Set(nameof(AuxilliaryProcessesJob), JobState.Running);
 
                         double.TryParse(backUpAllFilesPeriod, out double period);

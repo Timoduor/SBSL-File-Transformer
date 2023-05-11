@@ -1,4 +1,11 @@
-﻿using CsvHelper;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using CsvHelper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -6,13 +13,6 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SbslFileTransformer.Converters
 {
@@ -96,13 +96,13 @@ namespace SbslFileTransformer.Converters
 
                                 int multiplyBy = exemptAccs.Contains(accNo) ? 1 : -1;
 
-                                if (filePath.ToLower().Contains("_sus") && Entity == "IMRW") 
+                                if (filePath.ToLower().Contains("_sus") && Entity == "IMRW")
                                     multiplyBy = 1;
                                 if (filePath.ToLower().Contains("_sus") && Entity == "IMUG")
                                     multiplyBy = 1;
                                 if (filePath.ToLower().Contains("_agency") && Entity == "IMUG")
                                     multiplyBy = 1;
-                                if (filePath.ToLower().Contains("_sus") && Entity == "IMUG" && DorC2==-1)
+                                if (filePath.ToLower().Contains("_sus") && Entity == "IMUG" && DorC2 == -1)
                                     multiplyBy = -1;
                                 if (filePath.ToLower().Contains("_agency") && Entity == "IMUG" && DorC2 == -1)
                                     multiplyBy = -1;
@@ -273,7 +273,7 @@ namespace SbslFileTransformer.Converters
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_TREPOS_{Entity}.txt");
 
-            if(filePath.ToLower().Contains("pos_pay"))
+            if (filePath.ToLower().Contains("pos_pay"))
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                     $"GLAccounts_{fileDate:yyyyMMdd}_POSPAY_{Entity}.txt");
 
@@ -291,7 +291,7 @@ namespace SbslFileTransformer.Converters
                 outputPath = Path.Combine(Path.GetDirectoryName(filePath),
                         $"GLAccounts_{fileDate:yyyyMMdd}_CARDS_{subFileName}_{Entity}.txt");
             }
-            
+
             if (Path.GetFileName(filePath).ToLower().StartsWith("imug_mobile"))
             {
                 subFileName = Path.GetFileName(filePath).Substring(4, 25);

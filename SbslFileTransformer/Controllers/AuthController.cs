@@ -1,10 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Models;
-using System;
-using System.Threading.Tasks;
 using SbslFileTransformer.Models.AppUser;
 
 namespace SbslFileTransformer.Controllers

@@ -1,21 +1,20 @@
-﻿using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using SbslFileTransformer.Infrastructure.Jobs.Reporting.Models;
-using SbslFileTransformer.Models.ViewModels;
-using SbslFileTransformer.Infrastructure.Helpers;
-using System.IO;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Models.Enums;
+using SbslFileTransformer.Infrastructure.Helpers;
+using SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers.Interfaces;
+using SbslFileTransformer.Infrastructure.Jobs.Reporting.Models;
 using SbslFileTransformer.Models;
-using SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2.Interfaces;
-using SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2;
+using SbslFileTransformer.Models.Enums;
+using SbslFileTransformer.Models.ViewModels;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 {
@@ -286,6 +285,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             }
 
             return new KeyValuePair<string, IEnumerable<ReportModel>>(userToken.Key, reports.Where(r => r.ReportDate > DateTime.Now.AddDays(-31)));
-        }        
+        }
     }
 }

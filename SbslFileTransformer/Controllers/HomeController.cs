@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Infrastructure.Licensing.Attributes;
-using SbslFileTransformer.Models;
-using System;
-using System.Diagnostics;
-using System.Linq;
 using SbslFileTransformer.Models.ViewModels;
 
 namespace SbslFileTransformer.Controllers

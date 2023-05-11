@@ -8,12 +8,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters.Rwanda.Camt053;
+using SbslFileTransformer.Converters.Kenya;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
-using SbslFileTransformer.Converters.Kenya;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Extractors.Uganda
 {
@@ -94,9 +93,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors.Uganda
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    if (file.ToLower().Contains("mt300")) mt300Converter.ConvertFile(file,"","IMUG");
+                                    if (file.ToLower().Contains("mt300")) mt300Converter.ConvertFile(file, "", "IMUG");
 
-                                    if (file.ToLower().Contains("mt320")) mt320Converter.ConvertFile(file,"", "IMUG");
+                                    if (file.ToLower().Contains("mt320")) mt320Converter.ConvertFile(file, "", "IMUG");
                                 }
                                 catch (Exception ex)
                                 {

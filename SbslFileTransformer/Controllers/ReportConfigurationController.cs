@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
@@ -108,7 +107,7 @@ namespace SbslFileTransformer.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("","Some required fields are missing!");
+                    ModelState.AddModelError("", "Some required fields are missing!");
                     return View(configuration);
                 }
             }

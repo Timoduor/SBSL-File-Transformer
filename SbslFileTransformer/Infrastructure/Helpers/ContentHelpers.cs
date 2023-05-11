@@ -1,10 +1,10 @@
-﻿using CsvHelper;
-using SbslFileTransformer.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using CsvHelper;
+using SbslFileTransformer.Models;
 
 namespace SbslFileTransformer.Infrastructure.Helpers
 {

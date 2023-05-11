@@ -1,17 +1,17 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using MimeKit;
-using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Encryption;
-using SbslFileTransformer.Models;
-using SbslFileTransformer.Models.Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
 using System.Net.Mime;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using MimeKit;
+using SbslFileTransformer.Data;
+using SbslFileTransformer.Infrastructure.Encryption;
+using SbslFileTransformer.Models;
+using SbslFileTransformer.Models.Enums;
 using SbslFileTransformer.Models.ViewModels;
 using ContentType = MimeKit.ContentType;
 

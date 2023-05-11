@@ -37,7 +37,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors.Uganda
         }
 
         private async Task ExtractMultiCurrBalances()
-        
+
         {
             try
             {
@@ -78,7 +78,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors.Uganda
 
                     foreach (string file in files)
                     {
-                        if (file.ToLower().Contains("imug") && file.ToLower().Contains("mobile_banking") && file.ToLower().Contains("airtel") &&  file.ToLower().Contains("w2b"))
+                        if (file.ToLower().Contains("imug") && file.ToLower().Contains("mobile_banking") && file.ToLower().Contains("airtel") && file.ToLower().Contains("w2b"))
                         {
                             SftpUploadedFile fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>
@@ -108,7 +108,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors.Uganda
                                     updatedFiles.Add(fileToProcess);
                                 }
                         }
-                        else if ( file.ToLower().Contains("imug") && file.ToLower().Contains("mobile_banking") && file.ToLower().Contains("airtel") && file.ToLower().Contains("b2w"))
+                        else if (file.ToLower().Contains("imug") && file.ToLower().Contains("mobile_banking") && file.ToLower().Contains("airtel") && file.ToLower().Contains("b2w"))
                         {
                             SftpUploadedFile fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>

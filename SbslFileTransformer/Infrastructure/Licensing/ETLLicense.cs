@@ -1,7 +1,7 @@
-﻿using Licensing;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Xml.Serialization;
+using Licensing;
 
 namespace SbslFileTransformer.Infrastructure.Licensing
 {

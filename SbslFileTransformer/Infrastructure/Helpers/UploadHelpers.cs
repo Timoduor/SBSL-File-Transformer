@@ -1,12 +1,10 @@
-﻿using ExcelDataReader;
-using SbslFileTransformer.Converters.Rwanda.Camt053;
-using SbslFileTransformer.Data;
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static iText.IO.Util.IntHashtable;
+using ExcelDataReader;
+using SbslFileTransformer.Data;
 
 namespace SbslFileTransformer.Infrastructure.Helpers
 {
@@ -107,10 +105,10 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
                             await dbContext.SaveChangesAsync();
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             toReturn.AppendLine($"Failed to create escalation with values \"{description}\" \"{nameKeywords}\" \"{columnKeywords}\" \"{daysOverdue}\" \"{recipientEmails}\"! {ex.Message} {Environment.NewLine}");
-                        }                        
+                        }
                     }
                 }
             }

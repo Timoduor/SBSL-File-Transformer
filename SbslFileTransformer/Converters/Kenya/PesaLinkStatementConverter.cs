@@ -1,11 +1,10 @@
-﻿using CsvHelper;
-using ExcelDataReader;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
+using CsvHelper;
+using ExcelDataReader;
 using SbslFileTransformer.Converters.Rwanda.BNR;
 
 namespace SbslFileTransformer.Converters.Kenya
@@ -178,7 +177,7 @@ namespace SbslFileTransformer.Converters.Kenya
                 string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
-                    $"{DateTime.Now:yyyy_MM_dd_HH_mm}_PesaLink_{fileName.Substring(0,Math.Min(fileName.Length, 14)).Replace(" ", "")}.csv");
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm}_PesaLink_{fileName.Substring(0, Math.Min(fileName.Length, 14)).Replace(" ", "")}.csv");
             }
 
             this.WriteToFile(list, outputFile);

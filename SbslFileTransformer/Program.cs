@@ -1,14 +1,14 @@
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Threading;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using SbslFileTransformer.Infrastructure.ServiceManager;
 using Serilog;
 using Serilog.Filters;
 using Serilog.Formatting.Display;
-using System;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
-using System.Threading;
 
 namespace SbslFileTransformer
 {
@@ -109,7 +109,7 @@ namespace SbslFileTransformer
             }
             catch (Exception ex)
             {
-                Thread.Sleep(1000);                
+                Thread.Sleep(1000);
                 Directory.CreateDirectory(Path.Combine(logPathSqlite, "Old"));
                 //move corrupt sqlite log file to old files
                 File.Move(Path.Combine(logPathSqlite, "sbsletl_logs.db"),

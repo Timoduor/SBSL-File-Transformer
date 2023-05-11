@@ -1,9 +1,9 @@
-﻿using ExcelDataReader;
-using SbslFileTransformer.Infrastructure.Helpers;
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
+using ExcelDataReader;
 using SbslFileTransformer.Converters.Rwanda.BNR;
+using SbslFileTransformer.Infrastructure.Helpers;
 
 namespace SbslFileTransformer.Converters.Tanzania
 {
@@ -73,11 +73,11 @@ namespace SbslFileTransformer.Converters.Tanzania
             if (currency.ToUpper() == "USD")
             {
                 account = "30990411005001";
-                
+
             }
-                
+
             amount = (Convert.ToDouble(amount) * -1).ToString("N2");
-            
+
             toAppend.Append(
                  $"{this._entity}\t{account}\tSuspense\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
 

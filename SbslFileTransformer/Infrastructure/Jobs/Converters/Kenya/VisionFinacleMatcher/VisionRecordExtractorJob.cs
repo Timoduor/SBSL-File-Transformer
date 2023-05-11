@@ -1,14 +1,4 @@
 ﻿extern alias MySqlDataAlias;
-
-using ExcelDataReader;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Data;
-using SbslFileTransformer.Infrastructure.Messaging;
-using SbslFileTransformer.Models;
-using SbslFileTransformer.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -18,7 +8,16 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ExcelDataReader;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
+using SbslFileTransformer.Infrastructure.Messaging;
+using SbslFileTransformer.Models;
+using SbslFileTransformer.Models.Enums;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacleMatcher
 {

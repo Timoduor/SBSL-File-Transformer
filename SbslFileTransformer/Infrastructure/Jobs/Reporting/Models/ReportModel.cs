@@ -22,7 +22,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Models
         public string TempReportPath { get; set; }
         public int[] DaysRange { get; set; }
 
-        public string ModifiedReportPath { get; set; } 
+        public string ModifiedReportPath { get; set; }
 
         public List<OpenItem> ReportContent { get; set; }
     }

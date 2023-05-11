@@ -1,15 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
 using X.PagedList;
 
 namespace SbslFileTransformer.Controllers
@@ -183,7 +183,7 @@ namespace SbslFileTransformer.Controllers
 
             return this.View(jobs);
         }
-        
+
         public IActionResult SearchVisionRecord(string search)
         {
             List<VisionRecordCollection> visionCollections = this._dbContext.VisionRecordCollections
