@@ -15,6 +15,7 @@ using SbslFileTransformer.Data;
 using SbslFileTransformer.Models.Enums;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2.Interfaces;
+using SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 {

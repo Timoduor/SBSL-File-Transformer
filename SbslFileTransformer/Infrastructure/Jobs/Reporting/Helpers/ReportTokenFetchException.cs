@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
+namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.HelpersV2
 {
     [Serializable]
     internal class ReportTokenFetchException : Exception
