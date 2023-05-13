@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Models;
+using X.PagedList;
 
 namespace SbslFileTransformer.Controllers
 {
@@ -29,12 +30,31 @@ namespace SbslFileTransformer.Controllers
         }
 
         // GET: AccountsLookupController
-        public ActionResult Index()
+        public ActionResult Index(int page = 1)
         {
-            IEnumerable<AccountsLookup> accounts = this._dbContext.Accounts.OrderBy(a => a.Entity).ThenBy(a => a.Number);
+            try
+            {
+                int count = 0;
+                int itemsPerPage = 20;
 
-            return this.View(accounts);
+                IEnumerable<AccountsLookup> accounts = this._dbContext.Accounts.OrderBy(a => a.Entity).ThenBy(a => a.Number)
+                    .Skip((page - 1) * itemsPerPage).OrderBy(a => a.Entity).ThenBy(a => a.Number).Take(itemsPerPage).ToList();
+
+                count = this._dbContext.UploadedFiles.Count();
+
+                ViewBag.TotalCount = count;
+
+                StaticPagedList<AccountsLookup> pagedList = new StaticPagedList<AccountsLookup>(accounts, page, itemsPerPage, count);
+
+                return this.View(pagedList);
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError(ex, ex.Message);
+                return Content(ex.Message);
+            }
         }
+
 
         // GET: AccountsLookupController/Create
         public ActionResult Create()

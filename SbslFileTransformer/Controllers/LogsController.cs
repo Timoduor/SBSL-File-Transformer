@@ -53,7 +53,7 @@ namespace SbslFileTransformer.Controllers
             catch (Exception ex)
             {
                 this._logger.LogError(ex, ex.Message);
-                return this.RedirectToAction("Index", "Home");
+                return Content(ex.Message);
             }
         }
 
@@ -84,7 +84,7 @@ namespace SbslFileTransformer.Controllers
             catch (Exception ex)
             {
                 this._logger.LogError(ex, ex.Message);
-                return this.RedirectToAction("Index", "Home");
+                return Content(ex.Message);
             }
         }
 
@@ -108,7 +108,7 @@ namespace SbslFileTransformer.Controllers
             catch (Exception ex)
             {
                 this._logger.LogError(ex, ex.Message);
-                return this.RedirectToAction("Index", "Home");
+                return Content(ex.Message);
             }
         }
 
@@ -240,7 +240,7 @@ namespace SbslFileTransformer.Controllers
             catch (Exception ex)
             {
                 this._logger.LogError(ex, ex.Message);
-                return this.RedirectToAction("Index", "Home");
+                return Content(ex.Message);
             }
         }
 

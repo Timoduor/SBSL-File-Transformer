@@ -246,7 +246,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
             foreach (var columnToken in reportColumnTokens)
             {
-                reportTextTokens.AddRange(columnToken.Split(new char[] { ' ', '\t', '\n', '\r' }));
+                if (!string.IsNullOrEmpty(columnToken))
+                    reportTextTokens.AddRange(columnToken.Split(new char[] { ' ', '\t', '\n', '\r' }));
             }
 
             foreach (var escalation in escalations)
