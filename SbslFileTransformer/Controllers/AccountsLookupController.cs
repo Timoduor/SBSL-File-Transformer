@@ -40,7 +40,7 @@ namespace SbslFileTransformer.Controllers
                 IEnumerable<AccountsLookup> accounts = this._dbContext.Accounts.OrderBy(a => a.Entity).ThenBy(a => a.Number)
                     .Skip((page - 1) * itemsPerPage).OrderBy(a => a.Entity).ThenBy(a => a.Number).Take(itemsPerPage).ToList();
 
-                count = this._dbContext.UploadedFiles.Count();
+                count = this._dbContext.Accounts.Count();
 
                 ViewBag.TotalCount = count;
 
