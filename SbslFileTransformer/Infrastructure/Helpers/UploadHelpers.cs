@@ -91,6 +91,9 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                         string daysOverdue = reader.GetValue(4)?.ToString();
                         string recipientEmails = reader.GetValue(5)?.ToString();
 
+                        if (!int.TryParse(daysOverdue, out int result))
+                            continue;
+
                         try
                         {
                             await dbContext.ReportConfigurations.AddAsync(new Models.ReportConfiguration
@@ -98,7 +101,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                                 ReportDescription = description,
                                 NameKeywords = nameKeywords,
                                 ColumnKeywords = columnKeywords,
-                                DaysOverdue = Convert.ToInt32(daysOverdue),
+                                DaysOverdue = result,
                                 RecipientEmails = recipientEmails,
                                 IsEnabled = true
                             });
