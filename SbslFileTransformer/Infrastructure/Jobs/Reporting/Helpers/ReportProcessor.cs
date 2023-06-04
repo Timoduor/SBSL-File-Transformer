@@ -51,7 +51,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 {
                     Logger.LogInformation($"Processing reports for user {reportUser.Key}");
 
-                    foreach (var reportBatch in reportUser.Value.Batch(5))
+                    foreach (var reportBatch in reportUser.Value.Batch(3))
                     {
                         try
                         {
