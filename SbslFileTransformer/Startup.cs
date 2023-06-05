@@ -194,8 +194,8 @@ namespace SbslFileTransformer
             services.AddHostedService<MoneyGramSettlementUGConverterJob>();
 
             //special scenario jobs
-            services.AddHostedService<RecordMatcherJob>();
-            services.AddHostedService<VisionRecordExtractorJob>();
+            //services.AddHostedService<RecordMatcherJob>();
+            //services.AddHostedService<VisionRecordExtractorJob>();
             services.AddHostedService<MultiCurrBalanceExtractorJob>();
 
 
