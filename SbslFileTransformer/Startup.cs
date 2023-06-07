@@ -193,6 +193,11 @@ namespace SbslFileTransformer
             services.AddHostedService<MoneyGramActivityUGConverterJob>();
             services.AddHostedService<MoneyGramSettlementUGConverterJob>();
 
+
+            //Phase 4
+            services.AddHostedService<keATMConverterJob>();
+            services.AddHostedService<stmtPdfMTFilesjob>();
+
             //special scenario jobs
             services.AddHostedService<RecordMatcherJob>();
             services.AddHostedService<VisionRecordExtractorJob>();

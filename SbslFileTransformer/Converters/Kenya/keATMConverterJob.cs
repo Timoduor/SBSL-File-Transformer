@@ -14,12 +14,13 @@ using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda
+namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
-    public class ATMjournalConverterJob : ConverterJobBase<ATMjournalConverterJob>, IHostedService
+    // public class keATMConverterJob
+    public class keATMConverterJob : ConverterJobBase<keATMConverterJob>, IHostedService
     {
-        protected override string JobName { get; set; } = nameof(ATMjournalConverterJob);
-        public ATMjournalConverterJob(ILogger<ATMjournalConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
+        protected override string JobName { get; set; } = nameof(keATMConverterJob);
+        public keATMConverterJob(ILogger<keATMConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
            EmailSender emailSender)
         {
             this._logger = logger;
@@ -29,7 +30,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            this._logger.LogInformation("Starting RW ATMjournal Converter Job");
+            this._logger.LogInformation("Starting KE ATMjournal Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
@@ -45,7 +46,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda
             {
                 await _semaphore.WaitAsync();
 
-                this._logger.LogInformation("Running RW ATM Journal Converter Job");
+                this._logger.LogInformation("Running KE ATM Journal Converter Job");
 
                 string prodFolder = string.Empty;
                 string sbFolder = string.Empty;
@@ -73,7 +74,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda
                     List<string> files_ = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".log")).ToList();
                     files_.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".log")));
 
-                    RW_ATMJournalConverter ATMJournalConverter = new RW_ATMJournalConverter();
+                    KE_ATMJournalConverter ATMJournalConverter = new KE_ATMJournalConverter();
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
@@ -82,7 +83,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda
                     foreach (string file in files)
                     {
                         //FILE PATH SHOULD HAVE FOLDER NAME MT300 SOMEWHERE IN IT
-                        if (file.ToLower().Contains("atms") && file.ToLower().Contains("e-jrn") && file.ToLower().Contains("imrw"))
+                        if (file.ToLower().Contains("atms") && file.ToLower().Contains("e-jrn") && file.ToLower().Contains("imke"))
                         {
                             SftpUploadedFile fileToProcess = uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
                             if (fileToProcess != null && fileToProcess.Converted == false)
@@ -96,7 +97,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda
                                 }
                                 finally
                                 {
-                                    this.CompleteFileProcessing(updatedFiles, fileToProcess, nameof(RW_ATMJournalConverter));
+                                    this.CompleteFileProcessing(updatedFiles, fileToProcess, nameof(KE_ATMJournalConverter));
                                 }
                         }
                     }
