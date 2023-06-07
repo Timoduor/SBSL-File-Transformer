@@ -87,6 +87,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting
 
                     Dictionary<string, IEnumerable<ReportModel>> unprocessedReportList = await this._reportsDownloader.GetUnprocessedReportListAsync(processedReportsIds, fetchReportProgress);
 
+                    _logger.LogInformation($"Found {unprocessedReportList.Count} unprocessed reports.");
+
                     await this._reportProcessor.ProcessFetchedReportsAsync(unprocessedReportList, processReportProgress);
                 }
 

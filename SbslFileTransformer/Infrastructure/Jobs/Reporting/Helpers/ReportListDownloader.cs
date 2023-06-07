@@ -53,6 +53,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             {
                 KeyValuePair<string, IEnumerable<ReportModel>> userReports = await this.GetUserRecentReportListAsync(userToken);
 
+                Logger.LogInformation($"User: {userToken.Key} has {userReports.Value.Count()} reports");
+
                 IEnumerable<ReportModel> unprocessedReports = userReports.Value.Where(r => !processedReportsIds.Contains(r.ReportId));
 
                 allUsersUnprocessedReports.Add(userToken.Key, unprocessedReports);

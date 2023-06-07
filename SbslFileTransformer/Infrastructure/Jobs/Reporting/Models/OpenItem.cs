@@ -4,7 +4,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Models
 {
     public class OpenItem
     {
-        //public string Account { get; set; }
+        public string Account { get; set; }
         public string Entity { get; set; }
         public string AccName { get; set; }
         public DateTime PostedDate { get; set; }
