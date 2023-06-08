@@ -50,7 +50,10 @@ namespace SbslFileTransformer
         {
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseMySql(
-                    Configuration.GetConnectionString("DefaultConnection"))
+                    Configuration.GetConnectionString("DefaultConnection"), opts =>
+                    {
+                        opts.EnableRetryOnFailure(3, TimeSpan.FromSeconds(10), null);
+                    })
 #if DEBUG
                     .EnableDetailedErrors()
                     .EnableSensitiveDataLogging()

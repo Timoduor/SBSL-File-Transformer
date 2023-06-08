@@ -63,7 +63,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
                                 await SendGeneratedEscalations(processed, emailSender);
 
-                                await SaveProcessedEscalations(processed, dbContext);
+                                await SaveProcessedEscalations(processed, ServiceScopeFactory);
                             }
                             catch (Exception ex)
                             {
@@ -84,32 +84,39 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
             var count = 0;
 
+            List<Task> reportTasks = new List<Task>();
+
             foreach (var report in reports)
             {
-                try
+                reportTasks.Add(Task.Run(async () =>
                 {
-                    Logger.LogInformation($"Processing report {report.Name} with ID {report.ReportId}");
-
-                    if (await ReportsDownloader.DownloadReportAndUpdateLocalPath(report))
+                    try
                     {
-                        var matchedEscalations = GetMatchedEscalations(report, escalations);
+                        Logger.LogInformation($"Processing report {report.Name} with ID {report.ReportId}");
 
-                        report.ModifiedReportPath = await GenerateModifiedExcelReport(report, matchedEscalations.Select(e => e.Value.DaysOverdue).ToArray());
+                        if (await ReportsDownloader.DownloadReportAndUpdateLocalPath(report))
+                        {
+                            var matchedEscalations = GetMatchedEscalations(report, escalations);
 
-                        var processed = await GenerateEscalationReports(report, matchedEscalations);
+                            report.ModifiedReportPath = await GenerateModifiedExcelReport(report, matchedEscalations.Select(e => e.Value.DaysOverdue).ToArray());
 
-                        processedReports.AddRange(processed);
+                            var processed = await GenerateEscalationReports(report, matchedEscalations);
+
+                            processedReports.AddRange(processed);
+                        }
+
+                        count++;
+
+                        processReportProgress.Report(count * 100 / reports.Count());
                     }
-
-                    count++;
-
-                    processReportProgress.Report(count * 100 / reports.Count());
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex, $"Error processing report {report.Name} with ID {report.ReportId}");
-                }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError(ex, $"Error processing report {report.Name} with ID {report.ReportId}");
+                    }
+                }));
             }
+
+            await Task.WhenAll(reportTasks);
 
             return processedReports;
         }
@@ -388,28 +395,35 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
         {
             var escalationReports = new List<EscalationReport>();
 
+            List<Task> escalationTasks = new List<Task>();
+
             foreach (var escalation in matchedEscalations)
             {
-                try
+                escalationTasks.Add(Task.Run(async () =>
                 {
-                    var escalationReport = new EscalationReport();
+                    try
+                    {
+                        var escalationReport = new EscalationReport();
 
-                    escalationReport.OriginalReport = report;
-                    escalationReport.Escalation = escalation.Value;
+                        escalationReport.OriginalReport = report;
+                        escalationReport.Escalation = escalation.Value;
 
-                    var daysOverdue = escalation.Value.DaysOverdue;
+                        var daysOverdue = escalation.Value.DaysOverdue;
 
-                    var overdueItems = escalation.Key.ReportContent.Where(i => i.DaysOverdue >= daysOverdue).OrderBy(i => i.DaysOverdue).ToList();
+                        var overdueItems = escalation.Key.ReportContent.Where(i => i.DaysOverdue >= daysOverdue).OrderBy(i => i.DaysOverdue).ToList();
 
-                    escalationReport.OverdueReportPath = await CreateCsvFiles(overdueItems, daysOverdue, report.Name);
+                        escalationReport.OverdueReportPath = await CreateCsvFiles(overdueItems, daysOverdue, report.Name);
 
-                    escalationReports.Add(escalationReport);
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex, "Error generating escalation reports");
-                }
+                        escalationReports.Add(escalationReport);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError(ex, "Error generating escalation reports");
+                    }
+                }));
             }
+
+            await Task.WhenAll(escalationTasks);
 
             return escalationReports;
         }
@@ -417,7 +431,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
         private async Task<string> CreateCsvFiles(List<OpenItem> items, int daysOverdue, string reportName)
         {
             var tempFilePath = Path.Combine(await FileHelpers.GetTempPath(ServiceScopeFactory),
-                $"{DateTime.Now.ToString("yyyy_MM_dd_")}_{reportName}_{daysOverdue}_Days_Overdue_.csv");
+                $"{DateTime.Now.ToString("yyyy_MM_dd_")}_{RandomNumberGen2.Next()}_{reportName}_{daysOverdue}_Days_Overdue_.csv");
 
             using (var writer = new StreamWriter(tempFilePath))
             {
@@ -430,40 +444,46 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             return tempFilePath;
         }
 
-        private async Task SaveProcessedEscalations(List<EscalationReport> processed, ApplicationDbContext dbContext)
+        private async Task SaveProcessedEscalations(List<EscalationReport> processed, IServiceScopeFactory serviceScopeFactory)
         {
             try
             {
-                var reportIds = processed.Select(p => p.OriginalReport.ReportId).Distinct();
-
-                var newProcessed = new List<EscalationReport>();
-
-                foreach (var reportId in reportIds)
+                using (var scope = serviceScopeFactory.CreateScope())
                 {
-                    var first = processed.FirstOrDefault(p => p.OriginalReport.ReportId == reportId);
+                    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-                    newProcessed.Add(first);
-                }
 
-                foreach (var report in newProcessed)
-                {
-                    if (!dbContext.ProcessedReports.Any(p => p.Id == report.OriginalReport.ReportId))
+                    var reportIds = processed.Select(p => p.OriginalReport.ReportId).Distinct();
+
+                    var newProcessed = new List<EscalationReport>();
+
+                    foreach (var reportId in reportIds)
                     {
-                        await dbContext.ProcessedReports.AddAsync(new ProcessedReport()
-                        {
-                            ReportId = report.OriginalReport.ReportId,
-                            Creator = report.OriginalReport.Creator,
-                            EndTime = report.OriginalReport.EndTime,
-                            Message = report.OriginalReport.Message,
-                            Name = report.OriginalReport.Name,
-                            ProcessedDate = DateTime.Now,
-                            Notes = report.OriginalReport.Notes,
-                            StartTime = report.OriginalReport.StartTime,
-                            Status = report.OriginalReport.Status
-                        });
+                        var first = processed.FirstOrDefault(p => p.OriginalReport.ReportId == reportId);
+
+                        newProcessed.Add(first);
                     }
+
+                    foreach (var report in newProcessed)
+                    {
+                        if (!dbContext.ProcessedReports.Any(p => p.Id == report.OriginalReport.ReportId))
+                        {
+                            await dbContext.ProcessedReports.AddAsync(new ProcessedReport()
+                            {
+                                ReportId = report.OriginalReport.ReportId,
+                                Creator = report.OriginalReport.Creator,
+                                EndTime = report.OriginalReport.EndTime,
+                                Message = report.OriginalReport.Message,
+                                Name = report.OriginalReport.Name,
+                                ProcessedDate = DateTime.Now,
+                                Notes = report.OriginalReport.Notes,
+                                StartTime = report.OriginalReport.StartTime,
+                                Status = report.OriginalReport.Status
+                            });
+                        }
+                    }
+                    await dbContext.SaveChangesAsync();
                 }
-                await dbContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {
