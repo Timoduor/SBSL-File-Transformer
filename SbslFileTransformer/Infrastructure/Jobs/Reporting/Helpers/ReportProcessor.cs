@@ -51,21 +51,28 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 {
                     Logger.LogInformation($"Processing reports for user {reportUser.Key}");
 
-                    foreach (var reportBatch in reportUser.Value.Batch(3))
+                    List<Task> tasks = new List<Task>();
+
+                    foreach (var reportBatch in reportUser.Value.Batch(5))
                     {
-                        try
+                        tasks.Add(Task.Run(async () =>
                         {
-                            var processed = await ProcessReportBatchAsync(reportBatch, processReportProgress, escalations);
+                            try
+                            {
+                                var processed = await ProcessReportBatchAsync(reportBatch, processReportProgress, escalations);
 
-                            await SendGeneratedEscalations(processed, emailSender);
+                                await SendGeneratedEscalations(processed, emailSender);
 
-                            await SaveProcessedEscalations(processed, dbContext);
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.LogError(ex, $"Error processing report batch for user {reportUser.Key}");
-                        }
+                                await SaveProcessedEscalations(processed, dbContext);
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.LogError(ex, $"Error processing report batch for user {reportUser.Key}");
+                            }
+                        }));
                     }
+
+                    await Task.WhenAll(tasks);
                 }
             }
         }

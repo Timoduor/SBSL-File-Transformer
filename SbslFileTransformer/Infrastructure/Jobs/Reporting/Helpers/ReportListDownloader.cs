@@ -84,7 +84,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
             //set the local path that the report will be saved locally for processing
             report.TempReportPath = Path.Combine(tempFolder,
-                                $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{report.Name}." +
+                                $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{new Random().Next(1, 100)}_{report.Name}." +
                                 (reportConfigModel.ExportType == "Excel" ? "xlsx" : reportConfigModel.ExportType));
 
             string reportToDownload =
