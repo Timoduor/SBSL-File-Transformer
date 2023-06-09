@@ -59,11 +59,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                         {
                             try
                             {
+                                await SaveProcessedEscalations(reportBatch, ServiceScopeFactory);
+
                                 var processed = await ProcessReportBatchAsync(reportBatch, processReportProgress, escalations);
 
                                 await SendGeneratedEscalations(processed, emailSender);
-
-                                await SaveProcessedEscalations(processed, ServiceScopeFactory);
                             }
                             catch (Exception ex)
                             {
@@ -444,7 +444,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             return tempFilePath;
         }
 
-        private async Task SaveProcessedEscalations(List<EscalationReport> processed, IServiceScopeFactory serviceScopeFactory)
+        private async Task SaveProcessedEscalations(IEnumerable<ReportModel> processed, IServiceScopeFactory serviceScopeFactory)
         {
             try
             {
@@ -453,32 +453,32 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
 
-                    var reportIds = processed.Select(p => p.OriginalReport.ReportId).Distinct();
+                    var reportIds = processed.Select(p => p.ReportId).Distinct();
 
-                    var newProcessed = new List<EscalationReport>();
+                    var newProcessed = new List<ReportModel>();
 
                     foreach (var reportId in reportIds)
                     {
-                        var first = processed.FirstOrDefault(p => p.OriginalReport.ReportId == reportId);
+                        var first = processed.FirstOrDefault(p => p.ReportId == reportId);
 
                         newProcessed.Add(first);
                     }
 
                     foreach (var report in newProcessed)
                     {
-                        if (!dbContext.ProcessedReports.Any(p => p.Id == report.OriginalReport.ReportId))
+                        if (!dbContext.ProcessedReports.Any(p => p.Id == report.ReportId))
                         {
                             await dbContext.ProcessedReports.AddAsync(new ProcessedReport()
                             {
-                                ReportId = report.OriginalReport.ReportId,
-                                Creator = report.OriginalReport.Creator,
-                                EndTime = report.OriginalReport.EndTime,
-                                Message = report.OriginalReport.Message,
-                                Name = report.OriginalReport.Name,
+                                ReportId = report.ReportId,
+                                Creator = report.Creator,
+                                EndTime = report.EndTime,
+                                Message = report.Message,
+                                Name = report.Name,
                                 ProcessedDate = DateTime.Now,
-                                Notes = report.OriginalReport.Notes,
-                                StartTime = report.OriginalReport.StartTime,
-                                Status = report.OriginalReport.Status
+                                Notes = report.Notes,
+                                StartTime = report.StartTime,
+                                Status = report.Status
                             });
                         }
                     }
@@ -487,7 +487,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, $"Error saving processed report batch with report IDs: {string.Join(",", processed.Select(p => p.OriginalReport.ReportId).ToList())}");
+                Logger.LogError(ex, $"Error saving processed report batch with report IDs: {string.Join(",", processed.Select(p => p.ReportId).ToList())}");
             }
         }
 
