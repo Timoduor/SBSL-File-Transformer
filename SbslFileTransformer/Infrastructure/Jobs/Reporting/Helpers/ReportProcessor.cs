@@ -92,7 +92,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 {
                     try
                     {
-                        Logger.LogInformation($"Processing report {report.Name} with ID {report.ReportId}");
+                        Logger.LogInformation($"Processing report {report.Name.ToUpper()} with ID {report.ReportId}");
 
                         if (await ReportsDownloader.DownloadReportAndUpdateLocalPath(report))
                         {
@@ -103,6 +103,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                             var processed = await GenerateEscalationReports(report, matchedEscalations);
 
                             processedReports.AddRange(processed);
+
+                            Logger.LogInformation($"Finished processing report {report.Name.ToUpper()} with ID {report.ReportId}");
                         }
 
                         count++;
@@ -111,7 +113,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                     }
                     catch (Exception ex)
                     {
-                        Logger.LogError(ex, $"Error processing report {report.Name} with ID {report.ReportId}");
+                        Logger.LogError(ex, $"Error processing report {report.Name.ToUpper()} with ID {report.ReportId}");
                     }
                 }));
             }
@@ -210,7 +212,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             catch (Exception ex)
             {
                 File.Create(outputFilePath).Close();
-                Logger.LogError(ex, $"Error Creating modified Aging Excel file {outputFilePath} for input file: {inputFile} with Name: {report.Name}");
+                Logger.LogError(ex, $"Error Creating modified Aging Excel file {outputFilePath} for input file: {inputFile} with Name: {report.Name.ToUpper()}");
             }
 
             return outputFilePath;
@@ -279,7 +281,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(ex, $"Error fetching matched esclations for report {report.Name}");
+                    Logger.LogError(ex, $"Error fetching matched esclations for report {report.Name.ToUpper()}");
                 }
             }
 
@@ -511,7 +513,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(ex, $"Error sending report with ID: {report.OriginalReport.ReportId} and Name: {report.OriginalReport.Name}");
+                    Logger.LogError(ex, $"Error sending report with ID: {report.OriginalReport.ReportId} and Name: {report.OriginalReport.Name.ToUpper()}");
                 }
             }
         }
