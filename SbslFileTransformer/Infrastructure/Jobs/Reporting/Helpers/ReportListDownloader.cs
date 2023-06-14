@@ -109,6 +109,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                         result.CopyTo(fs);
                     }
 
+                    report.Size = new FileInfo(report.TempReportPath).Length;
+
                     return true;
                 }
 

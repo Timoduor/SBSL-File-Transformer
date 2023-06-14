@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -104,7 +107,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
                             processedReports.AddRange(processed);
 
-                            Logger.LogInformation($"Finished processing report {report.Name.ToUpper()} with ID {report.ReportId}");
+                            Logger.LogInformation($"Finished processing report {report.Name.ToUpper()} of size {report.Size} with ID {report.ReportId}");
                         }
 
                         count++;
@@ -113,7 +116,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                     }
                     catch (Exception ex)
                     {
-                        Logger.LogError(ex, $"Error processing report {report.Name.ToUpper()} with ID {report.ReportId}");
+                        Logger.LogError(ex, $"Error processing report {report.Name.ToUpper()} of size {report.Size} with ID {report.ReportId}");
                     }
                 }));
             }
@@ -226,6 +229,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
         /// <returns></returns>
         private List<KeyValuePair<ReportModel, ReportConfiguration>> GetMatchedEscalations(ReportModel report, List<ReportConfiguration> escalations)
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
 
             var matchedConfiguration = new List<KeyValuePair<ReportModel, ReportConfiguration>>();
 
@@ -233,7 +238,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
             report.ReportContent = reportContent;
 
-            var reportColumnTokens = reportContent.SelectMany(x => new string[]
+            var reportColumnTokens = reportContent.Where(x => x != null).SelectMany(x => new string[]
                         {
                             x.Account,
                             x.AccName,
@@ -285,6 +290,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 }
             }
 
+            Logger.LogInformation($"It took {sw.ElapsedMilliseconds} to extract {reportTextTokens.Count} tokens from report {report.Name.ToUpper()}");
+
             return matchedConfiguration;
         }
 
@@ -292,7 +299,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            var openItems = new List<OpenItem>();
+            var openItems = new ConcurrentBag<OpenItem>();
+
+            var maxDate = DateTime.Now;
+
+            maxDate = DateTime.Now.DayOfWeek == DayOfWeek.Monday ? maxDate.AddDays(-2) : maxDate.AddDays(-1);
 
             try
             {
@@ -300,83 +311,99 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 {
                     using (var reader = ExcelReaderFactory.CreateReader(stream))
                     {
-                        var maxDate = DateTime.Now;
-
-                        maxDate = DateTime.Now.DayOfWeek == DayOfWeek.Monday ? maxDate.AddDays(-2) : maxDate.AddDays(-1);
-
-                        while (reader.Read())
+                        DataSet dataSet = reader.AsDataSet(new ExcelDataSetConfiguration()
                         {
-                            try
+                            ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
                             {
-                                var openItem = new OpenItem();
-
-                                if (reader.TryGetValue(0, out var account))
-                                    openItem.Account = account?.ToString().Trim();
-
-                                if (reader.TryGetValue(1, out var entity))
-                                    openItem.Entity = entity?.ToString().Trim();
-
-                                if (reader.TryGetValue(2, out var accName))
-                                    openItem.AccName = accName?.ToString().Trim();
-
-                                if (reader.TryGetValue(4, out var amount))
-                                    openItem.Amount = amount?.ToString().Trim();
-
-                                if (reader.TryGetValue(5, out var itemSubType))
-                                    openItem.ItemSubType = itemSubType?.ToString().Trim();
-
-                                if (reader.TryGetValue(6, out var weBalance))
-                                    openItem.WeBalance = weBalance?.ToString().Trim();
-
-                                if (reader.TryGetValue(7, out var theyBalance))
-                                    openItem.TheyBalance = theyBalance?.ToString().Trim();
-
-                                if (reader.TryGetValue(8, out var itemSide))
-                                    openItem.ItemSide = itemSide?.ToString();
-
-                                if (reader.TryGetValue(9, out var transNarrative))
-                                    openItem.TransNarrative = transNarrative?.ToString().Trim();
-
-                                if (reader.TryGetValue(10, out var ref1))
-                                    openItem.Reference1 = ref1?.ToString().Trim();
-
-                                if (reader.TryGetValue(11, out var ref2))
-                                    openItem.Reference2 = ref2?.ToString().Trim();
-
-                                if (reader.TryGetValue(12, out var ref3))
-                                    openItem.Reference3 = ref3?.ToString().Trim();
-
-                                if (reader.TryGetValue(14, out var activeStatus))
-                                    openItem.ActiveCertStatus = activeStatus?.ToString().Trim();
-
-                                if (reader.TryGetValue(13, out var funcArea))
-                                    openItem.FunctionalArea = funcArea?.ToString().Trim();
-
-                                if (reader.TryGetValue(15, out var itemId))
-                                    openItem.ItemId = itemId?.ToString().Trim();
-
-                                if (reader.TryGetValue(16, out var itemId16))
-                                    openItem.Column16 = itemId16?.ToString().Trim();
-
-                                if (reader.TryGetValue(17, out var itemId17))
-                                    openItem.Column17 = itemId17?.ToString().Trim();
-
-                                if (reader.TryGetValue(18, out var itemId18))
-                                    openItem.Column18 = itemId18?.ToString().Trim();
-
-                                if (reader.TryGetValue(19, out var itemId19))
-                                    openItem.Column19 = itemId19?.ToString().Trim();
-
-                                if (reader.TryGetValue(20, out var itemId20))
-                                    openItem.Column20 = itemId20?.ToString().Trim();
-
-                                openItems.Add(openItem);
+                                UseHeaderRow = true
                             }
-                            catch (Exception ex)
+                        });
+
+                        var tables = dataSet.Tables.Cast<DataTable>();
+
+                        Parallel.ForEach(tables, table =>
+                        {
+                            var rows = table.Rows.Cast<DataRow>();
+
+                            Parallel.ForEach(rows, row =>
                             {
-                                Logger.LogError(ex, "Error fetching columns out of report");
-                            }
-                        }
+                                try
+                                {
+                                    var openItem = new OpenItem();
+
+                                    var colCount = row.Table.Columns.Count;
+
+                                    if (colCount > 3 && DateTime.TryParse(row.ItemArray[3]?.ToString(), out DateTime tranDate))
+                                        openItem.DaysOverdue = (maxDate.Date - tranDate.Date).Days;
+
+                                    if (colCount > 0)
+                                        openItem.Account = row.ItemArray[0]?.ToString().Trim();
+
+                                    if (colCount > 1)
+                                        openItem.Entity = row.ItemArray[1]?.ToString().Trim();
+
+                                    if (colCount > 2)
+                                        openItem.AccName = row.ItemArray[2]?.ToString().Trim();
+
+                                    if (colCount > 4)
+                                        openItem.Amount = row.ItemArray[4]?.ToString().Trim();
+
+                                    if (colCount > 5)
+                                        openItem.ItemSubType = row.ItemArray[5]?.ToString().Trim();
+
+                                    if (colCount > 6)
+                                        openItem.WeBalance = row.ItemArray[6]?.ToString().Trim();
+
+                                    if (colCount > 7)
+                                        openItem.TheyBalance = row.ItemArray[7]?.ToString().Trim();
+
+                                    if (colCount > 8)
+                                        openItem.ItemSide = row.ItemArray[8]?.ToString().Trim();
+
+                                    if (colCount > 9)
+                                        openItem.TransNarrative = row.ItemArray[9]?.ToString().Trim();
+
+                                    if (colCount > 10)
+                                        openItem.Reference1 = row.ItemArray[10]?.ToString().Trim();
+
+                                    if (colCount > 11)
+                                        openItem.Reference2 = row.ItemArray[11]?.ToString().Trim();
+
+                                    if (colCount > 12)
+                                        openItem.Reference3 = row.ItemArray[12]?.ToString().Trim();
+
+                                    if (colCount > 13)
+                                        openItem.ActiveCertStatus = row.ItemArray[13]?.ToString().Trim();
+
+                                    if (colCount > 14)
+                                        openItem.FunctionalArea = row.ItemArray[14]?.ToString().Trim();
+
+                                    if (colCount > 15)
+                                        openItem.ItemId = row.ItemArray[15]?.ToString().Trim();
+
+                                    if (colCount > 16)
+                                        openItem.Column16 = row.ItemArray[16]?.ToString().Trim();
+
+                                    if (colCount > 17)
+                                        openItem.Column17 = row.ItemArray[17]?.ToString().Trim();
+
+                                    if (colCount > 18)
+                                        openItem.Column18 = row.ItemArray[18]?.ToString().Trim();
+
+                                    if (colCount > 19)
+                                        openItem.Column19 = row.ItemArray[19]?.ToString().Trim();
+
+                                    if (colCount > 20)
+                                        openItem.Column20 = row.ItemArray[20]?.ToString().Trim();
+
+                                    openItems.Add(openItem);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.LogError(ex, "Error fetching columns out of report");
+                                }
+                            });
+                        });
                     }
                 }
             }
@@ -385,7 +412,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 Logger.LogError(ex, $"Error fetching report content for report Path: {path}");
             }
 
-            return openItems;
+            return openItems.ToList();
         }
 
         /// <summary>
