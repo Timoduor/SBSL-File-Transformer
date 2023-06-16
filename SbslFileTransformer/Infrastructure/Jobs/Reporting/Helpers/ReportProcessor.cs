@@ -340,8 +340,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
                                     var colCount = row.Table.Columns.Count;
 
-                                    if (colCount > 3 && DateTime.TryParse(row.ItemArray[3]?.ToString(), out DateTime tranDate))
-                                        openItem.DaysOverdue = (maxDate.Date - tranDate.Date).Days;
+                                    if (colCount > 3)
+                                    {
+                                        if (!DateTime.TryParse(row.ItemArray[3]?.ToString(), out var outputDate))
+                                        {
+                                            if (double.TryParse(row.ItemArray[3]?.ToString(), out var doubleFromExcel))
+                                            {
+                                                outputDate = DateTime.FromOADate(doubleFromExcel);
+                                            }
+                                        }
+                                        openItem.DaysOverdue = (maxDate.Date - outputDate.Date).Days;
+                                    }
 
                                     if (colCount > 0)
                                         openItem.Account = row.ItemArray[0]?.ToString().Trim();
