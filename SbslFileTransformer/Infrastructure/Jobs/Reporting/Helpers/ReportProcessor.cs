@@ -50,11 +50,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
                 var escalations = await dbContext.ReportConfigurations.Where(e => e.IsEnabled).ToListAsync();
 
+                List<Task> tasks = new List<Task>();
+
                 foreach (var reportUser in unprocessedReports)
                 {
                     Logger.LogInformation($"Processing reports for user {reportUser.Key}");
-
-                    List<Task> tasks = new List<Task>();
 
                     foreach (var reportBatch in reportUser.Value.Batch(5))
                     {
@@ -74,9 +74,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                             }
                         }));
                     }
-
-                    await Task.WhenAll(tasks);
                 }
+
+                await Task.WhenAll(tasks);
             }
         }
 
@@ -191,20 +191,27 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                             sheet.Cells[$"E{i}"].Style.Numberformat.Format = "0";
 
 
-                            if (daysOverdue.Length >= 4)
+                            if (daysOverdue.Length >= 2)
                             {
                                 if (diff >= daysOverdue[0] && diff <= daysOverdue[1])
                                     sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.GreenYellow);
+                            }
 
+                            if (daysOverdue.Length >= 3)
+                            {
                                 if (diff > daysOverdue[1] && diff <= daysOverdue[2])
                                     sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.RosyBrown);
+                            }
 
+                            if (daysOverdue.Length >= 4)
+                            {
                                 if (diff > daysOverdue[2] && diff <= daysOverdue[3])
                                     sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Yellow);
 
                                 if (diff > daysOverdue[3])
                                     sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Red);
                             }
+
                         }
                     }
 
