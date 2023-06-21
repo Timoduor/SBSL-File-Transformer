@@ -179,6 +179,28 @@ namespace SbslFileTransformer.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost]
+        //[ValidateAntiForgeryToken]
+        public async Task<ActionResult> IsManagerReport(IFormCollection collection)
+        {
+            try
+            {
+                var report = await _dbContext.ReportConfigurations.FindAsync(Convert.ToInt32(collection["id"]));
+
+                report.IsManagerReport = Convert.ToBoolean(collection["IsManagerReport"]);
+
+                _dbContext.Update(report);
+
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error saving report config manager report state", ex);
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
         // POST: ReportConfigurationController/Delete/5
         [HttpPost]
         //[ValidateAntiForgeryToken]

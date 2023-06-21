@@ -90,6 +90,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                         string columnKeywords = reader.GetValue(3)?.ToString();
                         string daysOverdue = reader.GetValue(4)?.ToString();
                         string recipientEmails = reader.GetValue(5)?.ToString();
+                        bool isManagerReport = reader.GetValue(6)?.ToString().ToLower() == "true";
 
                         if (!int.TryParse(daysOverdue, out int result))
                             continue;
@@ -103,6 +104,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                                 ColumnKeywords = columnKeywords,
                                 DaysOverdue = result,
                                 RecipientEmails = recipientEmails,
+                                IsManagerReport = isManagerReport,
                                 IsEnabled = true
                             });
 

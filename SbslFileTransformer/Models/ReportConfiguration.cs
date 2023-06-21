@@ -14,6 +14,8 @@
 
         public string RecipientEmails { get; set; }
 
+        public bool IsManagerReport { get; set; }
+
         public bool IsEnabled { get; set; }
     }
 }
