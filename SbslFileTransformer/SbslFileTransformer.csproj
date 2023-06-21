@@ -127,7 +127,7 @@
 
   <ItemGroup>
     <None Update="AccountsUploads\sample_accounts_format.xlsx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Content\eula.docx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -139,7 +139,7 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="EscalationUploads\sample_escalations.xlsx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="InstallScripts\Install.ps1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
