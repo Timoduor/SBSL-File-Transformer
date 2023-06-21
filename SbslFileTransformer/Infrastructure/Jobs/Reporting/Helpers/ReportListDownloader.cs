@@ -288,7 +288,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 this.Logger.LogError(ex, ex.Message);
             }
 
-            return new KeyValuePair<string, IEnumerable<ReportModel>>(userToken.Key, reports.Where(r => r.ReportDate > DateTime.Now.AddDays(-7)).OrderByDescending(r => r.ReportDate));
+            return new KeyValuePair<string, IEnumerable<ReportModel>>(userToken.Key, reports.Where(r => r.ReportDate > DateTime.Now.AddDays(-30)).OrderByDescending(r => r.ReportDate));
         }
     }
 }

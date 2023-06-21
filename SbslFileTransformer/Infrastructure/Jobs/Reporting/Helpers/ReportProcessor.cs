@@ -3,18 +3,17 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CsvHelper;
 using ExcelDataReader;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OfficeOpenXml;
+using OfficeOpenXml.Style;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers.Interfaces;
@@ -97,6 +96,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                     {
                         Logger.LogInformation($"Processing report {report.Name.ToUpper()} with ID {report.ReportId}");
 
+                        if (report.Name.ToLower().Contains("proofing"))
+                        {
+                            Logger.LogInformation($"Skipping report {report.Name.ToUpper()} with ID {report.ReportId} as it is a balance proofing report");
+                            return;
+                        }
+
                         if (await ReportsDownloader.DownloadReportAndUpdateLocalPath(report))
                         {
                             var matchedEscalations = GetMatchedEscalations(report, escalations);
@@ -138,7 +143,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             var inputFileName = Path.GetFileName(inputFile);
 
             var outputFilePath =
-                Path.Combine(await FileHelpers.GetTempPath(ServiceScopeFactory), "Aged_" + inputFileName);
+                Path.Combine(await FileHelpers.GetTempPath(ServiceScopeFactory), "AGED_" + inputFileName);
 
             try
             {
@@ -161,6 +166,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                     sheet.Cells["A5"].Style.Font.Bold = true;
                     //set header
                     sheet.Cells["E6"].Value = "DAYS OVERDUE";
+                    sheet.Cells["E6"].Style.Font.Bold = true;
+                    sheet.Cells["E6"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                    sheet.Cells["E6"].AutoFitColumns();
 
                     //set formula for cells
                     var start = sheet.Dimension.Start;
@@ -172,11 +180,21 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
                         if (!string.IsNullOrEmpty(dateFromExcel))
                         {
-                            if (!DateTime.TryParse(dateFromExcel, out var outputDate))
+                            if (!DateTime.TryParse(dateFromExcel, out var outputDate) &&
+                                !DateTime.TryParseExact(dateFromExcel, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out outputDate) &&
+                                !DateTime.TryParseExact(dateFromExcel, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out outputDate))
                             {
                                 if (double.TryParse(dateFromExcel, out var doubleFromExcel))
                                 {
-                                    outputDate = DateTime.FromOADate(doubleFromExcel);
+                                    try
+                                    {
+                                        outputDate = DateTime.FromOADate(doubleFromExcel);
+                                    }
+                                    catch (Exception)
+                                    {
+                                        Logger.LogError($"Error parsing date {dateFromExcel} for report {report.Name} with ID {report.ReportId}");
+                                        continue;
+                                    }
                                 }
                                 else
                                 {
@@ -189,30 +207,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                             sheet.Cells[$"E{i}"].Value = diff;
 
                             sheet.Cells[$"E{i}"].Style.Numberformat.Format = "0";
-
-
-                            if (daysOverdue.Length >= 2)
-                            {
-                                if (diff >= daysOverdue[0] && diff <= daysOverdue[1])
-                                    sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.GreenYellow);
-                            }
-
-                            if (daysOverdue.Length >= 3)
-                            {
-                                if (diff > daysOverdue[1] && diff <= daysOverdue[2])
-                                    sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.RosyBrown);
-                            }
-
-                            if (daysOverdue.Length >= 4)
-                            {
-                                if (diff > daysOverdue[2] && diff <= daysOverdue[3])
-                                    sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Yellow);
-
-                                if (diff > daysOverdue[3])
-                                    sheet.Cells[$"E{i}"].Style.Fill.SetBackground(Color.Red);
-                            }
-
                         }
+                        sheet.Cells[$"E{i}"].Style.Font.Bold = true;
+
+                        sheet.Cells[$"E{i}"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
                     }
 
                     //save new excel
@@ -298,6 +296,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             }
 
             Logger.LogInformation($"It took {sw.ElapsedMilliseconds} to extract {reportTextTokens.Count} tokens from report {report.Name.ToUpper()}");
+            Logger.LogInformation($"Found {matchedConfiguration.Count} escalations for report {report.Name.ToUpper()}");
 
             return matchedConfiguration;
         }
@@ -340,18 +339,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
                                     var colCount = row.Table.Columns.Count;
 
-                                    if (colCount > 3)
-                                    {
-                                        if (!DateTime.TryParse(row.ItemArray[3]?.ToString(), out var outputDate))
-                                        {
-                                            if (double.TryParse(row.ItemArray[3]?.ToString(), out var doubleFromExcel))
-                                            {
-                                                outputDate = DateTime.FromOADate(doubleFromExcel);
-                                            }
-                                        }
-                                        openItem.DaysOverdue = (maxDate.Date - outputDate.Date).Days;
-                                    }
-
                                     if (colCount > 0)
                                         openItem.Account = row.ItemArray[0]?.ToString().Trim();
 
@@ -360,6 +347,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
                                     if (colCount > 2)
                                         openItem.AccName = row.ItemArray[2]?.ToString().Trim();
+
+                                    if (colCount > 3)
+                                        openItem.AccName = row.ItemArray[3]?.ToString().Trim();
 
                                     if (colCount > 4)
                                         openItem.Amount = row.ItemArray[4]?.ToString().Trim();
@@ -455,9 +445,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
                         var daysOverdue = escalation.Value.DaysOverdue;
 
-                        var overdueItems = escalation.Key.ReportContent.Where(i => i.DaysOverdue >= daysOverdue).OrderBy(i => i.DaysOverdue).ToList();
-
-                        escalationReport.OverdueReportPath = await CreateCsvFiles(overdueItems, daysOverdue, report.Name);
+                        escalationReport.OverdueReportPath = await CreateEscalationReportFile(daysOverdue, report);
 
                         escalationReports.Add(escalationReport);
                     }
@@ -473,17 +461,32 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             return escalationReports;
         }
 
-        private async Task<string> CreateCsvFiles(List<OpenItem> items, int daysOverdue, string reportName)
+        private async Task<string> CreateEscalationReportFile(int daysOverdue, ReportModel report)
         {
             var tempFilePath = Path.Combine(await FileHelpers.GetTempPath(ServiceScopeFactory),
-                $"{DateTime.Now.ToString("yyyy_MM_dd_")}_{RandomNumberGen2.Next()}_{reportName}_{daysOverdue}_Days_Overdue_.csv");
+                $"Escalation_{DateTime.Now.ToString("yyyy_MM_dd_")}_{RandomNumberGen2.Next()}_{report.Name}_{daysOverdue}_Days_Overdue_.xlsx").ToUpper();
 
-            using (var writer = new StreamWriter(tempFilePath))
+            //DELETE ALL OTHER ENTRIES THAT ARE NOT IN THE OVERDUE DAYS
+            using (var package = new ExcelPackage(new FileInfo(report.ModifiedReportPath)))
             {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                var sheet = package.Workbook.Worksheets.First();
+
+                var start = sheet.Dimension.Start;
+                var end = sheet.Dimension.End;
+
+                for (var i = start.Row + 7; i <= end.Row; i++)
                 {
-                    await csv.WriteRecordsAsync(items);
+                    if (int.TryParse(sheet.Cells[$"E{i}"].Value?.ToString(), out var calculatedDaysOverdue))
+                    {
+                        if (calculatedDaysOverdue < daysOverdue)
+                        {
+                            sheet.DeleteRow(i);
+                            i--;
+                        }
+                    }
                 }
+
+                await package.SaveAsAsync(new FileInfo(tempFilePath));
             }
 
             return tempFilePath;
@@ -550,7 +553,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                                                         $"Report Name {report.OriginalReport.Name}" + Environment.NewLine +
                                                         $"Report generated by: {report.OriginalReport.Creator}" + Environment.NewLine +
                                                         $"COMMENTS:- {report.OriginalReport.Notes}", false,
-                                    new[] { report.OriginalReport.TempReportPath, report.OriginalReport.ModifiedReportPath, report.OverdueReportPath });
+                                    new[] { report.OverdueReportPath, report.OriginalReport.ModifiedReportPath, report.OriginalReport.TempReportPath });
 
                     Logger.LogInformation($"Sent report with name: {report.OriginalReport.Name} to {report.Escalation.ReportDescription}");
                 }
