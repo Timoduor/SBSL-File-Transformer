@@ -79,7 +79,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             }
         }
 
-
         private async Task<List<EscalationReport>> ProcessReportBatchAsync(IEnumerable<ReportModel> reports, IProgress<int> processReportProgress, List<ReportConfiguration> escalations)
         {
             var processedReports = new List<EscalationReport>();
@@ -96,7 +95,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                     {
                         Logger.LogInformation($"Processing report {report.Name.ToUpper()} with ID {report.ReportId}");
 
-                        if (report.Name.ToLower().Contains("proofing"))
+                        if (report.Name.Contains("proofing", StringComparison.CurrentCultureIgnoreCase))
                         {
                             Logger.LogInformation($"Skipping report {report.Name.ToUpper()} with ID {report.ReportId} as it is a balance proofing report");
                             return;
@@ -106,7 +105,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                         {
                             var matchedEscalations = GetMatchedEscalations(report, escalations);
 
-                            report.ModifiedReportPath = await GenerateModifiedExcelReport(report, matchedEscalations.Select(e => e.Value.DaysOverdue).ToArray());
+                            report.ModifiedReportPath = await GenerateModifiedExcelReport(report);
 
                             var processed = await GenerateEscalationReports(report, matchedEscalations);
 
@@ -131,13 +130,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             return processedReports;
         }
 
-        private async Task<string> GenerateModifiedExcelReport(ReportModel report, int[] daysOverdue)
+        private async Task<string> GenerateModifiedExcelReport(ReportModel report)
         {
 
             var inputFile = report.TempReportPath;
 
             //ignore balance proofing reports
-            if (inputFile.ToLower().Contains("proofing"))
+            if (inputFile.Contains("proofing", StringComparison.CurrentCultureIgnoreCase))
                 return inputFile;
 
             var inputFileName = Path.GetFileName(inputFile);
@@ -158,7 +157,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                     sheet.InsertColumn(5, 1);
 
                     //set maxDate only if it is not a balance proofing report
-                    if (!inputFileName.ToLower().Contains("proofing"))
+                    if (!inputFileName.Contains("proofing", StringComparison.CurrentCultureIgnoreCase))
                     {
                         sheet.Cells["A5"].Value = $"Recon Date: {maxDate:MM/dd/yyyy}";
                     }
@@ -548,7 +547,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                     var recipients = report.Escalation.RecipientEmails.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
 
                     string[] attachments = report.Escalation.IsManagerReport ? new[] { report.OverdueReportPath } :
-                        new[] { report.OverdueReportPath, report.OriginalReport.ModifiedReportPath, report.OriginalReport.TempReportPath };
+                                                    new[] { report.OverdueReportPath, report.OriginalReport.ModifiedReportPath };
 
                     await emailSender.SendMessage(recipients, ReportConfigModel.EmailHeader + $" Report ID: {report.OriginalReport.ReportId}",
                                                         ReportConfigModel.EmailBody + Environment.NewLine + $"{report.Escalation.DaysOverdue} Days overdue" +
