@@ -142,7 +142,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             var inputFileName = Path.GetFileName(inputFile);
 
             var outputFilePath =
-                Path.Combine(await FileHelpers.GetTempPath(ServiceScopeFactory), "AGED_" + inputFileName);
+                Path.Combine(await FileHelpers.GetTempPath(ServiceScopeFactory), "EXCEPTIONS_" + inputFileName);
 
             try
             {
@@ -549,7 +549,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                     string[] attachment = report.Escalation.IsManagerReport ? new[] { report.OverdueReportPath } : new[] { report.OriginalReport.ModifiedReportPath };
 
                     string emailSubject = report.Escalation.IsManagerReport ? $"ESCALATION Report for {report.OriginalReport.Name.ToUpper()} with {report.Escalation.DaysOverdue} days overdue"
-                                                        : $"AGED Report for report: {report.OriginalReport.Name.ToUpper()}";
+                                                        : $"EXCEPTIONS Report for report: {report.OriginalReport.Name.ToUpper()}";
 
                     await emailSender.SendMessage(recipients, emailSubject,
                                                         ReportConfigModel.EmailBody + Environment.NewLine + $"{report.Escalation.DaysOverdue} Days overdue" +
