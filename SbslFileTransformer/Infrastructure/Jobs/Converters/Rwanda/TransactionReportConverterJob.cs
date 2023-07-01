@@ -81,12 +81,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda
                     foreach (string file in files)
                     {
                         if (file.ToLower().Contains("cards") && file.ToLower().Contains("imrw") &&
-                            file.ToLower().Contains("office_accounts") && file.ToLower().Contains("mastercard_file") &&
+                            ((file.ToLower().Contains("office_accounts") && file.ToLower().Contains("mastercard_file")) || (file.ToLower().Contains("mc_gnr_pool") && file.ToLower().Contains("portal"))) &&
                             !file.ToLower().Contains("conv"))
                         {
                             SftpUploadedFile fileToProcess =
-                                uploadedFiles.FirstOrDefault(f =>
-                                    f.FilePath.ToLower() == file.ToLower());
+                                uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
 
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
