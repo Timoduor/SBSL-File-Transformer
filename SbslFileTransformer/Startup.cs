@@ -94,7 +94,6 @@ namespace SbslFileTransformer
             services.AddTransient<EmailSender>();
 
             //Reporting
-            //services.AddHostedService<ReportEngineJob>();
             services.AddTransient<IReportsDownloader, ReportListDownloader>();
             services.AddTransient<IReportProcessor, ReportProcessor>();
             services.AddHostedService<ReportEngineJob>();
@@ -188,6 +187,7 @@ namespace SbslFileTransformer
             services.AddHostedService<RW_notonusposvisa_Job>();
             services.AddHostedService<PesaLinkGl2ConverterJob>();
             services.AddHostedService<PesaLinkStatementConverterJob>();
+            services.AddHostedService<PesaLinkTransConverterJob>();
 
             //Uganda
             services.AddHostedService<AirtelUgandaBalanceExtractorJob>();
