@@ -41,6 +41,15 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                         if (dbContext.Accounts.Any(x => x.Number == number))
                         {
                             toReturn.AppendLine($"{entity} {name} {number} {account} {currency} already exists! {Environment.NewLine}");
+
+                            var record = dbContext.Accounts.FirstOrDefault(x => x.Number == number);
+
+                            record.Account = account;
+                            record.Currency = currency;
+                            record.Entity = entity;
+                            record.Name = name;
+
+                            dbContext.Accounts.Update(record);
                         }
                         else
                         {
@@ -52,10 +61,8 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                                 Currency = currency,
                                 Entity = entity
                             });
-
-                            await dbContext.SaveChangesAsync();
                         }
-
+                        await dbContext.SaveChangesAsync();
                     }
                 }
             }
