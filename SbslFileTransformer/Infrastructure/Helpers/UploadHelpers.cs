@@ -40,7 +40,7 @@ namespace SbslFileTransformer.Infrastructure.Helpers
 
                         if (dbContext.Accounts.Any(x => x.Number == number))
                         {
-                            toReturn.AppendLine($"{entity} {name} {number} {account} {currency} already exists! {Environment.NewLine}");
+                            toReturn.AppendLine($"{entity} {name} {number} {account} {currency} already exists! Updating it instead {Environment.NewLine}");
 
                             var record = dbContext.Accounts.FirstOrDefault(x => x.Number == number);
 
