@@ -180,8 +180,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                         if (!string.IsNullOrEmpty(dateFromExcel))
                         {
                             if (!DateTime.TryParse(dateFromExcel, out var outputDate) &&
+                                !DateTime.TryParseExact(dateFromExcel, "d/M/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out outputDate) &&
+                                !DateTime.TryParseExact(dateFromExcel, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out outputDate) &&
                                 !DateTime.TryParseExact(dateFromExcel, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out outputDate) &&
-                                !DateTime.TryParseExact(dateFromExcel, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out outputDate))
+                                !DateTime.TryParseExact(dateFromExcel, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out outputDate))
                             {
                                 if (double.TryParse(dateFromExcel, out var doubleFromExcel))
                                 {
@@ -548,7 +550,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
                     string[] attachment = report.Escalation.IsManagerReport ? new[] { report.OverdueReportPath } : new[] { report.OriginalReport.ModifiedReportPath };
 
-                    string emailSubject = report.Escalation.IsManagerReport ? $"ESCALATION Report for {report.OriginalReport.Name.ToUpper()} with {report.Escalation.DaysOverdue} days overdue"
+                    string emailSubject = report.Escalation.IsManagerReport ? $"ESCALATION Report for {report.OriginalReport.Name.ToUpper()} with days overdue greater than or equal to {report.Escalation.DaysOverdue} "
                                                         : $"EXCEPTIONS Report for report: {report.OriginalReport.Name.ToUpper()}";
 
                     await emailSender.SendMessage(recipients, emailSubject,
