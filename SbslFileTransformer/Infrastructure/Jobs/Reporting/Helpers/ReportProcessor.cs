@@ -180,7 +180,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                         if (!string.IsNullOrEmpty(dateFromExcel))
                         {
                             if (!DateTime.TryParseExact(dateFromExcel, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var outputDate) &&
-                                !DateTime.TryParseExact(dateFromExcel, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out outputDate))
+                                !DateTime.TryParseExact(dateFromExcel, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out outputDate) &&
+                                !DateTime.TryParseExact(dateFromExcel, "M/d/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out outputDate))
                             {
                                 if (double.TryParse(dateFromExcel, out var doubleFromExcel))
                                 {
