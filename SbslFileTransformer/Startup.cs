@@ -188,6 +188,7 @@ namespace SbslFileTransformer
             services.AddHostedService<PesaLinkGl2ConverterJob>();
             services.AddHostedService<PesaLinkStatementConverterJob>();
             services.AddHostedService<PesaLinkTransConverterJob>();
+            services.AddHostedService<MasterCardRWConverterJob>();
 
             //Uganda
             services.AddHostedService<AirtelUgandaBalanceExtractorJob>();
