@@ -61,7 +61,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                         {
                             try
                             {
-                                await SaveProcessedEscalations(reportBatch, ServiceScopeFactory);
+                                await SaveReportBatchToDB(reportBatch, ServiceScopeFactory);
 
                                 var processed = await ProcessReportBatchAsync(reportBatch, processReportProgress, escalations);
 
@@ -181,7 +181,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                         {
                             if (!DateTime.TryParseExact(dateFromExcel, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var outputDate) &&
                                 !DateTime.TryParseExact(dateFromExcel, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out outputDate) &&
-                                !DateTime.TryParseExact(dateFromExcel, "M/d/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out outputDate))
+                                !DateTime.TryParseExact(dateFromExcel, "M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out outputDate))
                             {
                                 if (double.TryParse(dateFromExcel, out var doubleFromExcel))
                                 {
@@ -446,7 +446,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
                         escalationReport.OverdueReportPath = await CreateEscalationReportFile(daysOverdue, report);
 
-                        escalationReports.Add(escalationReport);
+                        if(!string.IsNullOrEmpty(escalationReport.OverdueReportPath))
+                            escalationReports.Add(escalationReport);
                     }
                     catch (Exception ex)
                     {
@@ -465,6 +466,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             var tempFilePath = Path.Combine(await FileHelpers.GetTempPath(ServiceScopeFactory),
                 $"Escalation_{DateTime.Now.ToString("yyyy_MM_dd_")}_{RandomNumberGen2.Next()}_{report.Name}_{daysOverdue}_Days_Overdue_.xlsx").ToUpper();
 
+            int countMatched = 0;
+
             //DELETE ALL OTHER ENTRIES THAT ARE NOT IN THE OVERDUE DAYS
             using (var package = new ExcelPackage(new FileInfo(report.ModifiedReportPath)))
             {
@@ -472,6 +475,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
                 var start = sheet.Dimension.Start;
                 var end = sheet.Dimension.End;
+
 
                 for (var i = start.Row + 7; i <= end.Row; i++)
                 {
@@ -482,16 +486,23 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                             sheet.DeleteRow(i);
                             i--;
                         }
+                        else
+                        {
+                            countMatched++;
+                        }
                     }
                 }
 
-                await package.SaveAsAsync(new FileInfo(tempFilePath));
+                if (countMatched > 0)
+                {
+                    await package.SaveAsAsync(new FileInfo(tempFilePath));
+                }
             }
 
-            return tempFilePath;
+            return countMatched > 0 ? tempFilePath : string.Empty;
         }
 
-        private async Task SaveProcessedEscalations(IEnumerable<ReportModel> processed, IServiceScopeFactory serviceScopeFactory)
+        private async Task SaveReportBatchToDB(IEnumerable<ReportModel> processed, IServiceScopeFactory serviceScopeFactory)
         {
             try
             {
