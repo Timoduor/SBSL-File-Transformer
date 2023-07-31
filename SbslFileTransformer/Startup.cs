@@ -54,10 +54,8 @@ namespace SbslFileTransformer
                     {
                         opts.EnableRetryOnFailure(3, TimeSpan.FromSeconds(10), null);
                     })
-#if DEBUG
                     .EnableDetailedErrors()
                     .EnableSensitiveDataLogging()
-#endif
             );
 
             services.AddHealthChecks();

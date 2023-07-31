@@ -244,7 +244,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
             var reportColumnTokens = reportContent.Where(x => x != null).SelectMany(x => new string[]
                         {
-                            x.Account,
+                            x.Account, 
                             x.AccName,
                             x.ActiveCertStatus,
                             x.Amount,

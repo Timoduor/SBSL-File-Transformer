@@ -344,7 +344,7 @@ namespace SbslFileTransformer.Converters
                 foreach (Balance balance in balances)
                 {
                     string toAppend =
-                        $"{entity}\t{await GetGLAccountNumber(balance.Account, dbContext)}\tNostros\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(balance.Date):MM/dd/yyyy}\t\t\t\t{balance.Amount}\t{balance.Currency}\n";
+                        $"{entity}\t{await GetGLAccountNumber(balance.Account, dbContext, logger)}\tNostros\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(balance.Date):MM/dd/yyyy}\t\t\t\t{balance.Amount}\t{balance.Currency}\n";
 
                     output.Append(toAppend);
                 }
@@ -356,8 +356,14 @@ namespace SbslFileTransformer.Converters
             return outputPath;
         }
 
-        private static async Task<string> GetGLAccountNumber(string accNo, ApplicationDbContext dbContext)
+        private static async Task<string> GetGLAccountNumber(string accNo, ApplicationDbContext dbContext, ILogger<MTFileConverter> logger)
         {
+            if(string.IsNullOrEmpty(accNo))
+            {
+                logger.LogError($"Missing accNo {accNo} Returning empty string!");
+                return string.Empty;
+            }
+
             string account = (await dbContext.Accounts.FirstOrDefaultAsync(a =>
                 a.Account.ToLower() == accNo.ToLower() || a.Account.ToLower().Contains(accNo.ToLower())))?.Number;
 
