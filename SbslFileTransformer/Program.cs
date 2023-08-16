@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -21,7 +21,7 @@ namespace SbslFileTransformer
             try
             {
                 Log.Information("Starting up");
-                CreateHostBuilder(args).Build().Run();
+                 CreateHostBuilder(args).Build().Run();
             }
             catch (Exception ex)
             {

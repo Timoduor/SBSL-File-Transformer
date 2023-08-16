@@ -199,6 +199,7 @@ namespace SbslFileTransformer
             //Phase 4
             services.AddHostedService<keATMConverterJob>();
             services.AddHostedService<stmtPdfMTFilesjob>();
+            services.AddHostedService<keLogbookConverterJob>();
 
             //special scenario jobs
             //services.AddHostedService<RecordMatcherJob>();
