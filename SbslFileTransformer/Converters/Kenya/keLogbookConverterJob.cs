@@ -78,6 +78,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                     List<SftpUploadedFile> updatedFiles = new List<SftpUploadedFile>();
 
+                    string renamedfie_ = "";
 
                     foreach (string file in files)
                     {
@@ -87,8 +88,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    LBookConverter.Rename_Files(file);
-                                    LBookConverter.Rename_Files(file);
+                                    renamedfie_ = LBookConverter.Rename_Files(file);
+                                   if (renamedfie_ != "")
+                                    {
+                                        LBookConverter.Removelinebreaks(renamedfie_);
+                                    }
+                                    
                                 }
                                 catch (Exception ex)
                                 {
@@ -96,7 +101,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 }
                                 finally
                                 {
-                                    this.CompleteFileProcessing(updatedFiles, fileToProcess, nameof(KE_ATMJournalConverter));
+                                    this.CompleteFileProcessing(updatedFiles, fileToProcess, nameof(KE_LBookConverter));
                                 }
                         }
                     }

@@ -8,12 +8,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
     public class KE_LBookConverter
     {
-        public void Rename_Files(string inputFile)
+        public string  Rename_Files(string inputFile)
         {
+            string renamedfile = "";
             try
             {
                 string folderPath = Path.GetDirectoryName(inputFile);
-                string sanitizedFileName = RemoveSpecialCharacters(inputFile);
+                string fileName = Path.GetFileName(inputFile);
+                string sanitizedFileName = RemoveSpecialCharacters(fileName);
+              
 
                 sanitizedFileName = sanitizedFileName.Replace("csv", ".csv");
 
@@ -21,14 +24,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                 {
                     string newFilePath = Path.Combine(folderPath, sanitizedFileName);
                     File.Move(inputFile, newFilePath);
+                    renamedfile = newFilePath;
                     Console.WriteLine($"Renamed file: {inputFile} => {sanitizedFileName}");
                 }
             }
             catch (Exception xc)
             {
-
+                return "";
             }
-
+            return renamedfile;
         }
 
         static string RemoveSpecialCharacters(string input)

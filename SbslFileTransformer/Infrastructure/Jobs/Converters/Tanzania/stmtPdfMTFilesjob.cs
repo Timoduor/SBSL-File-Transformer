@@ -80,8 +80,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 
                     foreach (string file in files)
                     {
-                        //FILE PATH SHOULD HAVE FOLDER NAME CAMT053 SOMEWHERE IN IT
-                        if (file.ToLower().Contains("genstatement") && file.ToLower().Contains("imtz"))
+                 
+                        if (file.ToLower().Contains("imtz") && file.ToLower().Contains("nostro"))
                         {
                             SftpUploadedFile fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>
@@ -90,10 +90,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    string statementFolder = Path.Combine(sbFolder, @$"{Entity}\NOSTRO\STATEMENT");
+                                    string statementFolder = Path.Combine(sbFolder, @$"{Entity}\IMTZ\Nostro\BOT TZS");
 
                                     if (isProd)
-                                        statementFolder = Path.Combine(prodFolder, @$"{Entity}\NOSTRO\STATEMENT");
+                                        statementFolder = Path.Combine(prodFolder, @$"{Entity}\IMTZ\Nostro\BOT TZS");
 
 
                                     Configuration pdfPassword = await dbContext.Configurations.FirstOrDefaultAsync(c =>
