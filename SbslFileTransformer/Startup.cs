@@ -200,6 +200,7 @@ namespace SbslFileTransformer
             services.AddHostedService<keATMConverterJob>();
             services.AddHostedService<stmtPdfMTFilesjob>();
             services.AddHostedService<keLogbookConverterJob>();
+            services.AddHostedService< keDebtorslistConverterJob > ();
 
             //special scenario jobs
             //services.AddHostedService<RecordMatcherJob>();

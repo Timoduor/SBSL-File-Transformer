@@ -16,10 +16,11 @@ using SbslFileTransformer.Models.Enums;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
-    public class keLogbookConverterJob : ConverterJobBase<keLogbookConverterJob>, IHostedService
+    public class keDebtorslistConverterJob : ConverterJobBase<keDebtorslistConverterJob>, IHostedService
     {
+
         protected override string JobName { get; set; } = nameof(keLogbookConverterJob);
-        public keLogbookConverterJob(ILogger<keLogbookConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
+        public keDebtorslistConverterJob(ILogger<keDebtorslistConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
            EmailSender emailSender)
         {
             this._logger = logger;
@@ -27,26 +28,27 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             this._emailSender = emailSender;
         }
 
+
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            this._logger.LogInformation("Starting KE LogbookConverter Converter Job");
+            this._logger.LogInformation("Starting KE Debtors list Converter Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            this._timer = new Timer(async state => await this.LogbookConverter(), null,
+            this._timer = new Timer(async state => await this.DebtorslistConverter(), null,
                 TimeSpan.FromSeconds(new Random().Next(60, 200)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task LogbookConverter()
+        private async Task DebtorslistConverter()
         {
 
             try
             {
                 await _semaphore.WaitAsync();
 
-                this._logger.LogInformation("Running KE ATM Journal Converter Job");
+                this._logger.LogInformation("Running KE Debtorslist Converter   Job");
 
 
                 string prodFolder = string.Empty;
@@ -72,28 +74,31 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     List<string> files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")).ToList();
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")));
 
-                    KE_LBookConverter LBookConverter = new KE_LBookConverter();
+                    KE_Debtorslist DrlistConvert = new KE_Debtorslist();
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
                     List<SftpUploadedFile> updatedFiles = new List<SftpUploadedFile>();
 
-                    string renamedfie_ = "";
+                 
 
                     foreach (string file in files)
                     {
-                        if (file.ToLower().Contains("imke") && file.ToLower().Contains("logbooks") )
+                        if (file.ToLower().Contains("imke") && file.ToLower().Contains("debtorslisting") &&  !file.ToLower().Contains("conv"))
                         {
                             SftpUploadedFile fileToProcess = uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    renamedfie_ = LBookConverter.Rename_Files(file);
-                                   if (renamedfie_ != "")
-                                    {
-                                        LBookConverter.Removelinebreaks(renamedfie_);
-                                    }
+
+                                    bool isProd = Convert.ToBoolean(
+                                       configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ??
+                                       false.ToString());
+
+                                    string rootFolder = isProd ? prodFolder : sbFolder;
+                                    DrlistConvert.ConvertFile(file,rootFolder);
                                     
+
                                 }
                                 catch (Exception ex)
                                 {
@@ -101,12 +106,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 }
                                 finally
                                 {
-                                    this.CompleteFileProcessing(updatedFiles, fileToProcess, nameof(KE_LBookConverter));
+                                    this.CompleteFileProcessing(updatedFiles, fileToProcess, nameof(KE_Debtorslist));
                                 }
+                           
                         }
-                    }
-                    await this.SaveProcessedFilesStatuses(dbContext, updatedFiles);
 
+                      
+                    }
+
+                    await this.SaveProcessedFilesStatuses(dbContext, updatedFiles);
 
                 }
 
