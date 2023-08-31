@@ -69,10 +69,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     return;
                 }
 
-                // Extract lines starting from line number 4 with the same number of columns as the target line
-                //List<string> reorderedLines = new List<string> { targetLine.Replace("\"", "").Replace("|",",") };
+
                 List<string> reorderedLines = new List<string> { };
-                for (int i = 3; i < lines.Length; i++) // Start from line number 4
+                for (int i = 3; i < lines.Length; i++) 
                 {
 
                     string line = lines[i];
@@ -94,16 +93,23 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
                                 i = i + 1;
                             }
-                            else if (lines[i + 3].Split('|').Length > 1)
+                            else if (i + 3 < lines.Length)
                             {
-                                reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
-                                i = i + 2;
+                                if (lines[i + 3].Split('|').Length > 1)
+                                {
+                                    reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
+                                    i = i + 2;
+                                }
                             }
                         }
                     }
                     else
                     {
-                        line = lines[i] + " " + lines[i + 1];
+                        if (i + 1 < lines.Length)
+                        {
+                            line = lines[i] + " " + lines[i + 1];
+                        }
+
                         if (GetColumnCount(line) == targetColumnCount)
                         {
                             if (lines[i + 2].Split('|').Length > 1)
@@ -147,80 +153,104 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                         }
                         else
                         {
-                            line = line + " " + lines[i + 2];//lines[i] + " " + lines[i + 1] + lines[i + 2];
-
-                            if (GetColumnCount(line) == targetColumnCount)
+                            if (i + 2 < lines.Length)
                             {
-                                if (lines.Length - (i + 2) <= 2)
+                                line = line + " " + lines[i + 2];
+
+
+                                if (GetColumnCount(line) == targetColumnCount)
                                 {
-                                    //line = line + lines[i + 3];
-                                    i = lines.Length - 1;//i + 2;
-                                    reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
+                                    if (lines.Length - (i + 1) <= 2)
+                                    {
+                                        //line = line + lines[i + 3];
+                                        i = lines.Length - 1;//i + 2;
+                                        reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
+                                    }
+                                    else
+                                    {
+                                    }
+
                                 }
                                 else
                                 {
+                                    if (i + 3 < lines.Length)
+                                    {
+                                        line = line + " " + lines[i + 3];
+                                        if (GetColumnCount(line) == targetColumnCount)
+                                        {
+
+                                            if (lines[i + 4].Split('|').Length > 1 && (i + 4 < lines.Length))
+                                            {
+                                                //line = line + " " + lines[i + 3];
+                                                i = i + 3;
+                                                reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
+                                            }
+                                            else if (lines[i + 5].Split('|').Length > 1 && (i + 5 < lines.Length))
+                                            {
+                                                line = line + lines[i + 4];
+                                                i = i + 4;
+                                                reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
+                                            }
+                                            else if (lines[i + 6].Split('|').Length > 1)
+                                            {
+                                                line = line + lines[i + 4] + lines[i + 5];
+                                                i = i + 5;
+                                                reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
+                                            }
+
+                                        }
+                                        else
+                                        {
+                                            reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
+                                            //i = i + 3;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        i = i + 2;
+                                    }
+
+                                }
+
+                            }
+                            else if (i + 1 < lines.Length)
+                            {
+                                if (GetColumnCount(line) == targetColumnCount)
+                                {
+                                    if (lines.Length - (i + 1) <= 2)
+                                    {
+
+                                        i = lines.Length - 1;//i + 2;
+                                        reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
+                                    }
+                                    else
+                                    {
+                                    }
+
+                                }
+                                else
+                                {
+                                    line = line + " " + lines[i + 1];
                                     if (GetColumnCount(line) == targetColumnCount)
                                     {
 
-                                        if (lines[i + 3].Split('|').Length > 1)
-                                        {
-                                            //line = line + lines[i + 3];
-                                            i = i + 2;
-                                            reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
-                                        }
-                                        else if (lines[i + 4].Split('|').Length > 1)
-                                        {
-                                            line = line + " " + lines[i + 3];
-                                            i = i + 3;
-                                            reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
-                                        }
-                                        else if (lines[i + 5].Split('|').Length > 1)
-                                        {
-                                            line = line + " " + lines[i + 3] + " " + lines[i + 3];
-                                            i = i + 4;
-                                            reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
-                                        }
-
-                                    }
-                                }
-
-                            }
-                            else
-                            {
-                                line = line + " " + lines[i + 3];
-                                if (GetColumnCount(line) == targetColumnCount)
-                                {
-
-                                    if (lines[i + 4].Split('|').Length > 1 && (i + 4 < lines.Length))
-                                    {
-                                        //line = line + " " + lines[i + 3];
-                                        i = i + 3;
                                         reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
-                                    }
-                                    else if (lines[i + 5].Split('|').Length > 1 && (i + 5 < lines.Length))
-                                    {
-                                        line = line + lines[i + 4];
-                                        i = i + 4;
-                                        reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
-                                    }
-                                    else if (lines[i + 6].Split('|').Length > 1)
-                                    {
-                                        line = line + lines[i + 4] + lines[i + 5];
-                                        i = i + 5;
-                                        reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
-                                    }
 
-                                }
-                                else
-                                {
-                                    reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
-                                    //i = i + 3;
+
+                                    }
+                                    else
+                                    {
+                                        reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
+
+                                    }
                                 }
                             }
+
                         }
 
                     }
                 }
+
 
                 // Write the reordered lines to the output file
                 File.WriteAllLines(outputFile, reorderedLines);

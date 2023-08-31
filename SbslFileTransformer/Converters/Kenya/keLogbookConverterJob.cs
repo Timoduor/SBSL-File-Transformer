@@ -79,19 +79,47 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     List<SftpUploadedFile> updatedFiles = new List<SftpUploadedFile>();
 
                     string renamedfie_ = "";
+                    string destFnamecsv = "";
+                    string destFnamepdf = "";
+                    string pdfFile_ = "";
+                    string archdir = "";
 
                     foreach (string file in files)
                     {
-                        if (file.ToLower().Contains("imke") && file.ToLower().Contains("logbooks") )
+                        if (file.ToLower().Contains("imke") && file.ToLower().Contains("logbook_ntsa") && !file.ToLower().Contains("arch") && !file.ToLower().Contains("conv"))
                         {
                             SftpUploadedFile fileToProcess = uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
+                                    archdir = System.IO.Path.GetDirectoryName(file) + "\\arch\\";
+                                    destFnamecsv = archdir  + System.IO.Path.GetFileName(file);
+                                    destFnamepdf = archdir + System.IO.Path.GetFileNameWithoutExtension(file)+ ".pdf";
                                     renamedfie_ = LBookConverter.Rename_Files(file);
+                                    pdfFile_ = System.IO.Path.GetDirectoryName(file) + "\\" + System.IO.Path.GetFileNameWithoutExtension(file) + ".pdf";
+
+
                                    if (renamedfie_ != "")
                                     {
                                         LBookConverter.Removelinebreaks(renamedfie_);
+                                        //archive n delete
+                                        try
+                                        {
+                                            if (!Directory.Exists(archdir))
+                                            {
+                                                Directory.CreateDirectory(archdir);
+                                            }
+                                            File.Move(renamedfie_, destFnamecsv);
+
+                                            File.Move(pdfFile_, destFnamepdf);
+
+                                            File.Delete(renamedfie_);
+
+                                            File.Delete(pdfFile_);
+
+                                        }
+                                        catch (Exception xs)
+                                        { }
                                     }
                                     
                                 }
