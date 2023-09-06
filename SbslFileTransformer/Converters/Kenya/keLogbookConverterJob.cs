@@ -46,7 +46,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             {
                 await _semaphore.WaitAsync();
 
-                this._logger.LogInformation("Running KE ATM Journal Converter Job");
+                this._logger.LogInformation("Running KE LogbookConverter Converter Job");
 
 
                 string prodFolder = string.Empty;
