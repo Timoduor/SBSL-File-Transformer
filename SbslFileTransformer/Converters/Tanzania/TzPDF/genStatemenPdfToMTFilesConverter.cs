@@ -13,103 +13,189 @@ namespace SbslFileTransformer.Converters.Tanzania.TzPDF
 {
     public class genStatemenPdfToMTFilesConverter
     {
-        public void ConvertFile(string inputFile, string password = "", string outputFile = null)
+       
+        public void ConvertFile_Tiss(string inputFile, string password = "", string outputFile = null)
         {
+
+            outputFile = System.IO.Path.GetDirectoryName(inputFile) + "\\conv\\MT940_" + System.IO.Path.GetFileNameWithoutExtension(inputFile) + ".txt";
+
             string text = GetTextFromPdf(inputFile, password);
 
             string bankAcc = string.Empty;
             string currency = string.Empty;
             List<ExtractedTableCRDB> transactions = new List<ExtractedTableCRDB>();
+            bool isNewTableLine = true;
+            double closingBal = 0;
 
-            bool needsBookBalance = false;
+            ExtractedTableCRDB extractedTableLine = null;
 
-            ExtractedTableCRDB extractedTableLine = new ExtractedTableCRDB();
+            bool areTableValues = false;
+
+
+            string statementno = "";
+            string businessDate = "";
+            double openingBal = 0;
+            string Total_Debits = "";
+            string Total_Credits = "";
+            string Total_Debit = "";
+            string Total_Credit = "";
+
+            try
+            {
+                string[] Itmes_ = text.Split('\n', '\r');
+                for (int i = 1; i < Itmes_.Length; i++)
+                {
+                    if (Itmes_[i].Contains("Account No."))
+                    {
+                        bankAcc = Itmes_[i].Split('.')[1].Trim();
+                        continue;
+                    }
+                    if (Itmes_[i].Contains("Statement no"))
+                    {
+                        statementno = Itmes_[i].Split(' ')[2];
+                        continue;
+                    }
+                    if (Itmes_[i].Contains("Business Date"))
+                    {
+                        businessDate = Itmes_[i].Split(' ')[2].Replace('-', ' ').Replace(" ", "").Substring(2, 6);
+                        continue;
+                    }
+                    if (Itmes_[i].Contains("Statement Report for"))
+                    {
+                        currency = Itmes_[i].Split(' ')[3].Trim().ToUpper();
+                        continue;
+                    }
+                    if (Itmes_[i].Contains("Closing balance"))
+                    {
+                        closingBal = Convert.ToDouble(Itmes_[i].Split(' ')[2].Trim().Replace(',', ' ').Trim().Split('.')[0].Replace(" ", "") + "." + Itmes_[i].Split(' ')[2].Trim().Replace(',', ' ').Trim().Split('.')[1]);
+                    }
+                    if (Itmes_[i].Contains("Opening balance"))
+                    {
+                        openingBal = Convert.ToDouble(Itmes_[i].Split(' ')[2].Trim().Replace(',', ' ').Trim().Split('.')[0].Replace(" ", "") + "." + Itmes_[i].Split(' ')[2].Trim().Replace(',', ' ').Trim().Split('.')[1]);
+                    }
+                    if (Itmes_[i].Contains("Total Debits"))
+                    {
+                        Total_Debits = Itmes_[i].Split(' ')[2];
+                    }
+                    if (Itmes_[i].Contains("Total Credits"))
+                    {
+                        Total_Credits = Itmes_[i].Split(' ')[2];
+                    }
+
+                    if (Itmes_[i].Contains("Total Debit") && !Itmes_[i].Contains("Total Debits"))
+                    {
+                        Total_Debit = Itmes_[i].Split(' ')[2].Trim().Replace(',', ' ').Trim().Split('.')[0].Replace(" ", "") + "." + Itmes_[i].Split(' ')[2].Trim().Replace(',', ' ').Trim().Split('.')[1];
+                    }
+                    if (Itmes_[i].Contains("Total Credit") && !Itmes_[i].Contains("Total Credits"))
+                    {
+                        Total_Credit = Itmes_[i].Split(' ')[2].Trim().Replace(',', ' ').Trim().Split('.')[0].Replace(" ", "") + "." + Itmes_[i].Split(' ')[2].Trim().Replace(',', ' ').Trim().Split('.')[1];
+                    }
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+            Boolean got_amt = false;
+            Boolean gotref = false;
+            Boolean gotdate = false;
+            string xline = "";
+            string xrecs = "";
+            string Xref = "";
+            string XRemark = "";
 
             foreach (string line in text.Split('\n', '\r'))
             {
-                if (Regex.IsMatch(line.Trim(), @"\d{2}-[A-Z]{1}[a-z]{2}-\d{4} \d{2}-[A-Z]{1}[a-z]{2}-\d{4}") &&
-                    !line.Contains("Opening balance") || needsBookBalance)
+                if (line.Contains("Additional Information"))
                 {
-                    string[] parts = line.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-                    int len = parts.Length;
-
-                    if (len < 5 && !needsBookBalance)
-                    {
-                        needsBookBalance = true;
-
-                        extractedTableLine = new ExtractedTableCRDB();
-
-                        extractedTableLine.PostingDate =
-                            DateTime.ParseExact(parts[0], "dd-MMM-yyyy", CultureInfo.InvariantCulture);
-                        extractedTableLine.ValueDate =
-                            DateTime.ParseExact(parts[1], "dd-MMM-yyyy", CultureInfo.InvariantCulture);
-                        extractedTableLine.Details = parts[2] + parts[3];
-
-                        continue;
-                    }
-
-                    if (!needsBookBalance)
-                    {
-                        extractedTableLine = new ExtractedTableCRDB();
-
-                        extractedTableLine.PostingDate =
-                            DateTime.ParseExact(parts[0], "dd-MMM-yyyy", CultureInfo.InvariantCulture);
-                        extractedTableLine.ValueDate =
-                            DateTime.ParseExact(parts[1], "dd-MMM-yyyy", CultureInfo.InvariantCulture);
-                        extractedTableLine.Details = parts[2] + parts[3];
-                        extractedTableLine.Debit = parts[len - 3];
-                        extractedTableLine.Credit = parts[len - 2];
-                        extractedTableLine.BookBalance = parts[len - 1];
-                        extractedTableLine.Ref = parts[len - 4] + parts[len - 5];
-
-
-                        transactions.Add(extractedTableLine);
-
-                        continue;
-                    }
-
-                    if (Regex.IsMatch(line.Trim(), @"\d{1,2}[\,\.]{1}\d{1,2}") && needsBookBalance)
-                    {
-                        extractedTableLine.Debit = parts[2];
-                        extractedTableLine.Credit = parts[3];
-                        extractedTableLine.BookBalance = parts[4];
-                        extractedTableLine.Ref = parts[0] + parts[1];
-
-                        needsBookBalance = false;
-
-                        transactions.Add(extractedTableLine);
-                    }
-
-
+                    areTableValues = true;
                     continue;
                 }
 
-                if (line.Contains("Account No."))
+                if (areTableValues)
                 {
-                    bankAcc = line.Split('.')[1].Trim();
-                    continue;
-                }
+                    string[] columns = line.Split(" ");// line.Split('\t'); // Assuming tab-separated values
 
-                if (line.Contains("Statement Report for")) currency= line.Split(' ')[3].Trim().ToUpper();
+                    for (int i = 0; i < columns.Length; i++)
+                    {
+                        string column = columns[i];
+
+                        //xline = xline + " " + columns[i];
+                        if (Regex.IsMatch(column, @"\d+(\.\d+)?,\s*"))
+                        {
+                            
+                            if (column.Replace(",", "").Replace(".", ",").Split(',').Length == 2)
+                            {
+                                if (column != "")
+                                {
+                                    if (Regex.Replace(column.Replace(",", "").Replace(".", ",").Split(',')[0], "[^0-9]", "") != "")
+                                    {
+                                        column = Regex.Replace(column.Replace(",", "").Replace(".", ",").Split(',')[0], "[^0-9]", "") + "," + column.Replace(",", "").Replace(".", ",").Split(',')[1];
+                                        //column = column.Replace(",", "").Replace(".", ",").Split(',')[0] + "," + column.Replace(",", "").Replace(".", ",").Split(',')[1];
+                                        /*   Regex.Replace(column, "[^0-9]", "")*/
+                                        ;
+                                        if (XRemark.Length > 50)
+                                        {
+                                            xline = ":61:" + businessDate + "C" + column + "S103 " + RemoveSpecialCharacters(Xref);
+                                        }
+                                        else
+                                        {
+                                            xline = ":61:" + businessDate + "C" + column + "S103 " + RemoveSpecialCharacters(Xref);
+                                        }
+
+                                        got_amt = true;
+                                        gotref = false;
+                                        xline = xline + Environment.NewLine;
+                                        Xref = "";
+                                        XRemark = "";
+                                        xrecs = xrecs + xline;
+                                    
+                                    }
+
+                                }
+
+                            }
+
+                     
+                        }
+                        else
+                        {
+                            if (gotref == false)
+                            {
+                                Xref = column;
+                                gotref = true;
+                                continue;
+                            }
+                            if (gotdate == false || column.Length == 8)
+                            {
+                                gotdate = true;
+                                continue;
+                            }
+
+                            XRemark = XRemark + " " + column;
+
+                        }
+
+
+                    }
+                     
+                }
             }
 
-            if (transactions.Count == 0) throw new Exception($"No transactions found in DTB PDF file {inputFile}");
-
-            double closingBal = Convert.ToDouble(transactions.Last().BookBalance);
-
             StringBuilder lines = new StringBuilder();
-
-            DateTime balDate = transactions.First().ValueDate;
+ 
 
             lines.AppendLine(":20:" + "1");
             lines.AppendLine(":25:" + bankAcc);
             lines.AppendLine(":28C:" + "1/1");
-            lines.AppendLine(":60M:" + $@"C{balDate:yyMMdd}{currency}0,00");
+            lines.AppendLine(":60M:" + $@"C{businessDate:yyMMdd}{currency}0,00");
 
             foreach (ExtractedTableCRDB record in transactions)
             {
-                DateTime valDate = record.ValueDate;
+                DateTime valDate =
+                    DateTime.ParseExact(record.ValueDate, "dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture);
                 string valDateStr = valDate.ToString("yyMMdd");
                 string valDateStr2 = valDate.ToString("MMdd");
 
@@ -135,30 +221,40 @@ namespace SbslFileTransformer.Converters.Tanzania.TzPDF
 
                 lines.AppendLine($":61:{c61}  {record.Details?.Trim()}");
             }
+            lines.AppendLine(xrecs);
 
             lines.AppendLine(":62F:" +
-                             $@"C{balDate:yyMMdd}{currency}{closingBal.ToString("N2").Replace(",", "").Replace(".", ",")}");
+                             $@"C{businessDate:yyMMdd}{currency}{closingBal.ToString("N2").Replace(",", "").Replace(".", ",")}");
 
             string fileName = Path.GetFileNameWithoutExtension(inputFile);
-
-            if (string.IsNullOrEmpty(outputFile))
-            {
-                string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
-                Directory.CreateDirectory(outputFolder);
-
-                outputFile = Path.Combine(outputFolder,
-                    $"{DateTime.Now:yyyyMMdd}_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.txt");
-            }
-            else
-            {
-                outputFile = Path.Combine(outputFile,
-                    $"{DateTime.Now:yyyyMMdd}{new string(fileName.TakeLast(10).ToArray())}.txt");
-            }
 
             File.WriteAllText(outputFile, lines.ToString());
         }
 
 
+
+        static string RemoveSpecialCharacters(string input)
+        {
+            char[] specialCharacters = "!@#$%^&*()_+[]{}|;:'<>,.?/~`".ToCharArray();
+
+            // Loop through each character in the input string
+            for (int i = 0; i < specialCharacters.Length; i++)
+            {
+                input = input.Replace(specialCharacters[i].ToString(), "");
+            }
+
+            return input;
+        }
+        public class ExtractedTableCRDB
+        {
+            public string PostingDate { get; set; }
+            public string Details { get; set; }
+            public string Ref { get; set; }
+            public string ValueDate { get; set; }
+            public string Debit { get; set; }
+            public string Credit { get; set; }
+            public string BookBalance { get; set; }
+        }
         public void ConvertFile_crd(string inputFile, string password = "", string outputFile = null)
         {
             string folderPath = System.IO.Path.GetDirectoryName(inputFile);
@@ -733,15 +829,6 @@ namespace SbslFileTransformer.Converters.Tanzania.TzPDF
             public string Credit { get; set; }
             public string BookBalance { get; set; }
         }
-        public class ExtractedTableCRDB
-        {
-            public DateTime PostingDate { get; set; }
-            public string Details { get; set; }
-            public string Ref { get; set; }
-            public DateTime ValueDate { get; set; }
-            public string Debit { get; set; }
-            public string Credit { get; set; }
-            public string BookBalance { get; set; }
-        }
+        
     }
 }

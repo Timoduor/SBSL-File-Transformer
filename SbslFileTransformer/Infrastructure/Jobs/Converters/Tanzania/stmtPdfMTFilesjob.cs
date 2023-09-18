@@ -29,7 +29,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            this._logger.LogInformation("Starting GENSTATEMENT PDF To MT940 File Converter Job");
+            this._logger.LogInformation("Starting TISS STATEMENT Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
@@ -45,7 +45,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
             {
                 await _semaphore.WaitAsync();
 
-                this._logger.LogInformation("Running GENSTATEMENT PDF To MT940 File converter job");
+                this._logger.LogInformation("Running TISS STATEMENT  converter job");
 
                 string prodFolder = string.Empty;
                 string sbFolder = string.Empty;
@@ -81,24 +81,24 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                     foreach (string file in files)
                     {
                  
-                        if (file.ToLower().Contains("imtz") && file.ToLower().Contains("nostro"))
+                        if (file.ToLower().Contains("imtz") && file.ToLower().Contains("nostro") && file.ToLower().Contains("bot usd") || file.ToLower().Contains("bot tzs"))
                         {
                             SftpUploadedFile fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>
                                     f.FilePath.ToLower() == file.ToLower());
-
+                          
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    string statementFolder = Path.Combine(sbFolder, @$"{Entity}\IMTZ\Nostro\BOT TZS");
+                                    //string statementFolder = Path.Combine(sbFolder, @$"{Entity}\BOT TZS");
 
-                                    if (isProd)
-                                        statementFolder = Path.Combine(prodFolder, @$"{Entity}\IMTZ\Nostro\BOT TZS");
+                                    //if (isProd)
+                                    //    statementFolder = Path.Combine(prodFolder, @$"{Entity}\BOT TZS");
 
 
-                                    Configuration pdfPassword = await dbContext.Configurations.FirstOrDefaultAsync(c =>
-                                        c.ConfigType == ConfigurationType.Setting && c.Key == "PdfPassword");
-                                    pdfConverter.ConvertFile_crd(file, pdfPassword?.Value, statementFolder);
+                                    //Configuration pdfPassword = await dbContext.Configurations.FirstOrDefaultAsync(c =>
+                                    //    c.ConfigType == ConfigurationType.Setting && c.Key == "PdfPassword");
+                                    pdfConverter.ConvertFile_Tiss(file, "");
                                 }
                                 catch (Exception ex)
                                 {
