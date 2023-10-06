@@ -95,13 +95,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                     archdir = System.IO.Path.GetDirectoryName(file) + "\\arch\\";
                                     destFnamecsv = archdir  + System.IO.Path.GetFileName(file);
                                     destFnamepdf = archdir + System.IO.Path.GetFileNameWithoutExtension(file)+ ".pdf";
+                                    this._logger.LogInformation("want to rename " + file);
                                     renamedfie_ = LBookConverter.Rename_Files(file);
                                     pdfFile_ = System.IO.Path.GetDirectoryName(file) + "\\" + System.IO.Path.GetFileNameWithoutExtension(file) + ".pdf";
 
 
                                    if (renamedfie_ != "")
                                     {
-                                        LBookConverter.Removelinebreaks(renamedfie_);
+                                        try
+                                        {
+                                            LBookConverter.Removelinebreaks(renamedfie_);
+                                        }
+                                        catch (Exception xc)
+                                        {
+                                            this._logger.LogInformation("Error " + xc.Message);
+                                        }
+                                        
                                         //archive n delete
                                         try
                                         {

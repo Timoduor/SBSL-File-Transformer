@@ -57,6 +57,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     {
 
                         List<string> lx = this.GetJournalDetails(sGrp[i].Split("\n"), ATMNO);
+
                         if (lx.Count > 0)
                         {
                             ATMflds.CARDNo = lx.Any(p => p.StartsWith("CARDNO:")) ? lx.First(p => p.StartsWith("CARDNO:")).Split(':')[1].ToString().Replace("|", "") : "";
@@ -226,6 +227,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             bool gotATM = false;
             bool gotATHNO = false;
             bool refusedtxn = false;
+            bool gotref = false;
             List<string> l = new List<string>();
             string secondValue = "";
             for (int i = 1; i < d.Length - 1; i++)
@@ -233,7 +235,31 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                 try
                 {
-                    if (d[i].Contains("TRANSACTION REPLY NEXT"))
+                    if (d[i].Contains("326501608962"))
+                    {
+                    }
+                    if ((gotamount==false) && (d[i].Split(' ')[0].Split('/').Length>1))
+                    {
+                        if (d[i].Split(' ')[4] != "")
+                        {
+                            l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[4].Replace('+', ' ').Trim()).ToString()));
+                        }
+                        else if (d[i].Split(' ')[5] != "")
+                        {
+                            l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[5].Replace('+', ' ').Trim()).ToString()));
+                        }
+
+                        else
+                        {
+                            l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[8].Replace('+', ' ').Trim()).ToString()));
+                        }
+                       
+                        gotamount = true;
+                        l.Add("REFERENCE:" + d[i].Split(' ')[0]);
+                        gotref = true;
+
+                    }
+                        if (d[i].Contains("TRANSACTION REPLY NEXT"))
                     {
                         if (d[i].Split(" ")[4]=="703"|| d[i].Split(" ")[4] == "396")
                         {
@@ -497,7 +523,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                         try
                         {
                             secondValue = d[i + 1];
-                            if (secondValue.Contains("466629/312301867686"))
+                            if (secondValue.Contains("749498/323501448568"))
                             {
 
                             }
