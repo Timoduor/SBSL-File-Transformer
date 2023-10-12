@@ -6,24 +6,31 @@ using System.Linq;
 using System.Text;
 using CsvHelper;
 using ExcelDataReader;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using SbslFileTransformer.Infrastructure.Helpers;
+using SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya;
 
 namespace SbslFileTransformer.Converters.Kenya.Mpesa
 {
     public class MpesaB2CnC2BConverter
     {
         private readonly string _entity;
+        private ILogger<MpesaB2CnC2BConverterJob> _logger;
 
-        public MpesaB2CnC2BConverter(string entity)
+        public MpesaB2CnC2BConverter(string entity, ILogger<MpesaB2CnC2BConverterJob> logger = null)
         {
             this._entity = entity;
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            _logger = logger;
         }
 
         public void ConvertFile(string inputFile, string rootFolder, string outputFile = null)
         {
             //Replace empties with zeros in columns 5 and 6
+
 
             List<MPesaCols> list = new List<MPesaCols>();
 
@@ -56,27 +63,38 @@ namespace SbslFileTransformer.Converters.Kenya.Mpesa
 
                         row.Col3 = reader.GetValue(3)?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col4 = reader.GetValue(4)?.ToString().Replace("\n", "").Replace("\r", "");
+                        if (reader.TryGetValue(4, out object result4))
+                            row.Col4 = result4?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col5 = reader.GetValue(5)?.ToString().Replace("\n", "").Replace("\r", "");
+                        if (reader.TryGetValue(5, out object result5))
+                            row.Col5 = result5?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col6 = reader.GetValue(6)?.ToString().Replace("\n", "").Replace("\r", "");
+                        if (reader.TryGetValue(6, out object result6))
+                            row.Col6 = result6?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col7 = reader.GetValue(7)?.ToString().Replace("\n", "").Replace("\r", "");
+                        if (reader.TryGetValue(7, out object result7))
+                            row.Col7 = result7?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col8 = reader.GetValue(8)?.ToString().Replace("\n", "").Replace("\r", "");
+                        if (reader.TryGetValue(8, out object result8))
+                            row.Col8 = result8?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col9 = reader.GetValue(9)?.ToString().Replace("\n", "").Replace("\r", "");
+                        if (reader.TryGetValue(9, out object result9))
+                            row.Col9 = result9?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col10 = reader.GetValue(10)?.ToString().Replace("\n", "").Replace("\r", "");
+                        if (reader.TryGetValue(10, out object result10))
+                            row.Col10 = result10?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col11 = reader.GetValue(11)?.ToString().Replace("\n", "").Replace("\r", "");
+                        if (reader.TryGetValue(11, out object result11))
+                            row.Col11 = result11?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        row.Col12 = reader.GetValue(12)?.ToString().Replace("\n", "").Replace("\r", "");
+                        if (reader.TryGetValue(12, out object result12))
+                            row.Col12 = result12?.ToString().Replace("\n", "").Replace("\r", "");
 
-                        if (string.IsNullOrEmpty(row.Col5?.Trim())) row.Col5 = "0";
+                        if (string.IsNullOrEmpty(row.Col5?.Trim())) 
+                            row.Col5 = "0";
 
-                        if (string.IsNullOrEmpty(row.Col6?.Trim())) row.Col6 = "0";
+                        if (string.IsNullOrEmpty(row.Col6?.Trim())) 
+                            row.Col6 = "0";
 
                         list.Add(row);
                     }
@@ -114,7 +132,11 @@ namespace SbslFileTransformer.Converters.Kenya.Mpesa
             StringBuilder toAppend = new StringBuilder();
 
             if (!DateTime.TryParseExact(item.Col1, "d-M-yyyy HH:mm:ss", CultureInfo.InvariantCulture,
-                DateTimeStyles.None, out DateTime date)) throw new Exception("Unable to parse datetime!");
+                DateTimeStyles.None, out DateTime date))
+            {
+                _logger.LogError($"Unable to Parse dateTime for input file {inputFile} Using current date {DateTime.Now}");
+                date = DateTime.Now;
+            }
 
             string amount = (Convert.ToDouble(item.Col7) * -1).ToString("N2"); //vs col5 diff
             string currency = "KES";

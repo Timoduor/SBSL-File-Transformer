@@ -72,7 +72,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     files.AddRange(Directory.GetFiles(sbFolder, "*.*", options)
                         .Where(f => f.ToLower().EndsWith(".xls") || f.ToLower().EndsWith(".csv")));
 
-                    MpesaB2CnC2BConverter mpesaConverter = new MpesaB2CnC2BConverter(Entity);
+                    MpesaB2CnC2BConverter mpesaConverter = new MpesaB2CnC2BConverter(Entity, _logger);
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
