@@ -78,11 +78,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                     List<SftpUploadedFile> updatedFiles = new List<SftpUploadedFile>();
 
-                    string renamedfie_ = "";
-                    string destFnamecsv = "";
-                    string destFnamepdf = "";
-                    string pdfFile_ = "";
-                    string archdir = "";
+                    string backUpPath = (await dbContext.Configurations.FirstOrDefaultAsync(b =>
+                            b.ConfigType == ConfigurationType.Sftp && b.Key == "BackUpFolder")).Value;
+
+                    string archdir = Path.Combine(backUpPath, "archConverted");
+
+                    List<Task> tasks = new List<Task>();
 
                     foreach (string file in files)
                     {
@@ -90,52 +91,38 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                         {
                             SftpUploadedFile fileToProcess = uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
                             if (fileToProcess != null && fileToProcess.Converted == false)
-                                try
+                            {
+                                tasks.Add(Task.Factory.StartNew(async () =>
                                 {
-                                    archdir = System.IO.Path.GetDirectoryName(file) + "\\arch\\";
-                                    destFnamecsv = archdir  + System.IO.Path.GetFileName(file);
-                                    destFnamepdf = archdir + System.IO.Path.GetFileNameWithoutExtension(file)+ ".pdf";
-                                    renamedfie_ = LBookConverter.Rename_Files(file);
-                                    pdfFile_ = System.IO.Path.GetDirectoryName(file) + "\\" + System.IO.Path.GetFileNameWithoutExtension(file) + ".pdf";
-
-
-                                   if (renamedfie_ != "")
+                                    try
                                     {
-                                        LBookConverter.Removelinebreaks(renamedfie_);
-                                        //archive n delete
-                                        try
+                                        Directory.CreateDirectory(archdir);
+
+                                        string pdfFile_ = System.IO.Path.GetDirectoryName(file) + "\\" + System.IO.Path.GetFileNameWithoutExtension(file) + ".pdf";
+
+                                        LBookConverter.Removelinebreaks(file);
+
+                                        //archive pdf file only after we have converted the equivalent csv file
+                                        if (File.Exists(pdfFile_))
                                         {
-                                            if (!Directory.Exists(archdir))
-                                            {
-                                                Directory.CreateDirectory(archdir);
-                                            }
-                                            File.Move(renamedfie_, destFnamecsv);
-
-                                            File.Move(pdfFile_, destFnamepdf);
-
-                                            File.Delete(renamedfie_);
-
-                                            File.Delete(pdfFile_);
-
+                                            File.Move(pdfFile_, archdir);
                                         }
-                                        catch (Exception xs)
-                                        { }
                                     }
-                                    
-                                }
-                                catch (Exception ex)
-                                {
-                                    await this.ProcessFileFailure(configurations, file, fileToProcess, ex);
-                                }
-                                finally
-                                {
-                                    this.CompleteFileProcessing(updatedFiles, fileToProcess, nameof(KE_LBookConverter));
-                                }
+                                    catch (Exception ex)
+                                    {
+                                        await this.ProcessFileFailure(configurations, file, fileToProcess, ex);
+                                    }
+                                    finally
+                                    {
+                                        this.CompleteFileProcessing(updatedFiles, fileToProcess, nameof(KE_LBookConverter));
+                                    }
+                                }));
+                            }
                         }
                     }
+
+                    await Task.WhenAll(tasks);
                     await this.SaveProcessedFilesStatuses(dbContext, updatedFiles);
-
-
                 }
 
             }

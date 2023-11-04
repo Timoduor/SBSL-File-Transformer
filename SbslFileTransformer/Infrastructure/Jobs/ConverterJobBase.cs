@@ -138,7 +138,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             fileToProcess.Failed = true;
 
-            this._logger.LogError(ex, ex.Message);
+            this._logger.LogError(ex, $"{ex.Message} file: {file}");
 
             await EmailHelpers.SendEmails(configurations, string.IsNullOrEmpty(header) ? "Error in File Conversion" : header,
                 $"Problem with  file {file} \n\n {ex.Message}", new[] { file }, this._emailSender);

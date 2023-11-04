@@ -80,7 +80,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
 
                     foreach (string file in files)
                     {
-                        if ((file.ToLower().Contains("mpesa") && file.Contains("Conv") || file.ToLower().Contains("credit_rec") || file.ToLower().Contains("prepaid_rec")) &&
+                        if (((file.ToLower().Contains("mpesa") && file.Contains("Conv")) || file.ToLower().Contains("credit_rec") || file.ToLower().Contains("prepaid_rec")) &&
                             file.ToLower().Contains("imke"))
                         {
                             SftpUploadedFile fileToProcess =
