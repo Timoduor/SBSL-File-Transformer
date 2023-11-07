@@ -41,7 +41,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
         private async Task LogbookConverter()
         {
-
             try
             {
                 await _semaphore.WaitAsync();
@@ -93,24 +92,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 try
                                 {
                                     archdir = System.IO.Path.GetDirectoryName(file) + "\\arch\\";
-                                    destFnamecsv = archdir  + System.IO.Path.GetFileName(file);
-                                    destFnamepdf = archdir + System.IO.Path.GetFileNameWithoutExtension(file)+ ".pdf";
-                                    this._logger.LogInformation("want to rename " + file);
+                                    destFnamecsv = archdir + System.IO.Path.GetFileName(file);
+                                    destFnamepdf = archdir + System.IO.Path.GetFileNameWithoutExtension(file) + ".pdf";
                                     renamedfie_ = LBookConverter.Rename_Files(file);
                                     pdfFile_ = System.IO.Path.GetDirectoryName(file) + "\\" + System.IO.Path.GetFileNameWithoutExtension(file) + ".pdf";
 
 
-                                   if (renamedfie_ != "")
+                                    if (renamedfie_ != "")
                                     {
-                                        try
-                                        {
-                                            LBookConverter.Removelinebreaks(renamedfie_);
-                                        }
-                                        catch (Exception xc)
-                                        {
-                                            this._logger.LogInformation("Error " + xc.Message);
-                                        }
-                                        
+                                        LBookConverter.Removelinebreaks(renamedfie_);
                                         //archive n delete
                                         try
                                         {
@@ -130,7 +120,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                         catch (Exception xs)
                                         { }
                                     }
-                                    
+
                                 }
                                 catch (Exception ex)
                                 {
@@ -160,4 +150,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
         }
 
     }
-}
+
+  }
+ 

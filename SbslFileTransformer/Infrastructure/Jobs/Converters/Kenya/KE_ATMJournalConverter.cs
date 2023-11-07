@@ -271,13 +271,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                         }
                         else if (d[i].Split(" ")[4] == "701")
                         { 
-                            //if (gotcashtaken != true)
-                            //{
-                            //    l.Add("CASH TAKEN");
-                            //    gotcashtaken = true;
-
-                               
-                            //}
+                            
                          }
                         else
                         {
@@ -523,10 +517,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                         try
                         {
                             secondValue = d[i + 1];
-                            if (secondValue.Contains("749498/323501448568"))
-                            {
-
-                            }
+                         
                             if (int.TryParse(secondValue.Split(' ')[0].Split('/')[0], out int intValue) || double.TryParse(secondValue.Split(' ')[0].Split('/')[0], out double doubleValue))
                             {
                                 l.Add("CCY:" + d[i + 1].Split(' ')[d[i + 1].Split(' ').Length - 1].Replace("\r", ""));
