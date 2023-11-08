@@ -81,8 +81,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             if (lines.Contains(""))
             {
 
-
-                List<string> reorderedLines = new List<string> { };
+            }
+            List<string> reorderedLines = new List<string> { };
                 for (int i = 3; i < lines.Length; i++) // Start from line number 4
                 {
 
@@ -360,7 +360,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                 File.WriteAllLines(outputFile, reorderedLines);
 
-            }
+           
         }
     }
 }
