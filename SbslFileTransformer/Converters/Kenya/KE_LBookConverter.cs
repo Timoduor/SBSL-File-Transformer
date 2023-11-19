@@ -61,7 +61,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
         }
         public void Removelinebreaks(string file_)
         {
-            int targetColumnCount = 10;
+            int targetColumnCount = 12;
             string outputFile = "";
             outputFile = System.IO.Path.GetDirectoryName(file_) + "\\conv\\conv_" + System.IO.Path.GetFileNameWithoutExtension(file_) + ".csv";
 
@@ -89,10 +89,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             {
 
 
-                if (lines[i].Contains("ACU30-0079659"))
-                {
-
-                }
+             
 
                 if (lines[i].Split('|').Length > 1)
                 {
