@@ -92,9 +92,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 try
                                 {
                                     archdir = System.IO.Path.GetDirectoryName(file) + "\\arch\\";
-                                    destFnamecsv = archdir + System.IO.Path.GetFileName(file);
+                                    
                                     destFnamepdf = archdir + System.IO.Path.GetFileNameWithoutExtension(file) + ".pdf";
                                     renamedfie_ = LBookConverter.Rename_Files(file);
+                                    destFnamecsv = archdir + System.IO.Path.GetFileName(renamedfie_);
                                     pdfFile_ = System.IO.Path.GetDirectoryName(file) + "\\" + System.IO.Path.GetFileNameWithoutExtension(file) + ".pdf";
 
 
@@ -118,7 +119,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                                         }
                                         catch (Exception xs)
-                                        { }
+                                        {
+                                        }
                                     }
 
                                 }
