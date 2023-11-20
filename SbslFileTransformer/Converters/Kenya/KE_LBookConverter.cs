@@ -80,7 +80,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                 Console.WriteLine("Target line not found.");
                 return;
             }
-          
+
 
             // Extract lines starting from line number 4 with the same number of columns as the target line
             //List<string> reorderedLines = new List<string> { targetLine.Replace("\"", "").Replace("|",",") };
@@ -88,8 +88,6 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             for (int i = 3; i < lines.Length; i++) // Start from line number 4
             {
 
-
-             
 
                 if (lines[i].Split('|').Length > 1)
                 {
@@ -163,7 +161,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                         {
                             reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
                             i = i + 1;
-                             
+
+
+                          
 
                         }
                         else
@@ -225,7 +225,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                             reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
                                         }
 
-                                      
+                                        //line = line + lines[i + 3];
 
                                     }
                                     else
@@ -244,7 +244,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                             {
                                                 if (lines[i + 4].Split('|').Length > 1 && (i + 4 < lines.Length))
                                                 {
-                                                    
+                                                    //line = line + " " + lines[i + 3];
                                                     i = i + 3;
                                                     reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
                                                 }
@@ -277,11 +277,20 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                                 line = line + " " + lines[i + 4];
                                                 if (GetColumnCount(line) == targetColumnCount)
                                                 {
-                                                    if (lines[i + 5].Split('|').Length > 1 && (i + 5 < lines.Length))
+                                                    if (i + 5 < lines.Length)
+                                                    {
+                                                        if (lines[i + 5].Split('|').Length > 1 && (i + 5 < lines.Length))
+                                                        {
+                                                            i = i + 4;
+                                                            reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
+                                                        }
+                                                    }
+                                                    else
                                                     {
                                                         i = i + 4;
                                                         reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
                                                     }
+
                                                 }
                                                 else
                                                 {
@@ -300,7 +309,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                                     }
                                                 }
                                             }
-                                             
+                                            //reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
 
                                         }
                                     }
@@ -318,8 +327,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 {
                                     if (i + 2 < lines.Length)
                                     {
-                                      
-                                        i = lines.Length - 1; 
+                                        //line = line + lines[i + 3];
+                                        i = lines.Length - 1;//i + 2;
                                         reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
                                     }
                                     else
@@ -333,7 +342,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                     if (GetColumnCount(line) == targetColumnCount)
                                     {
 
-                                         
+                                       
                                         reorderedLines.Add(line.Replace("\"", "").Replace("|", ","));
                                         
 
