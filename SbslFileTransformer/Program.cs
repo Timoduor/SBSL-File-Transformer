@@ -101,8 +101,8 @@ namespace SbslFileTransformer
                     .WriteTo.SQLite(Path.Combine(logPathSqlite, "sbsletl_logs.db"),
                         retentionPeriod: TimeSpan.FromDays(10), rollOver: false, maxDatabaseSize: 20480)
                     .WriteTo.Console()
-                    .WriteTo.RollingFile(formatter,
-                        Path.Combine(Directory.GetCurrentDirectory(), Path.Combine(logPathFiles, "{Date}-SBSLETL.log")))
+                    .WriteTo.File(formatter,
+                        Path.Combine(Directory.GetCurrentDirectory(), Path.Combine(logPathFiles, $"{DateTime.Now.ToString("yyyyMMdd")}-SBSLETL.log")))
                     .CreateLogger();
 
                 ChangeServiceStartParams();

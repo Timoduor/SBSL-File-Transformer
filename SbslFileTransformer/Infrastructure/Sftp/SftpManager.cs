@@ -34,11 +34,11 @@ namespace SbslFileTransformer.Infrastructure.Sftp
             };
         }
 
-        public IEnumerable<SftpFile> ListAllFiles(SftpClient client, string remoteDirectory = ".")
+        public IEnumerable<ISftpFile> ListAllFiles(SftpClient client, string remoteDirectory = ".")
         {
             try
             {
-                return client.ListDirectory(remoteDirectory);
+                return client.ListDirectory(remoteDirectory, cnt => { });
             }
             catch (Exception exception)
             {
