@@ -1,21 +1,11 @@
-﻿using Hardcodet.Wpf.TaskbarNotification;
-using MahApps.Metro.Controls;
+﻿using H.NotifyIcon;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.ServiceProcess;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace SbslServiceManager
@@ -138,18 +128,20 @@ namespace SbslServiceManager
             return Color.FromArgb(AVal, RVal, GVal, BVal);
         }
 
-        public void ShowStandardBalloon(string title, string text, BalloonIcon balloon)
+        public void ShowStandardBalloon(string title, string text, TaskbarIcon balloon)
         {
+            balloon.ToolTipText = text;
             //show balloon with custom icon
-            taskBarNotify.ShowBalloonTip(title, text, balloon);
+            taskBarNotify.ShowCustomBalloon(balloon, System.Windows.Controls.Primitives.PopupAnimation.Slide, null);
 
             //hide balloon
-            taskBarNotify.HideBalloonTip();
+            taskBarNotify.CloseBalloon();
         }
 
         private async void RestartService_Click(object sender, RoutedEventArgs e)
         {
-            Task.Run(() => Process.Start(Application.ResourceAssembly.Location));
+            await Task.Run(() => Process.Start(Application.ResourceAssembly.Location));
+
             Application.Current.Shutdown();
         }
 

@@ -1,24 +1,14 @@
-﻿using Hardcodet.Wpf.TaskbarNotification;
+﻿using H.NotifyIcon;
 using Ionic.Zip;
 using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.ServiceProcess;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace SbslServiceManager
@@ -68,7 +58,7 @@ namespace SbslServiceManager
 
             Visibility = Visibility.Hidden;
 
-            SbslTaskBarIcon.ShowStandardBalloon("Server Manager Window Closed", "You can still access the SBSL Server Manager from the system tray", BalloonIcon.Info);
+            SbslTaskBarIcon.ShowStandardBalloon("Server Manager Window Closed", "You can still access the SBSL Server Manager from the system tray", TaskbarIcon.GetParentTaskbarIcon(this));
         }
 
         private void MetroWindow_Closed(object sender, EventArgs e)
@@ -123,13 +113,13 @@ namespace SbslServiceManager
 
                 ProgressMessage.Content = $"Service {ServiceName} Updated Successfully";
 
-                SbslTaskBarIcon.ShowStandardBalloon("Upgrade Successful!", "The new patch has been successfully applied", BalloonIcon.Info);
+                SbslTaskBarIcon.ShowStandardBalloon("Upgrade Successful!", "The new patch has been successfully applied", TaskbarIcon.GetParentTaskbarIcon(this));
             }
             catch (Exception ex)
             {
                 ProgressMessage.Content = $"Service {ServiceName} failed to update Successfully {ex.Message}";
 
-                SbslTaskBarIcon.ShowStandardBalloon("Upgrade Failed!", "The new patch has failed to apply", BalloonIcon.Info);
+                SbslTaskBarIcon.ShowStandardBalloon("Upgrade Failed!", "The new patch has failed to apply", TaskbarIcon.GetParentTaskbarIcon(this));
             }
 
 
@@ -140,7 +130,7 @@ namespace SbslServiceManager
             if (!Directory.Exists(outputPath))
             {
                 ProgressMessage.Content = "Please set a proper output directory!";
-                SbslTaskBarIcon.ShowStandardBalloon("Upgrade Failed!", "The target directory does not exist", BalloonIcon.Info);
+                SbslTaskBarIcon.ShowStandardBalloon("Upgrade Failed!", "The target directory does not exist", TaskbarIcon.GetParentTaskbarIcon(this));
                 return;
             }
 
@@ -152,7 +142,7 @@ namespace SbslServiceManager
                 if (!zip.Any(e => e.FileName.Contains("SbslFileTransformer.exe")))
                 {
                     ProgressMessage.Content = "Failed to find valid files in zip content!";
-                    SbslTaskBarIcon.ShowStandardBalloon("Upgrade Failed!", "Upgrade file is not valid", BalloonIcon.Info);
+                    SbslTaskBarIcon.ShowStandardBalloon("Upgrade Failed!", "Upgrade file is not valid", TaskbarIcon.GetParentTaskbarIcon(this));
                     return;
                 }
 
@@ -189,7 +179,7 @@ namespace SbslServiceManager
                 RestartService(ServiceName);//only etl service should be restarted
     });
 
-            SbslTaskBarIcon.ShowStandardBalloon("Restart Service", "Service Restarted Successfully", BalloonIcon.Info);
+            SbslTaskBarIcon.ShowStandardBalloon("Restart Service", "Service Restarted Successfully", TaskbarIcon.GetParentTaskbarIcon(this));
         }
 
 
