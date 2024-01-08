@@ -136,7 +136,6 @@ namespace SbslFileTransformer
 
             //SPRINT 3
             services.AddHostedService<SuspenseTachBalanceExtractorJob>();
-
             services.AddHostedService<SpennControlBalanceExtractorJob>();
             services.AddHostedService<SuspenseTachFileConverterJob>();
             //services.AddHostedService<SelcomDisbursementConverterJob>();
@@ -154,12 +153,10 @@ namespace SbslFileTransformer
             services.AddHostedService<AdviceCopeduRWConverterJob>();
             services.AddHostedService<Mt300sKEConverterJob>();
 
-
             services.AddHostedService<MT300RWConverterJob>();
             services.AddHostedService<MT320RWConverterJob>();
             services.AddHostedService<Mt300sTZConverterJob>();
             services.AddHostedService<FxRatesTzConverterJob>();
-
 
             services.AddHostedService<OUTMT300ConverterJob>();
             services.AddHostedService<OUTMT320ConverterJob>();

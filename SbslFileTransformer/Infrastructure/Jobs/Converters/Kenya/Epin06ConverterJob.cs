@@ -78,7 +78,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                     foreach (string file in files)
                     {
-                        if (file.ToLower().Contains("epin06") && file.ToLower().Contains("imke") &&
+                        if (file.ToLower().Contains("epin_files") && file.ToLower().Contains("imke") &&
                             file.ToLower().Contains("cards"))
                         {
                             SftpUploadedFile fileToProcess = uploadedFiles.FirstOrDefault(f =>

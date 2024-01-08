@@ -25,39 +25,35 @@ namespace SbslFileTransformer.Converters.Kenya
                 {
                     var column = new Columns();
 
-                    var phrases = line.Split("  ", StringSplitOptions.RemoveEmptyEntries);
+                    column.TrxnCode = line.Substring(0, 4);
+                    column.CardNumber = line.Substring(4, 16);
+                    column.Ref1 = line.Substring(20, 6).Trim();
 
-                    column.Col1 = line.Substring(0, 4);
-                    column.Col2 = line.Substring(4, 16);
-                    column.Col3 = line.Substring(20, 6).Trim();
+                    column.Arn = line.Substring(26, 31);
+                    column.Month = line.Substring(57, 2);
+                    column.Day = line.Substring(59, 2);
+                    column.TrxnAmt = line.Substring(61, 10) + "." + line.Substring(71, 2);
+                    column.TrxnCurrency = line.Substring(73, 3);
+                    column.SettlAmt = line.Substring(76, 10) + "." + line.Substring(86, 2);
+                    column.SettlCurrency = line.Substring(88, 3);
+                    column.MerchantName = line.Substring(91, 25).Trim();
 
-                    column.Col4 = line.Substring(26, 31);
-                    column.Col5 = line.Substring(57, 2);
-                    column.Col6 = line.Substring(59, 2);
-                    column.Col7 = line.Substring(61, 10);
-                    column.Col8 = line.Substring(71, 2);
-                    column.Col9 = line.Substring(73, 3);
-                    column.Col10 = line.Substring(76, 10);
-                    column.Col11 = line.Substring(86, 2);
-                    column.Col12 = line.Substring(88, 3);
-                    column.Col13 = line.Substring(91, 25).Trim();
+                    column.Location = line.Substring(116, 13).Trim();
 
-                    column.Col14 = line.Substring(116, 13).Trim();
+                    column.Xtry = line.Substring(129, 3).Trim();
+                    column.AuthCode = line.Substring(132, 14).Trim();
 
-                    column.Col15 = line.Substring(129, 3).Trim();
-                    column.Col16 = line.Substring(132, 14).Trim();
+                    column.TrxnType = line.Substring(146, 3);
+                    column.Ref2 = line.Substring(149, 1);
+                    column.TrxnSeparator = line.Substring(150, 1);
+                    column.Ref3 = line.Substring(151, 6);
+                    column.Ref4 = line.Substring(157, 2).Trim();
 
-                    column.Col17 = line.Substring(146, 3);
-                    column.Col18 = line.Substring(149, 1);
-                    column.Col19 = line.Substring(150, 1);
-                    column.Col20 = line.Substring(151, 6);
-                    column.Col21 = line.Substring(157, 2).Trim();
+                    column.Ref5 = line.Substring(159, 2).Trim();
+                    column.Ref6 = line.Substring(161, 7).Trim();
 
-                    column.Col22 = line.Substring(159, 2).Trim();
-                    column.Col23 = line.Substring(161, 7).Trim();
-
-                    int month = Convert.ToInt32(column.Col5);
-                    column.Col24 = Convert.ToString(month > DateTime.Now.Month ? DateTime.Now.Year - 1 : DateTime.Now.Year);
+                    int month = Convert.ToInt32(column.Month);
+                    column.TrxnYear = Convert.ToString(month > DateTime.Now.Month ? DateTime.Now.Year - 1 : DateTime.Now.Year);
 
                     records.Add(column);
                 }
@@ -98,30 +94,28 @@ namespace SbslFileTransformer.Converters.Kenya
 
         private class Columns
         {
-            public string? Col1 { get; set; }
-            public string? Col2 { get; set; }
-            public string? Col3 { get; set; }
-            public string? Col4 { get; set; }
-            public string? Col5 { get; set; }
-            public string? Col6 { get; set; }
-            public string? Col7 { get; set; }
-            public string? Col8 { get; set; }
-            public string? Col9 { get; set; }
-            public string? Col10 { get; set; }
-            public string? Col11 { get; set; }
-            public string? Col12 { get; set; }
-            public string? Col13 { get; set; }
-            public string? Col14 { get; set; }
-            public string? Col15 { get; set; }
-            public string? Col16 { get; set; }
-            public string? Col17 { get; set; }
-            public string? Col18 { get; set; }
-            public string? Col19 { get; set; }
-            public string? Col20 { get; set; }
-            public string? Col21 { get; set; }
-            public string? Col22 { get; set; }
-            public string? Col23 { get; set; }
-            public string? Col24 { get; set; }
+            public string TrxnCode { get; set; }
+            public string CardNumber { get; set; }
+            public string Ref1 { get; set; }
+            public string Arn { get; set; }
+            public string Month { get; set; }
+            public string Day { get; set; }
+            public string TrxnAmt { get; set; }
+            public string TrxnCurrency { get; set; }
+            public string SettlAmt { get; set; }
+            public string SettlCurrency { get; set; }
+            public string MerchantName { get; set; }
+            public string Location { get; set; }
+            public string Xtry { get; set; }           
+            public string TrxnType { get; set; }
+            public string Ref2 { get; set; }
+            public string TrxnSeparator { get; set; }
+            public string Ref3 { get; set; }
+            public string AuthCode { get; set; }
+            public string Ref4 { get; set; }
+            public string Ref5 { get; set; }
+            public string Ref6 { get; set; }
+            public string TrxnYear { get; set; }
         }
     }
 }
