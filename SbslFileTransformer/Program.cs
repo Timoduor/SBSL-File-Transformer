@@ -99,7 +99,7 @@ namespace SbslFileTransformer
                     .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore"))
                     .Enrich.FromLogContext()
                     .WriteTo.SQLite(Path.Combine(logPathSqlite, "sbsletl_logs.db"),
-                        retentionPeriod: TimeSpan.FromDays(10), rollOver: false, maxDatabaseSize: 20480)
+                        retentionPeriod: TimeSpan.FromDays(7), rollOver: false, maxDatabaseSize: 20480)
                     .WriteTo.Console()
                     .WriteTo.File(formatter,
                         Path.Combine(Directory.GetCurrentDirectory(), Path.Combine(logPathFiles, $"{DateTime.Now.ToString("yyyyMMdd")}-SBSLETL.log")))
