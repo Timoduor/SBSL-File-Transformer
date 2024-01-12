@@ -17,9 +17,5 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
         public ReportTokenFetchException(string message, Exception innerException) : base(message, innerException)
         {
         }
-
-        protected ReportTokenFetchException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
     }
 }

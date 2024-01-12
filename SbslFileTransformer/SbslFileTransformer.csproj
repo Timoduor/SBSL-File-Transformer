@@ -1,15 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <UserSecretsId>aspnet-SbslFileTransformer-92C8AB10-D7B6-4168-928B-5FC7E66E002C</UserSecretsId>
     <Description>SBSL File Extraction Transformation and Loading Services Tool</Description>
     <PackageProjectUrl>https://www.sbsl.co.ke</PackageProjectUrl>
     <PackageIcon>sbsl.jpg</PackageIcon>
-    <RepositoryUrl></RepositoryUrl>
+    <RepositoryUrl>
+    </RepositoryUrl>
     <ApplicationIcon>sbsl.ico</ApplicationIcon>
   </PropertyGroup>
-
   <PropertyGroup>
     <DefineConstants>STD</DefineConstants>
     <PlatformTarget>x64</PlatformTarget>
@@ -26,38 +25,31 @@
     <Product>Sbsl File Transformer</Product>
     <Deterministic>false</Deterministic>
   </PropertyGroup>
-
   <PropertyGroup>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
-
   <PropertyGroup>
     <PublishWithAspNetCoreTargetManifest>false</PublishWithAspNetCoreTargetManifest>
     <PackageId>SbslFileTransformer</PackageId>
     <AssemblyVersion>1.0.0.2354</AssemblyVersion>
     <FileVersion>1.0.0.2354</FileVersion>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <Optimize>False</Optimize>
   </PropertyGroup>
-
   <ItemGroup>
     <None Remove="LicenseVerify.cer" />
     <None Remove="sbsletl.db-shm" />
     <None Remove="sbsletl.db-wal" />
     <None Remove="sbsletl_logs.db" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Include="..\GlobalSuppressions.cs" Link="GlobalSuppressions.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <EmbeddedResource Include="LicenseVerify.cer" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="3.1.2" />
     <PackageReference Include="CsvHelper" Version="18.0.0" />
@@ -69,18 +61,16 @@
     <PackageReference Include="Humanizer.Core" Version="2.14.1" />
     <PackageReference Include="itext7" Version="7.1.19" />
     <PackageReference Include="MailKit" Version="2.10.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="3.1.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="3.1.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="3.1.10" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.11">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="3.1.10" />
-    <PackageReference Include="Microsoft.Extensions.Logging.EventLog" Version="3.1.14" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.EventLog" Version="8.0.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.0" />
     <PackageReference Include="MimeKit" Version="2.10.1" />
     <PackageReference Include="MiniProfiler.AspNetCore.Mvc" Version="4.2.22" />
     <PackageReference Include="MiniProfiler.EntityFrameworkCore" Version="4.2.22" />
@@ -93,43 +83,37 @@
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="Serilog.Sinks.SQLite" Version="5.0.0" />
     <PackageReference Include="SSH.NET" Version="2023.0.1" />
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="System.Security.Cryptography.Xml" Version="8.0.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="4.7.2" />
-    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="8.0.0" />
     <PackageReference Include="X.PagedList.Mvc.Core" Version="8.0.7" />
   </ItemGroup>
-
   <ItemGroup>
     <None Include="C:\Projects\SBSL\SbslFileTransformer\SbslFileTransformer\.editorconfig" />
     <None Include="Images\sbsl.jpg">
       <Pack>True</Pack>
-      <PackagePath></PackagePath>
+      <PackagePath>
+      </PackagePath>
     </None>
     <None Include="wwwroot\img\loading1.gif" />
     <None Include="wwwroot\img\loading2.gif" />
     <None Include="wwwroot\img\loading3.gif" />
     <None Include="wwwroot\img\loading4.gif" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Licensing\Licensing.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Folder Include="Content\images\" />
     <Folder Include="Data\Migrations\" />
     <Folder Include="logs\" />
     <Folder Include="Resources\" />
   </ItemGroup>
-
   <ItemGroup>
     <Reference Include="Microsoft.DotNet.PlatformAbstractions">
       <HintPath>DLLs\Microsoft.DotNet.PlatformAbstractions.dll</HintPath>
     </Reference>
   </ItemGroup>
-
   <ItemGroup>
     <None Update="AccountsUploads\sample_accounts_format.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -156,7 +140,6 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
   <Target Name="ChangeAliasesOfStrongNameAssemblies" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
     <ItemGroup>
       <ReferencePath Condition="'%(FileName)' == 'Mysql.Data'">
@@ -164,9 +147,7 @@
       </ReferencePath>
     </ItemGroup>
   </Target>
-
   <ItemGroup>
     <EditorConfigFiles Remove="C:\Projects\SBSL\SbslFileTransformer\SbslFileTransformer\.editorconfig" />
   </ItemGroup>
-
 </Project>
