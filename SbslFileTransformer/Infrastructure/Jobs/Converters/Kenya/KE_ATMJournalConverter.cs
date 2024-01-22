@@ -235,9 +235,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                 try
                 {
-                    if (d[i].Contains("326501608962"))
-                    {
-                    }
+                    //if (d[i].Contains("755019/334801026906"))
+                    //{
+                    //}
                     if ((gotamount==false) && (d[i].Split(' ')[0].Split('/').Length>1))
                     {
                         if (d[i].Split(' ')[4] != "")
@@ -251,7 +251,19 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                         else
                         {
-                            l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[8].Replace('+', ' ').Trim()).ToString()));
+                            //l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[8].Replace('+', ' ').Trim()).ToString()));
+                            if (d[i].Split(' ').Length == 8)
+                            {
+                                l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[6].Replace('+', ' ').Trim()).ToString()));
+                            }
+                            else if (d[i].Split(' ').Length == 9)
+                            {
+                                l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[7].Replace('+', ' ').Trim()).ToString()));
+                            }
+                            else
+                            {
+                                l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[8].Replace('+', ' ').Trim()).ToString()));
+                            }
                         }
                        
                         gotamount = true;
@@ -295,8 +307,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                         {
                             if (gotamount != true)
                             {
-                                l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[2]) / 100).ToString());
-                                gotamount = true;
+                                //l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[2]) / 100).ToString());
+                               // gotamount = true;
 
                             }
                             else
@@ -413,8 +425,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                         { 
                             if (gotamount != true)
                         {
-                            l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[2]) / 100).ToString());
-                            gotamount = true;
+                            //l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[2]) / 100).ToString());
+                           // gotamount = true;
 
                         }
                             else 
@@ -437,7 +449,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                     if (d[i].Contains("<CASH_WITHDRAWAL>"))
                     {
-                        if(gotRC==false)
+                        if (d[i].Contains("+"))
+                        {
+
+                        }
+                            if (gotRC==false)
                         {
                             l.Add("RESPONSE CODE:" + d[i].Split('<')[0].Trim().Replace(","," "));
                             gotRC = true;
@@ -514,6 +530,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     //
                     if (d[i].Contains("CASH_WITHDRAWAL"))
                     {
+                        if (d[i].Contains("+"))
+                        {
+
+                        }
                         try
                         {
                             secondValue = d[i + 1];
@@ -591,9 +611,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             for (int i = 1; i < d.Length - 1; i++)
             {//CARD	DATE	AMOUNT	UTRN NO	SUCCESSFUL	RC CARD NO:
 
+                if (d[i].Contains("139714/334801027287"))
+                {
 
+                }
 
-                if (d[i].Contains("CASH COUNTS CLEARED"))
+                    if (d[i].Contains("CASH COUNTS CLEARED"))
                 {
                     l.Add("CASH COUNTS CLEARED");
                     //return l;

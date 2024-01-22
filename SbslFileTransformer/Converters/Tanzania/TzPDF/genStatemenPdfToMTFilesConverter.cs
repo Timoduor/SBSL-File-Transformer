@@ -16,8 +16,15 @@ namespace SbslFileTransformer.Converters.Tanzania.TzPDF
        
         public void ConvertFile_Tiss(string inputFile, string password = "", string outputFile = null)
         {
+            string outputFolder = "";
 
             outputFile = System.IO.Path.GetDirectoryName(inputFile) + "\\conv\\MT940_" + System.IO.Path.GetFileNameWithoutExtension(inputFile) + ".txt";
+
+            outputFolder = System.IO.Path.GetDirectoryName(inputFile) + "\\conv\\";// Path.GetFullPath(Path.Combine(outputFolder, @"..\")) + "conv";
+
+
+            if (!Directory.Exists(outputFolder))
+                Directory.CreateDirectory(outputFolder);
 
             string text = GetTextFromPdf(inputFile, password);
 
@@ -275,13 +282,16 @@ namespace SbslFileTransformer.Converters.Tanzania.TzPDF
 
             if (System.IO.File.Exists(csv_file)) 
             {
-                if (System.IO.Directory.Exists(System.IO.Path.GetDirectoryName(inputFile) + "\\conv\\"))
-                {
-                }
-                else
-                {
-                    System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(inputFile) + "\\conv\\");
-                }
+
+                string outputFolder = "";
+
+
+
+                outputFolder = outputFolder = System.IO.Path.GetDirectoryName(inputFile) + "\\conv\\";// Path.GetFullPath(Path.Combine(outputFolder, @"..\")) + "conv";
+
+                if (!Directory.Exists(outputFolder))
+                    Directory.CreateDirectory(outputFolder);                
+
 
                 string text = GetTextFromPdf(inputFile, "");
                 outputFile = System.IO.Path.GetDirectoryName(inputFile) + "\\conv\\" + "MT940_" + System.IO.Path.GetFileNameWithoutExtension(inputFile).Replace(" ", "") + ".txt";

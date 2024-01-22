@@ -90,7 +90,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    //string statementFolder = Path.Combine(sbFolder, @$"{Entity}\BOT TZS");
+                                    //string statementFolder = Path.Combine(sbFolder, @$"{Entity}\BOT TZS"); bot usd
 
                                     //if (isProd)
                                     //    statementFolder = Path.Combine(prodFolder, @$"{Entity}\BOT TZS");
