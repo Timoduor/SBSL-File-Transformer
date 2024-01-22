@@ -60,7 +60,6 @@ namespace SbslFileTransformer.Converters.Kenya
 
             }
 
-
             if (string.IsNullOrEmpty(outputFile))
             {
                 string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
@@ -81,6 +80,7 @@ namespace SbslFileTransformer.Converters.Kenya
             {
                 using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
+                    csv.WriteHeader<Columns>();
                     csv.NextRecord();
 
                     foreach (Columns row in rows)
@@ -106,12 +106,12 @@ namespace SbslFileTransformer.Converters.Kenya
             public string SettlCurrency { get; set; }
             public string MerchantName { get; set; }
             public string Location { get; set; }
-            public string Xtry { get; set; }           
+            public string Xtry { get; set; }
+            public string AuthCode { get; set; }
             public string TrxnType { get; set; }
             public string Ref2 { get; set; }
             public string TrxnSeparator { get; set; }
             public string Ref3 { get; set; }
-            public string AuthCode { get; set; }
             public string Ref4 { get; set; }
             public string Ref5 { get; set; }
             public string Ref6 { get; set; }

@@ -235,7 +235,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                 try
                 {
-                    //if (d[i].Contains("755019/334801026906"))
+                    //if (d[i].Contains("418087******6272"))
                     //{
                     //}
                     if ((gotamount==false) && (d[i].Split(' ')[0].Split('/').Length>1))
@@ -243,10 +243,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                         if (d[i].Split(' ')[4] != "")
                         {
                             l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[4].Replace('+', ' ').Trim()).ToString()));
+                            l.Add("CCY:" + d[i].Split(' ')[d[i].Split(' ').Length - 1].Replace("\r", ""));
                         }
                         else if (d[i].Split(' ')[5] != "")
                         {
                             l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[5].Replace('+', ' ').Trim()).ToString()));
+                            l.Add("CCY:" + d[i].Split(' ')[d[i].Split(' ').Length - 1].Replace("\r", ""));
                         }
 
                         else
@@ -255,14 +257,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                             if (d[i].Split(' ').Length == 8)
                             {
                                 l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[6].Replace('+', ' ').Trim()).ToString()));
+                                l.Add("CCY:" + d[i].Split(' ')[d[i].Split(' ').Length - 1].Replace("\r", ""));
                             }
                             else if (d[i].Split(' ').Length == 9)
                             {
                                 l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[7].Replace('+', ' ').Trim()).ToString()));
+                                l.Add("CCY:" + d[i].Split(' ')[d[i].Split(' ').Length - 1].Replace("\r", ""));
                             }
                             else
                             {
                                 l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[8].Replace('+', ' ').Trim()).ToString()));
+                                l.Add("CCY:" + d[i].Split(' ')[d[i].Split(' ').Length - 1].Replace("\r", ""));
                             }
                         }
                        
