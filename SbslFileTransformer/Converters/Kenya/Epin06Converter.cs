@@ -68,7 +68,7 @@ namespace SbslFileTransformer.Converters.Kenya
                 string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                 outputFile = Path.Combine(outputFolder,
-                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_Ep06_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.csv");
+                    $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_Ep06_{fileName.Substring(0, Math.Min(25, fileName.Length))}.csv");
             }
 
             WriteToFile(records, outputFile);
