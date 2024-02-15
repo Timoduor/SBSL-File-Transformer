@@ -83,6 +83,9 @@
     <PackageReference Include="MiniProfiler.EntityFrameworkCore" Version="4.3.8" />
     <PackageReference Include="MySqlBackup.NET.MySqlConnector" Version="2.3.8" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="NuGet.Common" Version="6.9.1" />
+    <PackageReference Include="NuGet.Packaging" Version="6.9.1" />
+    <PackageReference Include="NuGet.Protocol" Version="6.9.1" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0" />
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
