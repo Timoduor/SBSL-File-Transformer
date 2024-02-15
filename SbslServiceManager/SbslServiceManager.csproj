@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
-
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>sbsl.ico</ApplicationIcon>
     <Company>Strategic Business Solutions Ltd</Company>
@@ -13,7 +12,6 @@
     <Authors>Strategic Business Solutions Ltd</Authors>
     <PackageId>SBSL ETL Service Manager</PackageId>
   </PropertyGroup>
-
   <ItemGroup>
     <None Remove="Chrome_48px.png" />
     <None Remove="Play_48px.png" />
@@ -24,10 +22,10 @@
     <None Remove="Shutdown_48px.png" />
     <None Include="sbsl.jpg">
       <Pack>True</Pack>
-      <PackagePath></PackagePath>
+      <PackagePath>
+      </PackagePath>
     </None>
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="DotNetZip" Version="1.16.0" />
     <PackageReference Include="H.NotifyIcon.Wpf" Version="2.0.123" />
@@ -38,7 +36,6 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
   </ItemGroup>
-
   <ItemGroup>
     <Resource Include="Chrome_48px.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -62,11 +59,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>
-
   <ItemGroup>
     <None Update="appsettings_2.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
 </Project>

@@ -48,9 +48,10 @@ namespace SbslFileTransformer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            string connectionString = Configuration.GetConnectionString("DefaultConnection");
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseMySql(
-                    Configuration.GetConnectionString("DefaultConnection"), opts =>
+                options.UseMySql(connectionString
+                    , ServerVersion.AutoDetect(connectionString), opts =>
                     {
                         opts.EnableRetryOnFailure(3, TimeSpan.FromSeconds(10), null);
                     })

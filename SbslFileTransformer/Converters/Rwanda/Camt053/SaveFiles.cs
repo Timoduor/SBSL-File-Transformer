@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.IO;
 using CsvHelper;
+using CsvHelper.Configuration;
 
 namespace SbslFileTransformer.Converters.Rwanda.Camt053
 {
@@ -10,24 +11,30 @@ namespace SbslFileTransformer.Converters.Rwanda.Camt053
         public static void SaveToCsv(List<ExtractedRecord> Ntry, string filePath)
         {
             using (StreamWriter writer = new StreamWriter(filePath))
-            using (CsvWriter csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
-                csvWriter.Configuration.Delimiter = ",";
-                csvWriter.Configuration.AutoMap<ExtractedRecord>();
+                var config = new CsvConfiguration(CultureInfo.InvariantCulture) { Delimiter = "," };
 
-                csvWriter.WriteRecords(Ntry);
+                using (CsvWriter csvWriter = new CsvWriter(writer, config))
+                {
+                    csvWriter.Context.AutoMap<ExtractedRecord>();
+
+                    csvWriter.WriteRecords(Ntry);
+                }
             }
         }
 
         public static void BalanceToCSV(List<BalanceExctracted> Bal, string filePath)
         {
             using (StreamWriter writer = new StreamWriter(filePath))
-            using (CsvWriter csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
-                csvWriter.Configuration.Delimiter = ",";
-                csvWriter.Configuration.AutoMap<BalanceExctracted>();
+                var config = new CsvConfiguration(CultureInfo.InvariantCulture) { Delimiter = "," };
 
-                csvWriter.WriteRecords(Bal);
+                using (CsvWriter csvWriter = new CsvWriter(writer, config))
+                {
+                    csvWriter.Context.AutoMap<BalanceExctracted>();
+
+                    csvWriter.WriteRecords(Bal);
+                }
             }
         }
     }

@@ -1,5 +1,4 @@
-﻿extern alias MySqlDataAlias;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,13 +9,11 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using MySqlConnector;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
-using MySqlBackup = MySql.Data.MySqlClient.MySqlBackup;
-using MySqlCommand = MySqlDataAlias::MySql.Data.MySqlClient.MySqlCommand;
-using MySqlConnection = MySqlDataAlias::MySql.Data.MySqlClient.MySqlConnection;
 
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Others
