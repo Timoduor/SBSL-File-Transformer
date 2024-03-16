@@ -1,0 +1,39 @@
+﻿using System;
+
+namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.Ecommerce.Models
+{
+    public class EcommerceDbRecord
+    {
+        public Guid Id { get; set; }
+        public DateTime BankingDate { get; set; }
+        public string TransDetails { get; set; }
+        public string TransID { get; set; }
+        public string ReferenceNumber { get; set; }
+        public string GLTransCode { get; set; }
+        public string CardNumber { get; set; }
+        public double CreditAmount { get; set; }
+        public double DebitAmount { get; set; }
+        public string CustomerName { get; set; }
+        public string ContractNumber { get; set; }
+        public string AccountNumber { get; set; }
+        public string ChequeNo { get; set; }
+        public string AuthorizationCode { get; set; }
+        //metadata
+        public bool Matched { get; set; }
+        public string FileName { get; set; }
+        public DateTime DateExtracted { get; set; }
+        public DateTime? DateMatched { get; set; }
+        public string MatchingFile { get; set; }
+        public string FinacleAccount { get; set; }
+        public string PrimaryEntryIDT { get; set; }
+        public string PaymentID { get; set; }
+        public double FinPostedAmount { get; set; }
+        public string EntryType { get; set; }
+        public string EntryDirection { get; set; }
+        public string EntryAmount { get; set; }
+        public int TransCurr { get; set; }
+        public string CrNumber { get; set; }
+        public string DrNumber { get; set; }
+        public string MerchantID { get; set; }
+    }
+}
