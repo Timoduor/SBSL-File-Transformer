@@ -39,6 +39,12 @@
     <Optimize>False</Optimize>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Converters\Kenya\VisionRecs\VisionRecordMatcher.cs" />
+    <Compile Remove="Infrastructure\Jobs\Converters\Kenya\Ecommerce\EcommerceMatchingJob.cs" />
+    <Compile Remove="Infrastructure\Jobs\Converters\Kenya\Ecommerce\EcommerceRecordMatcher.cs" />
+    <Compile Remove="Infrastructure\Jobs\Converters\Kenya\Ecommerce\EcommerceTransactionExtractorJob.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <None Remove="LicenseVerify.cer" />
     <None Remove="sbsletl.db-shm" />
     <None Remove="sbsletl.db-wal" />
