@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
+
 using HealthChecks.UI.Client;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -13,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Helpers;
@@ -32,6 +35,7 @@ using SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers.Interfaces;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Infrastructure.Sftp;
 using SbslFileTransformer.Models.Enums;
+
 using Serilog;
 
 namespace SbslFileTransformer
@@ -209,6 +213,8 @@ namespace SbslFileTransformer
 
             services.AddHostedService<FileNetworkCopyJob>();
             services.AddHostedService<ImsBalanceExtractorJob>();
+            services.AddHostedService<BotWrapRemoverJob>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -234,7 +240,7 @@ namespace SbslFileTransformer
             app.UseSerilogRequestLogging();
 
             app.UseExceptionHandler("/Home/Error");
-            
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
