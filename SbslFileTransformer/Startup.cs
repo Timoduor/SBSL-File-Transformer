@@ -214,6 +214,8 @@ namespace SbslFileTransformer
             services.AddHostedService<FileNetworkCopyJob>();
             services.AddHostedService<ImsBalanceExtractorJob>();
             services.AddHostedService<BotWrapRemoverJob>();
+            services.AddHostedService<AirtelB2CKenyaBalanceExtractorJob>();
+            services.AddHostedService<AirtelC2BKenyaBalanceExtractorJob>();
 
         }
 

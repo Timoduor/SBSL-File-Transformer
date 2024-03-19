@@ -18,9 +18,9 @@ using SbslFileTransformer.Models.Enums;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
-    public class AirtelKenyaBalanceExtractorJob : ConverterJobBase<AirtelKenyaBalanceExtractorJob>, IHostedService
+    public class AirtelC2BKenyaBalanceExtractorJob : ConverterJobBase<AirtelC2BKenyaBalanceExtractorJob>, IHostedService
     {
-        public AirtelKenyaBalanceExtractorJob(ILogger<AirtelKenyaBalanceExtractorJob> logger,
+        public AirtelC2BKenyaBalanceExtractorJob(ILogger<AirtelC2BKenyaBalanceExtractorJob> logger,
             IServiceScopeFactory serviceScopeFactory, EmailSender emailSender)
         {
             this._logger = logger;
@@ -28,16 +28,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             this._emailSender = emailSender;
         }
 
-        protected override string JobName { get; set; } = nameof(AirtelKenyaBalanceExtractorJob);
+        protected override string JobName { get; set; } = nameof(AirtelC2BKenyaBalanceExtractorJob);
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            this._logger.LogInformation("Starting Airtel Balance Extractor Job");
+            this._logger.LogInformation("Starting Airtel C2B Balance Extractor Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
             this._timer = new Timer(async state => await this.AirtelFileBalanceExtractor(), null,
-                TimeSpan.FromSeconds(new Random().Next(30, 60)), TimeSpan.FromMinutes(10));
+                TimeSpan.FromSeconds(new Random().Next(60, 200)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
@@ -48,7 +48,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             {
                 await _semaphore.WaitAsync();
 
-                this._logger.LogInformation("Running Airtel Balance Extractor job");
+                this._logger.LogInformation("Running Airtel C2B Balance Extractor job");
 
                 string prodFolder = string.Empty;
                 string sbFolder = string.Empty;
@@ -75,7 +75,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     files.AddRange(
                         Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")));
 
-                    AirtelKenyaBalanceExtractor mpesaConverter = new AirtelKenyaBalanceExtractor();
+                    var mpesaConverter = new AirtelC2BKenyaBalanceExtractor();
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
@@ -84,8 +84,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     foreach (string file in files)
                     {
                         if (file.ToLower().Contains("airtel") && file.ToLower().Contains("mobile") &&
-                            file.ToLower().Contains("banking") && !file.ToLower().Contains("c2b") &&
-                            !file.ToLower().Contains("b2c") && file.ToLower().Contains("imke"))
+                            file.ToLower().Contains("banking") && file.ToLower().Contains("c2b") && file.ToLower().Contains("imke"))
                         {
                             SftpUploadedFile fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>
@@ -108,7 +107,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 }
                                 finally
                                 {
-                                    this.CompleteFileProcessing(updatedFiles, fileToProcess, nameof(AirtelKenyaBalanceExtractor));
+                                    this.CompleteFileProcessing(updatedFiles, fileToProcess, nameof(AirtelC2BKenyaBalanceExtractor), true);
                                 }
                         }
                     }

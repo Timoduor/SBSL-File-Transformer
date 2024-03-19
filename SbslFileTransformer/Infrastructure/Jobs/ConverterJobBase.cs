@@ -5,8 +5,10 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
@@ -144,8 +146,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs
                 $"Problem with  file {file} \n\n {ex.Message}", new[] { file }, this._emailSender);
         }
 
-        protected void CompleteFileProcessing(List<SftpUploadedFile> updatedFiles, SftpUploadedFile fileToProcess, string converter)
+        protected void CompleteFileProcessing(List<SftpUploadedFile> updatedFiles, SftpUploadedFile fileToProcess, string converter, bool isBalanceExtraction = false)
         {
+            fileToProcess.BalanceExtracted = isBalanceExtraction;
+
             fileToProcess.Converted = true;
 
             fileToProcess.ConvertedBy = converter;
