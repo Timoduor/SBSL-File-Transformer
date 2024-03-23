@@ -59,13 +59,13 @@ namespace SbslFileTransformer.Converters.Tanzania
 
                         row.Col8 = reader.GetValue(8)?.ToString();
 
-                        row.Col9 = reader.GetValue(9)?.ToString();
+                        row.Col9 = string.IsNullOrEmpty(reader.GetValue(9)?.ToString()) ? "0" : reader.GetValue(9).ToString();
 
                         row.Col10 = reader.GetValue(10)?.ToString();
 
-                        row.Col11 = reader.GetValue(11)?.ToString();
+                        row.Col11 = !string.IsNullOrEmpty(reader.GetValue(12)?.ToString()) && double.TryParse(reader.GetValue(12)?.ToString(), out _) ? "0" : reader.GetValue(11)?.ToString();
 
-                        row.Col12 = reader.GetValue(12)?.ToString();
+                        row.Col12 = string.IsNullOrEmpty(reader.GetValue(12)?.ToString()) ? "0" : reader.GetValue(12).ToString();
 
                         row.Col13 = reader.GetValue(13)?.ToString();
 
