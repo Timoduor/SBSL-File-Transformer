@@ -63,7 +63,8 @@ namespace SbslFileTransformer.Converters.Tanzania
 
                         row.Col10 = reader.GetValue(10)?.ToString();
 
-                        row.Col11 = !string.IsNullOrEmpty(reader.GetValue(12)?.ToString()) && double.TryParse(reader.GetValue(12)?.ToString(), out _) ? "0" : reader.GetValue(11)?.ToString();
+                        row.Col11 = !string.IsNullOrEmpty(reader.GetValue(12)?.ToString()) && double.TryParse(reader.GetValue(12)?.ToString(), out _) ? "0" :
+                            string.IsNullOrEmpty(reader.GetValue(11)?.ToString()) ? "0" : reader.GetValue(11)?.ToString();
 
                         row.Col12 = string.IsNullOrEmpty(reader.GetValue(12)?.ToString()) ? "0" : reader.GetValue(12).ToString();
 
