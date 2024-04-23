@@ -44,7 +44,9 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
 
                         AirtelCols row = new AirtelCols();
 
-                        if (DateTime.TryParseExact(reader.GetValue(2)?.ToString(), "dd/MM/yyyy HH:mm",
+                        var date = reader.GetValue(2)?.ToString();
+
+                        if (DateTime.TryParseExact(date, "dd-MM-yyyy hh:mm tt",
                             CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime resultDate))
                             row.ReconDate = resultDate;
                         else
@@ -52,7 +54,9 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Kenya
 
                         row.Account = "19990126507006";
 
-                        row.Amount = Convert.ToDouble(reader.GetValue(7)?.ToString());
+                        var amount = reader.GetValue(7)?.ToString();
+
+                        row.Amount = Convert.ToDouble(amount);
 
                         list.Add(row);
                     }

@@ -83,8 +83,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                     foreach (string file in files)
                     {
-                        if (file.ToLower().Contains("airtel") && file.ToLower().Contains("mobile") &&
-                            file.ToLower().Contains("banking") && file.ToLower().Contains("b2c") && file.ToLower().Contains("imke"))
+                        if (file.ToLower().Contains("airtel_b2c") && file.ToLower().Contains("mobile") &&
+                            file.ToLower().Contains("banking") && file.ToLower().Contains("imke"))
                         {
                             SftpUploadedFile fileToProcess =
                                 uploadedFiles.FirstOrDefault(f =>

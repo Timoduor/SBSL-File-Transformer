@@ -75,7 +75,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
                     files.AddRange(
                         Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")));
 
-                    var mpesaConverter = new BotWrapRemoveConverter();
+                    var mpesaConverter = new BotWrapRemoveConverter(_logger);
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
