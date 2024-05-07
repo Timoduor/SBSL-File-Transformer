@@ -1,4 +1,4 @@
-﻿namespace SbslFileTransformer.Converters.Kenya
+﻿namespace SbslFileTransformer.Converters.Kenya.Models
 {
     public class EP75Item
     {

@@ -4,11 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SbslFileTransformer.Converters.Rwanda;
+
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
@@ -16,11 +17,10 @@ using SbslFileTransformer.Models.Enums;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 {
-   
-    public class keATMConverterJob : ConverterJobBase<keATMConverterJob>, IHostedService
+    public class keLogbookConverterJob : ConverterJobBase<keLogbookConverterJob>, IHostedService
     {
-        protected override string JobName { get; set; } = nameof(keATMConverterJob);
-        public keATMConverterJob(ILogger<keATMConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
+        protected override string JobName { get; set; } = nameof(keLogbookConverterJob);
+        public keLogbookConverterJob(ILogger<keLogbookConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
            EmailSender emailSender)
         {
             this._logger = logger;
@@ -30,23 +30,24 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            this._logger.LogInformation("Starting KE ATMjournal Converter Job");
+            this._logger.LogInformation("Starting KE LogbookConverter Converter Job");
 
             _semaphore = new SemaphoreSlim(1, 1);
 
-            this._timer = new Timer(async state => await this.RWConvertATMJournal(), null,
+            this._timer = new Timer(async state => await this.LogbookConverter(), null,
                 TimeSpan.FromSeconds(new Random().Next(60, 200)), TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
 
-        private async Task RWConvertATMJournal()
+        private async Task LogbookConverter()
         {
             try
             {
                 await _semaphore.WaitAsync();
 
-                this._logger.LogInformation("Running KE ATM Journal Converter Job");
+                this._logger.LogInformation("Running KE LogbookConverter Converter Job");
+
 
                 string prodFolder = string.Empty;
                 string sbFolder = string.Empty;
@@ -54,6 +55,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                 using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
                 {
+
                     ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
                     List<Configuration> configurations = await dbContext.Configurations.ToListAsync();
@@ -67,29 +69,61 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     EnumerationOptions options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    List<string> files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".jrn")).ToList();
-                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".jrn")));
+                    List<string> files = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")).ToList();
+                    files.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".csv")));
 
-
-                    List<string> files_ = Directory.GetFiles(prodFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".log")).ToList();
-                    files_.AddRange(Directory.GetFiles(sbFolder, "*.*", options).Where(f => f.ToLower().EndsWith(".log")));
-
-                    KE_ATMJournalConverter ATMJournalConverter = new KE_ATMJournalConverter();
+                    KE_LBookConverter LBookConverter = new KE_LBookConverter();
 
                     List<SftpUploadedFile> uploadedFiles = await dbContext.UploadedFiles.ToListAsync();
 
                     List<SftpUploadedFile> updatedFiles = new List<SftpUploadedFile>();
 
+                    string renamedfie_ = "";
+                    string destFnamecsv = "";
+                    string destFnamepdf = "";
+                    string pdfFile_ = "";
+                    string archdir = "";
+
                     foreach (string file in files)
                     {
-                        //FILE PATH SHOULD HAVE FOLDER NAME MT300 SOMEWHERE IN IT
-                        if (file.ToLower().Contains("atms") && file.ToLower().Contains("e-jrn") && file.ToLower().Contains("imke"))
+                        if (file.ToLower().Contains("imke") && file.ToLower().Contains("logbook_ntsa") && !file.ToLower().Contains("arch") && !file.ToLower().Contains("conv"))
                         {
                             SftpUploadedFile fileToProcess = uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
                             if (fileToProcess != null && fileToProcess.Converted == false)
                                 try
                                 {
-                                    ATMJournalConverter.ConvertFile_WinkaATMjrn(file);
+                                    archdir = System.IO.Path.GetDirectoryName(file) + "\\arch\\";
+
+                                    destFnamepdf = archdir + System.IO.Path.GetFileNameWithoutExtension(file) + ".pdf";
+                                    renamedfie_ = LBookConverter.Rename_Files(file);
+                                    destFnamecsv = archdir + System.IO.Path.GetFileName(renamedfie_);
+                                    pdfFile_ = System.IO.Path.GetDirectoryName(file) + "\\" + System.IO.Path.GetFileNameWithoutExtension(file) + ".pdf";
+
+
+                                    if (renamedfie_ != "")
+                                    {
+                                        LBookConverter.Removelinebreaks(renamedfie_);
+                                        //archive n delete
+                                        try
+                                        {
+                                            if (!Directory.Exists(archdir))
+                                            {
+                                                Directory.CreateDirectory(archdir);
+                                            }
+                                            File.Move(renamedfie_, destFnamecsv);
+
+                                            File.Move(pdfFile_, destFnamepdf);
+
+                                            File.Delete(renamedfie_);
+
+                                            File.Delete(pdfFile_);
+
+                                        }
+                                        catch (Exception xs)
+                                        {
+                                        }
+                                    }
+
                                 }
                                 catch (Exception ex)
                                 {
@@ -97,37 +131,15 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                 }
                                 finally
                                 {
-                                    this.CompleteFileProcessing(updatedFiles, fileToProcess, nameof(KE_ATMJournalConverter));
+                                    this.CompleteFileProcessing(updatedFiles, fileToProcess, nameof(KE_LBookConverter));
                                 }
                         }
                     }
-
-                    foreach (string file in files_)
-                    {
-                        //FILE PATH SHOULD HAVE FOLDER NAME MT300 SOMEWHERE IN IT
-                        if (file.ToLower().Contains("atms") && file.ToLower().Contains("e-jrn"))
-                        {
-                            SftpUploadedFile fileToProcess = uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
-                            if (fileToProcess != null && fileToProcess.Converted == false)
-                                try
-                                {
-                                    ATMJournalConverter.ConvertFile_NCR(file);
-                                    //ATMJournalConverter.ConvertFile_WinkaATMjrn(file);
-
-                                }
-                                catch (Exception ex)
-                                {
-                                    await this.ProcessFileFailure(configurations, file, fileToProcess, ex);
-                                }
-                                finally
-                                {
-                                    this.CompleteFileProcessing(updatedFiles, fileToProcess, nameof(RW_ATMJournalConverter));
-                                }
-                        }
-                    }
-
                     await this.SaveProcessedFilesStatuses(dbContext, updatedFiles);
+
+
                 }
+
             }
             catch (Exception ex)
             {
@@ -137,6 +149,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             {
                 _semaphore.Release();
             }
+
         }
+
     }
+
 }
+

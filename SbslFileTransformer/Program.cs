@@ -2,10 +2,12 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Threading;
+
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+
 using SbslFileTransformer.Infrastructure.ServiceManager;
+
 using Serilog;
 using Serilog.Filters;
 using Serilog.Formatting.Display;
@@ -21,7 +23,7 @@ namespace SbslFileTransformer
             try
             {
                 Log.Information("Starting up");
-                 CreateHostBuilder(args).Build().Run();
+                CreateHostBuilder(args).Build().Run();
             }
             catch (Exception ex)
             {

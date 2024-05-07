@@ -204,6 +204,7 @@ namespace SbslFileTransformer
             services.AddHostedService<keLogbookConverterJob>();
             services.AddHostedService<keDebtorslistConverterJob>();
             services.AddHostedService<Epin06ConverterJob>();
+            services.AddHostedService<NCR_JournalsConverterJob>();
 
             //special scenario jobs
             //services.AddHostedService<RecordMatcherJob>();

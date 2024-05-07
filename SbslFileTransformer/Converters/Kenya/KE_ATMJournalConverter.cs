@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
+namespace SbslFileTransformer.Converters.Kenya
 {
     public class KE_ATMJournalConverter
     {
@@ -12,10 +12,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
         public void ConvertFile_WinkaATMjrn(string inputFile)
         {
 
-            string ATMNO = "";
+            var ATMNO = "";
             string outputFolder = null;
 
-            string outputFile = "";
+            var outputFile = "";
 
             if (string.IsNullOrEmpty(outputFolder))
             {
@@ -26,7 +26,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             if (!Directory.Exists(outputFolder))
                 Directory.CreateDirectory(outputFolder);
 
-            string[] sDet = File.ReadAllLines(inputFile);
+            var sDet = File.ReadAllLines(inputFile);
             try
             {
                 if (sDet[0].Length != 0)
@@ -36,27 +36,27 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             }
             catch (Exception)
             { }
-            string content = File.ReadAllText(inputFile);
+            var content = File.ReadAllText(inputFile);
 
 
-            string[] sGrp = content.Split("TRANSACTION START");
-            string[] sGrp_s = content.Split("SUPERVISOR MODE ENTRY");
-            string scontent = "";
-            string scontent_ = "";
-            string scontent_sup = "";
-            ATMJournal ATMflds = new ATMJournal();
+            var sGrp = content.Split("TRANSACTION START");
+            var sGrp_s = content.Split("SUPERVISOR MODE ENTRY");
+            var scontent = "";
+            var scontent_ = "";
+            var scontent_sup = "";
+            var ATMflds = new ATMJournal();
 
-            bool hascashcount = false;
+            var hascashcount = false;
 
             try
             {
                 if (sGrp.Length != 0)
                 {
 
-                    for (int i = 1; i < sGrp.Length; i++)
+                    for (var i = 1; i < sGrp.Length; i++)
                     {
 
-                        List<string> lx = this.GetJournalDetails(sGrp[i].Split("\n"), ATMNO);
+                        var lx = GetJournalDetails(sGrp[i].Split("\n"), ATMNO);
 
                         if (lx.Count > 0)
                         {
@@ -91,7 +91,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                     if (scontent == "")
                                     {
 
-                                        scontent += ATMflds.CARDNo.Trim() + "," + ATMflds.trnDATE.Trim() + "," + ATMflds.AMOUNT.Trim() + "," + ATMflds.UTRNNO.Trim() + "," + ATMflds.SUCCESSFUL.Trim() + "," + ATMflds.ReasonCode.Trim() + "," + ATMflds.AUTHNO.Trim() + "," + ATMflds.AtmNo.Trim() + "," + ATMflds.TRANSACTION_START.Trim() + "," + ATMflds.TRANSACTION_END.Trim() + "," + ATMflds.REF2 + "," + ATMflds.CASHTAKENZ +  Environment.NewLine;
+                                        scontent += ATMflds.CARDNo.Trim() + "," + ATMflds.trnDATE.Trim() + "," + ATMflds.AMOUNT.Trim() + "," + ATMflds.UTRNNO.Trim() + "," + ATMflds.SUCCESSFUL.Trim() + "," + ATMflds.ReasonCode.Trim() + "," + ATMflds.AUTHNO.Trim() + "," + ATMflds.AtmNo.Trim() + "," + ATMflds.TRANSACTION_START.Trim() + "," + ATMflds.TRANSACTION_END.Trim() + "," + ATMflds.REF2 + "," + ATMflds.CASHTAKENZ + Environment.NewLine;
 
                                     }
                                     else
@@ -110,7 +110,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                                     }
                                     else
                                     {
-                                        scontent += ATMflds.CARDNo.Trim() + "," + ATMflds.trnDATE.Trim() + "," + ATMflds.AMOUNT.Trim() + "," + ATMflds.CURRENCY.Trim() + "," + ATMflds.UTRNNO.Trim() + "," + ATMflds.SUCCESSFUL.Trim() + "," + ATMflds.ReasonCode.Trim() + "," + ATMflds.AUTHNO.Trim() + "," + ATMflds.AtmNo.Trim() +  "," + ATMflds.TRANSACTION_START.Trim() + "," + ATMflds.TRANSACTION_END.Trim() + "," + ATMflds.REF2 + "," + ATMflds.CASHTAKENZ + Environment.NewLine;
+                                        scontent += ATMflds.CARDNo.Trim() + "," + ATMflds.trnDATE.Trim() + "," + ATMflds.AMOUNT.Trim() + "," + ATMflds.CURRENCY.Trim() + "," + ATMflds.UTRNNO.Trim() + "," + ATMflds.SUCCESSFUL.Trim() + "," + ATMflds.ReasonCode.Trim() + "," + ATMflds.AUTHNO.Trim() + "," + ATMflds.AtmNo.Trim() + "," + ATMflds.TRANSACTION_START.Trim() + "," + ATMflds.TRANSACTION_END.Trim() + "," + ATMflds.REF2 + "," + ATMflds.CASHTAKENZ + Environment.NewLine;
 
                                     }
 
@@ -124,7 +124,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             }
             catch (Exception xc)
             {
-                string sx = xc.Message;
+                var sx = xc.Message;
             }
             //*****
             try
@@ -132,9 +132,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                 if (sGrp_s.Length != 0)
                 {
-                    for (int i = 1; i < sGrp_s.Length - 1; i++)
+                    for (var i = 1; i < sGrp_s.Length - 1; i++)
                     {
-                        List<string> ly = this.GetJournalDetails_supervisor(sGrp_s[i].Split("\n"), ATMNO);
+                        var ly = GetJournalDetails_supervisor(sGrp_s[i].Split("\n"), ATMNO);
                         if (ly != null)
                         {
 
@@ -185,7 +185,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             }
             catch (Exception x)
             {
-                string df = x.Message;
+                var df = x.Message;
             }
             //*****
             if (scontent_sup != "")
@@ -205,9 +205,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
         }
         public static void WriteFile(string path, string content)
         {
-            using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
+            using (var fs = new FileStream(path, FileMode.OpenOrCreate))
             {
-                using (StreamWriter sw = new StreamWriter(fs))
+                using (var sw = new StreamWriter(fs))
                     sw.Write(content);
             }
         }
@@ -215,22 +215,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
         private List<string> GetJournalDetails(string[] d, string ATMNO = "")
         {
-            bool gotcardno = false;
-            bool gotdate = false;
-            bool gotamount = false;
-            bool gotcashtaken = false;
-            bool gotcashtaken_n = false;
-            bool gotRC = false;
-            bool gotSTART = false;
-            bool gotEND = false;
-            bool gotSEQ = false;
-            bool gotATM = false;
-            bool gotATHNO = false;
-            bool refusedtxn = false;
-            bool gotref = false;
-            List<string> l = new List<string>();
-            string secondValue = "";
-            for (int i = 1; i < d.Length - 1; i++)
+            var gotcardno = false;
+            var gotdate = false;
+            var gotamount = false;
+            var gotcashtaken = false;
+            var gotcashtaken_n = false;
+            var gotRC = false;
+            var gotSTART = false;
+            var gotEND = false;
+            var gotSEQ = false;
+            var gotATM = false;
+            var gotATHNO = false;
+            var refusedtxn = false;
+            var gotref = false;
+            var l = new List<string>();
+            var secondValue = "";
+            for (var i = 1; i < d.Length - 1; i++)
             {
 
                 try
@@ -238,16 +238,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     //if (d[i].Contains("418087******6272"))
                     //{
                     //}
-                    if ((gotamount==false) && (d[i].Split(' ')[0].Split('/').Length>1))
+                    if (gotamount == false && d[i].Split(' ')[0].Split('/').Length > 1)
                     {
                         if (d[i].Split(' ')[4] != "")
                         {
-                            l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[4].Replace('+', ' ').Trim()).ToString()));
+                            l.Add("AMOUNT:" + Convert.ToDecimal(d[i].Split(' ')[4].Replace('+', ' ').Trim()).ToString());
                             l.Add("CCY:" + d[i].Split(' ')[d[i].Split(' ').Length - 1].Replace("\r", ""));
                         }
                         else if (d[i].Split(' ')[5] != "")
                         {
-                            l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[5].Replace('+', ' ').Trim()).ToString()));
+                            l.Add("AMOUNT:" + Convert.ToDecimal(d[i].Split(' ')[5].Replace('+', ' ').Trim()).ToString());
                             l.Add("CCY:" + d[i].Split(' ')[d[i].Split(' ').Length - 1].Replace("\r", ""));
                         }
 
@@ -256,29 +256,29 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                             //l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[8].Replace('+', ' ').Trim()).ToString()));
                             if (d[i].Split(' ').Length == 8)
                             {
-                                l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[6].Replace('+', ' ').Trim()).ToString()));
+                                l.Add("AMOUNT:" + Convert.ToDecimal(d[i].Split(' ')[6].Replace('+', ' ').Trim()).ToString());
                                 l.Add("CCY:" + d[i].Split(' ')[d[i].Split(' ').Length - 1].Replace("\r", ""));
                             }
                             else if (d[i].Split(' ').Length == 9)
                             {
-                                l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[7].Replace('+', ' ').Trim()).ToString()));
+                                l.Add("AMOUNT:" + Convert.ToDecimal(d[i].Split(' ')[7].Replace('+', ' ').Trim()).ToString());
                                 l.Add("CCY:" + d[i].Split(' ')[d[i].Split(' ').Length - 1].Replace("\r", ""));
                             }
                             else
                             {
-                                l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[8].Replace('+', ' ').Trim()).ToString()));
+                                l.Add("AMOUNT:" + Convert.ToDecimal(d[i].Split(' ')[8].Replace('+', ' ').Trim()).ToString());
                                 l.Add("CCY:" + d[i].Split(' ')[d[i].Split(' ').Length - 1].Replace("\r", ""));
                             }
                         }
-                       
+
                         gotamount = true;
                         l.Add("REFERENCE:" + d[i].Split(' ')[0]);
                         gotref = true;
 
                     }
-                        if (d[i].Contains("TRANSACTION REPLY NEXT"))
+                    if (d[i].Contains("TRANSACTION REPLY NEXT"))
                     {
-                        if (d[i].Split(" ")[4]=="703"|| d[i].Split(" ")[4] == "396")
+                        if (d[i].Split(" ")[4] == "703" || d[i].Split(" ")[4] == "396")
                         {
                             if (refusedtxn == false)
                             {
@@ -287,12 +287,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                             }
                         }
                         else if (d[i].Split(" ")[4] == "701")
-                        { 
-                            
-                         }
+                        {
+
+                        }
                         else
                         {
-                            l.Add("RESPONSE CODE:" + (d[i].Split(" ")[4]));
+                            l.Add("RESPONSE CODE:" + d[i].Split(" ")[4]);
                             refusedtxn = true;
                         }
                         if (gotATHNO != true)
@@ -313,7 +313,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                             if (gotamount != true)
                             {
                                 //l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[2]) / 100).ToString());
-                               // gotamount = true;
+                                // gotamount = true;
 
                             }
                             else
@@ -328,7 +328,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                             l.Add("CARDNO:" + d[i].Split('/')[1].Replace("STARTED\r", " ").Trim() + "|");
                             gotcardno = true;
                         }
-                        if(gotSEQ==false)
+                        if (gotSEQ == false)
                         {
                             l.Add("SEQ:" + d[i].Split('/')[0].Split(' ')[3].Trim() + "|");
                             gotSEQ = true;
@@ -372,13 +372,13 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                             gotcashtaken_n = true;
                         }
                     }
-                        if (d[i].Contains("ATM NUMBER:"))
+                    if (d[i].Contains("ATM NUMBER:"))
                     {
                         if (gotdate != true)
                         {
                             if (d[i + 1].ToString().Length < 45)
                             {
-                               
+
                                 if (gotATM != true)
                                 {
                                     try
@@ -427,14 +427,14 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     if (d[i].Contains("AMOUNT"))
                     {
                         if (d[i].Contains("ENTERED"))
-                        { 
-                            if (gotamount != true)
                         {
-                            //l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[2]) / 100).ToString());
-                           // gotamount = true;
+                            if (gotamount != true)
+                            {
+                                //l.Add("AMOUNT:" + (Convert.ToDecimal(d[i].Split(' ')[2]) / 100).ToString());
+                                // gotamount = true;
 
-                        }
-                            else 
+                            }
+                            else
                             {
                             }
                         }
@@ -458,12 +458,12 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                         {
 
                         }
-                            if (gotRC==false)
+                        if (gotRC == false)
                         {
-                            l.Add("RESPONSE CODE:" + d[i].Split('<')[0].Trim().Replace(","," "));
+                            l.Add("RESPONSE CODE:" + d[i].Split('<')[0].Trim().Replace(",", " "));
                             gotRC = true;
                         }
-                
+
                     }
 
                     if (d[i].Contains("TRACK 2 DATA"))
@@ -490,7 +490,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                         l.Add("RESPONSE CODE: CASH PRESENTED");
                         gotRC = true;
                     }
-                        if (d[i].Contains("TRANSACTION REPLY NEXT 701 FUNCTION A192"))
+                    if (d[i].Contains("TRANSACTION REPLY NEXT 701 FUNCTION A192"))
                     {
                         if (gotcashtaken != true)
                         {
@@ -542,8 +542,8 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                         try
                         {
                             secondValue = d[i + 1];
-                         
-                            if (int.TryParse(secondValue.Split(' ')[0].Split('/')[0], out int intValue) || double.TryParse(secondValue.Split(' ')[0].Split('/')[0], out double doubleValue))
+
+                            if (int.TryParse(secondValue.Split(' ')[0].Split('/')[0], out var intValue) || double.TryParse(secondValue.Split(' ')[0].Split('/')[0], out var doubleValue))
                             {
                                 l.Add("CCY:" + d[i + 1].Split(' ')[d[i + 1].Split(' ').Length - 1].Replace("\r", ""));
                                 l.Add("REFERENCE:" + d[i + 1].Split(' ')[0]);
@@ -554,10 +554,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                             }
                         }
                         catch (Exception xc) { }
-                       
-                      
+
+
                     }
-                        if (d[i].Contains("SEQ:"))
+                    if (d[i].Contains("SEQ:"))
                     {
                         if (gotSEQ != true)
                         {
@@ -577,7 +577,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                 }
                 catch (Exception e)
                 {
-                    string err = e.Message;
+                    var err = e.Message;
                 }
 
             }
@@ -586,34 +586,34 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
         }
         private List<string> GetJournalDetails_supervisor(string[] d, string ATMNo_ = "")
         {
-            bool gotdate = false;
-            bool gotdate_s = false;
-            bool gotamount = false;
-            bool gotamount_s = false;
-            bool gotcashtaken = false;
-            bool gotcashtaken_n = false;
-            bool gotcashtaken_s = false;
-            bool gotRC = false;
-            bool gotATM = false;
-            bool gotATM_s = false;
+            var gotdate = false;
+            var gotdate_s = false;
+            var gotamount = false;
+            var gotamount_s = false;
+            var gotcashtaken = false;
+            var gotcashtaken_n = false;
+            var gotcashtaken_s = false;
+            var gotRC = false;
+            var gotATM = false;
+            var gotATM_s = false;
             decimal type1 = 0;
             decimal type2 = 0;
             decimal type3 = 0;
             decimal type4 = 0;
 
-            string currenAMount = "";
-            string currenAMount_ = "";
+            var currenAMount = "";
+            var currenAMount_ = "";
 
-            string currenAMount_s = "";
-            string currenAMount_x = "";
+            var currenAMount_s = "";
+            var currenAMount_x = "";
 
             decimal type1_s = 0;
             decimal type2_s = 0;
             decimal type3_s = 0;
             decimal type4_s = 0;
 
-            List<string> l = new List<string>();
-            for (int i = 1; i < d.Length - 1; i++)
+            var l = new List<string>();
+            for (var i = 1; i < d.Length - 1; i++)
             {//CARD	DATE	AMOUNT	UTRN NO	SUCCESSFUL	RC CARD NO:
 
                 if (d[i].Contains("139714/334801027287"))
@@ -621,7 +621,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                 }
 
-                    if (d[i].Contains("CASH COUNTS CLEARED"))
+                if (d[i].Contains("CASH COUNTS CLEARED"))
                 {
                     l.Add("CASH COUNTS CLEARED");
                     //return l;
@@ -672,7 +672,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                             { type1 = Convert.ToDecimal(d[i + 1].Split("TYPE")[1].Split('≈')[1].Trim()) * 1000; }
                             try
                             {
-                                if ((ATMNo_ == "ATN07013") || (ATMNo_ == "ATN07006") || (ATMNo_ == "ATN07008") || (ATMNo_ == "ATN07025") || (ATMNo_ == "ATN07106") || (ATMNo_ == "ATW07012") || (ATMNo_ == "ATW07024") || (ATMNo_ == "ATN07001") || (ATMNo_ == "ATW07018"))
+                                if (ATMNo_ == "ATN07013" || ATMNo_ == "ATN07006" || ATMNo_ == "ATN07008" || ATMNo_ == "ATN07025" || ATMNo_ == "ATN07106" || ATMNo_ == "ATW07012" || ATMNo_ == "ATW07024" || ATMNo_ == "ATN07001" || ATMNo_ == "ATW07018")
                                 {
                                     type2 = Convert.ToDecimal(d[i + 1].Split("TYPE")[2].Split('=')[1].Trim()) * 2000;
                                 }
@@ -683,7 +683,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                             catch (Exception)
                             {
 
-                                if ((ATMNo_ == "ATN07013") || (ATMNo_ == "ATN07006") || (ATMNo_ == "ATN07008") || (ATMNo_ == "ATN07025") || (ATMNo_ == "ATN07106") || (ATMNo_ == "ATW07012") || (ATMNo_ == "ATW07024") || (ATMNo_ == "ATN07001") || (ATMNo_ == "ATW07018"))
+                                if (ATMNo_ == "ATN07013" || ATMNo_ == "ATN07006" || ATMNo_ == "ATN07008" || ATMNo_ == "ATN07025" || ATMNo_ == "ATN07106" || ATMNo_ == "ATW07012" || ATMNo_ == "ATW07024" || ATMNo_ == "ATN07001" || ATMNo_ == "ATW07018")
                                 {
                                     type2 = Convert.ToDecimal(d[i + 1].Split("TYPE")[2].Split('≈')[1].Trim()) * 2000;
                                 }
@@ -800,22 +800,22 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
             public string TRANSACTION_START { get; set; }
 
-            public string CASHTAKENZ { get; set; }           
+            public string CASHTAKENZ { get; set; }
 
             public string TRANSACTION_END { get; set; }
 
-            public string  REF2 { get; set; }
+            public string REF2 { get; set; }
 
-        public Boolean Cashtaken { get; set; }
+            public bool Cashtaken { get; set; }
 
         }
         public void ConvertFile_NCR(string inputFile)
         {
 
-            string ATMNO = "";
+            var ATMNO = "";
             string outputFolder = null;
 
-            string outputFile = "";
+            var outputFile = "";
 
             if (string.IsNullOrEmpty(outputFolder))
             {
@@ -826,7 +826,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             if (!Directory.Exists(outputFolder))
                 Directory.CreateDirectory(outputFolder);
 
-            string[] sDet = File.ReadAllLines(inputFile);
+            var sDet = File.ReadAllLines(inputFile);
             try
             {
                 if (sDet[0].Length != 0)
@@ -836,27 +836,27 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             }
             catch (Exception)
             { }
-            string content = File.ReadAllText(inputFile);
+            var content = File.ReadAllText(inputFile);
 
 
-            string[] sGrp = content.Split("TRANSACTION START");
-            string[] sGrp_s = content.Split("SUPERVISOR MODE ENTRY");
-            string scontent = "";
-            string scontent_ = "";
-            string scontent_sup = "";
-            ATMJournal ATMflds = new ATMJournal();
+            var sGrp = content.Split("TRANSACTION START");
+            var sGrp_s = content.Split("SUPERVISOR MODE ENTRY");
+            var scontent = "";
+            var scontent_ = "";
+            var scontent_sup = "";
+            var ATMflds = new ATMJournal();
 
-            bool hascashcount = false;
+            var hascashcount = false;
 
             try
             {
                 if (sGrp.Length != 0)
                 {
 
-                    for (int i = 1; i < sGrp.Length - 1; i++)
+                    for (var i = 1; i < sGrp.Length - 1; i++)
                     {
 
-                        List<string> lx = this.GetJournalDetails_NCR(sGrp[i].Split("\r"), ATMNO);
+                        var lx = GetJournalDetails_NCR(sGrp[i].Split("\r"), ATMNO);
                         if (lx.Count > 0)
                         {
                             ATMflds.CARDNo = lx.Any(p => p.StartsWith("CARDNO:")) ? lx.First(p => p.StartsWith("CARDNO:")).Split(':')[1].ToString().Replace("|", "") : "";
@@ -919,7 +919,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             }
             catch (Exception xc)
             {
-                string sx = xc.Message;
+                var sx = xc.Message;
             }
             //*****
             try
@@ -927,9 +927,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
                 if (sGrp_s.Length != 0)
                 {
-                    for (int i = 1; i < sGrp_s.Length - 1; i++)
+                    for (var i = 1; i < sGrp_s.Length - 1; i++)
                     {
-                        List<string> ly = this.GetJournalDetails_supervisor(sGrp_s[i].Split("\n"), ATMNO);
+                        var ly = GetJournalDetails_supervisor(sGrp_s[i].Split("\n"), ATMNO);
                         if (ly != null)
                         {
 
@@ -980,7 +980,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
             }
             catch (Exception x)
             {
-                string df = x.Message;
+                var df = x.Message;
             }
             //*****
             if (scontent_sup != "")
@@ -1001,17 +1001,17 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
 
         private List<string> GetJournalDetails_NCR(string[] d, string ATMNO = "")
         {
-            bool gotcardno = false;
-            bool gotdate = false;
-            bool gotamount = false;
-            bool gotcashtaken = false;
-            bool gotRC = false;
-            bool gotSEQ = false;
-            bool gotATM = false;
-            bool gotATHNO = false;
-            bool refusedtxn = false;
-            List<string> l = new List<string>();
-            for (int i = 1; i < d.Length - 1; i++)
+            var gotcardno = false;
+            var gotdate = false;
+            var gotamount = false;
+            var gotcashtaken = false;
+            var gotRC = false;
+            var gotSEQ = false;
+            var gotATM = false;
+            var gotATHNO = false;
+            var refusedtxn = false;
+            var l = new List<string>();
+            for (var i = 1; i < d.Length - 1; i++)
             {
 
                 try
@@ -1020,7 +1020,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     {
                         if (refusedtxn == false)
                         {
-                            l.Add("REFUSED:" + (d[i]));
+                            l.Add("REFUSED:" + d[i]);
                             refusedtxn = true;
                         }
 
@@ -1199,7 +1199,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                 }
                 catch (Exception e)
                 {
-                    string err = e.Message;
+                    var err = e.Message;
                 }
 
             }
