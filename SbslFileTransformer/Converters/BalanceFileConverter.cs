@@ -5,10 +5,13 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using CsvHelper;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Messaging;
@@ -129,7 +132,7 @@ namespace SbslFileTransformer.Converters
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(ex, ex.Message);
+                    Logger.LogError(ex, ex.Message + filePath.ToUpper());
 
                     await EmailHelpers.SendEmails(configurations, "Problem Converting CDM Balance files", $"\n\n {ex.Message}", new[] { filePath }, emailSender);
 
