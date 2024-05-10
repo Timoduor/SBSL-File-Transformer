@@ -40,7 +40,7 @@ namespace SbslFileTransformer.Converters.Kenya
                         record.DATE = parts[1] + " " + parts[2];
                     }
 
-                    if (Regex.IsMatch(line, "^[0-9]{6}/[0-9]{12}[ ]{1,6}.[0-9]{1,10}.[0-9]{2} [A-Z]{3}$"))
+                    if (Regex.IsMatch(line, "^[A-Z0-9]{6}.[0-9]{12}[ ]{1,9}.[0-9]{1,10}.[0-9]{2} [A-Z]{3}$"))
                     {
                         string[] parts = line.Split(" ", StringSplitOptions.RemoveEmptyEntries);
                         record.REFERENCE = parts[0];
