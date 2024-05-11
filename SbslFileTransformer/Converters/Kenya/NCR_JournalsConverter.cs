@@ -23,16 +23,19 @@ namespace SbslFileTransformer.Converters.Kenya
 
             foreach (var line in lines)
             {
+                //START
                 if (line.Contains("TRANSACTION STARTED"))
                     record = new NCR_Item();
 
                 if (record != null)
                 {
+                    //CARD NO
                     if (Regex.IsMatch(line, "^0{2} [0-9]{6}..[0-9]{4}$"))
                     {
                         record.CARD_NO = line.Split(" ", StringSplitOptions.RemoveEmptyEntries)[1];
                     }
 
+                    // ATM_NO and DATE
                     if (Regex.IsMatch(line, "^[0-9]{8} [0-9]{2}.[0-9]{2}.[0-9]{2} [0-9]{2}:[0-9]{2}$"))
                     {
                         string[] parts = line.Split(" ", StringSplitOptions.RemoveEmptyEntries);
@@ -40,6 +43,7 @@ namespace SbslFileTransformer.Converters.Kenya
                         record.DATE = parts[1] + " " + parts[2];
                     }
 
+                    //REFERENCE AMOUNT and CURRENCY
                     if (Regex.IsMatch(line, "^[A-Z0-9]{6}.[0-9]{12}[ ]{1,9}.[0-9]{1,10}.[0-9]{2} [A-Z]{3}$"))
                     {
                         string[] parts = line.Split(" ", StringSplitOptions.RemoveEmptyEntries);
@@ -48,11 +52,13 @@ namespace SbslFileTransformer.Converters.Kenya
                         record.CURRENCY = parts[2];
                     }
 
+                    //NOTES TAKEN
                     if (line.ToUpper().Contains("NOTES TAKEN"))
                     {
                         record.CASH_TAKEN = line.Split(" ", StringSplitOptions.RemoveEmptyEntries)[1];
                     }
 
+                    //END
                     if (line.ToUpper().Contains("TRANSACTION END"))
                     {
                         record.TRANSACTION_END = line.Split(" ", StringSplitOptions.RemoveEmptyEntries)[1];
@@ -60,7 +66,7 @@ namespace SbslFileTransformer.Converters.Kenya
                 }
 
                 if (record != null &&
-                !AnyIsNull(record.DATE, record.TRANSACTION_END, record.CASH_TAKEN, record.CURRENCY, record.CARD_NO, record.AMOUNT, record.ATM_NO, record.REFERENCE))
+                !AnyIsNull(record.DATE, record.TRANSACTION_END, record.CURRENCY, record.CARD_NO, record.AMOUNT, record.ATM_NO, record.REFERENCE))
                 {
                     records.Add(record);
                     record = new NCR_Item();
