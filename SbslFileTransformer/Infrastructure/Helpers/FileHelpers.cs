@@ -5,16 +5,20 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
 using Renci.SshNet;
+
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Infrastructure.Jobs.Others;
 using SbslFileTransformer.Infrastructure.Sftp;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
+
 using static SbslFileTransformer.Converters.MTFileConverter;
 
 namespace SbslFileTransformer.Infrastructure.Helpers
@@ -123,6 +127,8 @@ namespace SbslFileTransformer.Infrastructure.Helpers
         {
             int count = 0;
             int total = filePathsToCheck.Count();
+
+            filePathsToCheck = filePathsToCheck.OrderBy(f => new FileInfo(f).Length);//order by size to start with the smallest
 
             foreach (string filePath in filePathsToCheck)
             {
