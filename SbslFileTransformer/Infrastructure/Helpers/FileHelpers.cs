@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,7 +11,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
+using Polly;
+
 using Renci.SshNet;
+using Renci.SshNet.Common;
 
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Jobs;
@@ -57,6 +61,12 @@ namespace SbslFileTransformer.Infrastructure.Helpers
                 using (SftpClient client = new SftpClient(connectionInfo))
                 {
                     await Task.Delay(delay);
+
+                    var retryPolicy = Policy.Handle<SshConnectionException>()
+                                            .Or<SocketException>()
+                                            .WaitAndRetry(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+
+                    retryPolicy.Execute(() => client.Connect());
 
                     client.Connect();
 
