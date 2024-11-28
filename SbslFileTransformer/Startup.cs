@@ -26,6 +26,7 @@ using SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya.VisionFinacleMatc
 using SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda;
 using SbslFileTransformer.Infrastructure.Jobs.Converters.Rwanda.BNR;
 using SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania;
+using SbslFileTransformer.Infrastructure.Jobs.Converters.Uganda;
 using SbslFileTransformer.Infrastructure.Jobs.Extractors;
 using SbslFileTransformer.Infrastructure.Jobs.Extractors.Uganda;
 using SbslFileTransformer.Infrastructure.Jobs.Others;
@@ -52,7 +53,7 @@ namespace SbslFileTransformer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            string connectionString = Configuration.GetConnectionString("DefaultConnection");
+            var connectionString = Configuration.GetConnectionString("DefaultConnection");
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseMySql(connectionString
                     , ServerVersion.AutoDetect(connectionString), opts =>
@@ -66,7 +67,7 @@ namespace SbslFileTransformer
             services.AddHealthChecks();
             services.AddMiniProfiler(options => options.RouteBasePath = "/profiler").AddEntityFramework();
 
-            string keyStore = Path.Combine(Directory.GetCurrentDirectory(), "keys");
+            var keyStore = Path.Combine(Directory.GetCurrentDirectory(), "keys");
 
             Directory.CreateDirectory(keyStore);
 
@@ -196,6 +197,7 @@ namespace SbslFileTransformer
             services.AddHostedService<UG_OUTMT300ConverterJob>();
             services.AddHostedService<MoneyGramActivityUGConverterJob>();
             services.AddHostedService<MoneyGramSettlementUGConverterJob>();
+            services.AddHostedService<BouSettlementConverterJob>();
 
 
             //Phase 4
@@ -226,35 +228,35 @@ namespace SbslFileTransformer
         {
             //app.UseRequestResponseLoggingMiddleware();
 
-            app.UseHealthChecks("/health", new HealthCheckOptions
+            _ = app.UseHealthChecks("/health", new HealthCheckOptions
             {
                 ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
             });
 
-            app.UseMiniProfiler();
+            _ = app.UseMiniProfiler();
 
-            Tuple<IMemoryCache, ILogger<Startup>> appShutdownInput = new Tuple<IMemoryCache, ILogger<Startup>>(cache, logger);
+            var appShutdownInput = new Tuple<IMemoryCache, ILogger<Startup>>(cache, logger);
 
-            applicationLifetime.ApplicationStopping
-                .Register(i => this.OnAppShutdown((Tuple<IMemoryCache, ILogger<Startup>>)i), appShutdownInput);
+            _ = applicationLifetime.ApplicationStopping
+                .Register(i => OnAppShutdown((Tuple<IMemoryCache, ILogger<Startup>>)i), appShutdownInput);
 
-            app.UseDeveloperExceptionPage();
-            app.UseDatabaseErrorPage();
-            app.UseSerilogRequestLogging();
+            _ = app.UseDeveloperExceptionPage();
+            _ = app.UseDatabaseErrorPage();
+            _ = app.UseSerilogRequestLogging();
 
-            app.UseExceptionHandler("/Home/Error");
+            _ = app.UseExceptionHandler("/Home/Error");
 
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
+            _ = app.UseHttpsRedirection();
+            _ = app.UseStaticFiles();
 
-            app.UseRouting();
+            _ = app.UseRouting();
 
-            app.UseEndpoints(endpoints =>
+            _ = app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllerRoute(
+                _ = endpoints.MapControllerRoute(
                     "default",
                     "{controller=Home}/{action=Index}/{id?}");
-                endpoints.MapRazorPages();
+                _ = endpoints.MapRazorPages();
             });
 
             ApplicationSeeding.CreateDatabase(serviceProvider, logger).Wait();
