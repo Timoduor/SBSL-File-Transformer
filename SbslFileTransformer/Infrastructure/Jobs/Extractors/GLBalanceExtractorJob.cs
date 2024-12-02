@@ -1,15 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+
 using SbslFileTransformer.Converters;
 using SbslFileTransformer.Data;
-using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
@@ -18,16 +18,16 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
     {
         public GLBalanceExtractorJob(IServiceScopeFactory serviceScopeFactory, ILogger<GLBalanceExtractorJob> logger, JobDisplayManager jobManager)
         {
-            this._serviceScopeFactory = serviceScopeFactory;
-            this._logger = logger;
-            this._jobManager = jobManager;
+            _serviceScopeFactory = serviceScopeFactory;
+            _logger = logger;
+            _jobManager = jobManager;
         }
 
         protected override string JobName { get; set; } = nameof(GLBalanceExtractorJob);
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            this._timer = new Timer(async state => await this.ExtractGLBalances(), null,
+            _timer = new Timer(async state => await ExtractGLBalances(), null,
                 TimeSpan.FromSeconds(new Random().Next(10, 30)), TimeSpan.FromMinutes(10));
 
             _semaphore = new SemaphoreSlim(1, 1);
@@ -41,26 +41,26 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
             {
                 await _semaphore.WaitAsync();
 
-                this._logger.LogInformation("Running GL Balance Extractor Job");
+                _logger.LogInformation("Running GL Balance Extractor Job");
 
-                string prodFolder = string.Empty;
-                string sbFolder = string.Empty;
-                string Entity = string.Empty;
+                var prodFolder = string.Empty;
+                var sbFolder = string.Empty;
+                var Entity = string.Empty;
 
-                using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
+                using (var scope = _serviceScopeFactory.CreateScope())
                 {
-                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                    this.CurrentJobStatus = this._jobManager.GetJobStatus(JobName);
+                    CurrentJobStatus = _jobManager.GetJobStatus(JobName);
 
-                    if (this.CurrentJobStatus == null)
+                    if (CurrentJobStatus == null)
                     {
-                        this.CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Running };
+                        CurrentJobStatus = new JobStatus(JobName) { Status = JobState.Running };
 
-                        this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
+                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
                     }
 
-                    List<Configuration> configurations = dbContext.Configurations.ToList();
+                    var configurations = dbContext.Configurations.ToList();
 
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
@@ -68,51 +68,53 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                     Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
 
-                    bool isProd =
+                    var isProd =
                         Convert.ToBoolean(configurations.FirstOrDefault(c => c.Key == "IncludeProduction")?.Value ??
                                           false.ToString());
 
-                    EnumerationOptions options = new EnumerationOptions
+                    var options = new EnumerationOptions
                     { RecurseSubdirectories = false, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    List<string> files = Directory.GetFiles(prodFolder, "*.csv", options).ToList();
+                    var files = Directory.GetFiles(prodFolder, "*.csv", options).ToList();
 
                     files.AddRange(Directory.GetFiles(sbFolder, "*.csv", options));
 
-                    BalanceFileConverter converter = new BalanceFileConverter(this._logger, this._serviceScopeFactory, Entity);
+                    var converter = new BalanceFileConverter(_logger, _serviceScopeFactory, Entity);
 
-                    this.CurrentJobStatus.Status = JobState.Running;
-                    this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
+                    CurrentJobStatus.Status = JobState.Running;
+                    _jobManager.SetJobStatus(JobName, CurrentJobStatus);
 
-                    int count = 0;
-                    int total = files.Count;
+                    var count = 0;
+                    var total = files.Count;
 
-                    foreach (string file in files)
+                    foreach (var file in files)
                     {
                         //if in Kenya do not process files for other countries
                         if (Entity == "IMKE" && !file.ToUpper().Contains("IMKE"))
+                        {
                             continue;
+                        }
 
-                        await this.ProcessFile(file, converter);
+                        await ProcessFile(file, converter);
 
                         count++;
 
-                        this.CurrentJobStatus.ProgressMessage = $"Currently processing {file}... {count} of {total}";
-                        this.CurrentJobStatus.SetProgress(count, total);
-                        this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
+                        CurrentJobStatus.ProgressMessage = $"Currently processing {file}... {count} of {total}";
+                        CurrentJobStatus.SetProgress(count, total);
+                        _jobManager.SetJobStatus(JobName, CurrentJobStatus);
                     }
 
-                    this.CurrentJobStatus.Status = JobState.Completed;
-                    this._jobManager.SetJobStatus(JobName, this.CurrentJobStatus);
+                    CurrentJobStatus.Status = JobState.Completed;
+                    _jobManager.SetJobStatus(JobName, CurrentJobStatus);
                 }
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, ex.Message);
+                _logger.LogError(ex, ex.Message);
             }
             finally
             {
-                _semaphore.Release();
+                _ = _semaphore.Release();
             }
         }
 
@@ -131,95 +133,129 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Extractors
                         file.ToLower().Contains("float_balance".ToLower())
                         || file.ToLower().Contains("b2w_balance".ToLower()) ||
                         file.ToLower().Contains("w2b_balance".ToLower()))
-                        await converter.Execute(file, "Mobile banking");
-
+                    {
+                        _ = await converter.Execute(file, "Mobile banking");
+                    }
                     else if (file.ToLower().Contains("br_sus"))
-                        await converter.Execute(file, "Branch Suspense");
-
+                    {
+                        _ = await converter.Execute(file, "Branch Suspense");
+                    }
                     else if (file.ToLower().Contains("mg_sus") || file.ToLower().Contains("mg_balances"))
-                        await converter.Execute(file, "Moneygram");
-
+                    {
+                        _ = await converter.Execute(file, "Moneygram");
+                    }
                     else if (file.ToLower().Contains("wu_sus") || file.ToLower().Contains("wu_balances") || file.ToLower().Contains("westernunion_balance"))
-                        await converter.Execute(file, "Western Union");
-
+                    {
+                        _ = await converter.Execute(file, "Western Union");
+                    }
                     else if (file.ToLower().Contains("treasury_sus"))
-                        await converter.Execute(file, "Treasury");
-
+                    {
+                        _ = await converter.Execute(file, "Treasury");
+                    }
                     else if (file.ToLower().Contains("ops_sus"))
-                        await converter.Execute(file, "Operations");
-
+                    {
+                        _ = await converter.Execute(file, "Operations");
+                    }
                     else if (file.ToLower().Contains("cre_sus"))
-                        await converter.Execute(file, "Credit");
-
+                    {
+                        _ = await converter.Execute(file, "Credit");
+                    }
                     else if (file.ToLower().Contains("fin_sus"))
-                        await converter.Execute(file, "Finance");
-
+                    {
+                        _ = await converter.Execute(file, "Finance");
+                    }
                     else if (file.ToLower().Contains("clearing_balance"))
-                        await converter.Execute(file, "Clearing");
-
+                    {
+                        _ = await converter.Execute(file, "Clearing");
+                    }
                     else if (file.ToLower().Contains("susp_balances"))
-                        await converter.Execute(file, "suspense");
-
+                    {
+                        _ = await converter.Execute(file, "suspense");
+                    }
                     else if (file.ToLower().Contains("agency_balances"))
-                        await converter.Execute(file, "agency");
-
+                    {
+                        _ = await converter.Execute(file, "agency");
+                    }
                     else if (file.ToLower().Contains("rswitch_balance"))
-                        await converter.Execute(file, "RSwitch");
-
+                    {
+                        _ = await converter.Execute(file, "RSwitch");
+                    }
                     else if (file.ToLower().Contains("cards_kenya"))
-                        await converter.Execute(file, "Cards Kenya");
-
+                    {
+                        _ = await converter.Execute(file, "Cards Kenya");
+                    }
+                    else if (file.ToLower().Contains("cards_uganda"))
+                    {
+                        _ = await converter.Execute(file, "Cards Uganda");
+                    }
                     else if (file.ToLower().Contains("mobile_money"))
-                        await converter.Execute(file, "Mobile Banking");
-
+                    {
+                        _ = await converter.Execute(file, "Mobile Banking");
+                    }
                     else if (file.ToLower().Contains("mobile_utility"))
-                        await converter.Execute(file, "Mobile Banking");
-
+                    {
+                        _ = await converter.Execute(file, "Mobile Banking");
+                    }
                     else if (file.ToLower().Contains("branch_suspense"))
-                        await converter.Execute(file, "Branch Suspense");
-
+                    {
+                        _ = await converter.Execute(file, "Branch Suspense");
+                    }
                     else if (file.ToLower().Contains("treasurybills") || file.ToLower().Contains("treasurybonds"))
-                        await converter.Execute(file, "Treasury Bills/Bonds");
-
+                    {
+                        _ = await converter.Execute(file, "Treasury Bills/Bonds");
+                    }
                     else if (file.ToLower().Contains("tresuspense"))
-                        await converter.Execute(file, "Treasury Suspense");
-
+                    {
+                        _ = await converter.Execute(file, "Treasury Suspense");
+                    }
                     else if (file.ToLower().Contains("trepmoneymarket"))
-                        await converter.Execute(file, "PLACEMENT/BORROWING ACCT");
-
+                    {
+                        _ = await converter.Execute(file, "PLACEMENT/BORROWING ACCT");
+                    }
                     else if (file.ToLower().Contains("trecontiliab"))
-                        await converter.Execute(file, "ContingentLiability");
-
+                    {
+                        _ = await converter.Execute(file, "ContingentLiability");
+                    }
                     else if (file.ToLower().Contains("trecontiasset"))
-                        await converter.Execute(file, "ContingentAsset");
-
+                    {
+                        _ = await converter.Execute(file, "ContingentAsset");
+                    }
                     else if (file.ToLower().Contains("treintexp"))
-                        await converter.Execute(file, "GL Entries Interest Expense");
-
+                    {
+                        _ = await converter.Execute(file, "GL Entries Interest Expense");
+                    }
                     else if (file.ToLower().Contains("treintinc"))
-                        await converter.Execute(file, "GL Entries Interest Income");
-
+                    {
+                        _ = await converter.Execute(file, "GL Entries Interest Income");
+                    }
                     else if (file.ToLower().Contains("treposition"))
-                        await converter.Execute(file, "Position Account");
-
+                    {
+                        _ = await converter.Execute(file, "Position Account");
+                    }
                     else if (file.ToLower().Contains("pos_pay"))
-                        await converter.Execute(file, "CARDS RWANDA");
-
+                    {
+                        _ = await converter.Execute(file, "CARDS RWANDA");
+                    }
                     else if (file.ToLower().Contains("mobile_banking"))
-                        await converter.Execute(file, "Mobile Banking");
-
+                    {
+                        _ = await converter.Execute(file, "Mobile Banking");
+                    }
                     else if (file.ToLower().Contains("spenn_micro"))
-                        await converter.Execute(file, "SPENN");
-
+                    {
+                        _ = await converter.Execute(file, "SPENN");
+                    }
                     else if (file.ToLower().Contains("ria_bal"))
-                        await converter.Execute(file, "RIA");
-
+                    {
+                        _ = await converter.Execute(file, "RIA");
+                    }
                     else
-                        await converter.Execute(file);
+                    {
+                        _ = await converter.Execute(file);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    this._logger.LogError(ex, ex.Message);
+                    _logger.LogError(ex, ex.Message);
                 }
             }
         }
