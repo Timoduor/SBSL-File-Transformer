@@ -199,6 +199,7 @@ namespace SbslFileTransformer
             services.AddHostedService<MoneyGramSettlementUGConverterJob>();
             services.AddHostedService<BouSettlementConverterJob>();
             services.AddHostedService<OutwardEftsConverterJob>();
+            services.AddHostedService<BouMultiCurrExtractorJob>();
 
 
             //Phase 4
