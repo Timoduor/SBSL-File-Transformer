@@ -97,7 +97,7 @@ namespace SbslFileTransformer.Converters.BalanceExtractors.Uganda
                 var currency = new DirectoryInfo(inputFile).Parent.Name;
 
                 var toAppend =
-                    $"IMUG\t{BouMultiCurrAccount[currency]}\tMobile banking\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.ProcessingDateAndTime):MM/dd/yyyy}\t\t\t\t{lastRow.Balance}\t{currency}\n";
+                    $"IMUG\t{BouMultiCurrAccount[currency]}\tNostros\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(lastRow.ProcessingDateAndTime):MM/dd/yyyy}\t\t\t\t{lastRow.Balance}\t{currency}\n";
 
                 if (!string.IsNullOrEmpty(toAppend))
                 {
