@@ -4,8 +4,11 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+
 using CsvHelper;
+
 using ExcelDataReader;
+
 using SbslFileTransformer.Converters.Rwanda.BNR.Models;
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
@@ -21,8 +24,8 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            this._entity = Entity;
-            this._dbContext = dbContext;
+            _entity = Entity;
+            _dbContext = dbContext;
         }
 
         public void ConvertFile(string inputFile, string rootFolder, string outputFile = null)
@@ -32,12 +35,12 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
             {
                 using (var reader = ExcelReaderFactory.CreateReader(stream))
                 {
-                    string code = "Codes";
-                    string status = "Status 2";
-                    string DR_CR = "DR_CR";
-                    string Type_id = "Type_id";
-                    string Title = "";
-                    int countHeader = 0;
+                    var code = "Codes";
+                    var status = "Status 2";
+                    var DR_CR = "DR_CR";
+                    var Type_id = "Type_id";
+                    var Title = "";
+                    var countHeader = 0;
                     while (reader.Read())
                     {
                         var row = new ExcelCols();
@@ -54,7 +57,7 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
                         //Logic for title
                         if (reader.GetValue(3) != null)
                         {
-                            string rec = reader.GetValue(3).ToString();
+                            var rec = reader.GetValue(3).ToString();
                             if (rec.StartsWith("Debit transactions"))
                             {
                                 Title = "Debit";
@@ -143,7 +146,7 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
 
                         //logic for child node
                         //The value at index 0 is null for the child row hence the check
-                        if (reader.GetValue(19)?.ToString() == "Active" || reader.GetValue(19)?.ToString() == "Rejected")
+                        if (reader.GetValue(19)?.ToString() is "Active" or "Rejected")
                         {
                             //logic to read child columns
 
@@ -229,7 +232,9 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
                             row.Col10 = reader.GetValue(15)?.ToString();
 
                             //Status
-                            row.Col11 = reader.GetValue(17)?.ToString();
+                            var strLen = reader.GetValue(17)?.ToString().Length ?? 0;
+                            var lengthToUse = strLen < 48 ? strLen : 49;
+                            row.Col11 = reader.GetValue(17)?.ToString().Substring(0, lengthToUse);
 
                             //Modification Time
                             row.Col12 = reader.GetValue(18)?.ToString();
@@ -251,77 +256,88 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
                 }
             }
 
-            string outputFolder = Path.GetDirectoryName(inputFile);
+            var outputFolder = Path.GetDirectoryName(inputFile);
 
             outputFolder = Path.Combine(Directory.GetParent(outputFolder).FullName, "Conv");
 
             if (string.IsNullOrEmpty(outputFile))
             {
-                Directory.CreateDirectory(outputFolder);
+                _ = Directory.CreateDirectory(outputFolder);
 
-                string fileName = Path.GetFileNameWithoutExtension(inputFile);
+                var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-                string fileNameToUse = fileName.Substring(Math.Max(0, fileName.Length - 12)).Replace(" ", "");
+                var fileNameToUse = fileName.Substring(Math.Max(0, fileName.Length - 12)).Replace(" ", "");
 
                 outputFile = Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm}_{fileNameToUse}_STAMT.csv");
             }
 
-            this.WriteToFile(list, outputFile);
+            WriteToFile(list, outputFile);
 
-            this.GetClosingBalanceMutliCurrNAdjustment(inputFile, rootFolder, outputFolder);
+            GetClosingBalanceMutliCurrNAdjustment(inputFile, rootFolder, outputFolder);
         }
 
         private void GetClosingBalanceMutliCurrNAdjustment(string inputFile, string rootFolder, string outputFolder)
         {
-            List<ExcelCols> list = new List<ExcelCols>();
+            var list = new List<ExcelCols>();
 
-            using (FileStream stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
+            using (var stream = File.Open(inputFile, FileMode.Open, FileAccess.Read))
             {
-                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream))
+                using (var reader = ExcelReaderFactory.CreateReader(stream))
                 {
                     double closing = 0;
                     double opening = 0;
-                    ExcelCols row = new ExcelCols();
+                    var row = new ExcelCols();
                     while (reader.Read())
                     {
                         if (reader.GetValue(15)?.ToString().Contains("Closing Balance") ?? false)
                         {
-                            string val = reader.GetValue(15).ToString().Split(' ')[3];
+                            var val = reader.GetValue(15).ToString().Split(' ')[3];
 
                             closing = Convert.ToDouble(val);
 
-                            if (closing != 0) row.Col3 = closing.ToString();
+                            if (closing != 0)
+                            {
+                                row.Col3 = closing.ToString();
+                            }
                         }
 
                         if (reader.GetValue(9)?.ToString().Contains("Opening Balance") ?? false)
                         {
-                            string val1 = reader.GetValue(9).ToString().Split(':')[1];
+                            var val1 = reader.GetValue(9).ToString().Split(':')[1];
 
                             opening = Convert.ToDouble(val1);
-                            if (opening != 0) row.Col4 = opening.ToString();
+                            if (opening != 0)
+                            {
+                                row.Col4 = opening.ToString();
+                            }
                         }
 
                         if (reader.GetValue(0)?.ToString().Contains("Account:") ?? false)
+                        {
                             row.Col1 = reader.GetValue(0)?.ToString()
                                 .Split(new[] { ':', '-' }, StringSplitOptions.RemoveEmptyEntries)[1];
+                        }
+
                         if (reader.GetValue(7)?.ToString().StartsWith("Date From") ?? false)
                         {
-                            string data = reader.GetValue(7)?.ToString();
-                            string[] lines = data.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                            var data = reader.GetValue(7)?.ToString();
+                            var lines = data.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 
-                            foreach (string line in lines)
+                            foreach (var line in lines)
+                            {
                                 if (line.StartsWith("Currency:"))
                                 {
-                                    string currency = line.Split(':')[1];
+                                    var currency = line.Split(':')[1];
 
                                     row.Col2 = currency;
                                 }
                                 else if (line.StartsWith("Date From"))
                                 {
-                                    DateTime date = DateTime.ParseExact(line.Split(' ')[2], "dd-MM-yyyy",
+                                    var date = DateTime.ParseExact(line.Split(' ')[2], "dd-MM-yyyy",
                                         CultureInfo.InvariantCulture);
                                     row.Col0 = date.ToString("dd-MM-yyyy");
                                 }
+                            }
                         }
                     }
 
@@ -331,15 +347,15 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
                 }
             }
 
-            this.GenerateAdjustment(list, inputFile, outputFolder);
+            GenerateAdjustment(list, inputFile, outputFolder);
 
             //input = acc / amt / date
-            this.GenerateMultiCurr(list, inputFile, rootFolder);
+            GenerateMultiCurr(list, inputFile, rootFolder);
         }
 
         private void GenerateAdjustment(List<ExcelCols> list, string inputFile, string outputFolder)
         {
-            CountHeader countHeader = new CountHeader
+            var countHeader = new CountHeader
             {
                 Value_date = list.First().Col0.Replace("/", "-"),
 
@@ -385,59 +401,70 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
                 countHeader.DR_CR = "Credit";
             }
 
-            string fileName = Path.GetFileNameWithoutExtension(inputFile);
+            var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-            string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
+            var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
             countHeader.Amount = countHeader.Amount.TrimStart('-');
 
-            this.WriteToFile(countHeader,
+            WriteToFile(countHeader,
                 Path.Combine(outputFolder, $"{DateTime.Now:yyyy_MM_dd_HH_mm}_{fileNameToAppend}_ADJSMT.csv"));
         }
 
         private void GenerateMultiCurr(List<ExcelCols> list, string inputFile, string outputFolder)
         {
-            string fileName = Path.GetFileNameWithoutExtension(inputFile);
+            var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
-            string fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
+            var fileNameToAppend = fileName.Substring(Math.Max(0, fileName.Length - 13)).Replace(" ", "");
 
-            string outputFile = Path.Combine(outputFolder,
-                $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_BNR_{this._entity}.txt");
+            var outputFile = Path.Combine(outputFolder,
+                $"MultiCurr_{DateTime.Now:yyyy_MM_dd}_{fileNameToAppend}_BNR_{_entity}.txt");
 
-            StringBuilder toAppend = new StringBuilder();
+            var toAppend = new StringBuilder();
 
-            string account = list.First().Col1;
+            var account = list.First().Col1;
 
 
             if (!DateTime.TryParseExact(list.First().Col0, "dd-MM-yyyy", CultureInfo.InvariantCulture,
-                DateTimeStyles.None, out DateTime date)) throw new Exception("Failed to convert provided datetime");
-            string amount = list.First().Col3; //vs col5 diff
-            string currency = list.First().Col2;
+                DateTimeStyles.None, out var date))
+            {
+                throw new Exception("Failed to convert provided datetime");
+            }
 
-            toAppend.Append(
-                $"{this._entity}\t{this.GetGLAccountNumber(account, this._dbContext)}\tNostros\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
+            var amount = list.First().Col3; //vs col5 diff
+            var currency = list.First().Col2;
 
-            string text = toAppend.ToString();
+            _ = toAppend.Append(
+                $"{_entity}\t{GetGLAccountNumber(account, _dbContext)}\tNostros\t\t\t\t\t\t\t\t\tBalance_bank\t{ContentHelpers.GetLastDayOfTheMonth(date):MM/dd/yyyy}\t\t\t\t{amount}\t{currency}\n");
 
-            if (!string.IsNullOrEmpty(text)) File.WriteAllText(outputFile, text);
+            var text = toAppend.ToString();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                File.WriteAllText(outputFile, text);
+            }
         }
 
         private string GetGLAccountNumber(string accNo, ApplicationDbContext dbContext)
         {
-            string account = dbContext.Accounts.FirstOrDefault(a =>
+            var account = dbContext.Accounts.FirstOrDefault(a =>
                 a.Account.ToLower() == accNo.ToLower() || a.Account.ToLower().Contains(accNo.ToLower()))?.Number;
 
-            if (!string.IsNullOrEmpty(account)) return account;
+            if (!string.IsNullOrEmpty(account))
+            {
+                return account;
+            }
+
             return accNo;
         }
 
         private void WriteToFile(List<ExcelCols> rows, string outputFile)
         {
-            using (StreamWriter writer = new StreamWriter(outputFile))
+            using (var writer = new StreamWriter(outputFile))
             {
-                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    foreach (ExcelCols row in rows)
+                    foreach (var row in rows)
                     {
                         csv.WriteRecord(row);
                         csv.NextRecord();
@@ -448,9 +475,9 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
 
         private void WriteToFile(CountHeader rows, string outputFile)
         {
-            using (StreamWriter writer = new StreamWriter(outputFile))
+            using (var writer = new StreamWriter(outputFile))
             {
-                using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
                     csv.WriteHeader<CountHeader>();
                     csv.NextRecord();
