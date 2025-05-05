@@ -185,7 +185,7 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
                             if (string.IsNullOrEmpty(list.Last().Col13?.ToLower()))
                             {
                                 list.Last().Col13 = "Bulk";
-                                if (list.Last().Col3.Contains("pacs.008. 001.08"))
+                                if (list.Last().Col3?.Contains("pacs.008. 001.08") ?? false)
                                 {
                                     list.Last().Col15 = "MT102";
                                 }
