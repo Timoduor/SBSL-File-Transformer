@@ -5,78 +5,167 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - SBSL File Transformer</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet" href="~/css/google-fonts.css">
+    <link rel="stylesheet" href="~/css/all.min.css">
+    <link rel="stylesheet" href="~/css/ionicons.min.css">
+    <link rel="stylesheet" href="~/css/adminlte.css">
     <link rel="stylesheet" href="~/css/site.css" />
 </head>
-<body>
-    <div id="loading" style="height: 100%; width: 100%; position: fixed; text-align: center; z-index: 9999999; top: 0; left: 0; right: 0; bottom: 0; cursor: progress; margin-top: 100px;">
-        <img src="~/img/loading4.gif" alt="Loading..."  />
-        <h2>Loading...</h2>
-    </div>
+<body class="hold-transition sidebar-mini layout-fixed">
+    <div class="wrapper">
+        <div id="loading" style="height: 100%; width: 100%; position: fixed; text-align: center; z-index: 9999999; top: 0; left: 0; right: 0; bottom: 0; cursor: progress; margin-top: 100px;">
+            <img src="~/img/loading4.gif" alt="Loading..." />
+            <h2>Loading...</h2>
+        </div>
 
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
-                    <img src="~/img/sbsl.jpg" />
-                </a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
-                    @*<partial name="_LoginPartial" />*@
+        <header>
+            <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+                <div class="container">
+                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                        <img src="~/img/sbsl.jpg" />
+                    </a>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
+                        @*<partial name="_LoginPartial" />*@
 
-                    <ul class="navbar-nav flex-grow-1">
-                        @*@if (User.Identity.IsAuthenticated){}*@
+                        <ul class="navbar-nav flex-grow-1">
+                            @*@if (User.Identity.IsAuthenticated){}*@
 
-                        <li class="nav-item">
-                            <a class="btn btn-info" asp-area="" asp-controller="Config" asp-action="Index">Configuration</a> -&nbsp;
-                        </li>
-                        @*
+                            <li class="nav-item">
+                                <a class="btn btn-info" asp-area="" asp-controller="Config" asp-action="Index">Configurations</a> -&nbsp;
+                            </li>
+                            @*
                         <li class="nav-item">
                         <a class="btn btn-block" asp-area="" asp-controller="Report" asp-action="Index">Reporting</a> -&nbsp;
                         </li>*@
-                        <li class="nav-item">
-                            <a class="btn btn-success" asp-area="" asp-controller="ReportConfiguration" asp-action="Index">Report Configurations</a> -&nbsp;
-                        </li>
-                        <li class="nav-item">
-                            <a class="btn btn-primary" asp-area="" asp-controller="AccountsLookup" asp-action="Index">Accounts</a> -&nbsp;
-                        </li>
-                        <li class="nav-item">
-                            <a class="btn btn-warning" asp-area="" asp-controller="Config" asp-action="Sftp">SFTP</a> -&nbsp;
-                        </li>
-                        <li class="nav-item">
-                            <a class="btn btn-dark" asp-area="" asp-controller="Config" asp-action="Smtp">Email</a> -&nbsp;
-                        </li>
-                        <li class="nav-item">
-                            <a class="btn btn-secondary" asp-area="" asp-controller="Logs" asp-action="Index">Logs</a>
-                        </li>
+                            <li class="nav-item">
+                                <a class="btn btn-success" asp-area="" asp-controller="ReportConfiguration" asp-action="Index">Report Configurations</a> -&nbsp;
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-primary" asp-area="" asp-controller="AccountsLookup" asp-action="Index">Accounts</a> -&nbsp;
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-warning" asp-area="" asp-controller="Config" asp-action="Sftp">SFTP</a> -&nbsp;
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-dark" asp-area="" asp-controller="Config" asp-action="Smtp">Email</a> -&nbsp;
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-secondary" asp-area="" asp-controller="Logs" asp-action="Index">Logs</a>
+                            </li>
 
-                    </ul>
+                        </ul>
+                    </div>
                 </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+            </nav>
+        </header>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; @DateTime.Now.Year - <a href="https://sbsl.co.ke" target="_blank">Strategic Business Solutions Ltd</a>
-            <b class="float-right"><small> @VersionHelper.GetVersion()</small></b>
-            <a asp-action="Eula" asp-controller="Home" class="btn btn-link float-right">EULA</a>
+        <aside class="main-sidebar sidebar-dark-primary elevation-4">
+            <!-- Brand Logo -->
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="brand-link">
+                <img src="~/img/sbsl.jpg" alt="SBSL logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+                <span class="brand-text font-weight-light">SBSL</span>
+            </a>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Sidebar user panel (optional) -->
+                <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+                    <div class="image">
+                        <img src="~/img/sbsl.jpg" class="img-circle elevation-2" alt="User Image">
+                    </div>
+                    <div class="info">
+                        <a href="#" class="d-block">SBSL ETL Service</a>
+                    </div>
+                </div>
+
+                <!-- Sidebar Menu -->
+                <nav class="mt-2">
+                    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                        <!-- Add icons to the links using the .nav-icon class
+                             with font-awesome or any other icon font library -->
+                        <li class="nav-item menu-open">
+                            <a href="#" class="nav-link active">
+                                <i class="nav-icon fas fa-tachometer-alt"></i>
+                                <p>
+                                    Dashboards
+                                    <i class="right fas fa-angle-left"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a asp-area="" asp-controller="Config" asp-action="Index" class="nav-link active">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Configurations</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-area="" asp-controller="ReportConfiguration" asp-action="Index" class="nav-link">
+                                        <i class="far fa-calendar nav-icon"></i>
+                                        <p>Report Configurations</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-area="" asp-controller="AccountsLookup" asp-action="Index" class="nav-link">
+                                        <i class="far fa-square nav-icon"></i>
+                                        <p>Accounts Lookup</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-area="" asp-area="" asp-controller="Config" asp-action="Sftp" class="nav-link">
+                                        <i class="far fa-clipboard nav-icon"></i>
+                                        <p>SFTP Server Settings</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-area="" asp-area="" asp-controller="Config" asp-action="Smtp" class="nav-link">
+                                        <i class="far fa-address-card nav-icon"></i>
+                                        <p>Email Settings</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-area="" asp-area="" asp-controller="Logs" asp-action="Index" class="nav-link">
+                                        <i class="far fa-envelope nav-icon"></i>
+                                        <p>Logs</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                    </ul>
+                </nav>
+                <!-- /.sidebar-menu -->
+            </div>
+            <!-- /.sidebar -->
+        </aside>
+
+
+        <div class="content-wrapper">
+            <section>
+                <div class="container-fluid">
+                    @RenderBody()
+                </div>
+            </section>
         </div>
 
-    </footer>
+        <footer class="main-footer">
+            <div class="container">
+                &copy; @DateTime.Now.Year - <a href="https://sbsl.co.ke" target="_blank">Strategic Business Solutions Ltd</a>
+                <b class="float-right"><small> @VersionHelper.GetVersion()</small></b>
+                <a asp-action="Eula" asp-controller="Home" class="btn btn-link float-right">EULA</a>
+            </div>
+        </footer>
+
+    </div>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/charts/chart.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
+    <script src="~/js/adminlte.js"></script>
     <script>
         window.addEventListener('beforeunload', function (e) {
             $('#loading').show();

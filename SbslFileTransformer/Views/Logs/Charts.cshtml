@@ -1,54 +1,54 @@
 ﻿@using Newtonsoft.Json
 @model SbslFileTransformer.Models.ViewModels.ChartObjects
 
-<div class="container">
 
-    @if (!string.IsNullOrEmpty(TempData["Message"]?.ToString()))
-    {
-        <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            @TempData["Message"].ToString()
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+
+@if (!string.IsNullOrEmpty(TempData["Message"]?.ToString()))
+{
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        @TempData["Message"].ToString()
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+<partial name="_LogHeader" />
+
+<div class="card card-deck small">
+    <div class="card-header">
+        <strong>Charts</strong>
+    </div>
+    <div class="card-body">
+
+        <h3>Files Per Day</h3>
+        <div>
+            <canvas id="myFilesPerDay" width="500" height="200"></canvas>
         </div>
-    }
+        <br /><br />
 
-    <partial name="_LogHeader"/>
-
-    <div class="card card-deck small">
-        <div class="card-header">
-            <strong>Charts</strong>
+        <h3>Files Per Month</h3>
+        <div>
+            <canvas id="myFilesPerMonth" width="500" height="200"></canvas>
         </div>
-        <div class="card-body">
+        <br /><br />
 
-            <h3>Files Per Day</h3>
-            <div>
-                <canvas id="myFilesPerDay" width="500" height="200"></canvas>
-            </div>
-            <br/><br/>
-
-            <h3>Files Per Month</h3>
-            <div>
-                <canvas id="myFilesPerMonth" width="500" height="200"></canvas>
-            </div>
-            <br/><br/>
-
-            <h3>Logs Per Day</h3>
-            <div>
-                <canvas id="myLogs" width="500" height="200"></canvas>
-            </div>
-            <br/><br/>
-
-            <h3>Reports Per Day</h3>
-            <div>
-                <canvas id="myReports" width="500" height="200"></canvas>
-            </div>
-
+        <h3>Logs Per Day</h3>
+        <div>
+            <canvas id="myLogs" width="500" height="200"></canvas>
         </div>
+        <br /><br />
+
+        <h3>Reports Per Day</h3>
+        <div>
+            <canvas id="myReports" width="500" height="200"></canvas>
+        </div>
+
     </div>
 </div>
 
-@section Scripts{
+
+@section Scripts {
     <script>
 
         //FILES PER DAY
