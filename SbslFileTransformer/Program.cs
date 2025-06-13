@@ -105,6 +105,7 @@ namespace SbslFileTransformer
                     .Enrich.FromLogContext()
                     .WriteTo.MariaDB(connString, autoCreateTable: true)
                     .WriteTo.Console()
+                    .WriteTo.Sink(host.Services.GetRequiredService<SignalRLoggerSeriLogSink>())
                     .WriteTo.File(formatter,
                         Path.Combine(Directory.GetCurrentDirectory(), Path.Combine(logPathFiles, $"{DateTime.Now.ToString("yyyyMMdd")}-SBSLETL.log")))
                     .CreateLogger();

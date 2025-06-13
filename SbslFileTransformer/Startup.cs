@@ -252,7 +252,10 @@ namespace SbslFileTransformer
 
             _ = app.UseDeveloperExceptionPage();
             _ = app.UseDatabaseErrorPage();
-            _ = app.UseSerilogRequestLogging();
+            _ = app.UseSerilogRequestLogging(config =>
+            {
+                config.IncludeQueryInRequestPath = true;
+            });
 
             _ = app.UseExceptionHandler("/Home/Error");
 
