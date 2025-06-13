@@ -4,13 +4,17 @@ using System.Globalization;
 using System.IO;
 
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 using SbslFileTransformer.Infrastructure.ServiceManager;
+using SbslFileTransformer.Infrastructure.SignalRLogging;
 
 using Serilog;
 using Serilog.Filters;
 using Serilog.Formatting.Display;
+using Serilog.Sinks.MariaDB.Extensions;
 
 namespace SbslFileTransformer
 {
@@ -18,12 +22,15 @@ namespace SbslFileTransformer
     {
         public static void Main(string[] args)
         {
-            AddLogging();
-
             try
             {
+                var host = CreateHostBuilder(args).Build();
+
+                AddLogging(host);
+
                 Log.Information("Starting up");
-                CreateHostBuilder(args).Build().Run();
+
+                host.Run();
             }
             catch (Exception ex)
             {
@@ -77,29 +84,26 @@ namespace SbslFileTransformer
             //File.Copy("shortcut path...", Environment.GetFolderPath(Environment.SpecialFolder.Startup) + shorcutname);
         }
 
-        private static void AddLogging()
+        private static void AddLogging(IHost host)
         {
-            string logsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            var logsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 "SBSL_ETL", "logs");
-            string logPathFiles = Path.Combine(logsFolder, "log_files");
-            string logPathSqlite = Path.Combine(logsFolder, "log_sqlite");
+            var logPathFiles = Path.Combine(logsFolder, "log_files");
 
-            Directory.CreateDirectory(logPathFiles);
-            Directory.CreateDirectory(logPathSqlite);
+            _ = Directory.CreateDirectory(logPathFiles);
 
             try
             {
-                MessageTemplateTextFormatter formatter = new MessageTemplateTextFormatter(
+                var formatter = new MessageTemplateTextFormatter(
                     "${Timestamp} [{Level}] {Message:l}{NewLine:l}{Exception:l}", CultureInfo.CurrentCulture);
 
+                var connString = host.Services.GetService<IConfiguration>().GetConnectionString("DefaultConnection");
+
                 Log.Logger = new LoggerConfiguration()
-#if DEBUG
                     .MinimumLevel.Information()
-#else
-                .MinimumLevel.Information()
-#endif
                     .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore"))
                     .Enrich.FromLogContext()
+                    .WriteTo.MariaDB(connString, autoCreateTable: true)
                     .WriteTo.Console()
                     .WriteTo.File(formatter,
                         Path.Combine(Directory.GetCurrentDirectory(), Path.Combine(logPathFiles, $"{DateTime.Now.ToString("yyyyMMdd")}-SBSLETL.log")))
@@ -109,7 +113,7 @@ namespace SbslFileTransformer
             }
             catch (Exception ex)
             {
-                EventLog eventLog = new EventLog
+                var eventLog = new EventLog
                 {
                     Source = "SBSL ETL Service"
                 };
@@ -123,8 +127,13 @@ namespace SbslFileTransformer
         {
             return Host.CreateDefaultBuilder(args)
                 .UseWindowsService()
-                .UseSerilog()
-                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+                .UseSerilog((context, services, config) =>
+                {
+                    var signalRLogSink = services.GetRequiredService<SignalRLoggerSeriLogSink>();
+
+                    _ = config.WriteTo.Sink(signalRLogSink);
+                })
+                .ConfigureWebHostDefaults(webBuilder => { _ = webBuilder.UseStartup<Startup>(); });
         }
     }
 }

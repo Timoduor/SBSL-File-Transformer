@@ -17,6 +17,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 using SbslFileTransformer.Data;
+using SbslFileTransformer.Hubs;
 using SbslFileTransformer.Infrastructure.Encryption;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Jobs;
@@ -35,6 +36,7 @@ using SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers;
 using SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers.Interfaces;
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Infrastructure.Sftp;
+using SbslFileTransformer.Infrastructure.SignalRLogging;
 using SbslFileTransformer.Models.Enums;
 
 using Serilog;
@@ -63,6 +65,12 @@ namespace SbslFileTransformer
                     .EnableDetailedErrors()
                     .EnableSensitiveDataLogging()
             );
+
+            services.AddSignalR();
+
+            services.AddSingleton<SignalRLoggingQueue>();
+            services.AddSingleton<SignalRLoggerSeriLogSink>();
+            services.AddHostedService<SignalRLoggingBackgroundService>();
 
             services.AddHealthChecks();
             services.AddMiniProfiler(options => options.RouteBasePath = "/profiler").AddEntityFramework();
@@ -259,6 +267,8 @@ namespace SbslFileTransformer
                     "default",
                     "{controller=Home}/{action=Index}/{id?}");
                 _ = endpoints.MapRazorPages();
+
+                _ = endpoints.MapHub<LogsHub>("/logsHub");
             });
 
             ApplicationSeeding.CreateDatabase(serviceProvider, logger).Wait();

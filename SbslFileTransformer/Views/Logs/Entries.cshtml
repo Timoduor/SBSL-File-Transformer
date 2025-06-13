@@ -1,5 +1,5 @@
 ﻿@using X.PagedList.Mvc.Core
-@model X.PagedList.IPagedList<SqliteLog>
+@model X.PagedList.IPagedList<LogEntries>
 
 @{
     ViewData["Title"] = "Logs";
@@ -20,8 +20,20 @@
 
 <div class="card card-light small">
     <div class="card-header">
-        <strong>Log Entries</strong>
-        <strong>Total: @ViewBag.TotalCount</strong>
+        <div class="row">
+            <div class="col-md-6">
+                <strong>Log Entries</strong>
+                <strong>Total: @ViewBag.TotalCount</strong>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label"></label>
+                    <select asp-items="@ViewBag.LogLevels">
+                        <option>Please select one</option>
+                    </select>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="card-body">
         <div class="table-wrapper-scroll-y my-custom-scrollbar">
@@ -68,11 +80,13 @@
                     }
                 </tbody>
             </table>
-            @Html.PagedListPager(Model, page => Url.Action("Entries", new {page}),
-            new PagedListRenderOptions
-            {
-                LiElementClasses = new List<string> { "btn", "btn-light mb-5" }
-            })
+
         </div>
+        @Html.PagedListPager(Model, page => Url.Action("Entries", new {page}),
+        new PagedListRenderOptions
+        {
+            LiElementClasses = new List<string> { "btn", "btn-light mb-5" }
+        })
     </div>
+
 </div>

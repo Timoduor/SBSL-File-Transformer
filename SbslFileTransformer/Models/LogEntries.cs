@@ -2,7 +2,7 @@
 
 namespace SbslFileTransformer.Models
 {
-    public class SqliteLog
+    public class LogEntries
     {
         public int Id { get; set; }
         public string TimeStamp { get; set; }

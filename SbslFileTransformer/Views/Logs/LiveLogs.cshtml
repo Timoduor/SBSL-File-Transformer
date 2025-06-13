@@ -1,0 +1,110 @@
+﻿<partial name="_LogHeader" />
+
+<div class="card card-light small">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-info">Live Logs</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="form-group mb-2">
+                <label for="logLevelSelect" class="form-label">Log Level:</label>
+                <select id="logLevelSelect" class="form-select form-select-sm" style="width:auto;display:inline-block;">
+                    <option value="All">All</option>
+                    <option value="Trace">Trace</option>
+                    <option value="Debug">Debug</option>
+                    <option value="Information">Information</option>
+                    <option value="Warning">Warning</option>
+                    <option value="Error">Error</option>
+                    <option value="Critical">Critical</option>
+                    <option value="None">None</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <button id="pauseLogsBtn" type="button" class="btn btn-sm btn-outline-secondary ms-2">Pause Logs</button>
+            </div>
+            <p>This list shows logs that are currently being emitted. For more thorough debugging go to <a asp-area="" asp-action="Entries" asp-controller="Logs">Logs Page</a></p>
+        </div>
+        <div id="logConsole" class="text-sm-start small full-height-row"></div>
+    </div>
+</div>
+
+
+@section scripts {
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/logsHub")
+            .build();
+
+        let logsPaused = false;
+        const pauseBtn = document.getElementById("pauseLogsBtn");
+
+        pauseBtn.addEventListener("click", function () {
+            logsPaused = !logsPaused;
+            pauseBtn.textContent = logsPaused ? "Resume Logs" : "Pause Logs";
+            pauseBtn.classList.toggle("btn-outline-secondary", !logsPaused);
+            pauseBtn.classList.toggle("btn-outline-success", logsPaused);
+        });
+
+        const logLevelOrder = {
+                0: "Trace",
+                1: "Debug",
+                2: "Information",
+                3: "Warning",
+                4: "Error",
+                5: "Critical",
+                6: "None"
+            };
+
+        const logLevelSelected = {
+                "Trace": 0,
+                "Debug": 1,
+                "Information": 2,
+                "Warning": 3,
+                "Error": 4,
+                "Critical": 5,
+                "None": 6
+            };
+
+        function shouldDisplayLog(selectedLevel, messageLevel)
+        {
+            if (selectedLevel === "All")
+                return true;
+
+            return messageLevel >= logLevelSelected[selectedLevel];
+        }
+
+        connection.on("ReceiveLog", function (logEvent) {
+
+            if (logsPaused)
+                return;
+
+            const logConsole = document.getElementById("logConsole");
+            const selectedLevel = document.getElementById("logLevelSelect").value;
+
+            if (!shouldDisplayLog(selectedLevel, logEvent.level))
+                return;
+
+            // Determine log level and apply styles
+            let logClass = "info"; // Default
+
+            if (logEvent.level === 4 || logEvent.level === 5) logClass = "error";
+            else if (logEvent.level === 3) logClass = "warning";
+            else if (logEvent.level === 1) logClass = "debug";
+            else if (logEvent.level === 0) logClass = "trace";
+
+                // Format the log message
+            let formatted = `<span class="text-muted">${logEvent.timestamp}</span> `;
+            formatted += `<span class="fw-bold">${logLevelOrder[logEvent.level]}</span>: `;
+            formatted += `<span>${logEvent.messageTemplate.text}</span>`;
+            if (logEvent.exception) {
+                formatted += `<br/><span class="text-danger">${logEvent.exception}</span>`;
+            }
+
+            logConsole.innerHTML += `<div class="${logClass}">${formatted}</div>`;
+            logConsole.scrollTop = logConsole.scrollHeight;
+        });
+
+        connection.start().catch(err => console.error(err))
+    </script>
+
+}

@@ -31,108 +31,108 @@
         <div class="table-wrapper-scroll-y my-custom-scrollbar">
             <table class="table table-striped table-bordered table-sm">
                 <thead class="thead-dark">
-                    <tr>
-                        <th>
-                            Name
-                        </th>
-                        <th>
-                            Uploaded Date
-                        </th>
-                        <th>
-                            Size
-                        </th>
-                        <th>
-                            Md5
-                        </th>
-                        <th>
-                            Is Production
-                        </th>
-                        <th>
-                            File Path
-                        </th>
-                        <th>
-                            Converted By
-                        </th>
-                        <th>
-                            Conversion Failed
-                        </th>
-                        <th>
-                            Converted
-                        </th>
-                        <th>
-                            Processed For 62F
-                        </th>
-                        <th>
-                            Balance Extracted
-                        </th>
-                        <th>
-                            Sequence No
-                        </th>
-                        <th>
-                            Statement No
-                        </th>
-                        <th>
-                            Account No
-                        </th>
+                <tr>
+                    <th>
+                        Name
+                    </th>
+                    <th>
+                        Uploaded Date
+                    </th>
+                    <th>
+                        Size
+                    </th>
+                    <th>
+                        Md5
+                    </th>
+                    <th>
+                        Is Production
+                    </th>
+                    <th>
+                        File Path
+                    </th>
+                    <th>
+                        Converted By
+                    </th>
+                    <th>
+                        Conversion Failed
+                    </th>
+                    <th>
+                        Converted
+                    </th>
+                    <th>
+                        Processed For 62F
+                    </th>
+                    <th>
+                        Balance Extracted
+                    </th>
+                    <th>
+                        Sequence No
+                    </th>
+                    <th>
+                        Statement No
+                    </th>
+                    <th>
+                        Account No
+                    </th>
 
-                    </tr>
+                </tr>
                 </thead>
                 <tbody id="searchReplace">
-                    @foreach (var item in Model)
-                    {
-                        <tr class="@(item.IsProduction ? "bg-warning" : "bg-light")">
-                            <td class="bg-">
-                                @Html.DisplayFor(modelItem => item.Name)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.UploadedDate)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.Size)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.Md5)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.IsProduction)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.FilePath)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.ConvertedBy)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.Failed)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.Converted)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.ProcessFor62F)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.BalanceExtracted)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.MtSequenceNo)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.MtStatementNo)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.MtAccountNo)
-                            </td>
-                        </tr>
-                    }
+                @foreach (var item in Model)
+                {
+                    <tr class="@(item.IsProduction ? "bg-warning" : "bg-light")">
+                        <td class="bg-">
+                            @Html.DisplayFor(modelItem => item.Name)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.UploadedDate)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Size)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Md5)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.IsProduction)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.FilePath)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.ConvertedBy)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Failed)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Converted)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.ProcessFor62F)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.BalanceExtracted)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.MtSequenceNo)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.MtStatementNo)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.MtAccountNo)
+                        </td>
+                    </tr>
+                }
                 </tbody>
             </table>
-            @Html.PagedListPager(Model, page => Url.Action("Index", new {page}),
-            new PagedListRenderOptions
-            {
-                LiElementClasses = new List<string> { "btn", "btn-light mb-5" }
-            })
         </div>
+        @Html.PagedListPager(Model, page => Url.Action("Index", new {page}),
+        new PagedListRenderOptions
+        {
+            LiElementClasses = new List<string> { "btn", "btn-light mb-5" }
+        })
     </div>
 </div>
 

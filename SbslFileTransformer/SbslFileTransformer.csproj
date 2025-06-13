@@ -98,6 +98,7 @@
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="Serilog.Sinks.MariaDB" Version="1.0.1" />
     <PackageReference Include="Serilog.Sinks.SQLite" Version="6.0.0" />
     <PackageReference Include="SSH.NET" Version="2025.0.0" />
     <PackageReference Include="System.Security.Cryptography.Xml" Version="9.0.4" />

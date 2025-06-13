@@ -3,13 +3,19 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.Sqlite;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+
+using MySqlConnector;
+
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Jobs;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.ViewModels;
+
 using X.PagedList;
 
 namespace SbslFileTransformer.Controllers
@@ -21,14 +27,16 @@ namespace SbslFileTransformer.Controllers
         private readonly ILogger<LogsController> _logger;
         private readonly string _logsFolder;
         private readonly JobDisplayManager _jobManager;
+        private readonly IConfiguration _configuration;
 
-        public LogsController(ILogger<LogsController> logger, ApplicationDbContext dbContext, JobDisplayManager jobManager)
+        public LogsController(ILogger<LogsController> logger, ApplicationDbContext dbContext, JobDisplayManager jobManager, IConfiguration configuration)
         {
-            this._logger = logger;
-            this._dbContext = dbContext;
-            this._jobManager = jobManager;
+            _logger = logger;
+            _dbContext = dbContext;
+            _jobManager = jobManager;
+            _configuration = configuration;
 
-            this._logsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            _logsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 "SBSL_ETL", "logs");
         }
 
@@ -36,78 +44,90 @@ namespace SbslFileTransformer.Controllers
         {
             try
             {
-                int count = 0;
-                int itemsPerPage = 10;
+                var count = 0;
+                var itemsPerPage = 10;
 
-                List<SftpUploadedFile> uploadedFiles = this._dbContext.UploadedFiles.OrderByDescending(f => f.UploadedDate)
+                var uploadedFiles = _dbContext.UploadedFiles.OrderByDescending(f => f.UploadedDate)
                     .Skip((page - 1) * itemsPerPage).OrderByDescending(f => f.UploadedDate).Take(itemsPerPage).ToList();
 
-                count = this._dbContext.UploadedFiles.Count();
+                count = _dbContext.UploadedFiles.Count();
 
                 ViewBag.TotalCount = count;
 
-                StaticPagedList<SftpUploadedFile> pagedList = new StaticPagedList<SftpUploadedFile>(uploadedFiles, page, itemsPerPage, count);
+                var pagedList = new StaticPagedList<SftpUploadedFile>(uploadedFiles, page, itemsPerPage, count);
 
-                return this.View(pagedList);
+                return View(pagedList);
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, ex.Message);
+                _logger.LogError(ex, ex.Message);
                 return Content(ex.Message);
             }
         }
 
         public IActionResult SearchUploadedFile(string search)
         {
-            List<SftpUploadedFile> uploadedFiles = this._dbContext.UploadedFiles.Where(f => f.Name.Contains(search) || f.FilePath.Contains(search) || f.Md5.Contains(search))
+            var uploadedFiles = _dbContext.UploadedFiles.Where(f => f.Name.Contains(search) || f.FilePath.Contains(search) || f.Md5.Contains(search))
                     .OrderByDescending(f => f.UploadedDate).Take(200).ToList();
 
-            return this.Json(uploadedFiles);
+            return Json(uploadedFiles);
         }
 
         public IActionResult Entries(int page = 1)
         {
             try
             {
-                int itemsPerPage = 10;
+                var itemsPerPage = 10;
 
-                IOrderedEnumerable<SqliteLog> sqliteLogs = this.GetSqliteLogs(page, itemsPerPage, out int count);
+                var sqliteLogs = GetSqlLogs(page, itemsPerPage, out var count);
+
+                ViewBag.LogLevels = new SelectList(Enum.GetValues(typeof(LogLevel)).Cast<LogLevel>()
+                    .Select(v => new SelectListItem
+                    {
+                        Text = v.ToString(),
+                        Value = ((int)v).ToString()
+                    }).ToList(), "Value", "Text");
 
                 ViewBag.TotalCount = count;
 
-                sqliteLogs = sqliteLogs ?? new List<SqliteLog>().OrderByDescending(l => l.Id);
+                sqliteLogs = sqliteLogs ?? new List<LogEntries>().OrderByDescending(l => l.Id);
 
-                StaticPagedList<SqliteLog> pagedList = new StaticPagedList<SqliteLog>(sqliteLogs, page, itemsPerPage, count);
+                var pagedList = new StaticPagedList<LogEntries>(sqliteLogs, page, itemsPerPage, count);
 
-                return this.View(pagedList);
+                return View(pagedList);
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, ex.Message);
+                _logger.LogError(ex, ex.Message);
                 return Content(ex.Message);
             }
+        }
+
+        public IActionResult LiveLogs()
+        {
+            return View();
         }
 
         public IActionResult Files(int page = 1)
         {
             try
             {
-                int itemsPerPage = 10;
+                var itemsPerPage = 10;
 
-                IEnumerable<FileInfo> latestFiles = this.GetLogFiles(page, itemsPerPage, out int count);
+                var latestFiles = GetLogFiles(page, itemsPerPage, out var count);
 
                 ViewBag.TotalCount = count;
 
-                IOrderedEnumerable<FileInfo> fileInfos = latestFiles.OrderByDescending(f => f.LastWriteTime) ??
+                var fileInfos = latestFiles.OrderByDescending(f => f.LastWriteTime) ??
                                 new List<FileInfo>().OrderByDescending(f => f.LastWriteTime);
 
-                StaticPagedList<FileInfo> pagedList = new StaticPagedList<FileInfo>(fileInfos, page, itemsPerPage, count);
+                var pagedList = new StaticPagedList<FileInfo>(fileInfos, page, itemsPerPage, count);
 
-                return this.View(pagedList);
+                return View(pagedList);
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, ex.Message);
+                _logger.LogError(ex, ex.Message);
                 return Content(ex.Message);
             }
         }
@@ -117,129 +137,131 @@ namespace SbslFileTransformer.Controllers
             //To show GROUPED logs, processed reports and uploaded files
             try
             {
-                DateTime filesMaxDate = this._dbContext.UploadedFiles.Any() ? this._dbContext.UploadedFiles.Select(d => d.UploadedDate).Max() : DateTime.Now;
+                var filesMaxDate = _dbContext.UploadedFiles.Any() ? _dbContext.UploadedFiles.Select(d => d.UploadedDate).Max() : DateTime.Now;
 
-                Dictionary<string, int> filesPerDay = this._dbContext.UploadedFiles.ToList().Where(f => f.UploadedDate > filesMaxDate.AddDays(-14))
+                var filesPerDay = _dbContext.UploadedFiles.ToList().Where(f => f.UploadedDate > filesMaxDate.AddDays(-14))
                     .GroupBy(f => f.UploadedDate.Date)
                     .ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd ddd"), g => g.Count());
 
-                Dictionary<string, int> filesPerMonth = this._dbContext.UploadedFiles.ToList().Where(f => f.UploadedDate > filesMaxDate.AddMonths(-7))
+                var filesPerMonth = _dbContext.UploadedFiles.ToList().Where(f => f.UploadedDate > filesMaxDate.AddMonths(-7))
                     .GroupBy(f => f.UploadedDate.Month)
                     .ToDictionary(g => CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(g.Key), g => g.Count());
 
-                Dictionary<string, int> logs = this.GetLast7DaysSqliteLogs(-7).GroupBy(l => l.Date.Date).OrderByDescending(g => g.Key)
+                var logs = GetLast7DaysSqlLogs(-7).GroupBy(l => l.Date.Date).OrderByDescending(g => g.Key)
                     .ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
 
-                DateTime reportsMaxDate = DateTime.Now;
+                var reportsMaxDate = DateTime.Now;
 
-                if (this._dbContext.ProcessedReports.Any())
-                    reportsMaxDate = this._dbContext.ProcessedReports.Select(d => d.ProcessedDate).Max();
+                if (_dbContext.ProcessedReports.Any())
+                {
+                    reportsMaxDate = _dbContext.ProcessedReports.Select(d => d.ProcessedDate).Max();
+                }
 
-                Dictionary<string, int> reports = this._dbContext.ProcessedReports.ToList()
+                var reports = _dbContext.ProcessedReports.ToList()
                     .Where(r => r.ProcessedDate > reportsMaxDate.AddDays(-7)).GroupBy(r => r.ProcessedDate.Date)
                     .ToDictionary(g => g.Key.Date.ToString("yyyy-MM-dd"), g => g.Count());
 
-                return this.View(new ChartObjects { UploadedFilesPerDay = filesPerDay, UploadedFilesPerMonth = filesPerMonth, Logs = logs, Reports = reports });
+                return View(new ChartObjects { UploadedFilesPerDay = filesPerDay, UploadedFilesPerMonth = filesPerMonth, Logs = logs, Reports = reports });
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, ex.Message);
+                _logger.LogError(ex, ex.Message);
             }
 
-            return this.RedirectToAction("Index", "Logs");
+            return RedirectToAction("Index", "Logs");
         }
 
         public IActionResult DownloadLogFile(string name)
         {
             try
             {
-                string logPathFiles = Path.Combine(this._logsFolder, "log_files");
+                var logPathFiles = Path.Combine(_logsFolder, "log_files");
 
-                IEnumerable<FileInfo> files = Directory.GetFiles(logPathFiles).Select(f => new FileInfo(f));
+                var files = Directory.GetFiles(logPathFiles).Select(f => new FileInfo(f));
 
-                FileInfo file = files.FirstOrDefault(f => f.Name == name);
+                var file = files.FirstOrDefault(f => f.Name == name);
 
-                byte[] bytes = this.ReadAllBytes2(file.FullName);
+                var bytes = ReadAllBytes2(file.FullName);
 
-                return this.File(bytes, "text/plain");
+                return File(bytes, "text/plain");
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, ex.Message);
-                return this.RedirectToAction("Files");
+                _logger.LogError(ex, ex.Message);
+                return RedirectToAction("Files");
             }
         }
 
         public IActionResult CurrentJobStatuses()
         {
-            IOrderedEnumerable<KeyValuePair<string, JobStatus>> jobs = this._jobManager.GetJobStatuses().OrderByDescending(j => j.Key);
+            var jobs = _jobManager.GetJobStatuses().OrderByDescending(j => j.Key);
 
-            return this.Json(jobs);
+            return Json(jobs);
         }
 
         public IActionResult JobStatus()
         {
-            IOrderedEnumerable<KeyValuePair<string, JobStatus>> jobs = this._jobManager.GetJobStatuses().OrderByDescending(j => j.Key);
+            var jobs = _jobManager.GetJobStatuses().OrderByDescending(j => j.Key);
 
-            return this.View(jobs);
+            return View(jobs);
         }
 
         public IActionResult SearchVisionRecord(string search)
         {
-            List<VisionRecordCollection> visionCollections = this._dbContext.VisionRecordCollections
+            var visionCollections = _dbContext.VisionRecordCollections
                 .Where(f => f.TransDetails.Contains(search) || f.TransID.Contains(search) || f.GLTransCode.Contains(search)
                             || f.FileName.Contains(search) || f.ReferenceNumber.Contains(search) || f.CardNumber.Contains(search)
                             || f.ContractNumber.Contains(search) || f.CustomerName.Contains(search) || f.AccountNumber.Contains(search))
                 .OrderByDescending(f => f.DateExtracted).Take(500).ToList();
 
-            List<VisionRecordCreditSettlement> visionSettlements = this._dbContext.VisionRecordCreditSettlements
+            var visionSettlements = _dbContext.VisionRecordCreditSettlements
                 .Where(f => f.TransDetails.Contains(search) || f.TransID.Contains(search) || f.GLTransCode.Contains(search)
                             || f.FileName.Contains(search) || f.ReferenceNumber.Contains(search) || f.CardNumber.Contains(search)
                             || f.ContractNumber.Contains(search) || f.CustomerName.Contains(search) || f.AccountNumber.Contains(search))
                 .OrderByDescending(f => f.DateExtracted).Take(500).ToList();
 
-            List<VisionRecordDebtors> visionDebtors = this._dbContext.VisionRecordDebtors
+            var visionDebtors = _dbContext.VisionRecordDebtors
                 .Where(f => f.TransDetails.Contains(search) || f.TransID.Contains(search) || f.GLTransCode.Contains(search)
                             || f.FileName.Contains(search) || f.ReferenceNumber.Contains(search) || f.CardNumber.Contains(search)
                             || f.ContractNumber.Contains(search) || f.CustomerName.Contains(search) || f.AccountNumber.Contains(search))
                 .OrderByDescending(f => f.DateExtracted).Take(500).ToList();
 
-            IEnumerable<VisionRecordBase> visionRecords =
+            var visionRecords =
                 ((IEnumerable<VisionRecordBase>)visionCollections).Union(visionDebtors).Union(visionSettlements);
 
-            return this.Json(visionRecords);
+            return Json(visionRecords);
         }
 
         public IActionResult Vision(int page = 1)
         {
             try
             {
-                int itemsPerPage = 10;
+                var itemsPerPage = 10;
 
-                ViewBag.TotalCount = this._dbContext.VisionRecordCollections.LongCount();
+                ViewBag.TotalCount = _dbContext.VisionRecordCollections.LongCount();
 
-                List<VisionRecordCollection> visionRecords = this._dbContext.VisionRecordCollections.OrderByDescending(f => f.DateExtracted)
+                var visionRecords = _dbContext.VisionRecordCollections.OrderByDescending(f => f.DateExtracted)
                     .Skip((page - 1) * itemsPerPage).OrderByDescending(f => f.DateExtracted).Take(itemsPerPage).ToList();
 
-                List<VisionRecordCreditSettlement> visionRecordsSett = this._dbContext.VisionRecordCreditSettlements.OrderByDescending(f => f.DateExtracted)
+                var visionRecordsSett = _dbContext.VisionRecordCreditSettlements.OrderByDescending(f => f.DateExtracted)
                     .Skip((page - 1) * itemsPerPage).OrderByDescending(f => f.DateExtracted).Take(itemsPerPage).ToList();
 
-                List<VisionRecordDebtors> visionRecordsDebt = this._dbContext.VisionRecordDebtors.OrderByDescending(f => f.DateExtracted)
+                var visionRecordsDebt = _dbContext.VisionRecordDebtors.OrderByDescending(f => f.DateExtracted)
                     .Skip((page - 1) * itemsPerPage).OrderByDescending(f => f.DateExtracted).Take(itemsPerPage).ToList();
 
-                int count = this._dbContext.VisionRecordCollections.Count() + this._dbContext.VisionRecordCreditSettlements.Count() + this._dbContext.VisionRecordDebtors.Count();
+                var count = _dbContext.VisionRecordCollections.Count() + _dbContext.VisionRecordCreditSettlements.Count() + _dbContext.VisionRecordDebtors.Count();
 
-                IEnumerable<VisionRecordBase> combinedVisionRecords = ((IEnumerable<VisionRecordBase>)visionRecords).Union(visionRecordsDebt).Union(visionRecordsSett);
+                var combinedVisionRecords = ((IEnumerable<VisionRecordBase>)visionRecords).Union(visionRecordsDebt).Union(visionRecordsSett);
 
-                int combinedCount = combinedVisionRecords.Count();
+                var combinedCount = combinedVisionRecords.Count();
 
-                StaticPagedList<VisionRecordBase> pagedList = new StaticPagedList<VisionRecordBase>(combinedVisionRecords, page, combinedCount, count);
+                var pagedList = new StaticPagedList<VisionRecordBase>(combinedVisionRecords, page, itemsPerPage, combinedCount);
 
-                return this.View(pagedList);
+                return View(pagedList);
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, ex.Message);
+                _logger.LogError(ex, ex.Message);
                 return Content(ex.Message);
             }
         }
@@ -247,9 +269,9 @@ namespace SbslFileTransformer.Controllers
         private byte[] ReadAllBytes2(string filePath, FileAccess fileAccess = FileAccess.Read,
             FileShare shareMode = FileShare.ReadWrite)
         {
-            using (FileStream fs = new FileStream(filePath, FileMode.Open, fileAccess, shareMode))
+            using (var fs = new FileStream(filePath, FileMode.Open, fileAccess, shareMode))
             {
-                using (MemoryStream ms = new MemoryStream())
+                using (var ms = new MemoryStream())
                 {
                     fs.CopyTo(ms);
                     return ms.ToArray();
@@ -259,11 +281,11 @@ namespace SbslFileTransformer.Controllers
 
         private IEnumerable<FileInfo> GetLogFiles(int page, int itemsPerPage, out int totalCount)
         {
-            string logPathFiles = Path.Combine(this._logsFolder, "log_files");
+            var logPathFiles = Path.Combine(_logsFolder, "log_files");
 
-            IEnumerable<FileInfo> files = Directory.GetFiles(logPathFiles).Select(f => new FileInfo(f));
+            var files = Directory.GetFiles(logPathFiles).Select(f => new FileInfo(f));
 
-            IEnumerable<FileInfo> latestFiles = files
+            var latestFiles = files
                 .OrderByDescending(f => f.LastWriteTime).Skip(itemsPerPage * (page - 1)).Take(itemsPerPage);
 
             totalCount = files.Count();
@@ -271,35 +293,30 @@ namespace SbslFileTransformer.Controllers
             return latestFiles;
         }
 
-        private IOrderedEnumerable<SqliteLog> GetSqliteLogs(int page, int itemsPerPage, out int totalCount)
+        private IOrderedEnumerable<LogEntries> GetSqlLogs(int page, int itemsPerPage, out int totalCount)
         {
-            List<SqliteLog> logs = new List<SqliteLog>();
-#if DEBUG
-            using (SqliteConnection connection = new SqliteConnection(@"Data Source=bin\Debug\netcoreapp3.1\sbsletl_logs.db"))
-#else
-            var logPathSqlite = Path.Combine(_logsFolder, "log_sqlite");
-            using (var connection =
- new SqliteConnection($"Data Source={Path.Combine(logPathSqlite, "sbsletl_logs.db")}"))
-#endif
+            var logs = new List<LogEntries>();
+
+            using (var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
                 connection.Open();
 
-                SqliteCommand command = connection.CreateCommand();
+                var command = connection.CreateCommand();
 
                 command.CommandText =
-                    $@"SELECT ""TimeStamp"", ""Level"", RenderedMessage, Properties, ""Exception"", id FROM Logs ORDER BY ""Timestamp"" DESC LIMIT {itemsPerPage} OFFSET {(page - 1) * itemsPerPage}";
+                    $@"SELECT TimeStamp, LogLevel, Message, Properties, Exception, id FROM Logs ORDER BY Timestamp DESC LIMIT {itemsPerPage} OFFSET {(page - 1) * itemsPerPage}";
 
-                using (SqliteDataReader reader = command.ExecuteReader())
+                using (var reader = command.ExecuteReader())
                 {
                     while (reader.Read())
                     {
-                        string timestamp = reader.GetString(0);
-                        string level = reader.GetString(1);
-                        string renderedMessage = reader.GetString(2);
-                        string properties = reader.GetString(3);
-                        string exception = reader.GetString(4);
+                        var timestamp = reader.GetString(0);
+                        var level = reader.GetString(1);
+                        var renderedMessage = reader.GetValue(2)?.ToString();
+                        var properties = reader.GetValue(3)?.ToString();
+                        var exception = reader.GetValue(4)?.ToString();
 
-                        logs.Add(new SqliteLog
+                        logs.Add(new LogEntries
                         {
                             TimeStamp = timestamp,
                             Level = level,
@@ -310,7 +327,7 @@ namespace SbslFileTransformer.Controllers
                     }
                 }
 
-                SqliteCommand commandCount = connection.CreateCommand();
+                var commandCount = connection.CreateCommand();
                 commandCount.CommandText = "SELECT COUNT(*) FROM Logs";
 
                 totalCount = Convert.ToInt32(commandCount.ExecuteScalar());
@@ -319,42 +336,36 @@ namespace SbslFileTransformer.Controllers
             return logs.OrderByDescending(l => l.Id);
         }
 
-        private IEnumerable<SqliteLog> GetLast7DaysSqliteLogs(int days)
+        private IEnumerable<LogEntries> GetLast7DaysSqlLogs(int days)
         {
-            List<SqliteLog> logs = new List<SqliteLog>();
-#if DEBUG
-            using (SqliteConnection connection = new SqliteConnection(@"Data Source=bin\Debug\netcoreapp3.1\sbsletl_logs.db"))
-#else
-            var logPathSqlite = Path.Combine(_logsFolder, "log_sqlite");
-            using (var connection =
- new SqliteConnection($"Data Source={Path.Combine(logPathSqlite, "sbsletl_logs.db")}"))
-#endif
+            var logs = new List<LogEntries>();
+
+            using (var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
                 connection.Open();
 
-                SqliteCommand commandMaxDate = connection.CreateCommand();
-                commandMaxDate.CommandText = @"SELECT ""Timestamp"" FROM Logs ORDER BY ""Timestamp"" DESC LIMIT 1";
+                var commandMaxDate = connection.CreateCommand();
+                commandMaxDate.CommandText = @"SELECT Timestamp FROM Logs ORDER BY Timestamp DESC LIMIT 1";
 
-                DateTime maxDate = DateTime.ParseExact(commandMaxDate.ExecuteScalar().ToString(), "yyyy-MM-ddTHH:mm:ss",
-                    CultureInfo.InvariantCulture);
+                var maxDate = DateTime.Parse(commandMaxDate.ExecuteScalar().ToString());
 
-                SqliteCommand command = connection.CreateCommand();
+                var command = connection.CreateCommand();
 
                 command.CommandText =
-                    $@"select ""Timestamp"", ""Level"" from logs where ""Timestamp"" > ""{maxDate.AddDays(days).ToString("yyyy-MM-dd")}""";
+                    $@"select Timestamp, LogLevel from logs where Timestamp > ""{maxDate.AddDays(days).ToString("yyyy-MM-dd")}""";
 
-                using (SqliteDataReader reader = command.ExecuteReader())
+                using (var reader = command.ExecuteReader())
                 {
                     while (reader.Read())
                     {
-                        string timestamp = reader.GetString(0);
-                        string level = reader.GetString(1);
+                        var timestamp = reader.GetString(0);
+                        var level = reader.GetString(1);
 
-                        logs.Add(new SqliteLog
+                        logs.Add(new LogEntries
                         {
                             TimeStamp = timestamp,
                             Level = level,
-                            Date = DateTime.ParseExact(timestamp, "yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture)
+                            Date = DateTime.Parse(timestamp)
                         });
                     }
                 }

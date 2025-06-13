@@ -65,7 +65,7 @@ body {
 }
 
 .my-custom-scrollbar {
-    height: 500px;
+    height: 720px;
     overflow: auto;
     position: relative;
 }
@@ -82,4 +82,33 @@ body {
 .table-wrapper-scroll-y { display: block; }
 
 form label { font-weight: bold }
+
+/* section for signalR console logger page */
+#logConsole {
+    width: 100%;
+    height: 400px;
+    background: black;
+    color: lime;
+    font-family: monospace;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+.info {
+    color: lime; /* Default info logs */
+}
+
+.warning {
+    color: yellow; /* Warnings in yellow */
+}
+
+.error {
+    color: red; /* Errors in red */
+    font-weight: bold;
+}
+
+.full-height-row {
+    min-height: 60vh;
+}
 
