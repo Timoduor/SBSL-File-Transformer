@@ -73,13 +73,15 @@ namespace SbslFileTransformer.Controllers
             return Json(uploadedFiles);
         }
 
-        public IActionResult Entries(int page = 1)
+        public IActionResult Entries(int page = 1, LogLevel level = LogLevel.Information)
         {
             try
             {
                 var itemsPerPage = 10;
 
-                var sqliteLogs = GetSqlLogs(page, itemsPerPage, out var count);
+                var sqliteLogs = GetSqlLogs(page, itemsPerPage, out var count, level);
+
+                ViewBag.SelectedLevel = level;
 
                 ViewBag.LogLevels = new SelectList(Enum.GetValues(typeof(LogLevel)).Cast<LogLevel>()
                     .Select(v => new SelectListItem
@@ -293,9 +295,11 @@ namespace SbslFileTransformer.Controllers
             return latestFiles;
         }
 
-        private IOrderedEnumerable<LogEntries> GetSqlLogs(int page, int itemsPerPage, out int totalCount)
+        private IOrderedEnumerable<LogEntries> GetSqlLogs(int page, int itemsPerPage, out int totalCount, LogLevel logLevel = LogLevel.Information)
         {
             var logs = new List<LogEntries>();
+
+            var levels = GetLogLevelsAbove(logLevel);
 
             using (var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
@@ -304,7 +308,7 @@ namespace SbslFileTransformer.Controllers
                 var command = connection.CreateCommand();
 
                 command.CommandText =
-                    $@"SELECT TimeStamp, LogLevel, Message, Properties, Exception, id FROM Logs ORDER BY Timestamp DESC LIMIT {itemsPerPage} OFFSET {(page - 1) * itemsPerPage}";
+                    $@"SELECT TimeStamp, LogLevel, Message, Properties, Exception, id FROM Logs WHERE LogLevel IN ({levels}) ORDER BY Timestamp DESC LIMIT {itemsPerPage} OFFSET {(page - 1) * itemsPerPage}";
 
                 using (var reader = command.ExecuteReader())
                 {
@@ -334,6 +338,15 @@ namespace SbslFileTransformer.Controllers
             }
 
             return logs.OrderByDescending(l => l.Id);
+        }
+
+        private string GetLogLevelsAbove(LogLevel logLevel)
+        {
+            var matchingLogLevels = Enum.GetValues(typeof(LogLevel)).Cast<LogLevel>().Where(l => l >= logLevel).Select(l => $"'{l}'");
+
+            var levels = string.Join(",", matchingLogLevels);
+
+            return levels;
         }
 
         private IEnumerable<LogEntries> GetLast7DaysSqlLogs(int days)

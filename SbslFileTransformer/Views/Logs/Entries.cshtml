@@ -22,16 +22,23 @@
     <div class="card-header">
         <div class="row">
             <div class="col-md-6">
-                <strong>Log Entries</strong>
-                <strong>Total: @ViewBag.TotalCount</strong>
+                <p>
+                    <strong>Total Log Entries: @ViewBag.TotalCount</strong>
+                </p>
+                <p>
+                    <strong>Selected Log Level: @ViewBag.SelectedLevel</strong>
+                </p>
             </div>
             <div class="col-md-6">
-                <div class="form-group">
-                    <label class="control-label"></label>
-                    <select asp-items="@ViewBag.LogLevels" class="custom-select-lg input-lg">
-                        <option>Please select one</option>
-                    </select>
-                </div>
+                <form asp-controller="Logs" asp-action="Entries">
+                    <div class="form-group">
+                        <label class="control-label"></label>
+                        <select asp-items="@ViewBag.LogLevels" class="custom-select-lg input-lg" name="level">
+                            <option>Please select one</option>
+                        </select>
+                        <button type="submit" class="btn-lg">Load</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -82,7 +89,7 @@
             </table>
 
         </div>
-        @Html.PagedListPager(Model, page => Url.Action("Entries", new {page}),
+        @Html.PagedListPager(Model, page => Url.Action("Entries", new {page, level = ViewBag.SelectedLevel}),
         new PagedListRenderOptions
         {
             LiElementClasses = new List<string> { "btn", "btn-light mb-5" }

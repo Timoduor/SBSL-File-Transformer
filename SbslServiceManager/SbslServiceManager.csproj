@@ -27,7 +27,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="DotNetZip" Version="1.16.0" />
     <PackageReference Include="H.NotifyIcon.Wpf" Version="2.0.123" />
     <PackageReference Include="MahApps.Metro" Version="2.4.10" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />

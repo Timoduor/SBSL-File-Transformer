@@ -1,15 +1,18 @@
-﻿using H.NotifyIcon;
-using Ionic.Zip;
-using MahApps.Metro.Controls;
-using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.ServiceProcess;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+
+using H.NotifyIcon;
+
+using MahApps.Metro.Controls;
+
+using Microsoft.Win32;
 
 namespace SbslServiceManager
 {
@@ -18,36 +21,36 @@ namespace SbslServiceManager
     /// </summary>
     public partial class MainWindow : MetroWindow
     {
-        DispatcherTimer _timer;
+        private readonly DispatcherTimer _timer;
 
-        string ServiceName = "SBSL ETL Service";
-        string AppPath = "E:\\SBSL ETL Service";
+        private readonly string ServiceName = "SBSL ETL Service";
+        private readonly string AppPath = "E:\\SBSL ETL Service";
         public MainWindow()
         {
-            InitializeComponent();
+            this.InitializeComponent();
 
-            ServiceName = App.Configuration.GetSection("ServiceName").Value;
-            AppPath = App.Configuration.GetSection("AppPath").Value;
+            this.ServiceName = App.Configuration.GetSection("ServiceName").Value;
+            this.AppPath = App.Configuration.GetSection("AppPath").Value;
 
-            _timer = new DispatcherTimer();
+            this._timer = new DispatcherTimer();
 
-            _timer.Interval = TimeSpan.FromSeconds(3);
+            this._timer.Interval = TimeSpan.FromSeconds(3);
 
-            _timer.Tick += _timer_Tick;
+            this._timer.Tick += this._timer_Tick;
 
-            _timer.Start();
+            this._timer.Start();
         }
 
         private void _timer_Tick(object sender, EventArgs e)
         {
-            var mariadbStatus = CustomTaskBarIcon.CheckIfServiceIsRunning("MariaDB");
-            var sbslStatus = CustomTaskBarIcon.CheckIfServiceIsRunning();
+            (System.Windows.Media.Brush, string) mariadbStatus = CustomTaskBarIcon.CheckIfServiceIsRunning("MariaDB");
+            (System.Windows.Media.Brush, string) sbslStatus = CustomTaskBarIcon.CheckIfServiceIsRunning();
 
-            ServiceStatusText.Text = "ETL Service " + sbslStatus.Item2;
-            ServiceStatusColour.Fill = sbslStatus.Item1;
+            this.ServiceStatusText.Text = "ETL Service " + sbslStatus.Item2;
+            this.ServiceStatusColour.Fill = sbslStatus.Item1;
 
-            MariaDBStatusColour.Fill = mariadbStatus.Item1;
-            MariaDBStatusText.Text = "MariaDB " + mariadbStatus.Item2;
+            this.MariaDBStatusColour.Fill = mariadbStatus.Item1;
+            this.MariaDBStatusText.Text = "MariaDB " + mariadbStatus.Item2;
         }
 
 
@@ -58,31 +61,33 @@ namespace SbslServiceManager
 
             Visibility = Visibility.Hidden;
 
-            SbslTaskBarIcon.ShowStandardBalloon("Server Manager Window Closed", "You can still access the SBSL Server Manager from the system tray", TaskbarIcon.GetParentTaskbarIcon(this));
+            this.SbslTaskBarIcon.ShowStandardBalloon("Server Manager Window Closed", "You can still access the SBSL Server Manager from the system tray", TaskbarIcon.GetParentTaskbarIcon(this));
         }
 
         private void MetroWindow_Closed(object sender, EventArgs e)
         {
-            SbslTaskBarIcon.Dispose();
+            this.SbslTaskBarIcon.Dispose();
         }
 
         private void SelectFiles_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             if (openFileDialog.ShowDialog() == true)
-                FilePath.Text = openFileDialog.FileName;
+            {
+                this.FilePath.Text = openFileDialog.FileName;
+            }
         }
 
         private async void StartUpgrade_Click(object sender, RoutedEventArgs e)
         {
 
-            if (string.IsNullOrEmpty(FilePath.Text) || !File.Exists(FilePath.Text))
+            if (string.IsNullOrEmpty(this.FilePath.Text) || !File.Exists(this.FilePath.Text))
             {
-                ProgressMessage.Content = "Please select a valid file!";
+                this.ProgressMessage.Content = "Please select a valid file!";
                 return;
             }
 
-            ServiceController service = new ServiceController(ServiceName);
+            ServiceController service = new ServiceController(this.ServiceName);
 
             int timeoutMilliseconds = 20000;
 
@@ -91,35 +96,35 @@ namespace SbslServiceManager
                 int millisec1 = Environment.TickCount;
                 TimeSpan timeout = TimeSpan.FromMilliseconds(timeoutMilliseconds);
 
-                if (service.Status == ServiceControllerStatus.Running || service.Status == ServiceControllerStatus.Paused)
+                if (service.Status is ServiceControllerStatus.Running or ServiceControllerStatus.Paused)
                 {
-                    ProgressMessage.Content = $"Stopping Service {ServiceName}";
+                    this.ProgressMessage.Content = $"Stopping Service {this.ServiceName}";
                     service.Stop();
                     service.WaitForStatus(ServiceControllerStatus.Stopped, timeout);
                 }
 
-                await ExtractFiles(FilePath.Text, AppPath);
+                await this.ExtractFiles(this.FilePath.Text, this.AppPath);
 
                 // count the rest of the timeout
                 int millisec2 = Environment.TickCount;
                 timeout = TimeSpan.FromMilliseconds(timeoutMilliseconds - (millisec2 - millisec1));
 
-                if (service.Status == ServiceControllerStatus.Paused || service.Status == ServiceControllerStatus.Stopped)
+                if (service.Status is ServiceControllerStatus.Paused or ServiceControllerStatus.Stopped)
                 {
-                    ProgressMessage.Content = $"Starting Service {ServiceName}";
+                    this.ProgressMessage.Content = $"Starting Service {this.ServiceName}";
                     service.Start();
                     service.WaitForStatus(ServiceControllerStatus.Running, timeout);
                 }
 
-                ProgressMessage.Content = $"Service {ServiceName} Updated Successfully";
+                this.ProgressMessage.Content = $"Service {this.ServiceName} Updated Successfully";
 
-                SbslTaskBarIcon.ShowStandardBalloon("Upgrade Successful!", "The new patch has been successfully applied", TaskbarIcon.GetParentTaskbarIcon(this));
+                this.SbslTaskBarIcon.ShowStandardBalloon("Upgrade Successful!", "The new patch has been successfully applied", TaskbarIcon.GetParentTaskbarIcon(this));
             }
             catch (Exception ex)
             {
-                ProgressMessage.Content = $"Service {ServiceName} failed to update Successfully {ex.Message}";
+                this.ProgressMessage.Content = $"Service {this.ServiceName} failed to update Successfully {ex.Message}";
 
-                SbslTaskBarIcon.ShowStandardBalloon("Upgrade Failed!", "The new patch has failed to apply", TaskbarIcon.GetParentTaskbarIcon(this));
+                this.SbslTaskBarIcon.ShowStandardBalloon("Upgrade Failed!", "The new patch has failed to apply", TaskbarIcon.GetParentTaskbarIcon(this));
             }
 
 
@@ -129,45 +134,48 @@ namespace SbslServiceManager
         {
             if (!Directory.Exists(outputPath))
             {
-                ProgressMessage.Content = "Please set a proper output directory!";
-                SbslTaskBarIcon.ShowStandardBalloon("Upgrade Failed!", "The target directory does not exist", TaskbarIcon.GetParentTaskbarIcon(this));
+                this.ProgressMessage.Content = "Please set a proper output directory!";
+                this.SbslTaskBarIcon.ShowStandardBalloon("Upgrade Failed!", "The target directory does not exist", TaskbarIcon.GetParentTaskbarIcon(this));
                 return;
             }
 
-            using (ZipFile zip = ZipFile.Read(zipFile))
+            using (FileStream zipToOpen = new FileStream(zipFile, FileMode.Open))
+            using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Read))
             {
                 int count = 0;
-                int total = zip.Count();
+                int total = archive.Entries.Count;
 
-                if (!zip.Any(e => e.FileName.Contains("SbslFileTransformer.exe")))
+                if (!archive.Entries.Any(e => e.FullName.Contains("SbslFileTransformer.exe")))
                 {
-                    ProgressMessage.Content = "Failed to find valid files in zip content!";
-                    SbslTaskBarIcon.ShowStandardBalloon("Upgrade Failed!", "Upgrade file is not valid", TaskbarIcon.GetParentTaskbarIcon(this));
+                    this.ProgressMessage.Content = "Failed to find valid files in zip content!";
+                    this.SbslTaskBarIcon.ShowStandardBalloon("Upgrade Failed!", "Upgrade file is not valid", TaskbarIcon.GetParentTaskbarIcon(this));
                     return;
                 }
 
-                StartUpgrade.IsEnabled = false;
+                this.StartUpgrade.IsEnabled = false;
 
                 await Task.Run(() =>
                 {
-                    foreach (ZipEntry e in zip)
+                    foreach (ZipArchiveEntry entry in archive.Entries)
                     {
                         count++;
 
                         Dispatcher.Invoke(() =>
                         {
-                            ProgressMessage.Content = $"Extracting file: {e.FileName}";
+                            this.ProgressMessage.Content = $"Extracting file: {entry.FullName}";
 
                             double current = count / (double)total;
 
-                            UpgradeProgress.Value = current;
+                            this.UpgradeProgress.Value = current;
                         });
 
-                        e.Extract(outputPath, ExtractExistingFileAction.OverwriteSilently);
+                        string destinationPath = Path.Combine(outputPath, entry.FullName);
+                        _ = Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+                        entry.ExtractToFile(destinationPath, true);
                     }
                 });
 
-                StartUpgrade.IsEnabled = true;
+                this.StartUpgrade.IsEnabled = true;
 
             }
         }
@@ -176,10 +184,10 @@ namespace SbslServiceManager
         {
             await Dispatcher.InvokeAsync(() =>
             {
-                RestartService(ServiceName);//only etl service should be restarted
-    });
+                this.RestartService(this.ServiceName);//only etl service should be restarted
+            });
 
-            SbslTaskBarIcon.ShowStandardBalloon("Restart Service", "Service Restarted Successfully", TaskbarIcon.GetParentTaskbarIcon(this));
+            this.SbslTaskBarIcon.ShowStandardBalloon("Restart Service", "Service Restarted Successfully", TaskbarIcon.GetParentTaskbarIcon(this));
         }
 
 
@@ -192,9 +200,9 @@ namespace SbslServiceManager
                 int millisec1 = Environment.TickCount;
                 TimeSpan timeout = TimeSpan.FromMilliseconds(timeoutMilliseconds);
 
-                if (service.Status == ServiceControllerStatus.Running || service.Status == ServiceControllerStatus.Paused)
+                if (service.Status is ServiceControllerStatus.Running or ServiceControllerStatus.Paused)
                 {
-                    ProgressMessage.Content = $"Stopping Service {serviceName}";
+                    this.ProgressMessage.Content = $"Stopping Service {serviceName}";
                     service.Stop();
                     service.WaitForStatus(ServiceControllerStatus.Stopped, timeout);
                 }
@@ -203,24 +211,24 @@ namespace SbslServiceManager
                 int millisec2 = Environment.TickCount;
                 timeout = TimeSpan.FromMilliseconds(timeoutMilliseconds - (millisec2 - millisec1));
 
-                if (service.Status == ServiceControllerStatus.Paused || service.Status == ServiceControllerStatus.Stopped)
+                if (service.Status is ServiceControllerStatus.Paused or ServiceControllerStatus.Stopped)
                 {
-                    ProgressMessage.Content = $"Starting Service {serviceName}";
+                    this.ProgressMessage.Content = $"Starting Service {serviceName}";
                     service.Start();
                     service.WaitForStatus(ServiceControllerStatus.Running, timeout);
                 }
 
-                ProgressMessage.Content = $"Service {serviceName} Started Successfully";
+                this.ProgressMessage.Content = $"Service {serviceName} Started Successfully";
             }
             catch
             {
-                ProgressMessage.Content = $"Service {serviceName} failed to restart Successfully";
+                this.ProgressMessage.Content = $"Service {serviceName} failed to restart Successfully";
             }
         }
 
         private void OpenWebApp_Click(object sender, RoutedEventArgs e)
         {
-            Process.Start("cmd", "/c start http://localhost:5000");
+            _ = Process.Start("cmd", "/c start http://localhost:5000");
         }
     }
 }
