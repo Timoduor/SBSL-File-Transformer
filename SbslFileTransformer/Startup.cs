@@ -251,7 +251,7 @@ namespace SbslFileTransformer
                 .Register(i => OnAppShutdown((Tuple<IMemoryCache, ILogger<Startup>>)i), appShutdownInput);
 
             _ = app.UseDeveloperExceptionPage();
-            _ = app.UseDatabaseErrorPage();
+
             _ = app.UseSerilogRequestLogging(config =>
             {
                 config.IncludeQueryInRequestPath = true;
