@@ -357,15 +357,17 @@ namespace SbslFileTransformer.Controllers
             {
                 connection.Open();
 
+                var levels = GetLogLevelsAbove(LogLevel.Warning);
+
                 var commandMaxDate = connection.CreateCommand();
-                commandMaxDate.CommandText = @"SELECT Timestamp FROM Logs ORDER BY Timestamp DESC LIMIT 1";
+                commandMaxDate.CommandText = @$"SELECT Timestamp FROM Logs WHERE LogLevel IN ({levels}) ORDER BY Timestamp DESC LIMIT 1";
 
                 var maxDate = DateTime.Parse(commandMaxDate.ExecuteScalar().ToString());
 
                 var command = connection.CreateCommand();
 
                 command.CommandText =
-                    $@"select Timestamp, LogLevel from logs where Timestamp > ""{maxDate.AddDays(days).ToString("yyyy-MM-dd")}""";
+                    $@"select Timestamp, LogLevel from logs WHERE LogLevel IN ({levels}) AND Timestamp > ""{maxDate.AddDays(days).ToString("yyyy-MM-dd")}""";
 
                 using (var reader = command.ExecuteReader())
                 {
