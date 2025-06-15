@@ -81,7 +81,7 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
                         //LOGIC FOR CHILD NODE
 
                         //The value at index 0 is null for the child row hence the check
-                        if ((reader.GetValue(19)?.ToString()?.Contains("Active") ?? false) || (reader.GetValue(19)?.ToString()?.Contains("Rejected") ?? false))//merged columns are counted separately
+                        if (reader.FieldCount >= 20 && ((reader.GetValue(19)?.ToString()?.Contains("Active") ?? false) || (reader.GetValue(19)?.ToString()?.Contains("Rejected") ?? false)))//merged columns are counted separately
                         {
                             //logic to read child columns
 
@@ -259,12 +259,15 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
             {
                 row.Type_id = "MT202";
             }
-            else if (!string.IsNullOrEmpty(reader.GetValue(19)?.ToString()) &&
-                     !code.Equals("Code - 032") &&
-                     ((reader.GetValue(19)?.ToString()?.Contains("Active") ?? false) ||
-                     (reader.GetValue(19)?.ToString()?.Contains("Rejected") ?? false)))
+            else if (reader.FieldCount >= 20)
             {
-                row.Type_id = "MT102";
+                if (!string.IsNullOrEmpty(reader.GetValue(19)?.ToString()) &&
+                    !code.Equals("Code - 032") &&
+                    ((reader.GetValue(19)?.ToString()?.Contains("Active") ?? false) ||
+                     (reader.GetValue(19)?.ToString()?.Contains("Rejected") ?? false)))
+                {
+                    row.Type_id = "MT102";
+                }
             }
             else if (row.Type != null && row.Status2 != null &&
                      row.Type.Contains("pacs.008. 001.08") &&
