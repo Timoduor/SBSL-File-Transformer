@@ -131,8 +131,19 @@ namespace SbslFileTransformer
                 .UseSerilog((context, services, config) =>
                 {
                     var signalRLogSink = services.GetRequiredService<SignalRLoggerSeriLogSink>();
-
                     _ = config.WriteTo.Sink(signalRLogSink);
+
+                    var connString = services.GetService<IConfiguration>().GetConnectionString("DefaultConnection");
+                    _ = config.WriteTo.MariaDB(connString, autoCreateTable: true);
+
+                    var logsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                        "SBSL_ETL", "logs");
+                    var logPathFiles = Path.Combine(logsFolder, "log_files");
+                    var formatter = new MessageTemplateTextFormatter(
+                        "${Timestamp} [{Level}] {Message:l}{NewLine:l}{Exception:l}", CultureInfo.CurrentCulture);
+                    _ = config.WriteTo.File(formatter,
+                        Path.Combine(Directory.GetCurrentDirectory(),
+                            Path.Combine(logPathFiles, $"{DateTime.Now.ToString("yyyyMMdd")}-SBSLETL.log")));
                 })
                 .ConfigureWebHostDefaults(webBuilder => { _ = webBuilder.UseStartup<Startup>(); });
         }

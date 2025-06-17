@@ -269,9 +269,7 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
                     row.Type_id = "MT102";
                 }
             }
-            else if (row.Type != null && row.Status2 != null &&
-                     row.Type.Contains("pacs.008. 001.08") &&
-                     row.Status2.Contains("Bulk"))
+            else if (!string.IsNullOrEmpty(row.Type) && row.Type.Contains("pacs.008. 001.08"))
             {
                 row.Type_id = "MT102";
             }
