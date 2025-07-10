@@ -133,11 +133,11 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
                             row.DR_CR = debitOrCreditRowTitle;
 
                             //method for the bulk colunm 
-                            if (string.IsNullOrEmpty(list.Last().Status2?.ToLower()))
+                            if (string.IsNullOrEmpty(list.Last().Status2?.Trim()))
                             {
                                 list.Last().Status2 = "Bulk";
 
-                                if (list.Last().Status2?.Contains("pacs.008. 001.08") ?? false)
+                                if (list.Last().Type?.Contains("pacs.008. 001.08") ?? false)
                                 {
                                     list.Last().Type_id = "MT102";
                                 }
@@ -205,6 +205,14 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
                             list.Add(row);
                         }
                     }
+
+                    list.ForEach(l =>
+                    {
+                        if (l.Type_id == "MT104" && string.IsNullOrEmpty(l.Status2))
+                        {
+                            l.Status2 = "Bulk";
+                        }
+                    });
                 }
             }
 
@@ -230,24 +238,11 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
 
         private void GetCol15TypeIdValue(string code, CountHeader row, IExcelDataReader reader)
         {
-            if (code.Equals("Code - 032"))
+            if (code.Equals("Code - 032") || code.Equals("Code - 035"))
             {
                 row.Type_id = "MT104";
             }
-            else if (code.Equals("Code - 035"))
-            {
-                row.Type_id = "MT104";
-            }
-
-            else if (code.Equals("Code - 012"))
-            {
-                row.Type_id = "MT971";
-            }
-            else if (code.Equals("Code - 011"))
-            {
-                row.Type_id = "MT971";
-            }
-            else if (code.Equals("Code - 010"))
+            else if (code.Equals("Code - 012") || code.Equals("Code - 011") || code.Equals("Code - 010"))
             {
                 row.Type_id = "MT971";
             }
@@ -259,17 +254,18 @@ namespace SbslFileTransformer.Converters.Rwanda.BNR
             {
                 row.Type_id = "MT202";
             }
-            else if (reader.FieldCount >= 20)
-            {
-                if (!string.IsNullOrEmpty(reader.GetValue(19)?.ToString()) &&
+            else if (reader.FieldCount >= 20
+                     && !string.IsNullOrEmpty(reader.GetValue(19)?.ToString()) &&
                     !code.Equals("Code - 032") &&
                     ((reader.GetValue(19)?.ToString()?.Contains("Active") ?? false) ||
                      (reader.GetValue(19)?.ToString()?.Contains("Rejected") ?? false)))
-                {
-                    row.Type_id = "MT102";
-                }
+            {
+                row.Type_id = "MT102";
             }
-            else if (!string.IsNullOrEmpty(row.Type) && row.Type.Contains("pacs.008. 001.08"))
+            else if (!string.IsNullOrEmpty(row.Type)
+                     && !string.IsNullOrEmpty(row.Status2)
+                     && row.Type.Contains("pacs.008. 001.08")
+                     && row.Status2.Contains("Bulk"))
             {
                 row.Type_id = "MT102";
             }
