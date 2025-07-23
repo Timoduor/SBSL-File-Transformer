@@ -130,12 +130,15 @@ namespace SbslFileTransformer
                 .UseWindowsService()
                 .UseSerilog((context, services, config) =>
                 {
+                    //signal_R
                     var signalRLogSink = services.GetRequiredService<SignalRLoggerSeriLogSink>();
                     _ = config.WriteTo.Sink(signalRLogSink);
 
+                    //Postgres
                     var connString = services.GetService<IConfiguration>().GetConnectionString("DefaultConnection");
                     _ = config.WriteTo.MariaDB(connString, autoCreateTable: true);
 
+                    //file
                     var logsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                         "SBSL_ETL", "logs");
                     var logPathFiles = Path.Combine(logsFolder, "log_files");
