@@ -107,12 +107,12 @@ namespace SbslFileTransformer.Converters.Tanzania
                 journal.UtrnNo = matches.TryGetValue("refNo", out value) ? value.Trim() : "";
 
 
-                if (DateTime.TryParseExact(matches["transDate"].Trim() + " " + matches["transTime"].Trim(), "yy/MM/dd HH:mm:ss", CultureInfo.InvariantCulture,
+                if (matches.TryGetValue("transDate", out var transDateValue) && matches.TryGetValue("transTime", out var transTimeValue) && DateTime.TryParseExact(transDateValue.Trim() + " " + transTimeValue.Trim(), "yy/MM/dd HH:mm:ss", CultureInfo.InvariantCulture,
                                         DateTimeStyles.None, out var transDate))
                 {
                     journal.TrnDate = transDate;
                 }
-                else if (DateTime.TryParseExact(matches["transDate2"].Trim() + " " + matches["transTime2"].Trim(), "yy.MM.dd HH:mm", CultureInfo.InvariantCulture,
+                else if (matches.TryGetValue("transDate2", out var transDateValue2) && matches.TryGetValue("transTime2", out var transTimeValue2) && DateTime.TryParseExact(transDateValue2.Trim() + " " + transTimeValue2.Trim(), "yy.MM.dd HH:mm", CultureInfo.InvariantCulture,
                             DateTimeStyles.None, out var transDate2))
                 {
                     journal.TrnDate = transDate2;
