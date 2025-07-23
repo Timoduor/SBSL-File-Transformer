@@ -99,16 +99,16 @@ namespace SbslFileTransformer
 
                 var connString = host.Services.GetService<IConfiguration>().GetConnectionString("DefaultConnection");
 
-                Log.Logger = new LoggerConfiguration()
-                    .MinimumLevel.Information()
-                    .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore"))
-                    .Enrich.FromLogContext()
-                    .WriteTo.MariaDB(connString, autoCreateTable: true)
-                    .WriteTo.Sink(host.Services.GetRequiredService<SignalRLoggerSeriLogSink>())
-                    .WriteTo.Console()
-                    .WriteTo.File(formatter,
-                        Path.Combine(Directory.GetCurrentDirectory(), Path.Combine(logPathFiles, $"{DateTime.Now.ToString("yyyyMMdd")}-SBSLETL.log")))
-                    .CreateLogger();
+                //Log.Logger = new LoggerConfiguration()
+                //    .MinimumLevel.Information()
+                //    .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore"))
+                //    .Enrich.FromLogContext()
+                //    .WriteTo.MariaDB(connString, autoCreateTable: true)
+                //    .WriteTo.Sink(host.Services.GetRequiredService<SignalRLoggerSeriLogSink>())
+                //    .WriteTo.Console()
+                //    .WriteTo.File(formatter,
+                //        Path.Combine(Directory.GetCurrentDirectory(), Path.Combine(logPathFiles, $"{DateTime.Now.ToString("yyyyMMdd")}-SBSLETL.log")))
+                //    .CreateLogger();
 
                 ChangeServiceStartParams();
             }
@@ -130,6 +130,10 @@ namespace SbslFileTransformer
                 .UseWindowsService()
                 .UseSerilog((context, services, config) =>
                 {
+                    _ = config.MinimumLevel.Information()
+                        .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore"))
+                        .Enrich.FromLogContext();
+
                     //signal_R
                     var signalRLogSink = services.GetRequiredService<SignalRLoggerSeriLogSink>();
                     _ = config.WriteTo.Sink(signalRLogSink);
@@ -147,6 +151,10 @@ namespace SbslFileTransformer
                     _ = config.WriteTo.File(formatter,
                         Path.Combine(Directory.GetCurrentDirectory(),
                             Path.Combine(logPathFiles, $"{DateTime.Now.ToString("yyyyMMdd")}-SBSLETL.log")));
+
+                    //console and debug
+                    _ = config.WriteTo.Console();
+                    _ = config.WriteTo.Debug();
                 })
                 .ConfigureWebHostDefaults(webBuilder => { _ = webBuilder.UseStartup<Startup>(); });
         }

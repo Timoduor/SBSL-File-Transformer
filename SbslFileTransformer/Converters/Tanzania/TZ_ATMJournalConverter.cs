@@ -48,8 +48,6 @@ namespace SbslFileTransformer.Converters.Tanzania
                 }
             }
 
-            File.AppendAllLines("C:\\Users\\bryso\\Downloads\\AtmJournals.txt", atmJrnlTransactions);
-
             var atmJournals = new List<TzAtmJournal>();
 
             var regexPairs = new Dictionary<string, string>
@@ -57,6 +55,7 @@ namespace SbslFileTransformer.Converters.Tanzania
                 ["refNo"] = @"REF\.?NO:\s*(?<value>\d+)",
                 ["cardNo"] = @"CRD:\s*(?<value>\d{6}X{6}\d{4})",
                 ["cardNo2"] = @"EMV AID.*?\/\s+(?<value>\d{6}\*{6}\d{4})",
+                ["cardNo3"] = @"EMV AID.*?\/\s+(?<value>\d{6}X{6}\d{4})",
                 ["amount"] = @"DISP:\s*[A-Z]{3}\s*(?<value>[\d,]+\.\d{2})",
                 ["currency"] = @"DISP:\s*(?<value>[A-Z]{3})",
                 ["transDate"] = @"(?<value>\d{2}/\d{2}/\d{2})\s+\d{2}:\d{2}:\d{2}",
@@ -65,8 +64,8 @@ namespace SbslFileTransformer.Converters.Tanzania
                 ["transTime2"] = @"\d{2}.\d{2}.\d{2}\s+(?<value>\d{2}:\d{2})",
                 ["reasonCode"] = @"RESP:\s*(?<value>\d+)",
                 ["successful"] = @"(?<value>REQ SERVICED|DECLINED|FAILED)",
-                ["atmNo"] = @"(?<value>\d{8})\s+\d{2}\.\d{2}\.\d{2}\b",
-                ["atmNo2"] = @"(\d{2}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}).*(?<value>.{8})\b",
+                ["atmNo"] = @"(?<value>\d{8})\s+\d{2}\.\d{2}\.\d{2}",
+                ["atmNo2"] = @"(\d{2}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}).*(?<value>[^\s]{8})",
                 ["refAmtCurr"] = @"(?<reference>\d+/\d+)\s+(?<amount>[+-]?\d+\.\d{2})\s+(?<currency>[A-Z]{3})",
             };
 
@@ -86,9 +85,14 @@ namespace SbslFileTransformer.Converters.Tanzania
                         }
                         else if (pair.Key == "refAmtCurr")
                         {
-                            matches["refNo"] = match.Groups["reference"].Value.Trim();
-                            matches["amount"] = match.Groups["amount"].Value.Trim();
-                            matches["currency"] = match.Groups["currency"].Value.Trim();
+                            if (!string.IsNullOrEmpty(match.Groups["reference"].Value) &&
+                               !string.IsNullOrEmpty(match.Groups["amount"].Value) &&
+                               !string.IsNullOrEmpty(match.Groups["currency"].Value))
+                            {
+                                matches["refNo"] = match.Groups["reference"].Value.Trim();
+                                matches["amount"] = match.Groups["amount"].Value.Trim();
+                                matches["currency"] = match.Groups["currency"].Value.Trim();
+                            }
                         }
                     }
                 }
@@ -97,14 +101,14 @@ namespace SbslFileTransformer.Converters.Tanzania
 
                 journal.Amount = matches.TryGetValue("amount", out var value) ? value.Trim() : "";
                 journal.Reference = matches.TryGetValue("refNo", out value) ? value.Trim() : "";
-                journal.CardNo = matches.TryGetValue("cardNo", out value) ? value.Trim() : matches.TryGetValue("cardNo2", out value) ? value.Trim() : "";
+                journal.CardNo = matches.TryGetValue("cardNo", out value) ? value.Trim() :
+                    matches.TryGetValue("cardNo2", out value) ? value.Trim() :
+                    matches.TryGetValue("cardNo3", out value) ? value.Trim() : "";
                 journal.Successful = matches.TryGetValue("successful", out value) ? value.Trim() : "";
                 journal.ReasonCode = matches.TryGetValue("reasonCode", out value) ? value.Trim() : "";
                 journal.Currency = matches.TryGetValue("currency", out value) ? value.Trim() : "";
-                journal.AtmNo = matches.TryGetValue("atmNo", out value) ? value.Trim() : matches.TryGetValue("atmNo2", out value) ? value.Trim() : "";
-                journal.AuthNo = matches.TryGetValue("successful", out value) ? value.Trim() : "";
-                journal.AmountRemaining = matches.TryGetValue("amount", out value) ? value.Trim() : "";
-                journal.UtrnNo = matches.TryGetValue("refNo", out value) ? value.Trim() : "";
+                journal.AtmNo = matches.TryGetValue("atmNo", out value) ? value.Trim() :
+                    matches.TryGetValue("atmNo2", out value) ? value.Trim() : "";
 
 
                 if (matches.TryGetValue("transDate", out var transDateValue) && matches.TryGetValue("transTime", out var transTimeValue) && DateTime.TryParseExact(transDateValue.Trim() + " " + transTimeValue.Trim(), "yy/MM/dd HH:mm:ss", CultureInfo.InvariantCulture,
@@ -145,6 +149,9 @@ namespace SbslFileTransformer.Converters.Tanzania
             {
                 using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
+                    csv.WriteHeader<TzAtmJournal>();
+                    csv.NextRecord();
+
                     foreach (var row in rows)
                     {
                         csv.WriteRecord(row);
