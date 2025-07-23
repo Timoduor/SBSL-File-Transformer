@@ -65,7 +65,7 @@ namespace SbslFileTransformer.Converters.Tanzania
                 ["reasonCode"] = @"RESP:\s*(?<value>\d+)",
                 ["successful"] = @"(?<value>REQ SERVICED|DECLINED|FAILED)",
                 ["atmNo"] = @"(?<value>\d{8})\s+\d{2}\.\d{2}\.\d{2}",
-                ["atmNo2"] = @"(\d{2}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}).*(?<value>[^\s]{8})",
+                ["atmNo2"] = @"(\d{2}/\d{2}/\d{2} \d{2}:\d{2}:\d{2})\s{1}(?<value>[^\s]{8})",
                 ["refAmtCurr"] = @"(?<reference>\d+/\d+)\s+(?<amount>[+-]?\d+\.\d{2})\s+(?<currency>[A-Z]{3})",
             };
 
