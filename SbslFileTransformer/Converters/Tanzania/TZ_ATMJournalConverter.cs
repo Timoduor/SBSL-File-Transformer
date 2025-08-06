@@ -67,6 +67,7 @@ namespace SbslFileTransformer.Converters.Tanzania
                 ["atmNo"] = @"(?<value>\d{8})\s+\d{2}\.\d{2}\.\d{2}",
                 ["atmNo2"] = @"(\d{2}/\d{2}/\d{2} \d{2}:\d{2}:\d{2})\s{1}(?<value>[^\s]{8})",
                 ["refAmtCurr"] = @"(?<reference>\d+/\d+)\s+(?<amount>[+-]?\d+\.\d{2})\s+(?<currency>[A-Z]{3})",
+                ["cashTaken"] = @"\b(?<value>\d{2}:\d{2}:\d{2})\s+CASH TAKEN\b"
             };
 
             foreach (var line in atmJrnlTransactions)
@@ -109,6 +110,7 @@ namespace SbslFileTransformer.Converters.Tanzania
                 journal.Currency = matches.TryGetValue("currency", out value) ? value.Trim() : "";
                 journal.AtmNo = matches.TryGetValue("atmNo", out value) ? value.Trim() :
                     matches.TryGetValue("atmNo2", out value) ? value.Trim() : "";
+                journal.CashTaken = matches.TryGetValue("cashTaken", out value) ? value.Trim() : "";
 
 
                 if (matches.TryGetValue("transDate", out var transDateValue) && matches.TryGetValue("transTime", out var transTimeValue) && DateTime.TryParseExact(transDateValue.Trim() + " " + transTimeValue.Trim(), "yy/MM/dd HH:mm:ss", CultureInfo.InvariantCulture,
@@ -179,7 +181,7 @@ namespace SbslFileTransformer.Converters.Tanzania
 
             public string AuthNo { get; set; }
 
-            public string AmountRemaining { get; set; }
+            public string CashTaken { get; set; }
 
             public string Currency { get; set; }
 
