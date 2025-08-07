@@ -86,7 +86,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     foreach (string file in files)
                     {
                         //FILE PATH SHOULD HAVE FOLDER NAME MT300 SOMEWHERE IN IT
-                        if (file.ToLower().Contains("cards_atm") && file.ToLower().Contains("jrn_atm") && file.ToLower().Contains("imke"))
+                        if (file.ToLower().Contains("atms") && file.ToLower().Contains("e-jrn") && file.ToLower().Contains("imke"))
                         {
                             SftpUploadedFile fileToProcess = uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
                             if (fileToProcess != null && fileToProcess.Converted == false)
@@ -108,7 +108,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Kenya
                     foreach (string file in files_)
                     {
                         //FILE PATH SHOULD HAVE FOLDER NAME MT300 SOMEWHERE IN IT
-                        if (file.ToLower().Contains("cards_atm") && file.ToLower().Contains("jrn_atm") && file.ToLower().Contains("imke"))
+                        if (file.ToLower().Contains("atms") && file.ToLower().Contains("e-jrn") && file.ToLower().Contains("imke"))
                         {
                             SftpUploadedFile fileToProcess = uploadedFiles.FirstOrDefault(f => f.FilePath.ToLower() == file.ToLower());
                             if (fileToProcess != null && fileToProcess.Converted == false)
