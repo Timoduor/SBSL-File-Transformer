@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+
 using OfficeOpenXml;
 
 namespace SbslFileTransformer.Converters.Kenya.Mpesa
@@ -10,22 +11,26 @@ namespace SbslFileTransformer.Converters.Kenya.Mpesa
         public void FindAndReplaceOccurrences(string inputFile, string searchText, string replaceText,
             string outputFile = null)
         {
-            using (ExcelPackage package = new ExcelPackage(new FileInfo(inputFile)))
+            ExcelPackage.License.SetNonCommercialOrganization("SBSL-IMB");
+            using (var package = new ExcelPackage(new FileInfo(inputFile)))
             {
-                ExcelWorksheet sheet = package.Workbook.Worksheets.First();
+                var sheet = package.Workbook.Worksheets.First();
 
-                System.Collections.Generic.IEnumerable<ExcelRangeBase> query = from cell in sheet.Cells.Where(c => !string.IsNullOrEmpty(c.Value?.ToString()))
-                                                                               where cell.Value?.ToString()?.ToLower().Contains(searchText.ToLower()) == true
-                                                                               select cell;
+                var query = from cell in sheet.Cells.Where(c => !string.IsNullOrEmpty(c.Value?.ToString()))
+                            where cell.Value?.ToString()?.ToLower().Contains(searchText.ToLower()) == true
+                            select cell;
 
-                foreach (ExcelRangeBase cell in query) cell.Value = cell.Value.ToString()?.Replace(searchText, replaceText);
+                foreach (var cell in query)
+                {
+                    cell.Value = cell.Value.ToString()?.Replace(searchText, replaceText);
+                }
 
                 if (string.IsNullOrEmpty(outputFile))
                 {
-                    string outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
-                    Directory.CreateDirectory(outputFolder);
+                    var outputFolder = Path.Combine(Path.GetDirectoryName(inputFile), "Conv");
+                    _ = Directory.CreateDirectory(outputFolder);
 
-                    string fileName = Path.GetFileNameWithoutExtension(inputFile);
+                    var fileName = Path.GetFileNameWithoutExtension(inputFile);
 
                     outputFile = Path.Combine(outputFolder,
                         $"{DateTime.Now:yyyy_MM_dd_HH_mm_ss}_{fileName.Substring(Math.Max(0, fileName.Length - 10))}.xlsx");
@@ -37,8 +42,8 @@ namespace SbslFileTransformer.Converters.Kenya.Mpesa
 
         private static string GetExcelColumnName(int columnNumber)
         {
-            int dividend = columnNumber;
-            string columnName = string.Empty;
+            var dividend = columnNumber;
+            var columnName = string.Empty;
             int modulo;
 
             while (dividend > 0)

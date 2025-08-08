@@ -8,12 +8,16 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using ExcelDataReader;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
+
 using SbslFileTransformer.Data;
 using SbslFileTransformer.Infrastructure.Helpers;
 using SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers.Interfaces;
@@ -26,10 +30,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 {
     public class ReportProcessor : IReportProcessor
     {
-        readonly ILogger<ReportEngineJob> Logger;
-        readonly IServiceScopeFactory ServiceScopeFactory;
-        readonly ReportConfigModel ReportConfigModel;
-        readonly IReportsDownloader ReportsDownloader;
+        private readonly ILogger<ReportEngineJob> Logger;
+        private readonly IServiceScopeFactory ServiceScopeFactory;
+        private readonly ReportConfigModel ReportConfigModel;
+        private readonly IReportsDownloader ReportsDownloader;
 
         public ReportProcessor(ILogger<ReportEngineJob> logger, IServiceScopeFactory serviceScopeFactory, IReportsDownloader reportsDownloader)
         {
@@ -49,7 +53,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
                 var escalations = await dbContext.ReportConfigurations.Where(e => e.IsEnabled).ToListAsync();
 
-                List<Task> tasks = new List<Task>();
+                var tasks = new List<Task>();
 
                 foreach (var reportUser in unprocessedReports)
                 {
@@ -85,7 +89,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
             var count = 0;
 
-            List<Task> reportTasks = new List<Task>();
+            var reportTasks = new List<Task>();
 
             foreach (var report in reports)
             {
@@ -137,7 +141,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
             //ignore balance proofing reports
             if (inputFile.Contains("proofing", StringComparison.CurrentCultureIgnoreCase))
+            {
                 return inputFile;
+            }
 
             var inputFileName = Path.GetFileName(inputFile);
 
@@ -146,6 +152,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
             try
             {
+                ExcelPackage.License.SetNonCommercialOrganization("SBSL-IMB");
                 using (var package = new ExcelPackage(new FileInfo(inputFile)))
                 {
                     var sheet = package.Workbook.Worksheets.First();
@@ -233,7 +240,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
         /// <returns></returns>
         private List<KeyValuePair<ReportModel, ReportConfiguration>> GetMatchedEscalations(ReportModel report, List<ReportConfiguration> escalations)
         {
-            Stopwatch sw = new Stopwatch();
+            var sw = new Stopwatch();
             sw.Start();
 
             var matchedConfiguration = new List<KeyValuePair<ReportModel, ReportConfiguration>>();
@@ -244,7 +251,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
             var reportColumnTokens = reportContent.Where(x => x != null).SelectMany(x => new string[]
                         {
-                            x.Account, 
+                            x.Account,
                             x.AccName,
                             x.ActiveCertStatus,
                             x.Amount,
@@ -271,7 +278,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             foreach (var columnToken in reportColumnTokens)
             {
                 if (!string.IsNullOrEmpty(columnToken))
+                {
                     reportTextTokens.AddRange(columnToken.Split(new char[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries));
+                }
             }
 
             foreach (var escalation in escalations)
@@ -316,7 +325,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 {
                     using (var reader = ExcelReaderFactory.CreateReader(stream))
                     {
-                        DataSet dataSet = reader.AsDataSet(new ExcelDataSetConfiguration()
+                        var dataSet = reader.AsDataSet(new ExcelDataSetConfiguration()
                         {
                             ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
                             {
@@ -326,11 +335,11 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
                         var tables = dataSet.Tables.Cast<DataTable>();
 
-                        Parallel.ForEach(tables, table =>
+                        _ = Parallel.ForEach(tables, table =>
                         {
                             var rows = table.Rows.Cast<DataRow>();
 
-                            Parallel.ForEach(rows, row =>
+                            _ = Parallel.ForEach(rows, row =>
                             {
                                 try
                                 {
@@ -339,67 +348,109 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                                     var colCount = row.Table.Columns.Count;
 
                                     if (colCount > 0)
+                                    {
                                         openItem.Account = row.ItemArray[0]?.ToString().Trim();
+                                    }
 
                                     if (colCount > 1)
+                                    {
                                         openItem.Entity = row.ItemArray[1]?.ToString().Trim();
+                                    }
 
                                     if (colCount > 2)
+                                    {
                                         openItem.AccName = row.ItemArray[2]?.ToString().Trim();
+                                    }
 
                                     if (colCount > 3)
+                                    {
                                         openItem.AccName = row.ItemArray[3]?.ToString().Trim();
+                                    }
 
                                     if (colCount > 4)
+                                    {
                                         openItem.Amount = row.ItemArray[4]?.ToString().Trim();
+                                    }
 
                                     if (colCount > 5)
+                                    {
                                         openItem.ItemSubType = row.ItemArray[5]?.ToString().Trim();
+                                    }
 
                                     if (colCount > 6)
+                                    {
                                         openItem.WeBalance = row.ItemArray[6]?.ToString().Trim();
+                                    }
 
                                     if (colCount > 7)
+                                    {
                                         openItem.TheyBalance = row.ItemArray[7]?.ToString().Trim();
+                                    }
 
                                     if (colCount > 8)
+                                    {
                                         openItem.ItemSide = row.ItemArray[8]?.ToString().Trim();
+                                    }
 
                                     if (colCount > 9)
+                                    {
                                         openItem.TransNarrative = row.ItemArray[9]?.ToString().Trim();
+                                    }
 
                                     if (colCount > 10)
+                                    {
                                         openItem.Reference1 = row.ItemArray[10]?.ToString().Trim();
+                                    }
 
                                     if (colCount > 11)
+                                    {
                                         openItem.Reference2 = row.ItemArray[11]?.ToString().Trim();
+                                    }
 
                                     if (colCount > 12)
+                                    {
                                         openItem.Reference3 = row.ItemArray[12]?.ToString().Trim();
+                                    }
 
                                     if (colCount > 13)
+                                    {
                                         openItem.ActiveCertStatus = row.ItemArray[13]?.ToString().Trim();
+                                    }
 
                                     if (colCount > 14)
+                                    {
                                         openItem.FunctionalArea = row.ItemArray[14]?.ToString().Trim();
+                                    }
 
                                     if (colCount > 15)
+                                    {
                                         openItem.ItemId = row.ItemArray[15]?.ToString().Trim();
+                                    }
 
                                     if (colCount > 16)
+                                    {
                                         openItem.Column16 = row.ItemArray[16]?.ToString().Trim();
+                                    }
 
                                     if (colCount > 17)
+                                    {
                                         openItem.Column17 = row.ItemArray[17]?.ToString().Trim();
+                                    }
 
                                     if (colCount > 18)
+                                    {
                                         openItem.Column18 = row.ItemArray[18]?.ToString().Trim();
+                                    }
 
                                     if (colCount > 19)
+                                    {
                                         openItem.Column19 = row.ItemArray[19]?.ToString().Trim();
+                                    }
 
                                     if (colCount > 20)
+                                    {
                                         openItem.Column20 = row.ItemArray[20]?.ToString().Trim();
+                                    }
 
                                     openItems.Add(openItem);
                                 }
@@ -429,7 +480,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
         {
             var escalationReports = new List<EscalationReport>();
 
-            List<Task> escalationTasks = new List<Task>();
+            var escalationTasks = new List<Task>();
 
             foreach (var escalation in matchedEscalations)
             {
@@ -446,8 +497,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
 
                         escalationReport.OverdueReportPath = await CreateEscalationReportFile(daysOverdue, report);
 
-                        if(!string.IsNullOrEmpty(escalationReport.OverdueReportPath))
+                        if (!string.IsNullOrEmpty(escalationReport.OverdueReportPath))
+                        {
                             escalationReports.Add(escalationReport);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -466,9 +519,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
             var tempFilePath = Path.Combine(await FileHelpers.GetTempPath(ServiceScopeFactory),
                 $"Escalation_{DateTime.Now.ToString("yyyy_MM_dd_")}_{RandomNumberGen2.Next()}_{report.Name}_{daysOverdue}_Days_Overdue_.xlsx").ToUpper();
 
-            int countMatched = 0;
+            var countMatched = 0;
 
             //DELETE ALL OTHER ENTRIES THAT ARE NOT IN THE OVERDUE DAYS
+            ExcelPackage.License.SetNonCommercialOrganization("SBSL-IMB");
             using (var package = new ExcelPackage(new FileInfo(report.ModifiedReportPath)))
             {
                 var sheet = package.Workbook.Worksheets.First();
@@ -526,7 +580,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                     {
                         if (!dbContext.ProcessedReports.Any(p => p.Id == report.ReportId))
                         {
-                            await dbContext.ProcessedReports.AddAsync(new ProcessedReport()
+                            _ = await dbContext.ProcessedReports.AddAsync(new ProcessedReport()
                             {
                                 ReportId = report.ReportId,
                                 Creator = report.Creator,
@@ -540,7 +594,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                             });
                         }
                     }
-                    await dbContext.SaveChangesAsync();
+                    _ = await dbContext.SaveChangesAsync();
                 }
             }
             catch (Exception ex)
@@ -557,9 +611,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Reporting.Helpers
                 {
                     var recipients = report.Escalation.RecipientEmails.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
 
-                    string[] attachment = report.Escalation.IsManagerReport ? new[] { report.OverdueReportPath } : new[] { report.OriginalReport.ModifiedReportPath };
+                    var attachment = report.Escalation.IsManagerReport ? new[] { report.OverdueReportPath } : new[] { report.OriginalReport.ModifiedReportPath };
 
-                    string emailSubject = report.Escalation.IsManagerReport ? $"ESCALATION Report for {report.OriginalReport.Name.ToUpper()} with days overdue greater than or equal to {report.Escalation.DaysOverdue} "
+                    var emailSubject = report.Escalation.IsManagerReport ? $"ESCALATION Report for {report.OriginalReport.Name.ToUpper()} with days overdue greater than or equal to {report.Escalation.DaysOverdue} "
                                                         : $"EXCEPTIONS Report for report: {report.OriginalReport.Name.ToUpper()}";
 
                     await emailSender.SendMessage(recipients, emailSubject,
