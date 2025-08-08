@@ -170,13 +170,16 @@ namespace SbslFileTransformer.Converters.Kenya
 
             var inputFull = Path.GetFullPath(inputFile);
 
-            // 2. Get the directory of the .JRN file; this is where Conv/ will be created
-            var baseDir = Path.GetDirectoryName(inputFull)
+            // 2. Get the directory of the .JRN file; 
+            var inputDir = Path.GetDirectoryName(inputFull)
                 ?? throw new InvalidOperationException($"Cannot determine directory of {inputFull}");
 
 
             // 3. Create a sibling "Conv" folder next to the .jrn file
-            var outDir = Path.Combine(baseDir, "Conv");
+            var parentDir = Directory.GetParent(inputDir)?.FullName
+                ?? throw new InvalidOperationException($"Cannot determine parent directory of {inputDir}");
+
+            var outDir = Path.Combine(parentDir, "Conv");
             Directory.CreateDirectory(outDir);
 
             // 4. Generate a safe suffix (last 14 chars of filename, no invalid chars or spaces)
