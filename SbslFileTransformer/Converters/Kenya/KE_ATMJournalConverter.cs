@@ -14,8 +14,8 @@ namespace SbslFileTransformer.Converters.Kenya
         private static readonly Regex AidCardRegex = new Regex(@"EMV AID (?<UTRN>A[0-9]{12,}) / (?<Card>\d{6}[*X]{6,}\d{4}) STARTED", RegexOptions.Compiled);
         private static readonly Regex AmountRegex = new Regex(@"AMOUNT (?<EnteredAmt>\d+) ENTERED", RegexOptions.Compiled);
         private static readonly Regex ReplyRegex = new Regex(@"TRANSACTION REPLY NEXT (?<RC>\d+) FUNCTION (?<AuthNo>[A-Z0-9]+)", RegexOptions.Compiled);
-        private static readonly Regex ReferenceRegex = new Regex(@"(?<Reference>[A-Z0-9]+/\d+)\s+\+(?<Amount>\d+(\.\d{2})?)\s+(?<Currency>[A-Z]{3})", RegexOptions.Compiled);
-        private static readonly Regex FallbackReferenceRegex = new Regex(@"([A-Z0-9]+/\d+)", RegexOptions.Compiled);
+        private static readonly Regex ReferenceRegex = new Regex(@"(?<Reference>[A-Z0-9]+\s*/\s*\d+)\s+\+(?<Amount>\d+(\.\d{2})?)\s+(?<Currency>[A-Z]{3})", RegexOptions.Compiled);
+        private static readonly Regex FallbackReferenceRegex = new Regex(@"([A-Z0-9]+\s*/\s*\d+)", RegexOptions.Compiled);
         private static readonly Regex FallbackCurrencyRegex = new Regex(@"\b(KES|USD|EUR|GBP)\b", RegexOptions.Compiled);
         private static readonly Regex DateLineRegex = new Regex(@"^\d+\s+(?<Date>\d{2}\.\d{2}\.\d{2})\s+(?<Hour>\d{2}:\d{2})", RegexOptions.Compiled);
         private static readonly Regex EndRegex = new Regex(@"(?<EndTime>\d{2}:\d{2}:\d{2})\s+<- TRANSACTION END", RegexOptions.Compiled);
