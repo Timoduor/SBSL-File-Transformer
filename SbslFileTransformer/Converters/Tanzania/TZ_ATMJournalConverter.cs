@@ -60,8 +60,18 @@ namespace SbslFileTransformer.Converters.Tanzania
                 ["currency"] = @"DISP:\s*(?<value>[A-Z]{3})",
                 ["transDate"] = @"(?<value>\d{2}/\d{2}/\d{2})\s+\d{2}:\d{2}:\d{2}",
                 ["transDate2"] = @"(?<value>\d{2}.\d{2}.\d{2})\s+\d{2}:\d{2}",
+                ["transDate3"] = @"(?<value>\d{2}/\d{2}/\d{2})\s+\d{2}:\d{2}:\d{2}",
+                ["transDate4"] = @"(?<value>\d{4}.\d{2}.\d{2})\s+\d{2}:\d{2}",
+                ["transDate5"] = @"(?<value>\d{4}/\d{2}/\d{2})\s+\d{2}:\d{2} \d{2}",
+                ["transDate6"] = @"(?<value>\d{2}.\d{2}.\d{4})\s+\d{2}:\d{2}",
+                ["transDate7"] = @"(?<value>\d{2}/\d{2}/\d{2})\s+\d{2}:\d{2}:\d{2}",
                 ["transTime"] = @"\d{2}/\d{2}/\d{2}\s+(?<value>\d{2}:\d{2}:\d{2})",
                 ["transTime2"] = @"\d{2}.\d{2}.\d{2}\s+(?<value>\d{2}:\d{2})",
+                ["transTime3"] = @"\d{2}/\d{2}/\d{2}\s+(?<value>\d{2}:\d{2}:\d{2})",
+                ["transTime4"] = @"\d{4}.\d{2}.\d{2}\s+(?<value>\d{2}:\d{2})",
+                ["transTime5"] = @"\d{4}/\d{2}/\d{2}\s+(?<value>\d{2}:\d{2} \d{2})",
+                ["transTime6"] = @"\d{2}.\d{2}.\d{4}\s+(?<value>\d{2}:\d{2})",
+                ["transTime7"] = @"\d{2}/\d{2}/\d{2}\s+(?<value>\d{2}:\d{2}:\d{2})",
                 ["reasonCode"] = @"RESP:\s*(?<value>\d+)",
                 ["successful"] = @"(?<value>REQ SERVICED|DECLINED|FAILED)",
                 ["atmNo"] = @"(?<value>\d{8})\s+\d{2}\.\d{2}\.\d{2}",
@@ -113,22 +123,21 @@ namespace SbslFileTransformer.Converters.Tanzania
                 journal.CashTaken = matches.TryGetValue("cashTaken", out value) ? value.Trim() : "";
 
 
-                if (matches.TryGetValue("transDate", out var transDateValue) && matches.TryGetValue("transTime", out var transTimeValue) && DateTime.TryParseExact(transDateValue.Trim() + " " + transTimeValue.Trim(), "yy/MM/dd HH:mm:ss", CultureInfo.InvariantCulture,
-                                        DateTimeStyles.None, out var transDate))
+                if (ExtractDate("transDate", "transTime", matches, "yy/MM/dd HH:mm:ss", journal) ||
+                    ExtractDate("transDate2", "transTime2", matches, "yy.MM.dd HH:mm", journal) ||
+                    ExtractDate("transDate3", "transTime3", matches, "dd/MM/yy HH:mm:ss", journal) ||
+                    ExtractDate("transDate4", "transTime4", matches, "dd.MM.yy HH:mm", journal) ||
+                    ExtractDate("transDate5", "transTime5", matches, "yyyy.MM.dd HH:mm", journal) ||
+                    ExtractDate("transDate6", "transTime6", matches, "yyyy/MM/dd HH:mm ss", journal) ||
+                    ExtractDate("transDate7", "transTime7", matches, "dd.MM.yyyy HH:mm", journal) ||
+                    ExtractDate("transDate8", "transTime8", matches, "dd/MM/yyyy HH:mm:ss", journal))
                 {
-                    journal.TrnDate = transDate;
-                }
-                else if (matches.TryGetValue("transDate2", out var transDateValue2) && matches.TryGetValue("transTime2", out var transTimeValue2) && DateTime.TryParseExact(transDateValue2.Trim() + " " + transTimeValue2.Trim(), "yy.MM.dd HH:mm", CultureInfo.InvariantCulture,
-                            DateTimeStyles.None, out var transDate2))
-                {
-                    journal.TrnDate = transDate2;
+                    atmJournals.Add(journal);
                 }
                 else
                 {
-                    throw new Exception("Unable to get proper date format from journal entry!");
+                    throw new Exception("Unable to get proper date format from journal entry!");//this will cause the whole file to be skipped even if there is a Cash Taken entry
                 }
-
-                atmJournals.Add(journal);
             }
 
             if (string.IsNullOrEmpty(outputFile))
@@ -143,6 +152,18 @@ namespace SbslFileTransformer.Converters.Tanzania
             }
 
             WriteToFile(atmJournals, outputFile);
+        }
+
+        private bool ExtractDate(string matchDate, string matchTime, Dictionary<string, string> matches, string dateFormat, TzAtmJournal journal)
+        {
+            if (matches.TryGetValue(matchDate, out var transDateValue) && matches.TryGetValue(matchTime, out var transTimeValue) && DateTime.TryParseExact(transDateValue.Trim() + " " + transTimeValue.Trim(), dateFormat, CultureInfo.InvariantCulture,
+                    DateTimeStyles.None, out var transDate))
+            {
+                journal.TrnDate = transDate;
+                return true;
+            }
+
+            return false;
         }
 
         private void WriteToFile(List<TzAtmJournal> rows, string outputFile)
