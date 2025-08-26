@@ -16,10 +16,10 @@ using SbslFileTransformer.Models.Enums;
 
 namespace SbslFileTransformer.Infrastructure.Jobs.Converters.Tanzania
 {
-    public class TZ_ATMJournalConverterjob : ConverterJobBase<TZ_ATMJournalConverterjob>, IHostedService
+    public class TzAtmJournalConverterJob : ConverterJobBase<TzAtmJournalConverterJob>, IHostedService
     {
-        protected override string JobName { get; set; } = nameof(TZ_ATMJournalConverterjob);
-        public TZ_ATMJournalConverterjob(ILogger<TZ_ATMJournalConverterjob> logger, IServiceScopeFactory serviceScopeFactory,
+        protected override string JobName { get; set; } = nameof(TzAtmJournalConverterJob);
+        public TzAtmJournalConverterJob(ILogger<TzAtmJournalConverterJob> logger, IServiceScopeFactory serviceScopeFactory,
            EmailSender emailSender)
         {
             this._logger = logger;
