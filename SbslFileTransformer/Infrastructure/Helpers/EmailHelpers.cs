@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Logging;
+
 using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Models;
 using SbslFileTransformer.Models.Enums;
@@ -12,14 +14,21 @@ namespace SbslFileTransformer.Infrastructure.Helpers
     public class EmailHelpers
     {
         public static async Task SendEmails(IEnumerable<Configuration> configurations, string header, string body,
-            IEnumerable<string> files, EmailSender emailSender)
+            IEnumerable<string> files, EmailSender emailSender, ILogger logger)
         {
-            var config = configurations.FirstOrDefault(c =>
-                c.ConfigType == ConfigurationType.Email && c.Key == "Recipients");
+            try
+            {
+                var config = configurations.FirstOrDefault(c =>
+                    c.ConfigType == ConfigurationType.Email && c.Key == "Recipients");
 
-            var recipients = config.Value.Split(new[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                var recipients = config.Value.Split(new[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-            await emailSender.SendMessage(recipients, header, body, false, files);
+                await emailSender.SendMessage(recipients, header, body, false, files);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to send Email!! Check email configurations and test that it works!");
+            }
         }
     }
 }

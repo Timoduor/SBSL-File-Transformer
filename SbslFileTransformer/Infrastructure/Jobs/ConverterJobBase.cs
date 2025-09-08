@@ -59,55 +59,63 @@ namespace SbslFileTransformer.Infrastructure.Jobs
             {
                 await _semaphore.WaitAsync();
 
-                if (!this.ValidateJobInputParams(out string missingMessage))
-                    throw new MissingFieldException($"{missingMessage}");
-
-                this._logger.LogInformation($"Running {JobName} job");
-
-                string prodFolder = string.Empty;
-                string sbFolder = string.Empty;
-
-                using (IServiceScope scope = this._serviceScopeFactory.CreateScope())
+                if (!ValidateJobInputParams(out var missingMessage))
                 {
-                    ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+                    throw new MissingFieldException($"{missingMessage}");
+                }
 
-                    List<Configuration> configurations = dbContext.Configurations.ToList();
+                _logger.LogInformation($"Running {JobName} job");
+
+                var prodFolder = string.Empty;
+                var sbFolder = string.Empty;
+
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+                    var configurations = dbContext.Configurations.ToList();
 
                     Entity = configurations
                         .FirstOrDefault(c => c.ConfigType == ConfigurationType.Setting && c.Key == "Entity").Value;
                     prodFolder = configurations.FirstOrDefault(c => c.Key == "ProductionFolder")?.Value;
                     sbFolder = configurations.FirstOrDefault(c => c.Key == "SandboxFolder")?.Value;
 
-                    EnumerationOptions options = new EnumerationOptions
+                    var options = new EnumerationOptions
                     { RecurseSubdirectories = true, MatchCasing = MatchCasing.CaseInsensitive };
 
-                    List<string> files = Directory.GetFiles(prodFolder, "*.*", options)
+                    var files = Directory.GetFiles(prodFolder, "*.*", options)
                                     .Where(f => FileExts.Any(e => Path.GetExtension(f).ToLower() == e.ToLower()))
                                     .ToList();
 
-                    foreach (string file in files)
+                    foreach (var file in files)
                     {
-                        if (!this.FilePathCheck(file))
+                        if (!FilePathCheck(file))
+                        {
                             return;
+                        }
+
                         if (FileMeetsConditions != null && !FileMeetsConditions(file))
+                        {
                             return;
-                        await this.ProcessFileAsync(file);
+                        }
+
+                        await ProcessFileAsync(file);
                     }
                 }
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, ex.Message);
+                _logger.LogError(ex, ex.Message);
             }
             finally
             {
-                _semaphore.Release();
+                _ = _semaphore.Release();
             }
         }
 
         private bool ValidateJobInputParams(out string missingMessage)
         {
-            bool isValid = true;
+            var isValid = true;
             missingMessage = string.Empty;
 
             if (string.IsNullOrEmpty(JobName))
@@ -132,7 +140,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         public virtual Task StopAsync(CancellationToken cancellationToken)
         {
             _semaphore.Dispose();
-            this._timer.Dispose();
+            _timer.Dispose();
             return Task.CompletedTask;
         }
 
@@ -140,10 +148,10 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             fileToProcess.Failed = true;
 
-            this._logger.LogError(ex, ex.Message + file.ToUpper());
+            _logger.LogError(ex, ex.Message + file.ToUpper());
 
             await EmailHelpers.SendEmails(configurations, string.IsNullOrEmpty(header) ? "Error in File Conversion" : header,
-                $"Problem with  file {file} \n\n {ex.Message}", new[] { file }, this._emailSender);
+                $"Problem with  file {file} \n\n {ex.Message}", new[] { file }, _emailSender, _logger);
         }
 
         protected void CompleteFileProcessing(List<SftpUploadedFile> updatedFiles, SftpUploadedFile fileToProcess, string converter, bool isBalanceExtraction = false)
@@ -161,7 +169,7 @@ namespace SbslFileTransformer.Infrastructure.Jobs
         {
             dbContext.UploadedFiles.UpdateRange(updatedFiles);
 
-            await dbContext.SaveChangesAsync();
+            _ = await dbContext.SaveChangesAsync();
         }
     }
 }

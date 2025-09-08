@@ -174,7 +174,7 @@ namespace SbslFileTransformer
 
             services.AddHostedService<OUTMT300ConverterJob>();
             services.AddHostedService<OUTMT320ConverterJob>();
-            services.AddHostedService<TZ_ATMJournalConverterjob>();
+            services.AddHostedService<TzAtmJournalConverterJob>();
             services.AddHostedService<ATMjournalConverterJob>();
             services.AddHostedService<Tz_Blotter_filesjob>();
             services.AddHostedService<RSwitchConverterJob>();
