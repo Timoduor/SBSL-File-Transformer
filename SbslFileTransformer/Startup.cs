@@ -38,6 +38,8 @@ using SbslFileTransformer.Infrastructure.Messaging;
 using SbslFileTransformer.Infrastructure.Sftp;
 using SbslFileTransformer.Infrastructure.SignalRLogging;
 using SbslFileTransformer.Models.Enums;
+using SbslFileTransformer.Converters.Rwanda;
+
 
 using Serilog;
 
@@ -136,6 +138,10 @@ namespace SbslFileTransformer
             services.AddHostedService<BnrSettlementConverterJob>();
 
             //SPRINT 2-2
+            // Rwanda Excel-to-CSV Converter
+            services.AddTransient<RWExcelToCSVConverter>();
+            services.AddHostedService<TransactionReportConverterJob>();
+
             services.AddHostedService<BillerUtilBalanceExtractorJob>();
             services.AddHostedService<BillerUtilCleanerJob>();
             services.AddHostedService<AirtelRwandaBalanceExtractorJob>();

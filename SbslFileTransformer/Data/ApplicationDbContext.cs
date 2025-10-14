@@ -26,3 +26,5 @@ namespace SbslFileTransformer.Data
         public DbSet<ReportConfiguration> ReportConfigurations { get; set; }
     }
 }
+
+
