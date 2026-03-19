@@ -39,6 +39,9 @@ using SbslFileTransformer.Infrastructure.Sftp;
 using SbslFileTransformer.Infrastructure.SignalRLogging;
 using SbslFileTransformer.Models.Enums;
 using SbslFileTransformer.Converters.Rwanda;
+using RWMulticurrency_Converter;
+
+
 
 
 using Serilog;
@@ -93,9 +96,6 @@ namespace SbslFileTransformer
             services.AddMemoryCache();
 
             services.AddRazorPages();
-#if DEBUG
-            services.AddRazorPages().AddRazorRuntimeCompilation();
-#endif
 
             services.AddHttpClient("BlackLine", c =>
             {
@@ -142,7 +142,11 @@ namespace SbslFileTransformer
             services.AddTransient<RWExcelToCSVConverter>();
             services.AddHostedService<TransactionReportConverterJob>();
 
-            services.AddHostedService<BillerUtilBalanceExtractorJob>();
+            // RW Multicurrency Converter
+            services.AddSingleton<RWMulticurrencyConverter>();
+            services.AddHostedService<RWMulticurrencyBackgroundJob>();
+
+
             services.AddHostedService<BillerUtilCleanerJob>();
             services.AddHostedService<AirtelRwandaBalanceExtractorJob>();
             services.AddHostedService<MTNRwandaBalanceExtractorJob>();

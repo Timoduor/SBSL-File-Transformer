@@ -213,9 +213,9 @@ namespace SbslFileTransformer.Infrastructure.Jobs.Others
             catch (Exception ex)
             {
                 this._logger.LogError(ex, ex.Message + " Error uploading file");
+                return false;
             }
 
-            return false;
         }
     }
 }
